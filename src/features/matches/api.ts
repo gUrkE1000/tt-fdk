@@ -198,6 +198,23 @@ export function useUnlockLineup() {
   });
 }
 
+/**
+ * Die Aufstellung per E-Mail an die Aufgestellten. Der Text kommt aus dem Dialog, weil er
+ * dort ohnehin steht und der Mannschaftsführer ihn vor dem Versand ändern können soll.
+ */
+export function useShareLineupByEmail() {
+  return useMutation({
+    mutationFn: async ({ matchId, text }: { matchId: string; text: string }): Promise<number> => {
+      const { data, error } = await supabase.rpc('rpc_share_lineup', {
+        p_match_id: matchId,
+        p_text: text,
+      });
+      if (error) throw new Error(error.message);
+      return (data as number | null) ?? 0;
+    },
+  });
+}
+
 export function useVolunteers(matchId: string | null) {
   return useQuery({
     queryKey: ['match-volunteers', matchId],

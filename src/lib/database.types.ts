@@ -1015,6 +1015,10 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      match_payload: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       recompute_lineup: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -1027,8 +1031,16 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      rpc_answer_action_token: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       rpc_delete_my_account: {
         Args: Record<string, never>;
+        Returns: unknown;
+      };
+      rpc_describe_action_token: {
+        Args: { [key: string]: unknown };
         Returns: unknown;
       };
       rpc_manage_player: {
@@ -1040,6 +1052,10 @@ export interface Database {
         Returns: unknown;
       };
       rpc_set_match_response: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_share_lineup: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };

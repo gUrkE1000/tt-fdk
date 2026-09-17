@@ -566,11 +566,20 @@ describe('ShareLineupDialog', () => {
     expect(await screen.findByText('Kopiert')).toBeInTheDocument();
   });
 
-  it('kündigt den E-Mail-Versand an, statt ihn vorzutäuschen', async () => {
-    renderDialog();
-    const button = await screen.findByRole('button', {
-      name: /Per E-Mail an die Aufstellung senden/,
-    });
-    expect(button).toBeDisabled();
+  it('verschickt den Text an die Aufgestellten', async () => {
+    renderDialog(true);
+    await screen.findByLabelText('Aufstellungstext');
+
+    await userEvent.click(
+      screen.getByRole('button', { name: /Per E-Mail an die Aufstellung senden/ }),
+    );
+
+    await waitFor(() =>
+      expect(state.rpcCalls.some((call) => call.name === 'rpc_share_lineup')).toBe(true),
+    );
+
+    const call = state.rpcCalls.find((entry) => entry.name === 'rpc_share_lineup')!;
+    expect((call.args as { p_match_id: string; p_text: string }).p_match_id).toBe('m-1');
+    expect((call.args as { p_text: string }).p_text).toContain('TTC Nachbarstadt');
   });
 });

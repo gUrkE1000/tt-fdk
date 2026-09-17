@@ -646,7 +646,9 @@ Vom ausführenden Agenten gepflegt.
 | 4.1 Schema Benachrichtigungen | erledigt | 17.09.2026 | 19 Vorlagen (15 in der Matrix, 4 Direkt-E-Mails); `v_my_notification_preferences` ergänzt |
 | 4.2 E-Mail-Versand | erledigt | 17.09.2026 | Zustandslogik als reine Funktion; Push wird bis 8.3 als „übersprungen" markiert |
 | 4.3 Einstellungs-Matrix | erledigt | 17.09.2026 | Tabelle ab sm, Liste darunter |
-| 4.4 – 4.6 Auslöser, Erinnerungen, Antwortlinks | offen | | |
+| 4.4 Ereignisgesteuerte Benachrichtigungen | erledigt | 17.09.2026 | `rpc_share_lineup` ergänzt; Spiele in der Vergangenheit lösen nichts aus |
+| 4.5 Erinnerungen | offen | | |
+| 4.6 Antwort-Links ohne Login | erledigt | 17.09.2026 | `rpc_describe_action_token` ergänzt, damit die Seite fragen kann statt blind zu handeln |
 | 5.1 – 5.5 Ersatzkette und Verlegung | offen | | |
 | 6.1 – 6.7 Training | offen | | |
 | 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
@@ -715,6 +717,12 @@ Vom ausführenden Agenten gepflegt.
     `groupParticipations` im Browser berechnen dasselbe. Die Oberfläche braucht die Einteilung
     zusammen mit Namen und Reihenfolge; ein zweiter Rundtrip dafür wäre teurer als die
     doppelte Regel. Beide sind getestet, die Datenbank bleibt maßgeblich.
+21. **`rpc_share_lineup` und `rpc_describe_action_token` ergänzt (4.4/4.6).** Der Plan nennt
+    den Knopf „Per E-Mail an Aufstellung senden" und die Seite `/r/:token`, aber keine
+    Funktionen dafür. Beide Male wäre die Alternative gewesen, die Regel in die Oberfläche zu
+    legen — beim Versand die Empfängerauswahl, beim Token das Verbrauchen vor dem Anzeigen.
+22. **Kein Auslöser für Spiele in der Vergangenheit.** Beim ersten Import einer laufenden
+    Saison kämen sonst dutzende Einladungen zu Spielen, die längst gespielt sind.
 
 **Blocker:** —
 

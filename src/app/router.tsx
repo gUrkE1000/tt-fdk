@@ -4,6 +4,7 @@ import Placeholder from './Placeholder';
 import DesignPlayground from './DesignPlayground';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
+import ActionPage from '../features/auth/ActionPage';
 import { RequireAuth, RequireRole } from '../features/auth/guards';
 import ProfilePage from '../features/profile/ProfilePage';
 import MembersPage from '../features/members/MembersPage';
@@ -40,7 +41,7 @@ export const router = createBrowserRouter([
   {
     // Antwort-Link aus einer Benachrichtigung: speichert ohne Anmeldung.
     path: '/r/:token',
-    element: <Placeholder title="Rückmeldung" task="4.6" />,
+    element: <ActionPage />,
   },
 
   // --------------------------------------------------- angemeldet

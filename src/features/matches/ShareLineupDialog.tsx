@@ -5,7 +5,7 @@ import { buildShareText } from '../../lib/lineupText';
 import { formatVenueAddress } from '../venues/schemas';
 import type { Venue } from '../venues/api';
 import type { TeamWithRoster } from '../teams/api';
-import type { MatchRow, Participation, Volunteer } from './api';
+import { useShareLineupByEmail, type MatchRow, type Participation, type Volunteer } from './api';
 
 export interface ShareLineupDialogProps {
   open: boolean;
@@ -36,6 +36,7 @@ export default function ShareLineupDialog({
   nameOf,
 }: ShareLineupDialogProps) {
   const { toast } = useToast();
+  const shareByEmail = useShareLineupByEmail();
 
   const text = useMemo(() => {
     if (!match) return '';
@@ -65,6 +66,21 @@ export default function ShareLineupDialog({
       note: match.comment || (match.is_home ? team?.comment_home_games : team?.comment_away_games),
     });
   }, [match, team, venue, participations, volunteers, nameOf]);
+
+  async function onSendEmail() {
+    if (!match) return;
+    try {
+      const count = await shareByEmail.mutateAsync({ matchId: match.id, text });
+      toast(
+        count === 1
+          ? 'An ein Mitglied verschickt'
+          : `An ${count} Mitglieder verschickt`,
+        'success',
+      );
+    } catch (error) {
+      toast(error instanceof Error ? error.message : 'Versand fehlgeschlagen', 'error');
+    }
+  }
 
   async function onCopy() {
     try {
@@ -99,7 +115,7 @@ export default function ShareLineupDialog({
           {text}
         </pre>
 
-        <Button disabled title="Der E-Mail-Versand kommt mit den Benachrichtigungen (Aufgabe 4.4).">
+        <Button loading={shareByEmail.isPending} onClick={() => void onSendEmail()}>
           <Mail className="h-4 w-4" aria-hidden="true" />
           Per E-Mail an die Aufstellung senden
         </Button>

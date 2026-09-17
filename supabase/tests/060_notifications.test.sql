@@ -3,6 +3,11 @@
 BEGIN;
 SELECT plan(23);
 
+-- Die Seed-Daten legen Spieltermine an, und seit Aufgabe 4.4 erzeugt das
+-- Benachrichtigungen. Für diese Datei interessiert nur, was hier entsteht.
+DELETE FROM public.notifications;
+DELETE FROM public.action_tokens;
+
 -- ============================================================ Vorlagen füllen
 SELECT is(
     public.render_template('Hallo {{first_name}}, {{team}} spielt.',
