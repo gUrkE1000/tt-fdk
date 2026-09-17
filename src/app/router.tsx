@@ -1,12 +1,23 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import AppShell from './layout/AppShell';
 import Placeholder from './Placeholder';
+import DesignPlayground from './DesignPlayground';
+
+/**
+ * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
+ * ausgelieferten Bundle landet.
+ */
+const devRoutes: RouteObject[] = import.meta.env.DEV
+  ? [{ path: '/_design', element: <DesignPlayground /> }]
+  : [];
 
 /**
  * Routen nach Zielbild 2. Jede Seite bekommt zunächst einen Platzhalter mit der
  * Aufgabennummer, die sie füllt; die Struktur steht damit von Anfang an vollständig.
  */
 export const router = createBrowserRouter([
+  ...devRoutes,
+
   // --------------------------------------------------- ohne Anmeldung
   {
     path: '/login',
