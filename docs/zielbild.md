@@ -52,14 +52,19 @@ Mein Profil · Magic-Link-Login · PWA mit Push-Glocke · Einladung per E-Mail/L
 
 Schlüsselverwaltung mit Übergabe · Nachrichten am Termin (Spiel/Training/Vereinstermin) · Vereinsneuigkeiten ·
 Dateien · Excel-Import/-Update der Mitglieder · Ämter (Vereinsrollen) mit Kontaktdaten-Seite · Automatische
-Trainingszusagen · NuScore-Code/PIN am Spiel (manuell; PDF-Import optional) · Arbeitszeiten · Statistik
+Trainingszusagen · NuScore-Code/PIN am Spiel (manuell; PDF-Import optional) · Statistik
 Trainingsbeteiligung · „Anmelden als" (Eltern/Kind) · QTTR-Pflege im Profil.
 
 **Stufe C — Nicht (bewusst).**
 
-Chat (Verein/Mannschaft/persönlich) — WhatsApp bleibt · Inventar · Bekleidung · Trainer-Abrechnung ·
-Sponsor-Logo · Ligenkatalog mit 1.657 Einträgen (stattdessen Freitext) · Braunschweiger System (nur Flag,
-keine Logik) · Vereinswechsel · Mehrsprachigkeit (nur Deutsch) · Tischbelegung (gibt es im TT-Planer auch nicht).
+Chat als eigener Kanal (Verein/Mannschaft/persönlich) — WhatsApp bleibt; der Kommentar-Thread am
+einzelnen Termin ist davon ausgenommen und bleibt in Stufe B · **Arbeitszeiten** · Trainer-Abrechnung ·
+Inventar · Bekleidung · Sponsor-Logo · Ligenkatalog mit 1.657 Einträgen (stattdessen Freitext) ·
+Braunschweiger System (nur Flag, keine Logik) · Vereinswechsel · Mehrsprachigkeit (nur Deutsch) ·
+Tischbelegung (gibt es im TT-Planer auch nicht).
+
+Entscheidung des Vereins vom 17.09.2026: Arbeitszeiten und Chat werden nicht gebaut. Der Thread am
+Termin („Nachrichten (3)" auf der Karte) bleibt, weil er Rückfragen am konkreten Spiel bündelt.
 
 ### 1.4 Wo wir bewusst vom TT-Planer abweichen
 
@@ -68,7 +73,8 @@ keine Logik) · Vereinswechsel · Mehrsprachigkeit (nur Deutsch) · Tischbelegun
 | Frist in der Ersatzkette | kein sichtbares Feld | `substitute_timeout_hours` je Mannschaft (Default 24), sichtbar am Request | Transparenz; Bestandsaufnahme nennt es als Schwäche |
 | Kette leergelaufen | kein Signal | Benachrichtigung `substitute_chain_exhausted` an Mannschaftsführer | dito |
 | Rückmeldung mit Bemerkung | nicht gefunden | Bemerkungsfeld an der Rückmeldung (aus Repo-Stand übernommen) | „komme erst 19:30" ist Alltag |
-| Chat | vorhanden | nicht | Doppelt zu WhatsApp, hoher Aufwand |
+| Chat | eigener Kanal (Verein/Mannschaft/persönlich) | nur Kommentar-Thread am Termin | Ein zweiter Messenger neben WhatsApp wird nicht genutzt; Rückfragen gehören ans konkrete Spiel |
+| Arbeitszeiten / Trainer-Abrechnung | vorhanden | nicht | Wird im Verein nicht gebraucht |
 | Ligen | Katalog | Freitext je Mannschaft | Katalog ist Pflegeaufwand ohne Funktion |
 | Bundesland | nicht sichtbar | explizite Vereinseinstellung | Feiertage/Ferien brauchen es eindeutig |
 | Aufstellung teilen | Text ohne Ankunftszeit | Text inkl. Ankunftszeit (Heim 60 min, Auswärts 30 min vorher, je Mannschaft einstellbar) und Parallelspiel-Hinweis | aus Repo-Stand, bewährt |
@@ -76,7 +82,7 @@ keine Logik) · Vereinswechsel · Mehrsprachigkeit (nur Deutsch) · Tischbelegun
 
 ### 1.5 Aufwandsrahmen (ehrlich)
 
-Stufe A ≈ 350–450 Entwicklungsstunden, Stufe B ≈ 80–120 h. Das ist kein Wochenendprojekt; der Vergleich mit
+Stufe A ≈ 350–450 Entwicklungsstunden, Stufe B ≈ 70–105 h (ohne Arbeitszeiten). Das ist kein Wochenendprojekt; der Vergleich mit
 180 €/Jahr Abo steht in [recherche-tt-planer.md](recherche-tt-planer.md). Der Plan ist deshalb in **Releases**
 geschnitten, die jeweils für sich nutzbar sind (siehe Umsetzungsplan Teil J), damit der Verein früh
 Nutzen sieht und jederzeit anhalten kann.
@@ -91,7 +97,6 @@ Die Routen spiegeln den TT-Planer, damit Mitglieder, die ihn kennen, nichts neu 
 /                    Übersicht (persönliches Dashboard)
 /my-games            Meine Spiele
 /my-dates            Meine Termine (+ Kalender abonnieren)
-/work-logs           Arbeitszeiten                                   [B]
 — Verein —
 /my-club             Mein Verein: Neuigkeiten · Dateien · Mitglieder · Trainings · Vereinstermine · Mannschaften · Spiele · Rollen & Kontaktdaten
 /statistics          Statistiken                                     [B]
@@ -140,7 +145,7 @@ profiles
   auth_linked_at, last_login_at, deleted_at (Soft-Delete für Selbstlöschung; Hard-Delete per Job nach 30 Tagen)
 member_rankings(profile_id, ranking_type enum(...15 Werte...), team_number int, position_number int)  PK(profile_id, ranking_type)
 groups(id, name UNIQUE)                            group_members(group_id, profile_id) PK
-club_roles(id, name, description, activities text[], can_manage_inventory bool, can_manage_clothing bool)   -- Ämter [B]
+club_roles(id, name, description, activities text[])   -- Ämter (reine Darstellung) [B]
 club_role_members(club_role_id, profile_id) PK
 venues(id, name, address, postal_code, city, max_games int NULL, allow_training_at_max_games bool, training_only bool, active bool)
 keys(id, name, venue_id NULL, responsible_id, holder_id NULL, no_forwarding bool)           [B]
@@ -240,7 +245,6 @@ absences(id, profile_id, start_date, end_date, comment_private)
 news(id, title, body_html, published_at, author_id)                                  [B]
 files(id, name, storage_path, size, uploaded_by, visibility enum(all, admins))       [B]
 object_messages(id, target_type enum(match, training_session, event), target_id, author_id, body, created_at)  [B]
-work_logs(id, profile_id, club_role_id, log_date, hours numeric(5,2), comment)       [B]
 ```
 
 ### 3.6 Benachrichtigungen
@@ -395,7 +399,6 @@ Sechs Benutzerrollen wie im TT-Planer. Was „Organisator" darf, ist dort undoku
 | Vereinstermine, Umfragen, Neuigkeiten, Dateien anlegen | ja | nein | nein | **ja** | nein | nein |
 | Mitglieder anlegen/einladen/bearbeiten/freischalten, Rollen, Gruppen, Ämter, Orte, Vereinsdaten | ja | nein | nein | nein | nein | nein |
 | Abwesenheiten anderer bearbeiten | ja | nein | nein | nein | nein | nein |
-| Arbeitszeiten für andere erfassen [B] | ja | nein | nein | ja | nein | nein |
 | Sync-Läufe, Benachrichtigungsprotokoll, Einstellungen | ja | nein | nein | nein | nein | nein |
 
 „Eigene Teams" = `team_leaders`, „eigene Trainings" = `training_trainers`. Guest sieht nur Trainings mit

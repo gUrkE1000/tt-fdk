@@ -22,8 +22,11 @@ Wenn etwas offenbleibt: stoppen, in Teil K unter „Fragen" eintragen, nicht rat
 5. Verifikation exakt ausführen. Grundprüfungen immer:
    ```bash
    npx tsc --noEmit && npm test && npm run build
-   npx supabase db reset && npx supabase test db     # sobald Migrationen/Policies betroffen sind
+   npm run db:reset && npm run db:test               # sobald Migrationen/Policies betroffen sind
    ```
+   `db:reset`/`db:test` laufen gegen eine **native PostgreSQL-16-Instanz mit Supabase-Kompatibilitätsschicht**
+   (`scripts/local-db.sh`, Aufgabe 0.2) — in der Entwicklungsumgebung steht kein Docker und damit kein
+   `supabase start` zur Verfügung.
 6. Ein Commit pro Aufgabe mit dem vorgegebenen Titel; Body 2–5 Zeilen (was, wie verifiziert).
 7. Teil K (Status) aktualisieren: Aufgabe, Datum, Commit-Hash.
 
@@ -46,7 +49,7 @@ Wenn etwas offenbleibt: stoppen, in Teil K unter „Fragen" eintragen, nicht rat
 ### A.3 Definition of Done (jede Aufgabe)
 
 - [ ] Alle Punkte unter „Endzustand" erfüllt und einzeln geprüft.
-- [ ] Grundprüfungen grün; bei DB-Änderungen zusätzlich `supabase db reset` + `supabase test db` grün.
+- [ ] Grundprüfungen grün; bei DB-Änderungen zusätzlich `npm run db:reset` + `npm run db:test` grün.
 - [ ] Tests ergänzt (Logik, Policies, Route-Smoke), keine bestehenden gelöscht oder übersprungen.
 - [ ] Zielbild nicht verletzt (Namen, Enums, Rechte). Abweichung = Frage in Teil K, nicht Umsetzung.
 - [ ] Commit mit vorgegebenem Titel; Teil K aktualisiert.
@@ -69,16 +72,55 @@ Wenn etwas offenbleibt: stoppen, in Teil K unter „Fragen" eintragen, nicht rat
 **Vorgehen:** `git clone https://github.com/gUrkE1000/tt-fdk.git && cd tt-fdk && git checkout claude/tt-planer-alternative-bc8mku && npm install && npm test && npm run build`
 **Commit:** keiner.
 
-### Aufgabe 0.2 — Supabase CLI und lokale Instanz
+### Aufgabe 0.2 — Lokale Test-Datenbank (native PostgreSQL)
 
-**Dateien:** neu `supabase/config.toml` (generiert), `.gitignore` (+ `supabase/.branches`, `supabase/.temp`), `package.json` (Dev-Dependency `supabase`).
-**Endzustand:** `npx supabase init` ausgeführt, `npx supabase start` läuft, `npx supabase status` zeigt API URL, anon key, service_role key. `npx supabase db reset` läuft durch (mit der noch vorhandenen alten Migration; scheitert sie am `COMMIT;`, ist das für diese Aufgabe egal — sie wird in 1.3 ersetzt; dann `supabase/migrations/20260808000000_init.sql` temporär nach `docs/legacy/` verschieben und Reset wiederholen).
-**Verifikation:** `npx supabase status` ohne Fehler.
-**Commit:** `Supabase CLI und lokale Instanz einrichten`
+In der Entwicklungsumgebung gibt es **keinen Docker-Daemon**, also kein `supabase start`. Stattdessen
+läuft eine native PostgreSQL-16-Instanz mit einer Supabase-Kompatibilitätsschicht. Das deckt alles ab,
+was wir testen müssen: Migrationen, RLS-Policies, Trigger, RPCs — inklusive `auth.uid()` und der Rollen
+`anon` / `authenticated` / `service_role`.
 
-### Aufgabe 0.3 — Cloud-Projekt (Mensch)
+**Dateien:** neu `scripts/local-db.sh`, `scripts/supabase-compat.sql`, `supabase/seed.sql`; `package.json` (Skripte), `.gitignore`, `docs/entwicklung.md`.
 
-**Endzustand:** Supabase-Projekt in EU-Region angelegt; **noch keine Migration eingespielt** (die Baseline v2 kommt in 1.3). Resend-Konto angelegt, Absenderdomain oder -adresse verifiziert, API-Key notiert. Werte notiert: Project URL, anon key, service_role key, Project Ref, Resend API Key. Unter Authentication → SMTP Settings Resend als Custom SMTP eingetragen (Host `smtp.resend.com`, User `resend`, Passwort = API-Key).
+**Endzustand — `scripts/supabase-compat.sql`** bildet nach, was Supabase mitbringt und was unsere
+Migrationen voraussetzen:
+- Extensions `pgcrypto`, `pgtap`;
+- Rollen `anon`, `authenticated`, `service_role`, `supabase_auth_admin` (NOLOGIN) mit `GRANT USAGE ON SCHEMA public`;
+- Schema `auth` mit `auth.users(id uuid pk, email text, raw_user_meta_data jsonb, created_at)`;
+- `auth.uid()`, `auth.role()`, `auth.email()` — lesen `current_setting('request.jwt.claims', true)::json`;
+- Hilfsfunktionen `tests.login_as(uuid)` / `tests.logout()` zum Rollenwechsel in pgTAP-Tests.
+
+**Endzustand — `scripts/local-db.sh`** mit den Unterkommandos:
+- `start` — Cluster starten (`pg_ctlcluster 16 main start`), idempotent;
+- `reset` — Datenbank neu anlegen, `supabase-compat.sql` einspielen, danach **alle** Dateien aus
+  `supabase/migrations/` in alphabetischer Reihenfolge, danach `supabase/seed.sql`; bricht beim ersten
+  Fehler ab (`psql -v ON_ERROR_STOP=1`);
+- `test` — `pg_prove` über `supabase/tests/*.sql`;
+- `psql` — interaktive Konsole.
+
+**Endzustand — `package.json`:** `db:start`, `db:reset`, `db:test`, `db:psql` rufen das Skript.
+`gen:types` erzeugt die Typen direkt aus der Datenbank-URL (die Supabase-CLI kann das ohne laufende
+Supabase-Instanz).
+
+**Endzustand — `docs/entwicklung.md`:** beschreibt beide Wege — native Instanz (diese Umgebung) und
+`supabase start` (auf einem Rechner mit Docker). Beide nutzen dieselben Migrationen und Tests.
+
+**Verifikation:** `npm run db:reset` legt die Datenbank an und meldet Erfolg; `npm run db:test` läuft
+(zu Beginn ohne Testdateien). Nach 1.3 sind beide mit Inhalt grün.
+**Commit:** `Lokale Test-Datenbank mit Supabase-Kompatibilitaetsschicht`
+
+### Aufgabe 0.3 — Cloud-Projekt (Mensch, später)
+
+**Status 17.09.2026: zurückgestellt.** Es gibt noch kein Supabase-Projekt. Die Entwicklung bis
+einschließlich Phase 3 läuft gegen die lokale Datenbank aus 0.2. Der ausführende Agent meldet sich,
+sobald ein Projekt gebraucht wird — spätestens vor Aufgabe 4.2 (E-Mail-Versand), weil dort erstmals
+ein echter Dienst (Resend) und ein erreichbarer Cron nötig sind.
+
+**Endzustand, wenn es soweit ist:** Supabase-Projekt in EU-Region (Frankfurt), Baseline und alle
+Folgemigrationen per `supabase db push` eingespielt. Resend-Konto mit verifizierter Absenderadresse,
+in Supabase unter Authentication → SMTP Settings als Custom SMTP eingetragen (Host `smtp.resend.com`,
+User `resend`, Passwort = API-Key). GitHub-Secrets: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
+`VITE_APP_URL`, `VITE_VAPID_PUBLIC_KEY`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`,
+`SUPABASE_DB_PASSWORD`. Vollständige Anleitung entsteht in Aufgabe 8.4 als `docs/einrichtung.md`.
 **Commit:** keiner.
 
 ### Aufgabe 0.4 — Umgebungsvariablen
@@ -147,7 +189,7 @@ sieht die Navigation und eine leere Mitgliederliste.
 
 **Endzustand — pgTAP:** Helfer-Datei simuliert Nutzer per `SET LOCAL ROLE authenticated; SELECT set_config('request.jwt.claims', '{"sub":"<uuid>"}', true);`. Fälle: anon sieht 0 Profile; member sieht alle aktiven; guest sieht nur sich + Admin/Trainer; member kann `first_name` ändern, `role` nicht (throws); admin kann `role` ändern; member kann keinen Ort anlegen; `v_members_directory` liefert `email` NULL, wenn `contact_visible=false` und Aufrufer kein Admin.
 
-**Vorgehen:** Migration schreiben → `npx supabase db reset` → pgTAP → Cloud: im SQL-Editor die Baseline ausführen (einmalig; ab jetzt Cloud und lokal identisch).
+**Vorgehen:** Migration schreiben → `npm run db:reset` → `npm run db:test` → `npm run gen:types`. (Cloud-Projekt existiert noch nicht, siehe 0.3.)
 **Commit:** `Schema-Baseline v2: Verein, Mitglieder, Gruppen, Orte, Rechte`
 
 ### Aufgabe 1.4 — Authentifizierung
@@ -203,14 +245,14 @@ sieht die Navigation und eine leere Mitgliederliste.
 ### Aufgabe 1.8 — CI/CD
 
 **Dateien:** `.github/workflows/ci.yml` (neu, ersetzt `run-tests.yml` + `code-quality.yml`), `deploy.yml` (anpassen), `deploy-edge-functions.yml` (anpassen), löschen `sync-calendars.yml`, `auto-version-badges.yml`; `README.md`.
-**Endzustand:** `ci.yml` bei PR und Push auf `main`: `npm ci`, `npx tsc --noEmit`, `npm test`, `npm run build`, `supabase start` + `supabase db reset` + `supabase test db` (Action `supabase/setup-cli`), Typen-Aktualitätsprüfung (`npm run gen:types && git diff --exit-code src/lib/database.types.ts`). `deploy.yml`: Pages-Deploy mit `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_APP_URL`, `VITE_VAPID_PUBLIC_KEY`. `deploy-edge-functions.yml`: deployt **alle** Ordner unter `supabase/functions/` außer `_shared` bei Änderung, plus `supabase db push` für Migrationen (Secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SUPABASE_DB_PASSWORD`).
-**Verifikation:** Workflow-Lauf auf dem Branch grün (temporär `on: push: branches: [claude/**]` erlaubt, nach Prüfung wieder auf `main`).
+**Endzustand:** `ci.yml` bei PR und Push auf `main`. Job `app`: `npm ci`, `npx tsc --noEmit`, `npm test`, `npm run build`. Job `database`: Service-Container `postgres:16`, pgTAP im Runner nachinstalliert, dann `scripts/local-db.sh reset` und `scripts/local-db.sh test` gegen den Container, plus Typen-Aktualitätsprüfung (`npm run gen:types && git diff --exit-code src/lib/database.types.ts`). `deploy.yml`: Pages-Deploy mit `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_APP_URL`, `VITE_VAPID_PUBLIC_KEY`. `deploy-edge-functions.yml`: deployt **alle** Ordner unter `supabase/functions/` außer `_shared` bei Änderung, plus `supabase db push` für Migrationen (Secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SUPABASE_DB_PASSWORD`).
+**Verifikation:** Workflow-Lauf auf `main` grün. Der Verein arbeitet direkt auf `main` (Entscheidung 17.09.2026); Feature-Branches bleiben möglich und lösen denselben Workflow per PR aus.
 **Commit:** `CI mit Typecheck, Tests, pgTAP und Deploy`
 
 ### Aufgabe 1.9 — Baseline einfrieren, README
 
 **Dateien:** `README.md`, `docs/umsetzungsplan.md` (Teil K).
-**Endzustand:** README beschreibt Stack, Setup (0.1–0.4), Skripte, Ordnerstruktur, Link auf Zielbild und Plan. Absatz „Schema-Baseline eingefroren ab <Commit>". Cloud-Projekt hat exakt die Baseline (Prüfung: `supabase db diff --linked` leer).
+**Endzustand:** README beschreibt Stack, Setup (0.1–0.4), Skripte, Ordnerstruktur, Link auf Zielbild und Plan. Absatz „Schema-Baseline eingefroren ab <Commit>".
 **Commit:** `Baseline v2 eingefroren`
 
 ---
@@ -527,9 +569,9 @@ Jede Aufgabe eigenständig; Reihenfolge frei nach Nutzen. Kurzform, gleiche Ansp
 | 9.3 | Vereinsneuigkeiten | `news`; `/club` Tab Neuigkeiten (anlegen, organizer/admin), `/my-club` Tab Neuigkeiten; keine Benachrichtigung (wie TT-Planer) | `Vereinsneuigkeiten` |
 | 9.4 | Dateien | Supabase Storage Bucket `club-files` (privat), Tabelle `files`, Upload/Download in `/club` und `/my-club`, Anhänge an Vereinsterminen | `Dateien` |
 | 9.5 | Excel-Import/-Update | `xlsx`-Paket; Vorlage herunterladen, Import (Spalten wie Bestandsaufnahme G), Update (Export → Bearbeiten → Upload); neue Mitglieder erhalten Einladung | `Excel-Import und -Update der Mitglieder` |
-| 9.6 | Ämter (Vereinsrollen) | `club_roles`, `club_role_members`; `/club` Tab Ämter mit Feldern aus Bestandsaufnahme G (ohne Inventar/Bekleidung-Checkboxen); Zuweisung im Ämter-Dialog; `/my-club` Rollen & Kontaktdaten zeigt Ämter | `Aemter` |
+| 9.6 | Ämter (Vereinsrollen) | `club_roles`, `club_role_members`; `/club` Tab Ämter mit Name, Beschreibung, Tätigkeiten (ohne Inventar-/Bekleidung-Checkboxen — beide Module sind gestrichen); Zuweisung im Ämter-Dialog; `/my-club` Rollen & Kontaktdaten zeigt Ämter | `Aemter` |
 | 9.7 | NuScore Codes & PINs Import | PDF-Parser (`pdfjs-dist`) für die click-TT-PDFs; Dialog Einzeln/Mehrfach wie Bestandsaufnahme D; Code/PIN auf der Karte für Aufstellung sichtbar | `NuScore Codes und PINs` |
-| 9.8 | Arbeitszeiten | `work_logs`; `/work-logs` mit Kacheln, Monatsexport (CSV), Dialog wie Bestandsaufnahme H | `Arbeitszeiten` |
+| ~~9.8~~ | ~~Arbeitszeiten~~ | **Gestrichen** (Vereinsentscheidung 17.09.2026). Nummer bleibt vergeben, damit Verweise stabil bleiben. | — |
 | 9.9 | Statistik Trainingsbeteiligung | `/statistics`: Widget je Training (Zusagen/Absagen/Abwesenheiten, Zeitraum, CSV) + Top 10 (12 Monate), Sichtbarkeit nach `statistics_visibility` | `Trainingsstatistik` |
 | 9.10 | Anmelden als (Eltern) | `login_delegations`; Profilmenü „Anmelden als …"; Sitzung wechselt Profil-Kontext (RPC-seitig `acting_profile_id` im JWT-Claim via Custom Claims Hook) | `Anmelden als` |
 | 9.11 | Dark Mode | `dark:`-Varianten der Tokens, Umschalter im Profil | `Dark Mode` |
