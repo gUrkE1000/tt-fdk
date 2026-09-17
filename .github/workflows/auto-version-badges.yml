@@ -1,0 +1,21 @@
+name: Auto Version and Badges
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  version-and-badges:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Auto Version and Badges
+        uses: dgaida/auto-version-action@main  # You can also use a specific tag like @v0.1.4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-version: true
+          create-badge: true
