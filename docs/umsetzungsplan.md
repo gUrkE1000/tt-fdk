@@ -635,7 +635,8 @@ Vom ausführenden Agenten gepflegt.
 | 2.4 Gruppen | erledigt | 17.09.2026 | Tab „Gruppen" mit Anlegen, Umbenennen, Zuweisen |
 | 2.5 Vereinsdaten und Orte | erledigt | 17.09.2026 | Bundesland als eigenes Feld (16 Länder), Orte mit Stilllegen statt Löschen |
 | 2.6 Mein Verein | erledigt | 17.09.2026 | Verzeichnis aus `v_members_directory`, Ansprechpartner, Vereinstext |
-| 3.1 – 3.8 Mannschaften und Spiele | offen | | |
+| 3.1 Schema Mannschaften und Spiele | erledigt | 17.09.2026 | `v_match_lineup_status` vorgezogen; `rpc_unlock_lineup` ergänzt |
+| 3.2 – 3.8 Mannschaften und Spiele | offen | | |
 | 4.1 – 4.6 Benachrichtigungen | offen | | |
 | 5.1 – 5.5 Ersatzkette und Verlegung | offen | | |
 | 6.1 – 6.7 Training | offen | | |
@@ -679,6 +680,15 @@ Vom ausführenden Agenten gepflegt.
 12. **Orte werden stillgelegt, nicht gelöscht (2.5).** An einem Ort hängen vergangene Spiele
     und Trainings. Ein inaktiver Ort verschwindet aus den Auswahllisten, bleibt aber an den
     Terminen sichtbar.
+13. **`v_match_lineup_status` schon in 3.1 statt erst in 3.6.** Die View gehört zum Schema und
+    kostet dort drei Zeilen; in 3.6 hätte sie eine eigene Migration gebraucht. Ihre pgTAP-Tests
+    laufen damit von Anfang an mit.
+14. **`rpc_unlock_lineup` ergänzt.** Der Plan nennt in 3.6 den Button „Automatik wiederherstellen",
+    aber keine Funktion dafür. Das Zurücksetzen von `lineup_locked` per UPDATE zu erlauben hätte
+    bedeutet, dass die Oberfläche eine Regel kennt, die in der Datenbank steht.
+15. **Reihenfolge der Ersatzspieler in der Aufstellung.** Beim Testen fiel auf, dass ein
+    Vereinsrang die Ersatzreihenfolge aushebeln kann. `recompute_lineup` sortiert Stammspieler
+    jetzt nach Vereinsrang, Ersatzspieler nach Ersatzrang — getrennt, nicht gemischt.
 
 **Blocker:** —
 

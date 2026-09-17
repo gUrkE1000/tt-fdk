@@ -84,6 +84,74 @@ INSERT INTO public.group_members (group_id, profile_id) VALUES
     ('33333333-0000-0000-0000-000000000002', '22222222-1111-0000-0000-000000000011')
 ON CONFLICT DO NOTHING;
 
+-- ----------------------------------------------------------------- Mannschaften
+-- Drei 4er-Mannschaften. Meik führt die erste, Mara die zweite, Mike die dritte.
+INSERT INTO public.teams (id, name, size, ranking_type, ranking, leagues, sort_order) VALUES
+    ('44444444-0000-0000-0000-000000000001', '1. Herren', 4, 'men', 1, ARRAY['Bezirksliga'],    1),
+    ('44444444-0000-0000-0000-000000000002', '2. Herren', 4, 'men', 2, ARRAY['Kreisliga'],      2),
+    ('44444444-0000-0000-0000-000000000003', '3. Herren', 4, 'men', 3, ARRAY['Kreisklasse A'],  3)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.team_leaders (team_id, profile_id) VALUES
+    ('44444444-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000005'),
+    ('44444444-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000006'),
+    ('44444444-0000-0000-0000-000000000003', '22222222-0000-0000-0000-000000000007')
+ON CONFLICT DO NOTHING;
+
+-- Stammspieler in der Reihenfolge ihrer Ränge, dazu je zwei Ersatzspieler.
+INSERT INTO public.team_members (team_id, profile_id, kind, rank) VALUES
+    ('44444444-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000003', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000005', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000001', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000006', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000004', 'substitute', 1),
+    ('44444444-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000002', 'substitute', 2),
+
+    ('44444444-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000004', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000002', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000007', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000002', '22222222-1111-0000-0000-000000000001', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000002', '22222222-1111-0000-0000-000000000002', 'substitute', 1),
+
+    ('44444444-0000-0000-0000-000000000003', '22222222-1111-0000-0000-000000000002', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000003', '22222222-1111-0000-0000-000000000003', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000003', '22222222-1111-0000-0000-000000000004', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000003', '22222222-1111-0000-0000-000000000005', 'regular',    NULL),
+    ('44444444-0000-0000-0000-000000000003', '22222222-1111-0000-0000-000000000006', 'substitute', 1)
+ON CONFLICT DO NOTHING;
+
+-- ----------------------------------------------------------------- Spieltermine
+-- Zwei kommende Heimspiele, ein Auswärtsspiel und ein vergangenes, damit sich beide
+-- Reiter der Terminliste füllen. Die Zeiten sind relativ zu heute, damit der Seed
+-- nicht mit der Zeit veraltet.
+INSERT INTO public.matches
+    (id, team_id, source, summary, opponent, league, is_home, venue_id,
+     dtstart_external, dtend_external, matchday)
+VALUES
+    ('55555555-0000-0000-0000-000000000001', '44444444-0000-0000-0000-000000000001', 'manual',
+     '1. Herren - TTC Nachbarstadt', 'TTC Nachbarstadt', 'Bezirksliga', true,
+     '11111111-0000-0000-0000-000000000001',
+     date_trunc('day', NOW()) + INTERVAL '7 days 19 hours',
+     date_trunc('day', NOW()) + INTERVAL '7 days 23 hours', 5),
+
+    ('55555555-0000-0000-0000-000000000002', '44444444-0000-0000-0000-000000000001', 'manual',
+     'TSV Beispieldorf - 1. Herren', 'TSV Beispieldorf', 'Bezirksliga', false, NULL,
+     date_trunc('day', NOW()) + INTERVAL '14 days 19 hours 30 minutes',
+     date_trunc('day', NOW()) + INTERVAL '14 days 23 hours 30 minutes', 6),
+
+    ('55555555-0000-0000-0000-000000000003', '44444444-0000-0000-0000-000000000002', 'manual',
+     '2. Herren - SV Musterdorf', 'SV Musterdorf', 'Kreisliga', true,
+     '11111111-0000-0000-0000-000000000002',
+     date_trunc('day', NOW()) + INTERVAL '8 days 20 hours',
+     date_trunc('day', NOW()) + INTERVAL '8 days 23 hours 59 minutes', 5),
+
+    ('55555555-0000-0000-0000-000000000004', '44444444-0000-0000-0000-000000000001', 'manual',
+     '1. Herren - SC Altstadt', 'SC Altstadt', 'Bezirksliga', true,
+     '11111111-0000-0000-0000-000000000001',
+     date_trunc('day', NOW()) - INTERVAL '7 days' + INTERVAL '19 hours',
+     date_trunc('day', NOW()) - INTERVAL '7 days' + INTERVAL '23 hours', 4)
+ON CONFLICT (id) DO NOTHING;
+
 -- ----------------------------------------------------------------- Auth-Benutzer
 -- Verknüpft die wichtigsten Profile mit einem Auth-Benutzer, damit tests.login_as
 -- und die Anwendung lokal etwas zum Anmelden haben. In Supabase legt diese Zeilen

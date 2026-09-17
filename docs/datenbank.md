@@ -92,6 +92,38 @@ Orte mit Adresse. `max_games` ist die „maximale Anzahl gleichzeitiger Spielter
 eine Grenze für die Terminplanung, **keine Tischbelegung**. Die gibt es im TT-Planer auch
 nicht und wir bauen sie nicht.
 
+### `teams`, `team_leaders`, `team_members`
+
+Eine Mannschaft hat eine feste Größe (`size`) — so viele stehen je Spiel am Tisch. Wer
+darüber hinaus dazugehört, ist Ersatz und hat einen `rank`: die Reihenfolge, in der die
+Ersatzkette fragt. Ein Trigger verhindert mehr Stammspieler als `size`, ein eindeutiger
+Teilindex doppelte Ersatzränge.
+
+### `matches`
+
+`dtstart` und `dtend` sind **generierte Spalten** aus `*_override` und `*_external`. Der
+Termin aus click-TT und eine bestätigte Verlegung stehen nebeneinander, statt sich zu
+überschreiben — nur so bleibt erkennbar, ob der Verband inzwischen nachgezogen hat.
+
+`version` zählt hoch, sobald ein Abgleich Termin oder Ort ändert. Alte Zusagen bleiben
+stehen, gelten aber nicht mehr (`version_responded < version`). Niemand bleibt
+stillschweigend eingeplant, nur weil er vor der Verlegung zugesagt hatte.
+
+### `match_participations`
+
+Je Person im Kader eine Zeile, angelegt vom Trigger `seed_match_participations`. **Direkt
+beschreibbar ist die Tabelle für niemanden** — es gibt bewusst keine INSERT-, UPDATE- oder
+DELETE-Policy. Jede Änderung geht durch eine RPC, die Rechte prüft, den Vorgang
+protokolliert und die Aufstellung neu berechnet. Eine Policy allein könnte das nicht.
+
+`lineup_position` gesetzt heißt: steht in der Aufstellung. Positionen über
+`matches.required_players` hinaus sind die Ersatzbank.
+
+### `match_volunteers`, `match_changes`, `sync_runs`
+
+Fahrdienst und Verpflegung; das Prüfprotokoll aller RPC-Aufrufe (lesbar für Admin und
+Mannschaftsführer); die Läufe des Kalenderabgleichs.
+
 ### `private.cron_config`
 
 Liegt im Schema `private`, das PostgREST nicht veröffentlicht. Ab Aufgabe 3.3 lesen die
@@ -113,6 +145,13 @@ Aufrufer gilt — die View ist keine Hintertür.
 Abwesenheiten mit maskiertem Grund: `comment_private` erscheint nur in den eigenen Zeilen.
 Gleiches Muster und gleiche Begründung wie beim Verzeichnis.
 
+### `v_match_lineup_status`
+
+Je Beteiligungszeile genau ein Wort: `lineup`, `open`, `declined`, `unclear`, `absent`
+oder `removed` — die sechs Abschnitte des Dialogs „Spieler verwalten". Die Einstufung
+gehört in die Datenbank, damit Oberfläche, Benachrichtigungen und Ersatzkette dieselbe
+Antwort bekommen und nicht jede für sich rechnet.
+
 ## Funktionen
 
 | Funktion | Zweck |
@@ -125,12 +164,41 @@ Gleiches Muster und gleiche Begründung wie beim Verzeichnis.
 | `rpc_delete_my_account()` | Soft-Delete des eigenen Kontos; verweigert beim letzten Admin |
 | `rpc_activate_member(uuid)` | Schaltet ein wartendes Mitglied frei (nur Admin) |
 | `rpc_update_qttr_bulk(jsonb)` | QTTR-Werte einer ganzen Liste in einem Aufruf (nur Admin) |
+| `leads_team(uuid)`, `leads_match(uuid)` | Führt der Angemeldete diese Mannschaft bzw. die zu diesem Spiel? |
+| `check_team_member_limits()` | Trigger: nicht mehr Stammspieler als `teams.size` |
+| `seed_match_participations()` | Trigger: legt beim neuen Spiel für den ganzen Kader offene Zeilen an |
+| `recompute_lineup(uuid)` | Berechnet die Aufstellung neu (siehe unten) |
+| `rpc_set_match_response(uuid, response, text)` | Eigene Zu- oder Absage, prüft den Meldeschluss |
+| `rpc_manage_player(uuid, uuid, text)` | `add`, `remove`, `decline`, `reset` durch den Mannschaftsführer |
+| `rpc_set_lineup(uuid, jsonb)` | Aufstellung von Hand; sperrt die Automatik |
+| `rpc_unlock_lineup(uuid)` | Zurück zur Automatik |
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |
 
 Alle Rechte-Helfer sind `SECURITY DEFINER` mit festem `search_path`. Ohne `DEFINER` liefe
 die `profiles`-Policy in eine Rekursion, weil sie `profiles` liest, um `profiles` zu prüfen.
+
+## Wie die Aufstellung entsteht
+
+`recompute_lineup(match_id)` nummeriert alle, die zugesagt haben und nicht vom
+Mannschaftsführer herausgenommen wurden:
+
+1. Stammspieler nach ihrem Rang in der Altersklasse der Mannschaft, dann nach Namen
+2. Ersatzspieler nach ihrem Ersatzrang
+3. alle übrigen Zusagen nach Namen
+
+Die beiden Kriterien werden bewusst **nicht** gemischt: Ersatzspieler ordnen sich nach
+ihrem Ersatzrang, nicht nach ihrem Vereinsrang. Sonst wäre die Reihenfolge, auf die sich
+die Ersatzkette verlässt, an dieser Stelle eine andere.
+
+Positionen über `required_players` hinaus sind die Ersatzbank. Sobald der
+Mannschaftsführer die Aufstellung selbst setzt, steht `lineup_locked` und die Automatik
+fasst das Spiel nicht mehr an — sonst würde sie seine Entscheidung beim nächsten Anlass
+überschreiben. `rpc_unlock_lineup` gibt es wieder frei.
+
+Bei `lineup_mode = 'open'` rechnet die Automatik gar nicht; dort stellt der
+Mannschaftsführer immer selbst auf.
 
 ## Wie aus einem Login ein Mitglied wird
 
@@ -156,6 +224,13 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `member_rankings` | aktive Mitglieder | Admin |
 | `groups`, `group_members` | aktive Mitglieder | Admin |
 | `venues` | aktive Mitglieder | Admin |
+| `teams`, `team_leaders` | aktive Mitglieder | Admin |
+| `team_members` | aktive Mitglieder | Admin oder Mannschaftsführer der Mannschaft |
+| `matches` | aktive Mitglieder | Anlegen/Ändern: Admin oder Mannschaftsführer; Löschen: Admin |
+| `match_participations` | aktive Mitglieder | **niemand direkt** — nur über die RPCs |
+| `match_volunteers` | aktive Mitglieder | eigene Zeile, Mannschaftsführer oder Admin |
+| `match_changes` | Admin und Mannschaftsführer | niemand direkt |
+| `sync_runs` | Admin und Mannschaftsführer | niemand direkt |
 
 `service_role` (Edge Functions) umgeht RLS — das ist gewollt und der Grund, warum der
 `service_role`-Schlüssel niemals ins Frontend gehört.
