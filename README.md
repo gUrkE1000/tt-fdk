@@ -1,8 +1,11 @@
 # tt-fdk — Spielbereitschafts-Planer des Vereins
 
-Vereinseigene Alternative zum [TT-Planer](https://www.tt-planer.de/): Spieltermine kommen per
-Webcal/ICS aus click-TT bzw. myTischtennis, Spieler melden sich zu oder ab, Mannschaftsführer
-planen daraus die Aufstellung.
+Vereinseigene Alternative zum [TT-Planer](https://www.tt-planer.de/). Ziel ist der Funktionsumfang des
+Champion-Pakets für den Vereinsalltag (Mitglieder, Mannschaften, Spieltermine aus click-TT, Rückmeldungen,
+Ersatzsuche, Training, Termine, Umfragen, Kalender, Benachrichtigungen) — siehe [docs/zielbild.md](docs/zielbild.md).
+
+**Status:** Planungsphase abgeschlossen, Umsetzung nach [docs/umsetzungsplan.md](docs/umsetzungsplan.md) noch nicht begonnen.
+Der aktuelle Code ist der unveränderte Übernahmestand des Basisprojekts.
 
 ## Herkunft
 
@@ -70,6 +73,8 @@ Eigene Dokumente:
 |---|---|
 | [docs/recherche-tt-planer.md](docs/recherche-tt-planer.md) | Recherche zu TT-Planer, click-TT/nuLiga-Datenwegen, Alternativen, Kostenvergleich |
 | [docs/funktionsvergleich.md](docs/funktionsvergleich.md) | Vollständiger Funktionsvergleich TT-Planer vs. Repo-Stand: Schnittmenge, Lücken, Vorsprung, Baustellen, Roadmap |
-| [docs/umsetzungsplan.md](docs/umsetzungsplan.md) | **Umsetzungsplan** — Regeln für den ausführenden Agenten, Zielarchitektur, Phasen 0–5 als Einzelaufgaben mit Endzustand, Vorgehen und Verifikation, Abhängigkeiten, Statusliste |
+| [docs/zielbild.md](docs/zielbild.md) | **Zielbild** — Zieldefinition mit Abnahmekriterien, Scope-Stufen, Informationsarchitektur, Domänenmodell, Zustandsautomaten, Rechte, UI-Design, technische Architektur |
+| [docs/umsetzungsplan.md](docs/umsetzungsplan.md) | **Umsetzungsplan v2** — Regeln für den ausführenden Agenten, Phasen 0–10 als Einzelaufgaben mit Endzustand, Vorgehen und Verifikation, Releases, Status |
+| [docs/tt-planer-bestandsaufnahme.md](docs/tt-planer-bestandsaufnahme.md) | Bestandsaufnahme des TT-Planers aus der eingeloggten Anwendung (Feldebene, pseudonymisiert) |
 | [docs/erhebung-prompt-browser.md](docs/erhebung-prompt-browser.md) | Prompt für Claude im Browser: Bestandsaufnahme des TT-Planers in der eingeloggten Session |
 | [NOTICE.md](NOTICE.md) | Herkunft, Lizenzstatus, Upstream-Abgleich |

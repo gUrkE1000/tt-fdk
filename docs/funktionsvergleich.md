@@ -14,6 +14,17 @@ Stand: 17.09.2026 · Repo-Stand: Merge von `dgaida/tt_hsv_planner` @ `f8ec2a5` (
   **Die Liste ist daher als „mindestens dieser Umfang" zu lesen, nicht als garantiert erschöpfend.**
   Verifizieren lässt sich das endgültig nur im 3-Monats-Test.
 
+> **Nachtrag 17.09.2026 — durch die [Bestandsaufnahme](tt-planer-bestandsaufnahme.md) überholt.**
+> Die TT-Planer-Spalte dieses Dokuments beruht auf öffentlichen Quellen. Die Erhebung in der eingeloggten
+> Anwendung hat drei Annahmen korrigiert: (1) Es gibt **keinen Rückweg nach click-TT** — Teil 2 Zeile 17
+> entfällt; „bequem in click-TT" meint die Ablage von NuScore-Code/PIN. (2) **Halle ist keine Tischbelegung**,
+> nur ein Ort mit Kapazität — Teil 2 Zeile 8 ist damit klein. (3) Die Ersatzkette hat **drei Modi**
+> (einzeln / alle gleichzeitig / manuell) und **keine sichtbare Frist**; die Spiel-Erinnerung ist **pro
+> Mitglied** in Stunden, die Trainings-Erinnerung **pro Training**. Außerdem ist der Gesamtumfang deutlich
+> größer als hier erfasst (Vereinstermine, Kalender mit ICS-Abo, Orte & Schlüssel, Gruppen, Fahrdienst,
+> 15 Benachrichtigungstypen). Verbindlich sind jetzt [zielbild.md](zielbild.md) und
+> [umsetzungsplan.md](umsetzungsplan.md); dieses Dokument bleibt als Analyse des Repo-Stands stehen.
+
 Legende: ✅ vorhanden · 🟡 teilweise · ❌ nicht vorhanden
 
 ---
