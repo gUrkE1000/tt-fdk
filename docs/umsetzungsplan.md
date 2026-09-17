@@ -649,7 +649,11 @@ Vom ausführenden Agenten gepflegt.
 | 4.4 Ereignisgesteuerte Benachrichtigungen | erledigt | 17.09.2026 | `rpc_share_lineup` ergänzt; Spiele in der Vergangenheit lösen nichts aus |
 | 4.5 Erinnerungen | erledigt | 17.09.2026 | `reminderPlanner` als reine Funktion; Fangfenster sechs Stunden |
 | 4.6 Antwort-Links ohne Login | erledigt | 17.09.2026 | `rpc_describe_action_token` ergänzt, damit die Seite fragen kann statt blind zu handeln |
-| 5.1 – 5.5 Ersatzkette und Verlegung | offen | | |
+| 5.1 Schema Ersatzanfragen und Verlegung | erledigt | 17.09.2026 | `apply_substitute_answer` getrennt, damit Oberfläche und Link denselben Weg nehmen |
+| 5.2 Planungslogik der Ersatzkette | erledigt | 17.09.2026 | 28 Tests |
+| 5.3 Edge Function substitute-engine | erledigt | 17.09.2026 | Sofort-Anstoß als Trigger auf `match_participations` statt in den RPCs |
+| 5.4 Ersatzkette in der Oberfläche | erledigt | 17.09.2026 | Schrittleiste im Dialog, Banner unter „Meine Spiele" |
+| 5.5 Spielverlegung | offen | | |
 | 6.1 – 6.7 Training | offen | | |
 | 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
@@ -723,6 +727,13 @@ Vom ausführenden Agenten gepflegt.
     legen — beim Versand die Empfängerauswahl, beim Token das Verbrauchen vor dem Anzeigen.
 22. **Kein Auslöser für Spiele in der Vergangenheit.** Beim ersten Import einer laufenden
     Saison kämen sonst dutzende Einladungen zu Spielen, die längst gespielt sind.
+23. **Sofort-Anstoß der Ersatzkette als Trigger (5.3).** Der Plan wollte den Aufruf in
+    `rpc_set_match_response` und `rpc_manage_player`. Als Trigger auf `match_participations`
+    erwischt er auch die Absage über den Link aus der E-Mail — die geht durch keine der beiden
+    Funktionen.
+24. **Die leere Kette wird gemeldet.** Der TT-Planer hat diese Nachricht nicht; dort erfährt
+    der Mannschaftsführer nicht, dass alle Ersatzspieler abgesagt haben. Genau dann muss er
+    aber handeln, und zwar bevor Samstag ist.
 
 **Blocker:** —
 

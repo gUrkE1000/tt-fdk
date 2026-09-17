@@ -132,6 +132,7 @@ die gesamte Datenbank an jeder Policy vorbei.
 | `sync-calendars` | Spielplan aus myTischtennis abgleichen | Cron-Secret **oder** JWT eines Admins bzw. Mannschaftsführers |
 | `process-notifications` | Fällige Nachrichten aus dem Postfach verschicken | Cron-Secret **oder** JWT eines Admins |
 | `enqueue-reminders` | Erinnerungen an Spiele und offene Rückmeldungen einreihen | Cron-Secret **oder** JWT eines Admins |
+| `substitute-engine` | Ersatzkette weiterrücken, Fristen auswerten | Cron-Secret **oder** JWT eines Admins bzw. Mannschaftsführers |
 
 Jede Funktion prüft die Rechte des Aufrufers **selbst**, bevor sie den Admin-Client
 benutzt. Der Ablauf ist immer derselbe: mit dem Anon-Schlüssel und dem `Authorization`-

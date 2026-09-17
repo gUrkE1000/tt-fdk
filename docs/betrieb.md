@@ -129,7 +129,26 @@ SELECT profile_id, count(*) FROM public.v_open_participations GROUP BY profile_i
 Wird ein Spiel verlegt, steigt seine Fassung — und es gibt zur neuen Fassung wieder eine
 Erinnerung. Das ist gewollt: die alte Zusage gilt ja auch nicht mehr.
 
-## 5. Ersten Administrator anlegen
+## 5. Ersatzkette
+
+Ein vierter Job, alle zehn Minuten, für die Fristen. Wichtiger ist der sofortige Anstoß:
+Ein Trigger auf `match_participations` ruft die Funktion, sobald jemand absagt. Wer
+freitags absagt, soll nicht bis zum nächsten Zehnminutentakt warten.
+
+```sql
+-- Was läuft gerade?
+SELECT sr.status, count(*) FROM public.substitute_requests sr GROUP BY sr.status;
+
+-- Offene Anfragen mit Frist
+SELECT full_name, status, expires_at FROM public.v_substitute_requests
+ WHERE status = 'pending' ORDER BY expires_at;
+```
+
+Läuft die Kette leer, bekommt die Mannschaftsführung eine Nachricht
+(`substitute_chain_exhausted`). Der TT-Planer hat das nicht — dort erfährt niemand, dass
+alle abgesagt haben.
+
+## 6. Ersten Administrator anlegen
 
 Die Anwendung legt niemanden automatisch an. Nach dem ersten Deployment:
 
@@ -141,7 +160,7 @@ VALUES ('Vorname', 'Nachname', 'admin@example.org', 'admin', 'unconfirmed');
 Danach meldet sich diese Adresse per E-Mail-Link an; `handle_new_user()` verknüpft das
 vorhandene Profil und setzt es auf `active`.
 
-## 6. Sicherung
+## 7. Sicherung
 
 Supabase sichert die Datenbank selbst. Zusätzlich empfiehlt sich ein wöchentlicher
 `pg_dump` in ein privates Artefakt (kommt in Aufgabe 10.x).

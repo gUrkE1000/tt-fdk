@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
 import {
   AlertTriangle,
+  HelpCircle,
   RotateCcw,
   UserMinus,
   UserPlus,
+  Trash2,
   Wand2,
   XCircle,
 } from 'lucide-react';
@@ -37,6 +39,11 @@ import {
   groupParticipations,
   type AbsenceWindow,
 } from './lineupSections';
+import ChainStepper from '../substitutes/ChainStepper';
+import {
+  useCreateSubstituteRequest,
+  useSubstituteRequests,
+} from '../substitutes/api';
 
 export interface ManagePlayersDialogProps {
   open: boolean;
@@ -77,6 +84,10 @@ export default function ManagePlayersDialog({
   const allMatches = useMatches();
   const absences = useAbsenceWindows();
   const [adding, setAdding] = useState<string[]>([]);
+  const [askingSubstitute, setAskingSubstitute] = useState(false);
+  const [substituteIds, setSubstituteIds] = useState<string[]>([]);
+  const substituteRequests = useSubstituteRequests();
+  const createRequest = useCreateSubstituteRequest();
 
   const participations = useMemo(
     () => (allParticipations.data ?? []).filter((entry) => entry.match_id === match?.id),
@@ -126,6 +137,15 @@ export default function ManagePlayersDialog({
     }
   }
 
+  async function askOne(profileId: string) {
+    try {
+      await createRequest.mutateAsync({ matchId: match!.id, profileId });
+      toast('Ersatzanfrage verschickt', 'success');
+    } catch (error) {
+      toast(error instanceof Error ? error.message : 'Das hat nicht geklappt', 'error');
+    }
+  }
+
   async function onReorder(ids: string[]) {
     try {
       await setLineup.mutateAsync({ matchId: match!.id, order: ids });
@@ -142,6 +162,19 @@ export default function ManagePlayersDialog({
     } catch (error) {
       toast(error instanceof Error ? error.message : 'Das hat nicht geklappt', 'error');
     }
+  }
+
+  async function onAskSubstitutes() {
+    for (const id of substituteIds) {
+      try {
+        await createRequest.mutateAsync({ matchId: match!.id, profileId: id });
+      } catch (error) {
+        toast(error instanceof Error ? error.message : 'Das hat nicht geklappt', 'error');
+      }
+    }
+    setSubstituteIds([]);
+    setAskingSubstitute(false);
+    toast('Ersatzanfrage verschickt', 'success');
   }
 
   async function onAddOutsiders() {
@@ -214,6 +247,15 @@ export default function ManagePlayersDialog({
     />
   );
 
+  const requestAction = (p: Participation) => (
+    <IconButton
+      icon={HelpCircle}
+      label={`${nameOf(p.profile_id)} als Ersatz anfragen`}
+      title={ACTION_HELP.request}
+      onClick={() => void askOne(p.profile_id)}
+    />
+  );
+
   const resetAction = (p: Participation) => (
     <IconButton
       icon={RotateCcw}
@@ -261,6 +303,44 @@ export default function ManagePlayersDialog({
           )}
         </div>
 
+        <ChainStepper
+          matchId={match.id}
+          requests={substituteRequests.data ?? []}
+          onAskSomeone={() => setAskingSubstitute(true)}
+        />
+
+        {askingSubstitute && (
+          <div className="rounded-xl border border-gray-200 p-3">
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-gray-500">
+              Wen möchtest du anfragen?
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="min-w-[14rem] flex-1">
+                <PersonPicker
+                  people={members
+                    .filter((member) => member.id !== null)
+                    .map((member) => ({
+                      id: member.id,
+                      name: member.full_name ?? '',
+                      detail: member.qttr != null ? `${member.qttr} QTTR` : undefined,
+                    }))}
+                  value={substituteIds}
+                  onChange={setSubstituteIds}
+                  placeholder="Mitglieder auswählen"
+                />
+              </div>
+              <Button
+                variant="primary"
+                disabled={substituteIds.length === 0}
+                onClick={() => void onAskSubstitutes()}
+              >
+                Anfragen
+              </Button>
+              <Button onClick={() => setAskingSubstitute(false)}>Abbrechen</Button>
+            </div>
+          </div>
+        )}
+
         {sections.lineup.length > 0 && (
           <section>
             <h4 className="mb-1.5 text-xs font-bold uppercase tracking-wide text-gray-500">
@@ -292,6 +372,7 @@ export default function ManagePlayersDialog({
         {section('Offene Spieler', sections.open, (p) => (
           <>
             {addAction(p)}
+            {requestAction(p)}
             <IconButton
               icon={XCircle}
               label={`${nameOf(p.profile_id)} auf Absage setzen`}
@@ -365,11 +446,10 @@ export default function ManagePlayersDialog({
             <ExplainRow icon={<UserPlus className="h-3.5 w-3.5" />} text={ACTION_HELP.add} />
             <ExplainRow icon={<UserMinus className="h-3.5 w-3.5" />} text={ACTION_HELP.remove} />
             <ExplainRow icon={<XCircle className="h-3.5 w-3.5" />} text={ACTION_HELP.decline} />
+            <ExplainRow icon={<HelpCircle className="h-3.5 w-3.5" />} text={ACTION_HELP.request} />
             <ExplainRow icon={<RotateCcw className="h-3.5 w-3.5" />} text={ACTION_HELP.reset} />
+            <ExplainRow icon={<Trash2 className="h-3.5 w-3.5" />} text={ACTION_HELP.deleteRequest} />
           </dl>
-          <p className="mt-2 text-xs text-gray-500">
-            Ersatzanfragen stellen und zurückziehen folgt in einem späteren Schritt.
-          </p>
         </section>
       </div>
     </Dialog>

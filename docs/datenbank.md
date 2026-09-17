@@ -160,6 +160,22 @@ verschickte Nachricht irgendwann aufgeräumt wird, der Merkposten aber bleiben m
 Die Fassung gehört in den Schlüssel von `match_reminders`: Wird ein Spiel verlegt, ist
 die alte Erinnerung überholt und es gibt zur neuen Fassung wieder eine.
 
+### `substitute_requests`
+
+Die Ersatzkette. `match_version` gehört zum eindeutigen Schlüssel: Wird ein Spiel verlegt,
+sind alle laufenden Anfragen hinfällig — man hat ja für einen anderen Termin zugesagt —
+und die Kette beginnt für die neue Fassung von vorn. Jede Person wird je Fassung
+höchstens einmal gefragt.
+
+Wer als Nächstes gefragt wird, entscheidet nicht die Datenbank, sondern
+`_shared/substituteEngine.ts` als reine Funktion. Hier stehen nur die Tabellen und die
+Handgriffe, die der Mannschaftsführer selbst macht.
+
+### `reschedule_polls`, `reschedule_votes`
+
+Terminumfragen für Spielverlegungen: bis zu drei Vorschläge, je Person und Option eine
+Stimme. Getrennte Zeilen statt einer mit drei Feldern, weil die Zahl der Optionen offen ist.
+
 ### `private.cron_config`
 
 Liegt im Schema `private`, das PostgREST nicht veröffentlicht. Ab Aufgabe 3.3 lesen die
@@ -222,6 +238,9 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `rpc_unlock_lineup(uuid)` | Zurück zur Automatik |
 | `render_template(text, jsonb)` | Füllt `{{platzhalter}}`; unbekannte verschwinden, statt in der E-Mail zu landen |
 | `enqueue_notification(uuid, text, jsonb, bool, timestamptz)` | Die einzige Stelle, an der Benachrichtigungen entstehen |
+| `rpc_answer_action_token(uuid, text)` | Antwort über den Link aus der E-Mail, ohne Anmeldung |
+| `apply_substitute_answer(uuid, uuid, text)` | Antwort auf eine Ersatzanfrage; nimmt die Person als Parameter, weil der Link keine Anmeldung hat |
+| `enqueue_substitute_request(...)`, `notify_chain_exhausted(uuid)` | Was der Hintergrundlauf der Ersatzkette ausführt |
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |
@@ -286,6 +305,8 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `notifications` | eigene Zeilen; Admin alles | **niemand direkt** — nur `enqueue_notification` |
 | `push_subscriptions` | eigene Zeilen | eigene Zeilen |
 | `action_tokens` | **niemand** | niemand |
+| `substitute_requests` | der Gefragte, Mannschaftsführung, Admin | niemand direkt — nur über die RPCs |
+| `reschedule_polls`, `reschedule_votes` | aktive Mitglieder | niemand direkt |
 
 `service_role` (Edge Functions) umgeht RLS — das ist gewollt und der Grund, warum der
 `service_role`-Schlüssel niemals ins Frontend gehört.

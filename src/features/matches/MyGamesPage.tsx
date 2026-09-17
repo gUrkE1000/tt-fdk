@@ -14,6 +14,7 @@ import {
 } from './api';
 import { isFinished } from './filters';
 import GameCard from './GameCard';
+import SubstituteBanner from '../substitutes/SubstituteBanner';
 
 type Scope = 'all' | 'home' | 'away';
 
@@ -78,6 +79,15 @@ export default function MyGamesPage() {
       <PageHeader
         title="Meine Spiele"
         description="Alles, wozu du dich zurückmelden solltest."
+      />
+
+      <SubstituteBanner
+        describe={(request) => {
+          const forMatch = (matches.data ?? []).find((entry) => entry.id === request.match_id);
+          if (!forMatch) return 'Ein Spieltermin';
+          const team = (teams.data ?? []).find((entry) => entry.id === forMatch.team_id);
+          return `${team?.name ?? 'Mannschaft'} gegen ${forMatch.opponent || 'unbekannt'}`;
+        }}
       />
 
       <div className="mb-4 flex flex-wrap gap-1.5">
