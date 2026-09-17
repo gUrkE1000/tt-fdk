@@ -629,7 +629,8 @@ Vom ausführenden Agenten gepflegt.
 | 1.7 Altcode entfernt | erledigt | 17.09.2026 | vorgezogen: der typisierte Client hat die Altlasten erzwungen |
 | 1.8 CI/CD | erledigt | 17.09.2026 | ci.yml mit App- und Datenbank-Job; Deploys vorerst nur manuell |
 | 1.9 Baseline eingefroren | erledigt | 17.09.2026 | |
-| 2.1 – 2.6 Mitglieder und Verein | offen | | |
+| 2.1 Mein Profil und Abwesenheiten | erledigt | 17.09.2026 | Tabelle `absences` + View `v_absences`; `rpc_delete_my_account` als Soft-Delete |
+| 2.2 – 2.6 Mitglieder und Verein | offen | | |
 | 3.1 – 3.8 Mannschaften und Spiele | offen | | |
 | 4.1 – 4.6 Benachrichtigungen | offen | | |
 | 5.1 – 5.5 Ersatzkette und Verlegung | offen | | |
@@ -656,6 +657,10 @@ Vom ausführenden Agenten gepflegt.
    Eingabefelder — damit ist sie vollständig testbar, bevor es Mannschaften gibt.
 6. **Deploy-Workflows vorerst manuell.** Ohne Supabase-Projekt und Secrets würden sie bei jedem
    Push scheitern und die CI-Anzeige unbrauchbar machen.
+7. **Kontolöschung als Soft-Delete mit geschütztem `deleted_at`.** Beim Bauen von 2.1 fiel auf,
+   dass ein gelöschtes Profil sich selbst hätte wiederbeleben können. Der Trigger
+   `protect_profile_columns()` lässt `deleted_at` jetzt nur noch von NULL auf einen Zeitpunkt
+   setzen, nie zurück. Der letzte Administrator kann sich nicht löschen.
 
 **Blocker:** —
 

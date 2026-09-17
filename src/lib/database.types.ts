@@ -9,6 +9,44 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export interface Database {
   public: {
     Tables: {
+      absences: {
+        Row: {
+          id: string;
+          profile_id: string;
+          start_date: string;
+          end_date: string;
+          comment_private: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          start_date: string;
+          end_date: string;
+          comment_private?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          profile_id?: string;
+          start_date?: string;
+          end_date?: string;
+          comment_private?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "absences_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       club_settings: {
         Row: {
           key: string;
@@ -239,6 +277,18 @@ export interface Database {
       };
     };
     Views: {
+      v_absences: {
+        Row: {
+          id: string | null;
+          profile_id: string | null;
+          start_date: string | null;
+          end_date: string | null;
+          comment_private: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [];
+      };
       v_members_directory: {
         Row: {
           id: string | null;
@@ -258,6 +308,10 @@ export interface Database {
       };
     };
     Functions: {
+      can_see_absences: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
       current_member_role: {
         Args: Record<string, never>;
         Returns: unknown;
@@ -275,6 +329,10 @@ export interface Database {
         Returns: unknown;
       };
       is_organizer_or_admin: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
+      rpc_delete_my_account: {
         Args: Record<string, never>;
         Returns: unknown;
       };

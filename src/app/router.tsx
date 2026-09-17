@@ -5,6 +5,7 @@ import DesignPlayground from './DesignPlayground';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import { RequireAuth, RequireRole } from '../features/auth/guards';
+import ProfilePage from '../features/profile/ProfilePage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -48,7 +49,7 @@ export const router = createBrowserRouter([
           { path: 'my-club', element: <Placeholder title="Mein Verein" task="2.6" /> },
           { path: 'calendar', element: <Placeholder title="Kalender" task="7.3" /> },
           { path: 'votes', element: <Placeholder title="Umfragen" task="7.2" /> },
-          { path: 'profile', element: <Placeholder title="Mein Profil" task="2.1" /> },
+          { path: 'profile', element: <ProfilePage /> },
 
           {
             element: <RequireRole roles={['admin', 'trainer', 'team_leader']} />,
