@@ -29,8 +29,26 @@ npm test        # Vitest
 npm run build
 ```
 
-Für Supabase-Setup, Edge Function und Deployment siehe
-[docs/einrichtung.md](docs/einrichtung.md).
+`.env.example` nach `.env.local` kopieren und ausfüllen. Für Supabase-Setup, Edge Function und
+Deployment siehe [docs/einrichtung.md](docs/einrichtung.md).
+
+## Vor dem ersten Deploy
+
+Die aus dem Ursprungsprojekt übernommenen GitHub-Workflows laufen nur bei Pushes auf
+`main`/`master` (Ausnahme: der tägliche Sync-Cronjob). Sie schlagen fehl, solange sie nicht auf
+unseren Verein umgestellt sind:
+
+- **Repository-Secrets setzen**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SYNC_SECRET`,
+  `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID` (siehe [docs/einrichtung.md](docs/einrichtung.md)).
+- **Supabase-Projekt anlegen** und die Migration `supabase/migrations/20260808000000_init.sql`
+  einspielen; Region EU wählen (DSGVO).
+- **`deploy.yml`** (GitHub Pages) prüfen: Pages im Repository aktivieren, sonst deaktivieren.
+- **`auto-version-badges.yml`** nutzt eine Action aus dem Ursprungs-Account
+  (`dgaida/auto-version-action`) und schreibt Badges auf das Upstream-Repo — vor Aktivierung
+  anpassen oder entfernen.
+- **`sync-calendars.yml`** (Cron 04:00 UTC) erst aktivieren, wenn die Edge Function deployt ist.
+
+Bis die Lizenzfrage geklärt ist (siehe [NOTICE.md](NOTICE.md)): Repository privat lassen.
 
 ## Dokumentation
 
