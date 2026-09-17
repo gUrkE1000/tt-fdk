@@ -1,0 +1,2 @@
+-- Seed-Daten für die lokale Entwicklung.
+-- Wird in Aufgabe 1.3 mit dem Schema v2 gefüllt.

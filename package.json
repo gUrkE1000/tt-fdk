@@ -1,5 +1,5 @@
 {
-  "name": "spielbereitschaft-tt",
+  "name": "vereinsplaner",
   "private": true,
   "version": "1.2.5",
   "type": "module",
@@ -8,7 +8,12 @@
     "build": "vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "test": "vitest run --coverage"
+    "test": "vitest run --coverage",
+    "db:start": "./scripts/local-db.sh start",
+    "db:reset": "./scripts/local-db.sh reset",
+    "db:test": "./scripts/local-db.sh test",
+    "db:psql": "./scripts/local-db.sh psql",
+    "gen:types": "supabase gen types typescript --db-url \"$(./scripts/local-db.sh url)\" > src/lib/database.types.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.8",
