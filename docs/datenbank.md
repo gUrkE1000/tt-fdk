@@ -3,9 +3,11 @@
 Referenz zum Schema. Verbindlich ist immer die Migration in `supabase/migrations/`;
 dieses Dokument erklärt, warum etwas so aussieht.
 
-Stand: Baseline v2 (`20261001000000_schema_v2.sql`) — Verein, Mitglieder, Ränge, Gruppen,
-Orte, Rechte. Mannschaften und Spiele folgen in Aufgabe 3.1, Benachrichtigungen in 4.1,
-Training in 6.1.
+Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
+Beteiligung und Benachrichtigungen. Training folgt in Aufgabe 6.1, Vereinstermine in 7.1.
+
+Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
+eigene Migration.
 
 ## Grundsätze
 
@@ -124,6 +126,31 @@ protokolliert und die Aufstellung neu berechnet. Eine Policy allein könnte das 
 Fahrdienst und Verpflegung; das Prüfprotokoll aller RPC-Aufrufe (lesbar für Admin und
 Mannschaftsführer); die Läufe des Kalenderabgleichs.
 
+### `notification_templates`, `notification_preferences`, `notifications`
+
+Benachrichtigungen folgen dem Ausgangspostfach-Muster: Auslöser schreiben Zeilen in
+`notifications`, ein Hintergrundlauf verschickt sie. Drei Gründe:
+
+1. Eine Datenbanktransaktion darf nicht auf einen E-Mail-Dienst warten.
+2. Scheitert der Versand, liegt die Zeile noch da und wird erneut versucht.
+3. Was verschickt wurde, lässt sich nachlesen. Bei „ich habe nie eine Mail bekommen" ist
+   das der einzige Weg, die Frage zu beantworten.
+
+Der Text wird **beim Einreihen** gerendert, nicht beim Versand: die Vorlage kann sich
+ändern, die verschickte Nachricht soll es nicht.
+
+Eine fehlende Zeile in `notification_preferences` heißt „beide Kanäle an". Damit braucht
+ein neues Mitglied keine fünfzehn Zeilen, und ein neuer Ereignistyp ist sofort für alle
+aktiv. Vorlagen mit `in_matrix = false` sind Direkt-E-Mails: sie gehen immer raus, weil
+sie eine Handlung mitteilen, die die Person betrifft.
+
+### `action_tokens`
+
+Macht den Link in einer E-Mail ohne Anmeldung nutzbar. Einmalschlüssel mit Verfallsdatum,
+gültig für genau eine Handlung an genau einem Objekt. **Für niemanden lesbar** — wer den
+Token hat, hat ihn aus der eigenen E-Mail; ihn abfragen zu können hieße, fremde Antworten
+abgeben zu können.
+
 ### `private.cron_config`
 
 Liegt im Schema `private`, das PostgREST nicht veröffentlicht. Ab Aufgabe 3.3 lesen die
@@ -144,6 +171,12 @@ Aufrufer gilt — die View ist keine Hintertür.
 
 Abwesenheiten mit maskiertem Grund: `comment_private` erscheint nur in den eigenen Zeilen.
 Gleiches Muster und gleiche Begründung wie beim Verzeichnis.
+
+### `v_my_notification_preferences`
+
+Für jeden abwählbaren Ereignistyp die geltende Einstellung des Angemeldeten — auch dann,
+wenn dazu keine Zeile existiert. Die Regel „fehlende Zeile heißt an" bleibt damit in der
+Datenbank, statt in der Oberfläche wiederholt zu werden.
 
 ### `v_match_lineup_status`
 
@@ -172,6 +205,8 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `rpc_manage_player(uuid, uuid, text)` | `add`, `remove`, `decline`, `reset` durch den Mannschaftsführer |
 | `rpc_set_lineup(uuid, jsonb)` | Aufstellung von Hand; sperrt die Automatik |
 | `rpc_unlock_lineup(uuid)` | Zurück zur Automatik |
+| `render_template(text, jsonb)` | Füllt `{{platzhalter}}`; unbekannte verschwinden, statt in der E-Mail zu landen |
+| `enqueue_notification(uuid, text, jsonb, bool, timestamptz)` | Die einzige Stelle, an der Benachrichtigungen entstehen |
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |
@@ -231,6 +266,11 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `match_volunteers` | aktive Mitglieder | eigene Zeile, Mannschaftsführer oder Admin |
 | `match_changes` | Admin und Mannschaftsführer | niemand direkt |
 | `sync_runs` | Admin und Mannschaftsführer | niemand direkt |
+| `notification_templates` | aktive Mitglieder | niemand über die API |
+| `notification_preferences` | eigene Zeilen | eigene Zeilen |
+| `notifications` | eigene Zeilen; Admin alles | **niemand direkt** — nur `enqueue_notification` |
+| `push_subscriptions` | eigene Zeilen | eigene Zeilen |
+| `action_tokens` | **niemand** | niemand |
 
 `service_role` (Edge Functions) umgeht RLS — das ist gewollt und der Grund, warum der
 `service_role`-Schlüssel niemals ins Frontend gehört.

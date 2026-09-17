@@ -3,6 +3,7 @@ import Placeholder from '../../app/Placeholder';
 import { useSession } from '../auth/session';
 import ProfileTab from './ProfileTab';
 import AbsencesTab from './AbsencesTab';
+import NotificationsTab from './NotificationsTab';
 
 export default function ProfilePage() {
   const { profile } = useSession();
@@ -24,7 +25,7 @@ export default function ProfilePage() {
           {
             value: 'notifications',
             label: 'Benachrichtigungen',
-            content: <Placeholder title="Benachrichtigungen" task="4.3" />,
+            content: <NotificationsTab profile={profile} />,
           },
           {
             value: 'auto-attendance',

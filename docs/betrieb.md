@@ -10,14 +10,18 @@ erkennt, dass es läuft.
 
 ```bash
 supabase secrets set APP_URL="https://verein.example.org"
+supabase secrets set RESEND_API_KEY="re_..."
 ```
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` und `SUPABASE_SERVICE_ROLE_KEY` stellt Supabase selbst
 bereit. **Der `service_role`-Schlüssel gehört niemals ins Frontend** — er umgeht jede
 Row-Level-Security-Policy.
 
-Weitere Secrets kommen später dazu: `RESEND_API_KEY` (Aufgabe 4.2) und
-`VAPID_PRIVATE_KEY` (Aufgabe 8.3).
+`VAPID_PRIVATE_KEY` für Web Push kommt in Aufgabe 8.3 dazu.
+
+Die Absenderadresse steht **nicht** in den Secrets, sondern in den Vereinsdaten
+(`notification_sender_email`). Sie muss eine bei Resend verifizierte Domain sein, sonst
+lehnt der Dienst ab und die Nachricht landet dauerhaft auf `failed`.
 
 ## 2. Nächtlicher Kalenderabgleich
 
@@ -69,7 +73,38 @@ Die Sicherheitssperre ist der wichtigste Teil: Ein einziger Fehlabruf würde son
 Spiele deaktivieren und alle Rückmeldungen entwerten. Lieber ein veralteter Spielplan als
 ein gelöschter.
 
-## 3. Ersten Administrator anlegen
+## 3. Versand der Benachrichtigungen
+
+Derselbe Mechanismus wie beim Kalenderabgleich: pg_cron ruft alle fünf Minuten
+`process-notifications`. Die beiden Werte in `private.cron_config` gelten für beide Jobs,
+es ist also nichts zusätzlich einzurichten.
+
+### Läuft er?
+
+```sql
+SELECT status, count(*) FROM public.notifications GROUP BY status;
+
+-- Was zuletzt nicht rausging und warum
+SELECT created_at, type, channel, attempts, error
+  FROM public.notifications
+ WHERE status IN ('failed', 'skipped')
+ ORDER BY created_at DESC LIMIT 20;
+```
+
+### Fehlerbilder
+
+| Was in `notifications` steht | Bedeutung | Was zu tun ist |
+|---|---|---|
+| `failed`, „Keine Absenderadresse" | `notification_sender_email` ist leer | In den Vereinsdaten eintragen |
+| `failed`, `HTTP 403` von Resend | Die Absenderdomain ist nicht verifiziert | Domain bei Resend verifizieren |
+| `skipped`, „keine E-Mail-Adresse" | Das Mitglied hat keine hinterlegt | Kein Fehler: Kinder haben oft keine |
+| `skipped`, „Push … noch nicht eingerichtet" | Erwartet bis Aufgabe 8.3 | Nichts |
+| Viele `pending` mit steigendem `attempts` | Resend antwortet nicht | Status von Resend prüfen; nach drei Versuchen steht `failed` |
+
+Eine Zeile wird höchstens dreimal versucht, mit fünfzehn Minuten Abstand. Danach bleibt
+sie als `failed` stehen — sichtbar, statt still verloren.
+
+## 4. Ersten Administrator anlegen
 
 Die Anwendung legt niemanden automatisch an. Nach dem ersten Deployment:
 
@@ -81,7 +116,7 @@ VALUES ('Vorname', 'Nachname', 'admin@example.org', 'admin', 'unconfirmed');
 Danach meldet sich diese Adresse per E-Mail-Link an; `handle_new_user()` verknüpft das
 vorhandene Profil und setzt es auf `active`.
 
-## 4. Sicherung
+## 5. Sicherung
 
 Supabase sichert die Datenbank selbst. Zusätzlich empfiehlt sich ein wöchentlicher
 `pg_dump` in ein privates Artefakt (kommt in Aufgabe 10.x).

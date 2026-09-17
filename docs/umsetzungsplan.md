@@ -643,7 +643,10 @@ Vom ausführenden Agenten gepflegt.
 | 3.6 Aufstellung und „Spieler verwalten" | erledigt | 17.09.2026 | Einteilung als reine Funktion `groupParticipations`; Ersatzanfragen erst in Phase 5 |
 | 3.7 Aufstellung teilen | erledigt | 17.09.2026 | E-Mail-Versand sichtbar deaktiviert bis 4.4 |
 | 3.8 Mein Verein: Mannschaften und Spiele | erledigt | 17.09.2026 | |
-| 4.1 – 4.6 Benachrichtigungen | offen | | |
+| 4.1 Schema Benachrichtigungen | erledigt | 17.09.2026 | 19 Vorlagen (15 in der Matrix, 4 Direkt-E-Mails); `v_my_notification_preferences` ergänzt |
+| 4.2 E-Mail-Versand | erledigt | 17.09.2026 | Zustandslogik als reine Funktion; Push wird bis 8.3 als „übersprungen" markiert |
+| 4.3 Einstellungs-Matrix | erledigt | 17.09.2026 | Tabelle ab sm, Liste darunter |
+| 4.4 – 4.6 Auslöser, Erinnerungen, Antwortlinks | offen | | |
 | 5.1 – 5.5 Ersatzkette und Verlegung | offen | | |
 | 6.1 – 6.7 Training | offen | | |
 | 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |

@@ -47,6 +47,44 @@ export interface Database {
           },
         ];
       };
+      action_tokens: {
+        Row: {
+          token: string;
+          profile_id: string;
+          action: Database["public"]["Enums"]["action_token_kind"];
+          target_id: string;
+          expires_at: string;
+          used_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          token?: string;
+          profile_id: string;
+          action: Database["public"]["Enums"]["action_token_kind"];
+          target_id: string;
+          expires_at: string;
+          used_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          token?: string;
+          profile_id?: string;
+          action?: Database["public"]["Enums"]["action_token_kind"];
+          target_id?: string;
+          expires_at?: string;
+          used_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "action_tokens_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       club_settings: {
         Row: {
           key: string;
@@ -422,6 +460,131 @@ export interface Database {
           },
         ];
       };
+      notification_preferences: {
+        Row: {
+          profile_id: string;
+          type: string;
+          email: boolean;
+          push: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          profile_id: string;
+          type: string;
+          email?: boolean;
+          push?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          profile_id?: string;
+          type?: string;
+          email?: boolean;
+          push?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notification_preferences_type_fkey";
+            columns: ["type"];
+            isOneToOne: false;
+            referencedRelation: "notification_templates";
+            referencedColumns: ["type"];
+          },
+        ];
+      };
+      notification_templates: {
+        Row: {
+          type: string;
+          label: string;
+          subject_tpl: string;
+          body_tpl: string;
+          sort_order: number;
+          in_matrix: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          type: string;
+          label: string;
+          subject_tpl: string;
+          body_tpl: string;
+          sort_order?: number;
+          in_matrix?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          type?: string;
+          label?: string;
+          subject_tpl?: string;
+          body_tpl?: string;
+          sort_order?: number;
+          in_matrix?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          profile_id: string;
+          channel: Database["public"]["Enums"]["notification_channel"];
+          type: string;
+          subject: string;
+          body_text: string;
+          payload: Json;
+          status: Database["public"]["Enums"]["notification_status"];
+          scheduled_for: string;
+          sent_at: string | null;
+          attempts: number;
+          error: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          channel: Database["public"]["Enums"]["notification_channel"];
+          type: string;
+          subject: string;
+          body_text: string;
+          payload?: Json;
+          status?: Database["public"]["Enums"]["notification_status"];
+          scheduled_for?: string;
+          sent_at?: string | null;
+          attempts?: number;
+          error?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          profile_id?: string;
+          channel?: Database["public"]["Enums"]["notification_channel"];
+          type?: string;
+          subject?: string;
+          body_text?: string;
+          payload?: Json;
+          status?: Database["public"]["Enums"]["notification_status"];
+          scheduled_for?: string;
+          sent_at?: string | null;
+          attempts?: number;
+          error?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           id: string;
@@ -497,6 +660,50 @@ export interface Database {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      push_subscriptions: {
+        Row: {
+          id: string;
+          profile_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          user_agent: string | null;
+          failures: number;
+          last_success_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          user_agent?: string | null;
+          failures?: number;
+          last_success_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          profile_id?: string;
+          endpoint?: string;
+          p256dh?: string;
+          auth?: string;
+          user_agent?: string | null;
+          failures?: number;
+          last_success_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       sync_runs: {
         Row: {
@@ -759,6 +966,17 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_my_notification_preferences: {
+        Row: {
+          type: string | null;
+          label: string | null;
+          sort_order: number | null;
+          profile_id: string | null;
+          email: boolean | null;
+          push: boolean | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       can_see_absences: {
@@ -767,6 +985,10 @@ export interface Database {
       };
       current_member_role: {
         Args: Record<string, never>;
+        Returns: unknown;
+      };
+      enqueue_notification: {
+        Args: { [key: string]: unknown };
         Returns: unknown;
       };
       get_public_club_info: {
@@ -794,6 +1016,10 @@ export interface Database {
         Returns: unknown;
       };
       recompute_lineup: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      render_template: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
@@ -832,10 +1058,13 @@ export interface Database {
     };
     CompositeTypes: Record<string, never>;
     Enums: {
+      action_token_kind: "match_response" | "substitute_answer" | "event_response" | "poll_vote";
       gender: "male" | "female" | "unspecified";
       lineup_mode: "fixed" | "open";
       match_source: "ics" | "manual";
       member_status: "active" | "pending_approval" | "unconfirmed";
+      notification_channel: "email" | "push";
+      notification_status: "pending" | "sent" | "failed" | "skipped";
       participation_response: "none" | "yes" | "no" | "unclear";
       participation_source: "auto" | "self" | "leader" | "request" | "link";
       ranking_type: "men" | "women" | "seniors_40" | "seniors_50" | "seniors_60" | "seniors_70" | "seniors_75" | "youth_19" | "youth_15" | "youth_13" | "youth_11" | "girls_19" | "girls_15" | "girls_13" | "girls_11";
