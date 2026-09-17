@@ -1,6 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
+const url = import.meta.env.VITE_SUPABASE_URL;
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Bewusst ein harter Fehler statt eines Platzhalters: eine Anwendung, die gegen eine
+// nicht existierende Datenbank läuft, verwirrt nur — sie zeigt leere Listen statt einer
+// klaren Fehlermeldung.
+if (!url || !anonKey) {
+  throw new Error(
+    'VITE_SUPABASE_URL und VITE_SUPABASE_ANON_KEY fehlen. Lege .env.local nach dem Vorbild von .env.example an (siehe docs/entwicklung.md).',
+  );
+}
+
+export const supabase = createClient<Database>(url, anonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    // Der Magic Link bringt die Sitzung im URL-Fragment mit.
+    detectSessionInUrl: true,
+  },
+});
+
+/** Basis für Links, die in Benachrichtigungen verschickt werden. */
+export const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;

@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { ToastProvider } from '../components/ui';
+import { SessionProvider } from '../features/auth/session';
 
 /**
  * staleTime 30 s: Vereinsdaten ändern sich selten im Sekundentakt, aber oft genug, dass
@@ -29,7 +30,9 @@ export default function Providers({ children, queryClient }: ProvidersProps) {
   const client = queryClient ?? createQueryClient();
   return (
     <QueryClientProvider client={client}>
-      <ToastProvider>{children}</ToastProvider>
+      <ToastProvider>
+        <SessionProvider>{children}</SessionProvider>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

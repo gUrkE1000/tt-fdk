@@ -80,6 +80,35 @@ const relations = queryJson(`
   ) r;
 `);
 
+const foreignKeys = queryJson(`
+  SELECT COALESCE(json_agg(fk), '[]'::json) FROM (
+    SELECT c.conname AS name,
+           src.relname AS table_name,
+           tgt.relname AS referenced_relation,
+           (SELECT json_agg(a.attname ORDER BY k.ord)
+              FROM unnest(c.conkey) WITH ORDINALITY AS k(attnum, ord)
+              JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = k.attnum
+           ) AS columns,
+           (SELECT json_agg(a.attname ORDER BY k.ord)
+              FROM unnest(c.confkey) WITH ORDINALITY AS k(attnum, ord)
+              JOIN pg_attribute a ON a.attrelid = c.confrelid AND a.attnum = k.attnum
+           ) AS referenced_columns,
+           EXISTS (
+             SELECT 1 FROM pg_index i
+              WHERE i.indrelid = c.conrelid
+                AND i.indisunique
+                AND i.indkey::int2[] @> c.conkey
+                AND c.conkey @> i.indkey::int2[]
+           ) AS is_one_to_one
+      FROM pg_constraint c
+      JOIN pg_class src ON src.oid = c.conrelid
+      JOIN pg_class tgt ON tgt.oid = c.confrelid
+      JOIN pg_namespace n ON n.oid = src.relnamespace
+     WHERE c.contype = 'f'
+       AND n.nspname = 'public'
+  ) fk;
+`);
+
 const functions = queryJson(`
   SELECT COALESCE(json_agg(f ORDER BY f.name), '[]'::json) FROM (
     SELECT p.proname AS name,
@@ -189,6 +218,26 @@ for (const table of tables) {
     w(`          ${c.name}?: ${rowType(c)};`);
   }
   w('        };');
+
+  // Relationships braucht supabase-js, um verschachtelte Abfragen zu typisieren.
+  // Fehlt der Schluessel, passt die Tabelle nicht auf GenericTable und alle
+  // Schreiboperationen landen beim Typ never.
+  const fks = foreignKeys.filter((fk) => fk.table_name === table.name);
+  if (fks.length === 0) {
+    w('        Relationships: [];');
+  } else {
+    w('        Relationships: [');
+    for (const fk of fks) {
+      w('          {');
+      w(`            foreignKeyName: "${fk.name}";`);
+      w(`            columns: [${fk.columns.map((c) => `"${c}"`).join(', ')}];`);
+      w(`            isOneToOne: ${fk.is_one_to_one};`);
+      w(`            referencedRelation: "${fk.referenced_relation}";`);
+      w(`            referencedColumns: [${fk.referenced_columns.map((c) => `"${c}"`).join(', ')}];`);
+      w('          },');
+    }
+    w('        ];');
+  }
   w('      };');
 }
 
@@ -201,6 +250,7 @@ for (const view of views) {
   // weil jede Maskierung NULL liefern kann.
   for (const c of view.columns) w(`          ${c.name}: ${tsType(c)} | null;`);
   w('        };');
+  w('        Relationships: [];');
   w('      };');
 }
 w('    };');
@@ -208,12 +258,13 @@ w('    };');
 w('    Functions: {');
 for (const fn of functions) {
   w(`      ${fn.name}: {`);
-  w(`        Args: ${fn.args ? `{ /* ${fn.args} */ [key: string]: unknown }` : 'Record<string, never>'};`);
+  w(`        Args: ${fn.args ? '{ [key: string]: unknown }' : 'Record<string, never>'};`);
   w(`        Returns: unknown;`);
   w('      };');
 }
 w('    };');
 
+w('    CompositeTypes: Record<string, never>;');
 w('    Enums: {');
 for (const e of enums) {
   w(`      ${e.name}: ${e.values.map((v) => `"${v}"`).join(' | ')};`);

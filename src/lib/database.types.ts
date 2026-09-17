@@ -28,6 +28,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       group_members: {
         Row: {
@@ -45,6 +46,22 @@ export interface Database {
           profile_id?: string;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "groups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "group_members_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       groups: {
         Row: {
@@ -65,6 +82,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       member_rankings: {
         Row: {
@@ -91,6 +109,15 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "member_rankings_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       profiles: {
         Row: {
@@ -166,6 +193,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       venues: {
         Row: {
@@ -207,6 +235,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
     };
     Views: {
@@ -225,6 +254,7 @@ export interface Database {
           mobile_phone: string | null;
           birthday: string | null;
         };
+        Relationships: [];
       };
     };
     Functions: {
@@ -249,10 +279,11 @@ export interface Database {
         Returns: unknown;
       };
       rpc_validate_registration_code: {
-        Args: { /* p_code text */ [key: string]: unknown };
+        Args: { [key: string]: unknown };
         Returns: unknown;
       };
     };
+    CompositeTypes: Record<string, never>;
     Enums: {
       gender: "male" | "female" | "unspecified";
       member_status: "active" | "pending_approval" | "unconfirmed";
