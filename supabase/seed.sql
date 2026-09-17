@@ -152,6 +152,80 @@ VALUES
      date_trunc('day', NOW()) - INTERVAL '7 days' + INTERVAL '23 hours', 4)
 ON CONFLICT (id) DO NOTHING;
 
+-- ----------------------------------------------------------------- Trainings
+-- Drei Trainings, die die drei Sichtbarkeitsfälle abdecken: ein normales mit
+-- Zuordnung, ein offenes (auch für Gäste) und ein inkognito geführtes.
+INSERT INTO public.trainings
+    (id, name, type, weekday, time_start, time_end, venue_id, rhythm, start_date,
+     reminder_hours, max_participants, is_open, is_incognito, active)
+VALUES
+    ('66666666-0000-0000-0000-000000000001', 'Erwachsenentraining', 'adults', 2,
+     '19:00', '21:00', '11111111-0000-0000-0000-000000000001', 'weekly',
+     CURRENT_DATE - 60, 5, NULL, false, false, true),
+
+    ('66666666-0000-0000-0000-000000000002', 'Jugendtraining', 'youth', 4,
+     '17:00', '18:30', '11111111-0000-0000-0000-000000000002', 'weekly',
+     CURRENT_DATE - 60, 24, 4, false, true, true),
+
+    ('66666666-0000-0000-0000-000000000003', 'Offenes Training', 'adults', 6,
+     '10:00', '12:00', '11111111-0000-0000-0000-000000000001', 'biweekly',
+     CURRENT_DATE - 60, 5, NULL, true, false, true)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.training_trainers (training_id, profile_id) VALUES
+    ('66666666-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000003'),
+    ('66666666-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000004'),
+    ('66666666-0000-0000-0000-000000000003', '22222222-0000-0000-0000-000000000003')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.training_members (training_id, profile_id) VALUES
+    ('66666666-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000005'),
+    ('66666666-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000001'),
+    ('66666666-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000002'),
+    ('66666666-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000003'),
+    ('66666666-0000-0000-0000-000000000002', '22222222-1111-0000-0000-000000000004'),
+    ('66666666-0000-0000-0000-000000000002', '22222222-1111-0000-0000-000000000005')
+ON CONFLICT DO NOTHING;
+
+-- Je Training ein vergangener und zwei kommende Termine, damit sich Rückblick
+-- und Vorschau füllen. Der Erzeugungs-Job (Aufgabe 6.3) legt sie später selbst an.
+INSERT INTO public.training_sessions
+    (id, training_id, session_date, starts_at, ends_at)
+VALUES
+    ('77777777-0000-0000-0000-000000000001', '66666666-0000-0000-0000-000000000001',
+     (date_trunc('day', NOW()) + INTERVAL '2 days')::date,
+     date_trunc('day', NOW()) + INTERVAL '2 days 19 hours',
+     date_trunc('day', NOW()) + INTERVAL '2 days 21 hours'),
+
+    ('77777777-0000-0000-0000-000000000002', '66666666-0000-0000-0000-000000000001',
+     (date_trunc('day', NOW()) + INTERVAL '9 days')::date,
+     date_trunc('day', NOW()) + INTERVAL '9 days 19 hours',
+     date_trunc('day', NOW()) + INTERVAL '9 days 21 hours'),
+
+    ('77777777-0000-0000-0000-000000000003', '66666666-0000-0000-0000-000000000001',
+     (date_trunc('day', NOW()) - INTERVAL '5 days')::date,
+     date_trunc('day', NOW()) - INTERVAL '5 days' + INTERVAL '19 hours',
+     date_trunc('day', NOW()) - INTERVAL '5 days' + INTERVAL '21 hours'),
+
+    ('77777777-0000-0000-0000-000000000004', '66666666-0000-0000-0000-000000000002',
+     (date_trunc('day', NOW()) + INTERVAL '3 days')::date,
+     date_trunc('day', NOW()) + INTERVAL '3 days 17 hours',
+     date_trunc('day', NOW()) + INTERVAL '3 days 18 hours 30 minutes'),
+
+    ('77777777-0000-0000-0000-000000000005', '66666666-0000-0000-0000-000000000003',
+     (date_trunc('day', NOW()) + INTERVAL '4 days')::date,
+     date_trunc('day', NOW()) + INTERVAL '4 days 10 hours',
+     date_trunc('day', NOW()) + INTERVAL '4 days 12 hours')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.training_attendance (session_id, profile_id, status, guests, source) VALUES
+    ('77777777-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000001', 'yes',  1, 'self'),
+    ('77777777-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000002', 'late', 0, 'self'),
+    ('77777777-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000003', 'no',   0, 'self'),
+    ('77777777-0000-0000-0000-000000000004', '22222222-1111-0000-0000-000000000004', 'yes',  0, 'self'),
+    ('77777777-0000-0000-0000-000000000004', '22222222-1111-0000-0000-000000000005', 'late', 0, 'self')
+ON CONFLICT DO NOTHING;
+
 -- ----------------------------------------------------------------- Auth-Benutzer
 -- Verknüpft die wichtigsten Profile mit einem Auth-Benutzer, damit tests.login_as
 -- und die Anwendung lokal etwas zum Anmelden haben. In Supabase legt diese Zeilen

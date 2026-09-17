@@ -654,7 +654,8 @@ Vom ausführenden Agenten gepflegt.
 | 5.3 Edge Function substitute-engine | erledigt | 17.09.2026 | Sofort-Anstoß als Trigger auf `match_participations` statt in den RPCs |
 | 5.4 Ersatzkette in der Oberfläche | erledigt | 17.09.2026 | Schrittleiste im Dialog, Banner unter „Meine Spiele" |
 | 5.5 Spielverlegung | erledigt | 17.09.2026 | Ergebnisansicht `v_reschedule_results`; Umfrage schließt sich selbst, wenn alle abgestimmt haben |
-| 6.1 – 6.7 Training | offen | | |
+| 6.1 Schema Training | erledigt | 17.09.2026 | pgTAP als `080_…` (070 war vergeben); `v_session_counts` ergänzt; `training_reminder_filter` vorgezogen |
+| 6.2 – 6.7 Training | offen | | |
 | 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
@@ -734,6 +735,20 @@ Vom ausführenden Agenten gepflegt.
 24. **Die leere Kette wird gemeldet.** Der TT-Planer hat diese Nachricht nicht; dort erfährt
     der Mannschaftsführer nicht, dass alle Ersatzspieler abgesagt haben. Genau dann muss er
     aber handeln, und zwar bevor Samstag ist.
+
+25. **Zähler und Liste getrennt (6.1).** Der Plan verlangt die Teilnehmerliste nur für
+    Trainer und Admin und den Zähler nur bei nicht-inkognito. Mit einer einzigen View ginge
+    das nicht: eine `security_invoker`-View zählt nur die sichtbaren Zeilen und meldete bei
+    Inkognito „1 Teilnehmer" — nämlich einen selbst. `v_session_participants` liefert deshalb
+    die Namen unter der RLS, `v_session_counts` die Zahlen mit eigener Sichtbarkeitsprüfung.
+26. **`training_reminder_filter` schon in 6.1.** Aufgabe 6.6 setzt die Tabelle voraus
+    („gefiltert nach `training_reminder_filter`"), nennt sie aber in keiner Datei. Sie gehört
+    zum Trainings-Schema und steht deshalb hier, zusammen mit den Tabellen, auf die sie zeigt.
+27. **pgTAP-Datei `080` statt `070` (6.1).** Die im Plan genannte Nummer 070 hatte die
+    Ersatzkette in 5.1 schon belegt.
+28. **Trainer dürfen die Anwesenheit nachtragen (6.1).** Der Anmeldeschluss ist laut Zielbild
+    der Sessionbeginn. Für den Trainer gilt er nicht: sonst ließe sich nach dem Training nie
+    korrigieren, wer tatsächlich da war — und genau daraus entsteht später die Statistik.
 
 **Blocker:** —
 

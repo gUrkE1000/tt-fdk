@@ -176,6 +176,51 @@ Handgriffe, die der Mannschaftsführer selbst macht.
 Terminumfragen für Spielverlegungen: bis zu drei Vorschläge, je Person und Option eine
 Stimme. Getrennte Zeilen statt einer mit drei Feldern, weil die Zahl der Optionen offen ist.
 
+### `trainings`, `training_trainers`, `training_members`
+
+Ein `trainings`-Eintrag ist eine **Regel**, kein Termin: Wochentag, Uhrzeit, Rhythmus und
+ein Startdatum als Anker („zweiwöchentlich ab dem 1. September"). Wer leitet, steht in
+`training_trainers`, wer eingeladen ist, in `training_members`.
+
+Drei Schalter entscheiden über die Sichtbarkeit und werden deshalb in der RLS geprüft,
+nicht in der Oberfläche:
+
+- `is_open` — jedes aktive Mitglied darf kommen; nur solche Trainings sehen auch Gäste.
+- `trainer_invites_only` — niemand trägt sich selbst ein.
+- `is_incognito` — Teilnehmer sehen weder die Namen der anderen noch deren Zahl.
+
+`training_statistics_groups` begrenzt die Anwesenheitsstatistik, wenn
+`statistics_visibility = 'groups'` steht. `training_reminder_filter` hält fest, zu welchen
+Trainings ein Mitglied erinnert werden will — keine Zeile heißt: zu allen.
+
+### `training_sessions`, `training_cancellations`
+
+Die einzelnen Termine werden materialisiert: ein Job (Aufgabe 6.3) legt sie bis acht Wochen
+im Voraus an. Nur so kann eine Teilnahme an einem Termin hängen, und nur so bleibt sie
+erhalten, wenn sich die Regel ändert. Bestehende Zeilen werden nie gelöscht, nur
+aktualisiert.
+
+Ein Ausfall löscht ebenfalls nichts. `training_cancellations` beschreibt einen Zeitraum —
+entweder für ein Training oder für eine ganze Halle, nie für beides (Bedingung in der
+Tabelle) — und die betroffenen Sessions werden `cancelled` markiert. Sie behalten Grund und
+Herkunft, damit jeder sieht, was aus seinem Termin geworden ist.
+
+### `training_attendance`, `training_auto_attendance`
+
+`training_attendance` hat wie `match_participations` **keine Schreib-Policy**. Jede Änderung
+geht durch `rpc_set_training_attendance`, weil vier Dinge zusammen geprüft werden müssen:
+Zuordnung (oder `is_open`), Teilnehmergrenze inklusive Gästen, Anmeldeschluss (Sessionbeginn)
+und ob der Termin überhaupt stattfindet. Trainer und Admin dürfen für andere melden und auch
+nachtragen, wenn der Termin schon lief — sonst ließe sich die Anwesenheit nie korrigieren.
+
+`training_auto_attendance` hält die automatische Zusage bis zu einem Datum (Aufgabe 6.7).
+
+### `holidays`
+
+Gesetzliche Feiertage und Schulferien je Bundesland, aus öffentlichen Quellen importiert
+(Aufgabe 6.2). Der eindeutige Index über `(bundesland, kind, name, start_date)` macht den
+jährlichen Import wiederholbar, ohne die Tabelle zu verdoppeln.
+
 ### `private.cron_config`
 
 Liegt im Schema `private`, das PostgREST nicht veröffentlicht. Ab Aufgabe 3.3 lesen die
@@ -214,6 +259,18 @@ inzwischen überholt ist.
 Je Terminvorschlag, wie viele können und wie viele nicht. Der Mannschaftsführer sieht
 damit auf einen Blick, welcher Termin trägt.
 
+### `v_session_participants`, `v_session_counts`
+
+Wer kommt zu einem Trainingstermin? `v_session_participants` liefert die Namen und nutzt
+`security_invoker = true`: die Policy auf `training_attendance` entscheidet, wer wen sieht —
+bei einem inkognito geführten Training also nur Trainer und Admin.
+
+`v_session_counts` ist die einzige View im Projekt **ohne** `security_invoker`, und zwar mit
+Absicht: ein Zähler soll die volle Zahl nennen, nicht nur die Zahl der sichtbaren Zeilen.
+Sonst stünde bei Inkognito „1 Teilnehmer" — nämlich man selbst. Wer die Zahl überhaupt sehen
+darf, entscheidet stattdessen die `WHERE`-Bedingung der View über
+`may_see_session_roster()`.
+
 ### `v_match_lineup_status`
 
 Je Beteiligungszeile genau ein Wort: `lineup`, `open`, `declined`, `unclear`, `absent`
@@ -249,6 +306,11 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `rpc_start_reschedule_poll(uuid, timestamptz[])` | Terminumfrage mit bis zu drei Vorschlägen |
 | `rpc_vote_reschedule(uuid, int, bool)` | „kann" oder „kann nicht" zu einem Vorschlag |
 | `rpc_apply_reschedule(uuid, int)` | Setzt `dtstart_override` und erhöht die Fassung |
+| `trains(uuid)`, `trains_session(uuid)` | Leitet der Angemeldete dieses Training bzw. das zu diesem Termin? |
+| `can_see_training(uuid)` | Darf er es überhaupt sehen? Gäste nur offene oder zugeordnete |
+| `may_see_training_roster(uuid)`, `may_see_session_roster(uuid)` | Darf er sehen, wer dazugehört und wer kommt? Genau hier wirkt „Inkognito" |
+| `may_join_training(uuid)` | Darf er sich selbst eintragen? (offen und nicht `trainer_invites_only`) |
+| `rpc_set_training_attendance(uuid, status, int, uuid)` | Der einzige Weg in `training_attendance`; prüft Zuordnung, Grenze und Anmeldeschluss |
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |
@@ -315,6 +377,14 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `action_tokens` | **niemand** | niemand |
 | `substitute_requests` | der Gefragte, Mannschaftsführung, Admin | niemand direkt — nur über die RPCs |
 | `reschedule_polls`, `reschedule_votes` | aktive Mitglieder | niemand direkt |
+| `holidays` | alle Angemeldeten | Admin (und der Import als `service_role`) |
+| `trainings` | aktive Mitglieder; Gäste nur offene oder zugeordnete | Anlegen: Admin oder Trainer; Ändern/Löschen: Admin oder Trainer *dieses* Trainings |
+| `training_trainers` | wer das Training sieht — auch bei Inkognito | Admin oder Trainer des Trainings |
+| `training_members` | eigene Zeile; sonst nur, wenn das Training nicht inkognito läuft | Admin, Trainer, oder man selbst bei einem offenen Training |
+| `training_sessions` | wer das Training sieht | **niemand direkt** — nur der Erzeugungs-Job |
+| `training_attendance` | eigene Zeile; fremde nur, wenn nicht inkognito | **niemand direkt** — nur `rpc_set_training_attendance` |
+| `training_cancellations` | aktive Mitglieder | Admin; ein Trainer nur für sein eigenes Training, nie für eine ganze Halle |
+| `training_auto_attendance`, `training_reminder_filter` | eigene Zeilen | eigene Zeilen |
 
 `service_role` (Edge Functions) umgeht RLS — das ist gewollt und der Grund, warum der
 `service_role`-Schlüssel niemals ins Frontend gehört.

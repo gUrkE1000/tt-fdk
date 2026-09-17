@@ -160,6 +160,36 @@ export interface Database {
         };
         Relationships: [];
       };
+      holidays: {
+        Row: {
+          id: string;
+          bundesland: string;
+          kind: Database["public"]["Enums"]["holiday_kind"];
+          name: string;
+          start_date: string;
+          end_date: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          bundesland: string;
+          kind: Database["public"]["Enums"]["holiday_kind"];
+          name: string;
+          start_date: string;
+          end_date: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          bundesland?: string;
+          kind?: Database["public"]["Enums"]["holiday_kind"];
+          name?: string;
+          start_date?: string;
+          end_date?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       match_changes: {
         Row: {
           id: string;
@@ -1085,6 +1115,427 @@ export interface Database {
         };
         Relationships: [];
       };
+      training_attendance: {
+        Row: {
+          session_id: string;
+          profile_id: string;
+          status: Database["public"]["Enums"]["attendance_status"];
+          guests: number;
+          source: Database["public"]["Enums"]["attendance_source"];
+          updated_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          session_id: string;
+          profile_id: string;
+          status: Database["public"]["Enums"]["attendance_status"];
+          guests?: number;
+          source?: Database["public"]["Enums"]["attendance_source"];
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          session_id?: string;
+          profile_id?: string;
+          status?: Database["public"]["Enums"]["attendance_status"];
+          guests?: number;
+          source?: Database["public"]["Enums"]["attendance_source"];
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_attendance_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_attendance_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_attendance_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "training_sessions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_auto_attendance: {
+        Row: {
+          profile_id: string;
+          training_id: string;
+          until_date: string;
+          late: boolean;
+          created_at: string;
+        };
+        Insert: {
+          profile_id: string;
+          training_id: string;
+          until_date: string;
+          late?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          profile_id?: string;
+          training_id?: string;
+          until_date?: string;
+          late?: boolean;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_auto_attendance_training_id_fkey";
+            columns: ["training_id"];
+            isOneToOne: false;
+            referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_auto_attendance_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_cancellations: {
+        Row: {
+          id: string;
+          training_id: string | null;
+          venue_id: string | null;
+          from_date: string;
+          to_date: string;
+          reason: string;
+          notify_email: boolean;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          training_id?: string | null;
+          venue_id?: string | null;
+          from_date: string;
+          to_date: string;
+          reason?: string;
+          notify_email?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          training_id?: string | null;
+          venue_id?: string | null;
+          from_date?: string;
+          to_date?: string;
+          reason?: string;
+          notify_email?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_cancellations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_cancellations_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_cancellations_training_id_fkey";
+            columns: ["training_id"];
+            isOneToOne: false;
+            referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_members: {
+        Row: {
+          training_id: string;
+          profile_id: string;
+          created_at: string;
+        };
+        Insert: {
+          training_id: string;
+          profile_id: string;
+          created_at?: string;
+        };
+        Update: {
+          training_id?: string;
+          profile_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_members_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_members_training_id_fkey";
+            columns: ["training_id"];
+            isOneToOne: false;
+            referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_reminder_filter: {
+        Row: {
+          profile_id: string;
+          training_id: string;
+        };
+        Insert: {
+          profile_id: string;
+          training_id: string;
+        };
+        Update: {
+          profile_id?: string;
+          training_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_reminder_filter_training_id_fkey";
+            columns: ["training_id"];
+            isOneToOne: false;
+            referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_reminder_filter_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_sessions: {
+        Row: {
+          id: string;
+          training_id: string;
+          session_date: string;
+          starts_at: string;
+          ends_at: string | null;
+          cancelled: boolean;
+          cancel_reason: string;
+          cancellation_id: string | null;
+          reminder_sent_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          training_id: string;
+          session_date: string;
+          starts_at: string;
+          ends_at?: string | null;
+          cancelled?: boolean;
+          cancel_reason?: string;
+          cancellation_id?: string | null;
+          reminder_sent_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          training_id?: string;
+          session_date?: string;
+          starts_at?: string;
+          ends_at?: string | null;
+          cancelled?: boolean;
+          cancel_reason?: string;
+          cancellation_id?: string | null;
+          reminder_sent_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_sessions_cancellation_id_fkey";
+            columns: ["cancellation_id"];
+            isOneToOne: false;
+            referencedRelation: "training_cancellations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_sessions_training_id_fkey";
+            columns: ["training_id"];
+            isOneToOne: false;
+            referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_statistics_groups: {
+        Row: {
+          training_id: string;
+          group_id: string;
+        };
+        Insert: {
+          training_id: string;
+          group_id: string;
+        };
+        Update: {
+          training_id?: string;
+          group_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_statistics_groups_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "groups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_statistics_groups_training_id_fkey";
+            columns: ["training_id"];
+            isOneToOne: false;
+            referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_trainers: {
+        Row: {
+          training_id: string;
+          profile_id: string;
+          created_at: string;
+        };
+        Insert: {
+          training_id: string;
+          profile_id: string;
+          created_at?: string;
+        };
+        Update: {
+          training_id?: string;
+          profile_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_trainers_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_trainers_training_id_fkey";
+            columns: ["training_id"];
+            isOneToOne: false;
+            referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      trainings: {
+        Row: {
+          id: string;
+          name: string;
+          type: Database["public"]["Enums"]["training_type"];
+          weekday: number;
+          time_start: string;
+          time_end: string | null;
+          venue_id: string | null;
+          rhythm: Database["public"]["Enums"]["training_rhythm"];
+          start_date: string;
+          reminder_hours: number;
+          details: string;
+          max_participants: number | null;
+          is_open: boolean;
+          trainer_invites_only: boolean;
+          is_incognito: boolean;
+          requires_key_owner: boolean;
+          skip_public_holidays: boolean;
+          skip_school_holidays: boolean;
+          hide_in_calendar: boolean;
+          auto_cancel_no_trainers: boolean;
+          statistics_visibility: Database["public"]["Enums"]["statistics_visibility"];
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          type?: Database["public"]["Enums"]["training_type"];
+          weekday: number;
+          time_start: string;
+          time_end?: string | null;
+          venue_id?: string | null;
+          rhythm?: Database["public"]["Enums"]["training_rhythm"];
+          start_date?: string;
+          reminder_hours?: number;
+          details?: string;
+          max_participants?: number | null;
+          is_open?: boolean;
+          trainer_invites_only?: boolean;
+          is_incognito?: boolean;
+          requires_key_owner?: boolean;
+          skip_public_holidays?: boolean;
+          skip_school_holidays?: boolean;
+          hide_in_calendar?: boolean;
+          auto_cancel_no_trainers?: boolean;
+          statistics_visibility?: Database["public"]["Enums"]["statistics_visibility"];
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          type?: Database["public"]["Enums"]["training_type"];
+          weekday?: number;
+          time_start?: string;
+          time_end?: string | null;
+          venue_id?: string | null;
+          rhythm?: Database["public"]["Enums"]["training_rhythm"];
+          start_date?: string;
+          reminder_hours?: number;
+          details?: string;
+          max_participants?: number | null;
+          is_open?: boolean;
+          trainer_invites_only?: boolean;
+          is_incognito?: boolean;
+          requires_key_owner?: boolean;
+          skip_public_holidays?: boolean;
+          skip_school_holidays?: boolean;
+          hide_in_calendar?: boolean;
+          auto_cancel_no_trainers?: boolean;
+          statistics_visibility?: Database["public"]["Enums"]["statistics_visibility"];
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "trainings_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       venues: {
         Row: {
           id: string;
@@ -1200,6 +1651,30 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_session_counts: {
+        Row: {
+          session_id: string | null;
+          training_id: string | null;
+          yes_count: number | null;
+          late_count: number | null;
+          no_count: number | null;
+          guest_count: number | null;
+        };
+        Relationships: [];
+      };
+      v_session_participants: {
+        Row: {
+          session_id: string | null;
+          training_id: string | null;
+          profile_id: string | null;
+          full_name: string | null;
+          status: Database["public"]["Enums"]["attendance_status"] | null;
+          guests: number | null;
+          source: Database["public"]["Enums"]["attendance_source"] | null;
+          updated_at: string | null;
+        };
+        Relationships: [];
+      };
       v_substitute_requests: {
         Row: {
           id: string | null;
@@ -1229,6 +1704,10 @@ export interface Database {
       };
       can_see_absences: {
         Args: Record<string, never>;
+        Returns: unknown;
+      };
+      can_see_training: {
+        Args: { [key: string]: unknown };
         Returns: unknown;
       };
       current_member_role: {
@@ -1276,6 +1755,18 @@ export interface Database {
         Returns: unknown;
       };
       match_payload: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      may_join_training: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      may_see_session_roster: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      may_see_training_roster: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
@@ -1343,6 +1834,10 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      rpc_set_training_attendance: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       rpc_share_lineup: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -1367,11 +1862,22 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      trains: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      trains_session: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
     };
     CompositeTypes: Record<string, never>;
     Enums: {
       action_token_kind: "match_response" | "substitute_answer" | "event_response" | "poll_vote";
+      attendance_source: "auto" | "self" | "trainer" | "link";
+      attendance_status: "yes" | "late" | "no";
       gender: "male" | "female" | "unspecified";
+      holiday_kind: "public" | "school";
       lineup_mode: "fixed" | "open";
       match_source: "ics" | "manual";
       member_status: "active" | "pending_approval" | "unconfirmed";
@@ -1382,10 +1888,13 @@ export interface Database {
       poll_status: "open" | "closed" | "applied";
       ranking_type: "men" | "women" | "seniors_40" | "seniors_50" | "seniors_60" | "seniors_70" | "seniors_75" | "youth_19" | "youth_15" | "youth_13" | "youth_11" | "girls_19" | "girls_15" | "girls_13" | "girls_11";
       request_origin: "system" | "leader";
+      statistics_visibility: "all" | "admins" | "groups";
       substitute_mode: "sequential" | "parallel" | "manual";
       substitute_status: "pending" | "accepted" | "declined" | "expired" | "cancelled";
       sync_status: "pending" | "success" | "warning" | "failed";
       team_member_kind: "regular" | "substitute";
+      training_rhythm: "weekly" | "biweekly" | "monthly";
+      training_type: "adults" | "youth";
       user_role: "admin" | "team_leader" | "trainer" | "organizer" | "member" | "guest";
       volunteer_kind: "driver" | "catering";
     };
