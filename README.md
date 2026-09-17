@@ -69,4 +69,5 @@ Eigene Dokumente:
 | Dokument | Inhalt |
 |---|---|
 | [docs/recherche-tt-planer.md](docs/recherche-tt-planer.md) | Recherche zu TT-Planer, click-TT/nuLiga-Datenwegen, Alternativen, Kostenvergleich |
+| [docs/funktionsvergleich.md](docs/funktionsvergleich.md) | Vollständiger Funktionsvergleich TT-Planer vs. Repo-Stand: Schnittmenge, Lücken, Vorsprung, Baustellen, Roadmap |
 | [NOTICE.md](NOTICE.md) | Herkunft, Lizenzstatus, Upstream-Abgleich |
