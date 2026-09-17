@@ -11,16 +11,16 @@
 
 ## 0. Zusammenfassung
 
-- **Spieltagsbetrieb** ist der Kern: Mannschaften mit Stamm- und Ersatzspielern, Spieltermine aus click-TT, Rückmeldungen der Spieler, automatisierte Ersatzsuche, Fahrdienst und Verpflegung.
-- **click-TT-Import läuft ausschließlich über die ICS-Kalender-URL** des Spielplans von mytischtennis.de — pro Mannschaft einzeln. Es gibt **keine echte API-Anbindung** und **keinen Rückweg nach click-TT**.
-- **Ersatzspieler-Automatik** mit drei Modi: einzeln nach Reihenfolge, alle gleichzeitig, manuell. Die Reihenfolge wird per Drag & Drop gepflegt.
-- **Benachrichtigungen** über genau **zwei Kanäle: App-Push und E-Mail**. 15 Ereignistypen, jeder pro Mitglied einzeln pro Kanal an/aus schaltbar. Kein SMS, kein WhatsApp.
-- **Erinnerungsvorlauf** ist zweigeteilt: pro Training vereinsweit (`reminder_hours`, **Default 5 Stunden**), für Spiele pro Mitglied persönlich (Default im Testprofil 24 Stunden).
-- **Trainingsverwaltung** mit Rhythmus, offenen/geschlossenen Trainings, Inkognito-Modus, Hallenschlüssel-Pflicht, automatischer Feiertags- und Schulferien-Aussetzung, Ausfällen einzeln und als Zeitraum.
-- **Spielverlegung** läuft als Terminumfrage mit bis zu 3 Ersatzterminen an alle verfügbaren Spieler der Mannschaft.
-- **Halle** ist nur als Ort mit Adresse und Kapazität ("maximale gleichzeitige Spieltermine") modelliert — **keine Tischbelegung, keine Buchung durch Mitglieder**.
-- **Randmodule**: Chat (Verein/Mannschaft/persönlich), Umfragen, Arbeitszeiten, Trainer-Abrechnung, Inventar, Bekleidung, Schlüsselverwaltung, Vereinsneuigkeiten, Dateien.
-- Es ist eine **PWA** ("Zum Home-Bildschirm hinzufügen"), keine native App. Push wird über ein Glockensymbol in der App-Kopfzeile aktiviert.
+- **Spieltagsbetrieb** ist der Kern: Mannschaften mit Stamm- und Ersatzspielern, Spieltermine aus click-TT, Rückmeldungen der Spieler, automatisierte Ersatzsuche, Fahrdienst und Verpflegung.  
+- **click-TT-Import läuft ausschließlich über die ICS-Kalender-URL** des Spielplans von mytischtennis.de — pro Mannschaft einzeln. Es gibt **keine echte API-Anbindung** und **keinen Rückweg nach click-TT**.  
+- **Ersatzspieler-Automatik** mit drei Modi: einzeln nach Reihenfolge, alle gleichzeitig, manuell. Die Reihenfolge wird per Drag & Drop gepflegt.  
+- **Benachrichtigungen** über genau **zwei Kanäle: App-Push und E-Mail**. 15 Ereignistypen, jeder pro Mitglied einzeln pro Kanal an/aus schaltbar. Kein SMS, kein WhatsApp.  
+- **Erinnerungsvorlauf** ist zweigeteilt: pro Training vereinsweit (`reminder_hours`, **Default 5 Stunden**), für Spiele pro Mitglied persönlich (Default im Testprofil 24 Stunden).  
+- **Trainingsverwaltung** mit Rhythmus, offenen/geschlossenen Trainings, Inkognito-Modus, Hallenschlüssel-Pflicht, automatischer Feiertags- und Schulferien-Aussetzung, Ausfällen einzeln und als Zeitraum.  
+- **Spielverlegung** läuft als Terminumfrage mit bis zu 3 Ersatzterminen an alle verfügbaren Spieler der Mannschaft.  
+- **Halle** ist nur als Ort mit Adresse und Kapazität ("maximale gleichzeitige Spieltermine") modelliert — **keine Tischbelegung, keine Buchung durch Mitglieder**.  
+- **Randmodule**: Chat (Verein/Mannschaft/persönlich), Umfragen, Arbeitszeiten, Trainer-Abrechnung, Inventar, Bekleidung, Schlüsselverwaltung, Vereinsneuigkeiten, Dateien.  
+- Es ist eine **PWA** ("Zum Home-Bildschirm hinzufügen"), keine native App. Push wird über ein Glockensymbol in der App-Kopfzeile aktiviert.  
 
 ---
 
@@ -28,52 +28,52 @@
 
 Wortgetreue Beschriftungen aus der Seitenleiste. **Kein Punkt war gesperrt, ausgegraut oder mit Upgrade-Hinweis versehen** (Testzeitraum).
 
-- **Übersicht** — `/`
-- **Meine Spiele** — `/my-games`
-- **Meine Termine** — `/my-dates`
-- **Abrechnung** — `/billing`
-- **Arbeitszeiten** — `/work-logs`
-- *Verein* (Abschnittsüberschrift, kein Link)
-  - **Chat** — `/chat/unread`
-    - **Verein** — `/chat`
-    - **Mannschaften** — `/chat/teams`
-    - **Persönlich** — `/chat/personal`
-  - **Mein Verein** — `/my-club/news`
-  - **Statistiken** — `/statistics/dashboard`
-- *Planen* (Abschnittsüberschrift)
-  - **Trainings** — `/trainings`
-  - **Mannschaften** — `/teams`
-  - **Spieltermine** — `/games`
-  - **Vereinstermine** — `/dates`
-  - **Kalender** — `/calendar`
-  - **Umfragen** — `/votes`
-- *Verwalten* (Abschnittsüberschrift)
-  - **Mitglieder** — `/players`
-  - **Verein** — `/club`
-  - **Orte & Schlüssel** — `/venues`
-  - **Inventar** — `/inventory`
-  - **Bekleidung** — `/clothing`
-- Fußbereich der Seitenleiste: Hinweisbox *"Testzeitraum endet in 83 Tagen!"* mit Button **Jetzt buchen** → `/club/customer-area`
+- **Übersicht** — `/`  
+- **Meine Spiele** — `/my-games`  
+- **Meine Termine** — `/my-dates`  
+- **Abrechnung** — `/billing`  
+- **Arbeitszeiten** — `/work-logs`  
+- *Verein* (Abschnittsüberschrift, kein Link)  
+  - **Chat** — `/chat/unread`  
+    - **Verein** — `/chat`  
+    - **Mannschaften** — `/chat/teams`  
+    - **Persönlich** — `/chat/personal`  
+  - **Mein Verein** — `/my-club/news`  
+  - **Statistiken** — `/statistics/dashboard`  
+- *Planen* (Abschnittsüberschrift)  
+  - **Trainings** — `/trainings`  
+  - **Mannschaften** — `/teams`  
+  - **Spieltermine** — `/games`  
+  - **Vereinstermine** — `/dates`  
+  - **Kalender** — `/calendar`  
+  - **Umfragen** — `/votes`  
+- *Verwalten* (Abschnittsüberschrift)  
+  - **Mitglieder** — `/players`  
+  - **Verein** — `/club`  
+  - **Orte & Schlüssel** — `/venues`  
+  - **Inventar** — `/inventory`  
+  - **Bekleidung** — `/clothing`  
+- Fußbereich der Seitenleiste: Hinweisbox *"Testzeitraum endet in 83 Tagen!"* mit Button **Jetzt buchen** → `/club/customer-area`  
 
 ### Kopfzeile (rechts oben)
 
-- Chat-Icon (Sprungziel Chat)
-- **Hilfe** (Dropdown): *Hilfe* → `www.tt-planer.de/hilfe/` · *Feedback* → `ttplaner.featurebase.app` · *Updates* → `/updates` · *Mobile App* → `/mobile-app` · *E-Mail Support* → `mailto:support@tt-planer.de`
-- **Benachrichtigungs-Glocke** mit drei Zuständen (siehe Modul B)
-- **Profilmenü**: Name, Rollenlabel, QTTR-Badge · *Mein Profil* → `/profile` · *Abmelden* → `/logout`
+- Chat-Icon (Sprungziel Chat)  
+- **Hilfe** (Dropdown): *Hilfe* → `www.tt-planer.de/hilfe/` · *Feedback* → `ttplaner.featurebase.app` · *Updates* → `/updates` · *Mobile App* → `/mobile-app` · *E-Mail Support* → `mailto:support@tt-planer.de`  
+- **Benachrichtigungs-Glocke** mit drei Zuständen (siehe Modul B)  
+- **Profilmenü**: Name, Rollenlabel, QTTR-Badge · *Mein Profil* → `/profile` · *Abmelden* → `/logout`  
 
 ### Unterseiten mit eigenen Tab-Leisten
 
-- **Mein Profil** (`/profile`): Profil · Abwesenheiten · Benachrichtigungen · Bekleidung · Automatische Trainingszusagen
-- **Verein** (`/club`): Daten · Rollen · Neuigkeiten · Dateien · Kalender · Übersicht · Kundenbereich
-- **Mein Verein** (`/my-club`): Neuigkeiten · Dateien · Mitglieder · Trainings · Vereinstermine · Mannschaften · Spiele · Rollen & Kontaktdaten
-- **Trainings**: Termine · Planung
-- **Spieltermine**: Offene Termine · Beendete Termine
-- **Vereinstermine**: Offene Termine · Beendete Termine
-- **Mitglieder**: Mitglieder · Gruppen
-- **Kalender**: Planung · Abwesenheiten
-- **Inventar**: Inventar · Typen
-- **Bekleidung**: Übersicht · Anfragen · Typen
+- **Mein Profil** (`/profile`): Profil · Abwesenheiten · Benachrichtigungen · Bekleidung · Automatische Trainingszusagen  
+- **Verein** (`/club`): Daten · Rollen · Neuigkeiten · Dateien · Kalender · Übersicht · Kundenbereich  
+- **Mein Verein** (`/my-club`): Neuigkeiten · Dateien · Mitglieder · Trainings · Vereinstermine · Mannschaften · Spiele · Rollen & Kontaktdaten  
+- **Trainings**: Termine · Planung  
+- **Spieltermine**: Offene Termine · Beendete Termine  
+- **Vereinstermine**: Offene Termine · Beendete Termine  
+- **Mitglieder**: Mitglieder · Gruppen  
+- **Kalender**: Planung · Abwesenheiten  
+- **Inventar**: Inventar · Typen  
+- **Bekleidung**: Übersicht · Anfragen · Typen  
 
 ---
 
@@ -81,29 +81,29 @@ Wortgetreue Beschriftungen aus der Seitenleiste. **Kein Punkt war gesperrt, ausg
 
 ### A — Navigation, Startseite/Dashboard
 
-- **Pfad im Menü:** Übersicht (`/`)
-- **Zweck:** Persönliche Startseite: was steht als Nächstes an, was muss ich beantworten.
-- **Objekte und Felder:** Keine eigenen Objekte, reine Aggregation.
-- **Aufbau:**
+- **Pfad im Menü:** Übersicht (`/`)  
+- **Zweck:** Persönliche Startseite: was steht als Nächstes an, was muss ich beantworten.  
+- **Objekte und Felder:** Keine eigenen Objekte, reine Aggregation.  
+- **Aufbau:**  
 
-  1. **Countdown-Kachel** oben: *"Mannschaftsspiele — 21 Tage bis zum nächsten Spiel"*, darunter Badge *"1 Spiel in den nächsten 30 Tagen"*.
-  2. **Tab-Leiste mit Zählern**: **Trainings** (n) · **Spiele** (n) · **Kalender** · **Schlüssel** · **Offene Trainings** (n).
-  3. **Quicklinks**-Kachel unten mit Links nach mytischtennis.de: *Tabelle & Spielplan*, *TTR-Rechner*, *Vereinsrangliste* (letzterer mit der Vereinsnummer im Query-String).
+  1. **Countdown-Kachel** oben: *"Mannschaftsspiele — 21 Tage bis zum nächsten Spiel"*, darunter Badge *"1 Spiel in den nächsten 30 Tagen"*.  
+  2. **Tab-Leiste mit Zählern**: **Trainings** (n) · **Spiele** (n) · **Kalender** · **Schlüssel** · **Offene Trainings** (n).  
+  3. **Quicklinks**-Kachel unten mit Links nach mytischtennis.de: *Tabelle & Spielplan*, *TTR-Rechner*, *Vereinsrangliste* (letzterer mit der Vereinsnummer im Query-String).  
 
-- **Tab „Trainings":** Karte je Trainingstermin mit Datum/Uhrzeit, Name, **Ort**, **Nachrichten** (Zähler), **Teilnehmer** (Zähler + Liste), Block **Deine Teilnahme** mit den Buttons **Bin dabei / Komme später / Bin nicht dabei**. Im DOM zusätzlich vorhanden: *Zurücksetzen*, *Gäste*, *Speichern* — Gäste können also offenbar mitgemeldet werden.
-- **Tab „Spiele":** Filter-Chips **Alle (n) / Heim (n) / Auswärts (n)**. Je Spiel: Datum, Uhrzeit, Badge HEIM/AUSWÄRTS, Mannschaftsbadge, Gegner + Liga, **Ort** mit Button *Adresse anzeigen*, **Nachrichten**, **Aufstellung n/4** mit Fortschrittsbalken und Avataren, **Fahrer** mit *Ich kann fahren* / *Kann doch nicht fahren* und Badge *ALS FAHRER*, **Verpflegung** mit *Ich bringe etwas mit*.
-- **Tab „Kalender":** Monats-/Wochen-/Listenansicht mit farbigen Kategorien **Trainings · Spiele · Vereinstermine · Geburtstage · Halle nicht verfügbar**, Navigation `<` `>` `Heute`, Kalenderwochen-Spalte.
-- **Tab „Schlüssel":** *Deine Schlüssel* — je Schlüssel: Name + Halle, **Verantwortliche Person**, **Aktueller Inhaber**, Block **Schlüssel an Person übergeben** mit Personen-Auswahl und Button *Jetzt übergeben*.
-- **Tab „Offene Trainings":** Tabelle **Name | Zeitpunkt | Rhythmus | Ort | Trainer | Teilnahme** mit Button *Teilnehmen* bzw. *Nicht mehr teilnehmen*. Erklärtext: *"An diesen Trainings ist jedes Vereinsmitglied herzlich eingeladen teilzunehmen! Klicke hierfür auf 'Teilnehmen' und das Training erscheint in der obigen Liste."*
-- **Aktionen:** Teilnahme setzen, Fahrer melden, Verpflegung melden, Schlüssel übergeben, offenem Training beitreten. Alles für das eigene Konto.
-- **Beobachtungen:** Das Dashboard ist rein persönlich zugeschnitten, es gibt keine Admin-Kacheln (z. B. "5 Spieler haben nicht geantwortet"). Kein konfigurierbares Widget-Layout gefunden.
+- **Tab „Trainings":** Karte je Trainingstermin mit Datum/Uhrzeit, Name, **Ort**, **Nachrichten** (Zähler), **Teilnehmer** (Zähler + Liste), Block **Deine Teilnahme** mit den Buttons **Bin dabei / Komme später / Bin nicht dabei**. Im DOM zusätzlich vorhanden: *Zurücksetzen*, *Gäste*, *Speichern* — Gäste können also offenbar mitgemeldet werden.  
+- **Tab „Spiele":** Filter-Chips **Alle (n) / Heim (n) / Auswärts (n)**. Je Spiel: Datum, Uhrzeit, Badge HEIM/AUSWÄRTS, Mannschaftsbadge, Gegner + Liga, **Ort** mit Button *Adresse anzeigen*, **Nachrichten**, **Aufstellung n/4** mit Fortschrittsbalken und Avataren, **Fahrer** mit *Ich kann fahren* / *Kann doch nicht fahren* und Badge *ALS FAHRER*, **Verpflegung** mit *Ich bringe etwas mit*.  
+- **Tab „Kalender":** Monats-/Wochen-/Listenansicht mit farbigen Kategorien **Trainings · Spiele · Vereinstermine · Geburtstage · Halle nicht verfügbar**, Navigation `<` `>` `Heute`, Kalenderwochen-Spalte.  
+- **Tab „Schlüssel":** *Deine Schlüssel* — je Schlüssel: Name + Halle, **Verantwortliche Person**, **Aktueller Inhaber**, Block **Schlüssel an Person übergeben** mit Personen-Auswahl und Button *Jetzt übergeben*.  
+- **Tab „Offene Trainings":** Tabelle **Name | Zeitpunkt | Rhythmus | Ort | Trainer | Teilnahme** mit Button *Teilnehmen* bzw. *Nicht mehr teilnehmen*. Erklärtext: *"An diesen Trainings ist jedes Vereinsmitglied herzlich eingeladen teilzunehmen! Klicke hierfür auf 'Teilnehmen' und das Training erscheint in der obigen Liste."*  
+- **Aktionen:** Teilnahme setzen, Fahrer melden, Verpflegung melden, Schlüssel übergeben, offenem Training beitreten. Alles für das eigene Konto.  
+- **Beobachtungen:** Das Dashboard ist rein persönlich zugeschnitten, es gibt keine Admin-Kacheln (z. B. "5 Spieler haben nicht geantwortet"). Kein konfigurierbares Widget-Layout gefunden.  
 
 ---
 
 ### B — Benachrichtigungen und Erinnerungen
 
-- **Pfad im Menü:** Mein Profil → **Benachrichtigungen** (`/profile`, Tab). Zusätzlich verstreut: pro Training (`reminder_hours`), pro Ausfall (Checkbox), pro Mannschaft (Chat aus), im Vereinsprofil (Kopie-Empfänger).
-- **Zweck:** Steuert, welche Ereignisse ein Mitglied über welchen Kanal erreichen.
+- **Pfad im Menü:** Mein Profil → **Benachrichtigungen** (`/profile`, Tab). Zusätzlich verstreut: pro Training (`reminder_hours`), pro Ausfall (Checkbox), pro Mannschaft (Chat aus), im Vereinsprofil (Kopie-Empfänger).  
+- **Zweck:** Steuert, welche Ereignisse ein Mitglied über welchen Kanal erreichen.  
 
 #### Kanäle
 
@@ -143,12 +143,12 @@ Alle 15 sind im Auslieferungszustand für **beide** Kanäle aktiviert.
 
 **Zusätzliche, nicht in dieser Matrix stehende E-Mail-Auslöser**, die an anderer Stelle explizit dokumentiert sind (Block „Erklärung Aktionen" im Dialog *Spieler verwalten*):
 
-- Spieler wird beim Spiel hinzugefügt → *"informiert diesen per E-Mail darüber"*
-- Spieler wird vorerst beim Spiel entfernt → E-Mail
-- Spieler wird beim Spiel auf Absage gesetzt → E-Mail
-- Trainingsausfall anlegen → optionale Checkbox *"Mitglieder über den Ausfall per E-Mail direkt benachrichtigen"* (Default **aus**)
-- Mitglied wird manuell freigeschaltet → Willkommens-E-Mail (Text vereinsweit überschreibbar, sonst Standard-E-Mail des Anbieters)
-- Neue Mitglieder aus dem Excel-Import erhalten eine E-Mail-Einladung
+- Spieler wird beim Spiel hinzugefügt → *"informiert diesen per E-Mail darüber"*  
+- Spieler wird vorerst beim Spiel entfernt → E-Mail  
+- Spieler wird beim Spiel auf Absage gesetzt → E-Mail  
+- Trainingsausfall anlegen → optionale Checkbox *"Mitglieder über den Ausfall per E-Mail direkt benachrichtigen"* (Default **aus**)  
+- Mitglied wird manuell freigeschaltet → Willkommens-E-Mail (Text vereinsweit überschreibbar, sonst Standard-E-Mail des Anbieters)  
+- Neue Mitglieder aus dem Excel-Import erhalten eine E-Mail-Einladung  
 
 #### Objekte und Felder
 
@@ -174,17 +174,17 @@ Alle 15 sind im Auslieferungszustand für **beide** Kanäle aktiviert.
 |---|---|---|---|
 | Wie viele Stunden vor Beginn soll erinnert werden? (`reminder_hours`) | Zahl | nein | **Default 5** — bestätigt deine Vermutung; keine min/max/step-Begrenzung |
 
-- **Einstellebenen:** vereinsweit gibt es **keine** zentrale Benachrichtigungskonfiguration. Die Ebenen sind: **pro Mitglied** (Matrix + Spiel-Vorlauf + Trainingsauswahl), **pro Training** (Vorlauf in Stunden), **pro Mannschaft** (nur "Team Chat deaktivieren"), **pro Einzelaktion** (Ausfall-Checkbox, Aufstellungsaktionen).
-- **Nur Nichtantworter oder alle?** *Nicht verifiziert.* Der Typ Nr. 14 heißt **"Erinnerung an offene Spiel- und Terminteilnahmen"** — die Formulierung „offene" spricht dafür, dass nur Mitglieder ohne Rückmeldung erinnert werden. Nr. 8 **"Erinnerung an Spieltermin"** klingt dagegen nach einer Erinnerung an alle. Mit nur einem Mitglied im Verein und ohne Auslösen einer echten Benachrichtigung war das **nicht nachprüfbar**.
-- **Kann ein Mitglied eigene Benachrichtigungen abschalten?** Ja, vollständig und granular: jede der 15 Zeilen einzeln pro Kanal. Es gab keinen Hinweis darauf, dass ein Admin diese Wahl überschreiben oder erzwingen kann.
-- **Beobachtungen:** Der Spiel-Vorlauf ist **pro Mitglied** einstellbar, der Trainings-Vorlauf **pro Training**. Das ist eine bewusste Asymmetrie und für einen Nachbau die wichtigste Design-Entscheidung in diesem Bereich.
+- **Einstellebenen:** vereinsweit gibt es **keine** zentrale Benachrichtigungskonfiguration. Die Ebenen sind: **pro Mitglied** (Matrix + Spiel-Vorlauf + Trainingsauswahl), **pro Training** (Vorlauf in Stunden), **pro Mannschaft** (nur "Team Chat deaktivieren"), **pro Einzelaktion** (Ausfall-Checkbox, Aufstellungsaktionen).  
+- **Nur Nichtantworter oder alle?** *Nicht verifiziert.* Der Typ Nr. 14 heißt **"Erinnerung an offene Spiel- und Terminteilnahmen"** — die Formulierung „offene" spricht dafür, dass nur Mitglieder ohne Rückmeldung erinnert werden. Nr. 8 **"Erinnerung an Spieltermin"** klingt dagegen nach einer Erinnerung an alle. Mit nur einem Mitglied im Verein und ohne Auslösen einer echten Benachrichtigung war das **nicht nachprüfbar**.  
+- **Kann ein Mitglied eigene Benachrichtigungen abschalten?** Ja, vollständig und granular: jede der 15 Zeilen einzeln pro Kanal. Es gab keinen Hinweis darauf, dass ein Admin diese Wahl überschreiben oder erzwingen kann.  
+- **Beobachtungen:** Der Spiel-Vorlauf ist **pro Mitglied** einstellbar, der Trainings-Vorlauf **pro Training**. Das ist eine bewusste Asymmetrie und für einen Nachbau die wichtigste Design-Entscheidung in diesem Bereich.  
 
 ---
 
 ### C — Mannschaften und Mannschaftsspiele
 
-- **Pfad im Menü:** Planen → **Mannschaften** (`/teams`), Unterseite **Mannschaften bearbeiten** (`/teams/players-management`); Planen → **Spieltermine** (`/games`).
-- **Zweck:** Kader, Aufstellung, Rückmeldungen, Ersatzsuche, Fahrdienst.
+- **Pfad im Menü:** Planen → **Mannschaften** (`/teams`), Unterseite **Mannschaften bearbeiten** (`/teams/players-management`); Planen → **Spieltermine** (`/games`).  
+- **Zweck:** Kader, Aufstellung, Rückmeldungen, Ersatzsuche, Fahrdienst.  
 
 #### Objekt: Mannschaft
 
@@ -275,20 +275,20 @@ Bei **Spielen** habe ich die Zusage-Buttons in der Spielerrolle nicht gesehen (d
 
 Kopf: Mannschaft | Gegner (Heim-/Auswärtsspiel) | Termin. Abschnitte in dieser Reihenfolge:
 
-1. **Aufstellung** — Fortschrittsbalken, „0 / 4 Spieler besetzt"
-2. **Offene Spieler** — mit Link **+ Andere Spieler (ohne Mannschaftszuordnung)**
-3. **Abwesende Spieler** — aus den hinterlegten Abwesenheiten
-4. **Bestätigte Spieler manuell entfernt**
-5. **Spieler Absagen**
-6. **Spieler noch unklar**
-7. **Spieler mit Spieltermin am gleichen Tag** — Konfliktwarnung
-8. **Erklärung Aktionen** (wörtlich):
-   - `👤+` Fügt den Spieler beim Spiel hinzu und informiert diesen per E-Mail darüber
-   - `👤−` Entfernt den Spieler vorerst beim Spiel und informiert diesen per E-Mail darüber
-   - `⊖` Setzt den Spieler beim Spiel auf Absage und informiert diesen per E-Mail darüber
-   - `?` Fragt den Spieler an, ob dieser bei dem Spiel Ersatz spielen könnte
-   - `↺` Setzt den Teilnahme Status des Spielers zurück
-   - `🗑` Löscht die Ersatzanfrage
+1. **Aufstellung** — Fortschrittsbalken, „0 / 4 Spieler besetzt"  
+2. **Offene Spieler** — mit Link **+ Andere Spieler (ohne Mannschaftszuordnung)**  
+3. **Abwesende Spieler** — aus den hinterlegten Abwesenheiten  
+4. **Bestätigte Spieler manuell entfernt**  
+5. **Spieler Absagen**  
+6. **Spieler noch unklar**  
+7. **Spieler mit Spieltermin am gleichen Tag** — Konfliktwarnung  
+8. **Erklärung Aktionen** (wörtlich):  
+   - `👤+` Fügt den Spieler beim Spiel hinzu und informiert diesen per E-Mail darüber  
+   - `👤−` Entfernt den Spieler vorerst beim Spiel und informiert diesen per E-Mail darüber  
+   - `⊖` Setzt den Spieler beim Spiel auf Absage und informiert diesen per E-Mail darüber  
+   - `?` Fragt den Spieler an, ob dieser bei dem Spiel Ersatz spielen könnte  
+   - `↺` Setzt den Teilnahme Status des Spielers zurück  
+   - `🗑` Löscht die Ersatzanfrage  
 
 Die Aufstellung ist also **halbautomatisch**: Stammspieler werden automatisch gesetzt bzw. angefragt, Ersatz wird automatisch nachgezogen, die finale Entscheidung trifft der Mannschaftsführer manuell in diesem Dialog.
 
@@ -328,14 +328,14 @@ Korrespondierende Benachrichtigungstypen: *Terminumfrage für Spielverlegung* un
 
 Eigene Seite (`/teams/players-management`), Untertitel *"Stamm- und Ersatzspieler aller Mannschaften auf einer Seite anpassen."* Tabelle **Mannschaft | Stammspieler | Ersatzspieler**, je Zeile zwei Auswahlfelder, Hinweis „Maximal 4 Stammspieler" und die aktive *Ersatzanfragen Logik* der jeweiligen Mannschaft. Buttons *Zur Übersicht* und *Speichern*.
 
-- **Rollen:** Mannschaften anlegen/bearbeiten/löschen offensichtlich Admin; *Spieler verwalten*, *Aufstellung teilen* und *Spielverlegung* laut Hilfetexten **Mannschaftsführer oder Admin**.
+- **Rollen:** Mannschaften anlegen/bearbeiten/löschen offensichtlich Admin; *Spieler verwalten*, *Aufstellung teilen* und *Spielverlegung* laut Hilfetexten **Mannschaftsführer oder Admin**.  
 
 ---
 
 ### D — click-TT-Anbindung
 
-- **Pfad im Menü:** Planen → Spieltermine → Buttons **Spiele importieren** und **Codes & PINs Import**.
-- **Zweck:** Spielpläne und die Zugangsdaten für den digitalen Spielbericht aus click-TT/mytischtennis übernehmen.
+- **Pfad im Menü:** Planen → Spieltermine → Buttons **Spiele importieren** und **Codes & PINs Import**.  
+- **Zweck:** Spielpläne und die Zugangsdaten für den digitalen Spielbericht aus click-TT/mytischtennis übernehmen.  
 
 #### Import des Spielplans
 
@@ -385,14 +385,14 @@ Der Dialog verlinkt Anleitungen für **Google Kalender, Microsoft Outlook, Mac, 
 
 Ergänzend: Am **Vereinstermin** gibt es die Checkbox *"Termine nicht im Kalender exportieren"*, am **Training** *"Training im Kalender nicht anzeigen"* — der Export ist also pro Objekt abwählbar. Das Abo enthält laut Text nur **zugesagte** Termine.
 
-- **Beobachtungen für den Nachbau:** Der ICS-Import ist der einzige Berührungspunkt mit click-TT und technisch trivial nachzubauen — ein ICS-Parser plus Zuordnung zu einer Mannschaft. Das Abo-Token liegt im Query-String, also ein simpler Bearer-im-Link.
+- **Beobachtungen für den Nachbau:** Der ICS-Import ist der einzige Berührungspunkt mit click-TT und technisch trivial nachzubauen — ein ICS-Parser plus Zuordnung zu einer Mannschaft. Das Abo-Token liegt im Query-String, also ein simpler Bearer-im-Link.  
 
 ---
 
 ### E — Training
 
-- **Pfad im Menü:** Planen → **Trainings** (`/trainings`), Tabs **Termine** und **Planung**.
-- **Zweck:** Wiederkehrende Trainings, Teilnahmeabfrage, Ausfälle.
+- **Pfad im Menü:** Planen → **Trainings** (`/trainings`), Tabs **Termine** und **Planung**.  
+- **Zweck:** Wiederkehrende Trainings, Teilnahmeabfrage, Ausfälle.  
 
 Listenansicht: **Name | Zeitpunkt | Trainer | Mitglieder | Rhythmus | Aktiv | Aktion**. Je Zeile Badges für den Trainingstyp (z. B. ERWACHSENE) und ggf. **OFFENES TRAINING**, Link *Ausfälle verwalten*, Link *Mitglieder anzeigen*, sowie ein **Aktiv**-Schalter zum Stilllegen ohne Löschen. Aktionsmenü: **Bearbeiten**, **Ausfälle**, **Löschen**. Kopfbuttons: **Training anlegen**, **Mitglieder zuweisen**, **Ausfall anlegen**.
 
@@ -428,17 +428,17 @@ Listenansicht: **Name | Zeitpunkt | Trainer | Mitglieder | Rhythmus | Aktiv | Ak
 
 #### Teilnahmeabfrage
 
-- Rückmeldung über **Bin dabei / Komme später / Bin nicht dabei**, dazu *Zurücksetzen* und ein **Gäste**-Feld.
-- Erinnerung `reminder_hours` vor Beginn (Default 5 h), Kanal je Mitglied wählbar; das Mitglied kann außerdem einschränken, für **welche** Trainings es überhaupt Erinnerungen bekommen will.
-- **Ab wann sichtbar / wie lange möglich:** kein Feld dafür gefunden. Trainings sind wiederkehrend und erscheinen offenbar dauerhaft in der Übersicht; ein „Anmeldefenster" wie bei Vereinsterminen (*Teilnahme hinterlegen bis*) gibt es beim Training **nicht**.
-- **Automatische Zusagen:** Mein Profil → **Automatische Trainingszusagen**. Tabelle **Training | Zusagen bis | Status | Aktion**, Button *Automatische Zusage aktivieren*. Felder: TRAINING (Auswahl, Pflicht), AUTOMATISCH ZUSAGEN BIS (Datum, Pflicht), Checkbox **Komme später**. Hinweis: *"Nach der automatischen Zusage zu einem Training, kannst du den Status jederzeit in deiner Übersicht ändern und z.B. eine Absage hinterlegen."*
+- Rückmeldung über **Bin dabei / Komme später / Bin nicht dabei**, dazu *Zurücksetzen* und ein **Gäste**-Feld.  
+- Erinnerung `reminder_hours` vor Beginn (Default 5 h), Kanal je Mitglied wählbar; das Mitglied kann außerdem einschränken, für **welche** Trainings es überhaupt Erinnerungen bekommen will.  
+- **Ab wann sichtbar / wie lange möglich:** kein Feld dafür gefunden. Trainings sind wiederkehrend und erscheinen offenbar dauerhaft in der Übersicht; ein „Anmeldefenster" wie bei Vereinsterminen (*Teilnahme hinterlegen bis*) gibt es beim Training **nicht**.  
+- **Automatische Zusagen:** Mein Profil → **Automatische Trainingszusagen**. Tabelle **Training | Zusagen bis | Status | Aktion**, Button *Automatische Zusage aktivieren*. Felder: TRAINING (Auswahl, Pflicht), AUTOMATISCH ZUSAGEN BIS (Datum, Pflicht), Checkbox **Komme später**. Hinweis: *"Nach der automatischen Zusage zu einem Training, kannst du den Status jederzeit in deiner Übersicht ändern und z.B. eine Absage hinterlegen."*  
 
 #### Trainingsausfälle
 
 Zwei Wege:
 
-1. **Pro Training** (`Ausfälle verwalten` / Aktionsmenü → *Ausfälle*): eigene Seite „Trainingsausfälle" mit Tabelle **Von | Bis | Grund | Aktion** und Button *Ausfall anlegen*. Einzeltag = Von und Bis gleich; Zeitraum = Von/Bis unterschiedlich.
-2. **Pro Ort** (`Ausfall anlegen` in der Trainingsliste oder unter Orte & Schlüssel): Hinweis *"Der hinterlegte Ausfall wird bei allen Trainings hinterlegt, die dem ausgewählten Ort zugeordnet sind."*
+1. **Pro Training** (`Ausfälle verwalten` / Aktionsmenü → *Ausfälle*): eigene Seite „Trainingsausfälle" mit Tabelle **Von | Bis | Grund | Aktion** und Button *Ausfall anlegen*. Einzeltag = Von und Bis gleich; Zeitraum = Von/Bis unterschiedlich.  
+2. **Pro Ort** (`Ausfall anlegen` in der Trainingsliste oder unter Orte & Schlüssel): Hinweis *"Der hinterlegte Ausfall wird bei allen Trainings hinterlegt, die dem ausgewählten Ort zugeordnet sind."*  
 
 | Feld | Typ | Pflicht | Default |
 |---|---|---|---|
@@ -464,8 +464,8 @@ Ja, sichtbar an mehreren Stellen: eigene Verwaltung unter **Orte & Schlüssel**,
 
 Ja, unter **Statistiken**:
 
-- Widget **Training** — *"Zusagen, Absagen & Abwesenheiten je Training"*, Filter Training + **Zeitraum** (Default „Letzte 90 Tage"), Button **Exportieren**.
-- Widget **Top 10 Trainingsteilnehmer** — *"Letzte 12 Monate für alle Trainings"*.
+- Widget **Training** — *"Zusagen, Absagen & Abwesenheiten je Training"*, Filter Training + **Zeitraum** (Default „Letzte 90 Tage"), Button **Exportieren**.  
+- Widget **Top 10 Trainingsteilnehmer** — *"Letzte 12 Monate für alle Trainings"*.  
 
 Sichtbarkeit steuerbar über `statistics_visibility` am Training (Für Alle / Nur für Admins / Gruppe(n)).
 
@@ -473,8 +473,8 @@ Sichtbarkeit steuerbar über `statistics_visibility` am Training (Für Alle / Nu
 
 ### F — Halle und Tischbelegung
 
-- **Pfad im Menü:** Verwalten → **Orte & Schlüssel** (`/venues`)
-- **Zweck:** Spiel- und Trainingsstätten, Kapazität, Schlüsselverwaltung.
+- **Pfad im Menü:** Verwalten → **Orte & Schlüssel** (`/venues`)  
+- **Zweck:** Spiel- und Trainingsstätten, Kapazität, Schlüsselverwaltung.  
 
 Zwei Abschnitte: **Orte (n)** mit Buttons *Ort anlegen* / *Ausfall anlegen* und **Schlüssel (n)** mit *Schlüssel anlegen*.
 
@@ -503,14 +503,14 @@ Tabelle: **Name | Ort | Verantwortlicher | Aktueller Inhaber | Weitergabe? | Akt
 | `responsible_user_id` — VERANTWORTLICHER | Auswahl Mitglied | **ja** | |
 | `no_forwarding` — Keine Weitergabe des Schlüssels ermöglichen | Checkbox | nein | aus |
 
-- **Aktionen:** Ort/Schlüssel anlegen, bearbeiten, löschen (Admin). Schlüsselübergabe: jedes Mitglied, das aktueller Inhaber ist, kann den Schlüssel im Dashboard an eine andere Person übergeben — sofern *Keine Weitergabe* nicht gesetzt ist.
-- **Tischbelegung / Buchung durch Mitglieder: existiert nicht.** Es gibt keine Tische, keine Zeitfenster, keine Reservierung, keine Freitextregeln. Die einzige Kapazitätsgrenze ist *maximale Anzahl gleichzeitiger Spieltermine* pro Ort, und die betrifft die Terminplanung, nicht eine Buchung. Wenn eure schlanke Lösung Tischbelegung braucht, ist das eine echte Neuentwicklung, kein Nachbau.
+- **Aktionen:** Ort/Schlüssel anlegen, bearbeiten, löschen (Admin). Schlüsselübergabe: jedes Mitglied, das aktueller Inhaber ist, kann den Schlüssel im Dashboard an eine andere Person übergeben — sofern *Keine Weitergabe* nicht gesetzt ist.  
+- **Tischbelegung / Buchung durch Mitglieder: existiert nicht.** Es gibt keine Tische, keine Zeitfenster, keine Reservierung, keine Freitextregeln. Die einzige Kapazitätsgrenze ist *maximale Anzahl gleichzeitiger Spieltermine* pro Ort, und die betrifft die Terminplanung, nicht eine Buchung. Wenn eure schlanke Lösung Tischbelegung braucht, ist das eine echte Neuentwicklung, kein Nachbau.  
 
 ---
 
 ### G — Mitglieder und Rollen
 
-- **Pfad im Menü:** Verwalten → **Mitglieder** (`/players`), Tabs **Mitglieder** und **Gruppen**; Verwalten → Verein → **Rollen**.
+- **Pfad im Menü:** Verwalten → **Mitglieder** (`/players`), Tabs **Mitglieder** und **Gruppen**; Verwalten → Verein → **Rollen**.  
 
 Kopfbuttons: **Mitglieder hinzufügen** (Dropdown), **Excel Import & Update**, **Ränge bearbeiten**, **QTTR Update**.
 Filter: Suche · **Alle Rollen** · **Alle Status** · **Alle Mannschaften** · **Alle Trainings** · Zurücksetzen.
@@ -556,11 +556,11 @@ Spalten: **Name** (mit QTTR-Badge) | **E-Mail** | **Rolle** | **Status** | **Man
 
 Dropdown **Mitglieder hinzufügen** mit fünf Wegen:
 
-1. **Mitglieder per E-Mail einladen**
-2. **Mitglied ohne E-Mail anlegen**
-3. **Vereinswechsel bei Mitglied**
-4. **Registrierungslink kopieren**
-5. **QR Code Registrierung anzeigen**
+1. **Mitglieder per E-Mail einladen**  
+2. **Mitglied ohne E-Mail anlegen**  
+3. **Vereinswechsel bei Mitglied**  
+4. **Registrierungslink kopieren**  
+5. **QR Code Registrierung anzeigen**  
 
 **Status** eines Mitglieds: **aktiv**, **nicht freigeschaltet**, **unbestätigt**. Beim manuellen Freischalten geht eine Willkommens-E-Mail raus; der Text lässt sich vereinsweit überschreiben (Verein → Daten → *Individuelle Willkommens E-Mail für freigeschaltete Benutzer*), sonst greift die Standard-E-Mail des Anbieters.
 
@@ -598,14 +598,14 @@ Eigener Tab. Buttons *Gruppe anlegen* (einziges Feld: **NAME**, Pflicht) und *Mi
 
 #### Vereinskalender
 
-- **Pfad:** Planen → **Kalender** (`/calendar`), Tabs **Planung** / **Abwesenheiten**.
-- **Planung:** Kategorien **Trainings · Spiele · Vereinstermine · Geburtstage · Ereignisse · Halle nicht verfügbar** (als klickbare Farb-Chips zum Ein-/Ausblenden). Button **Ereignis anlegen**, Checkbox **Nur Heimspiele anzeigen**. Ansichten **Monat / Woche / Liste**, Navigation `<` `>` `Heute`, KW-Spalte.
-- **Abwesenheiten:** eigener Kalender, Erklärtext *"In diesem Kalender findest du alle eingetragenen Abwesenheiten des Vereins. Hier kannst du Abwesenheiten anlegen, bearbeiten oder löschen — auch solche, die Mitglieder selbst in ihrem Profil angelegt haben."* Button *Abwesenheit anlegen*.
-- Unter Verein → **Kalender** gibt es einen weiteren Kalender-Tab (Vereinsverwaltungssicht) — inhaltlich nicht separat geprüft.
+- **Pfad:** Planen → **Kalender** (`/calendar`), Tabs **Planung** / **Abwesenheiten**.  
+- **Planung:** Kategorien **Trainings · Spiele · Vereinstermine · Geburtstage · Ereignisse · Halle nicht verfügbar** (als klickbare Farb-Chips zum Ein-/Ausblenden). Button **Ereignis anlegen**, Checkbox **Nur Heimspiele anzeigen**. Ansichten **Monat / Woche / Liste**, Navigation `<` `>` `Heute`, KW-Spalte.  
+- **Abwesenheiten:** eigener Kalender, Erklärtext *"In diesem Kalender findest du alle eingetragenen Abwesenheiten des Vereins. Hier kannst du Abwesenheiten anlegen, bearbeiten oder löschen — auch solche, die Mitglieder selbst in ihrem Profil angelegt haben."* Button *Abwesenheit anlegen*.  
+- Unter Verein → **Kalender** gibt es einen weiteren Kalender-Tab (Vereinsverwaltungssicht) — inhaltlich nicht separat geprüft.  
 
 #### Vereinstermine
 
-- **Pfad:** Planen → **Vereinstermine** (`/dates`), Tabs Offene/Beendete Termine. Filter: Suche, Zeitraum von/bis. Hinweistext: *"Plane hier z.B. deine Clubmeisterschaften, Sommerfeste oder andere Vereinstermine."*
+- **Pfad:** Planen → **Vereinstermine** (`/dates`), Tabs Offene/Beendete Termine. Filter: Suche, Zeitraum von/bis. Hinweistext: *"Plane hier z.B. deine Clubmeisterschaften, Sommerfeste oder andere Vereinstermine."*  
 
 | Feld | Typ | Pflicht | Optionen / Default |
 |---|---|---|---|
@@ -625,8 +625,8 @@ Auffällig: Im **Anlegen**-Dialog gibt es **keine Adressatenauswahl**. Es existi
 
 #### Umfragen
 
-- **Pfad:** Planen → **Umfragen** (`/votes`), Button *Umfrage anlegen*.
-- **Adressierung:** *"Ohne Auswahl geht die Umfrage an den gesamten Verein. Du kannst mehrere Mannschaften und Gruppen kombinieren."*
+- **Pfad:** Planen → **Umfragen** (`/votes`), Button *Umfrage anlegen*.  
+- **Adressierung:** *"Ohne Auswahl geht die Umfrage an den gesamten Verein. Du kannst mehrere Mannschaften und Gruppen kombinieren."*  
 
 | Feld | Typ | Pflicht | Optionen / Default |
 |---|---|---|---|
@@ -648,9 +648,9 @@ Hilfetexte zu den Typen: *"**Umfrage / Abstimmung:** Umfrage mit einer oder mehr
 
 #### Arbeitszeiten
 
-- **Pfad:** **Arbeitszeiten** (`/work-logs`), Untertitel *"Erfasste Stunden aller Rollen"*.
-- Drei Kennzahlkacheln: **Stunden diesen Monat**, **Stunden letzter Monat**, **Stunden dieses Jahr**.
-- Buttons: **Exportieren** (Dropdown mit Monaten, z. B. 09.2026 … 04.2026) und **Eintrag anlegen**.
+- **Pfad:** **Arbeitszeiten** (`/work-logs`), Untertitel *"Erfasste Stunden aller Rollen"*.  
+- Drei Kennzahlkacheln: **Stunden diesen Monat**, **Stunden letzter Monat**, **Stunden dieses Jahr**.  
+- Buttons: **Exportieren** (Dropdown mit Monaten, z. B. 09.2026 … 04.2026) und **Eintrag anlegen**.  
 
 | Feld | Typ | Pflicht | Optionen / Default |
 |---|---|---|---|
@@ -664,22 +664,22 @@ Erfassen kann hier offensichtlich der Admin für beliebige Mitglieder; Auswertun
 
 #### Abrechnung
 
-- **Pfad:** **Abrechnung** (`/billing`), Untertitel *"Erfassten Trainingsstunden aller Trainer"*.
-- Gleiche drei Kennzahlkacheln, Filter **Alle Trainer**, **Exportieren** (monatsweise), **Eintrag anlegen**.
-- Das ist das Trainer-Honorar-Pendant zu den Arbeitsstunden.
+- **Pfad:** **Abrechnung** (`/billing`), Untertitel *"Erfassten Trainingsstunden aller Trainer"*.  
+- Gleiche drei Kennzahlkacheln, Filter **Alle Trainer**, **Exportieren** (monatsweise), **Eintrag anlegen**.  
+- Das ist das Trainer-Honorar-Pendant zu den Arbeitsstunden.  
 
 #### News / Mitteilungen
 
-- **Anlegen:** Verwalten → Verein → **Neuigkeiten**. **Anzeige:** Mein Verein → **Neuigkeiten** (*"Es wurden noch keine Neuigkeiten geteilt."*).
-- Reichweite, Formatierung und Benachrichtigungsverhalten **nicht geprüft** (kein Beitrag vorhanden, Anlegedialog nicht geöffnet). In der Benachrichtigungsmatrix gibt es **keinen** Typ für Vereinsneuigkeiten — Neuigkeiten lösen vermutlich keine Push/E-Mail aus. *Vermutung, siehe Abschnitt 6.*
+- **Anlegen:** Verwalten → Verein → **Neuigkeiten**. **Anzeige:** Mein Verein → **Neuigkeiten** (*"Es wurden noch keine Neuigkeiten geteilt."*).  
+- Reichweite, Formatierung und Benachrichtigungsverhalten **nicht geprüft** (kein Beitrag vorhanden, Anlegedialog nicht geöffnet). In der Benachrichtigungsmatrix gibt es **keinen** Typ für Vereinsneuigkeiten — Neuigkeiten lösen vermutlich keine Push/E-Mail aus. *Vermutung, siehe Abschnitt 6.*  
 
 #### Dateien
 
-- Verwalten → Verein → **Dateien** (Ablage), Anzeige unter Mein Verein → **Dateien**. Inhaltlich nicht geprüft.
+- Verwalten → Verein → **Dateien** (Ablage), Anzeige unter Mein Verein → **Dateien**. Inhaltlich nicht geprüft.  
 
 #### Abwesenheiten
 
-- **Mitgliedersicht:** Mein Profil → **Abwesenheiten**, Tabelle **Von | Bis | Kommentar | Aktion**, Button *Abwesenheit anlegen*.
+- **Mitgliedersicht:** Mein Profil → **Abwesenheiten**, Tabelle **Von | Bis | Kommentar | Aktion**, Button *Abwesenheit anlegen*.  
 
 | Feld | Typ | Pflicht | Optionen / Default |
 |---|---|---|---|
@@ -687,18 +687,18 @@ Erfassen kann hier offensichtlich der Admin für beliebige Mitglieder; Auswertun
 | BIS | Datum | nein | |
 | KOMMENTAR (NUR FÜR DICH SICHTBAR) | Textfeld mehrzeilig | nein | |
 
-- **Sichtbarkeit:** Der Kommentar ist laut Feldbeschriftung ausdrücklich **nur für das Mitglied selbst** sichtbar. Die Abwesenheit selbst sehen Admins im Kalender-Tab *Abwesenheiten* und der Mannschaftsführer im Dialog *Spieler verwalten* (Abschnitt „Abwesende Spieler").
+- **Sichtbarkeit:** Der Kommentar ist laut Feldbeschriftung ausdrücklich **nur für das Mitglied selbst** sichtbar. Die Abwesenheit selbst sehen Admins im Kalender-Tab *Abwesenheiten* und der Mannschaftsführer im Dialog *Spieler verwalten* (Abschnitt „Abwesende Spieler").  
 
 #### Chat
 
-- **Pfad:** Verein → **Chat**, mit den drei Kanälen **Verein**, **Mannschaften**, **Persönlich** und einem Zähler für Ungelesenes.
-- Je Chat: **Zeitraum**-Filter (Default „Letzte 30 Tage"), Nachrichtenfeld, Button **Senden**, Button **Datei(en) anhängen**, Tastenkürzel *„Strg oder Shift + Enter zum Senden"*.
-- Zusätzlich gibt es **Nachrichten-Threads direkt am Objekt** (Training, Spiel, Vereinstermin) — sichtbar als *Nachrichten (n)* auf den Karten. Dafür gibt es den Benachrichtigungstyp *"Neue Nachricht im Training, Spiel oder Vereinstermin"*.
-- Pro Mannschaft abschaltbar (`disable_chat`).
+- **Pfad:** Verein → **Chat**, mit den drei Kanälen **Verein**, **Mannschaften**, **Persönlich** und einem Zähler für Ungelesenes.  
+- Je Chat: **Zeitraum**-Filter (Default „Letzte 30 Tage"), Nachrichtenfeld, Button **Senden**, Button **Datei(en) anhängen**, Tastenkürzel *„Strg oder Shift + Enter zum Senden"*.  
+- Zusätzlich gibt es **Nachrichten-Threads direkt am Objekt** (Training, Spiel, Vereinstermin) — sichtbar als *Nachrichten (n)* auf den Karten. Dafür gibt es den Benachrichtigungstyp *"Neue Nachricht im Training, Spiel oder Vereinstermin"*.  
+- Pro Mannschaft abschaltbar (`disable_chat`).  
 
 #### Inventar
 
-- **Pfad:** Verwalten → **Inventar**, Tabs **Inventar** / **Typen**. Filter: Suche, Alle Typen, Alle Hallen, **Zustand: von–bis (0–100)**, Checkbox **Mangel vorhanden**.
+- **Pfad:** Verwalten → **Inventar**, Tabs **Inventar** / **Typen**. Filter: Suche, Alle Typen, Alle Hallen, **Zustand: von–bis (0–100)**, Checkbox **Mangel vorhanden**.  
 
 | Feld | Typ | Pflicht | Optionen / Default |
 |---|---|---|---|
@@ -714,9 +714,9 @@ Es gibt außerdem ein Mängel-Konzept (Filter *Mangel vorhanden*; Vereinsrollen 
 
 #### Bekleidung
 
-- **Pfad:** Verwalten → **Bekleidung**, Tabs **Übersicht** / **Anfragen** / **Typen**. Übersicht hat einen Button **Excel Export**. Hinweis: *"Lege zuerst Bekleidungstypen an (z.B. Trikot, Trainingsanzug Jacke), damit Mitglieder ihre Größen eintragen können."*
-- **Mitgliedersicht:** Mein Profil → **Bekleidung** mit *Meine Größen* (*"Bitte trage deine Größen ein, damit der Verein Trikots und Trainingskleidung passend bestellen kann."*) und *Meine Anfragen*.
-- Benachrichtigungstyp: *Bekleidungsanfragen*.
+- **Pfad:** Verwalten → **Bekleidung**, Tabs **Übersicht** / **Anfragen** / **Typen**. Übersicht hat einen Button **Excel Export**. Hinweis: *"Lege zuerst Bekleidungstypen an (z.B. Trikot, Trainingsanzug Jacke), damit Mitglieder ihre Größen eintragen können."*  
+- **Mitgliedersicht:** Mein Profil → **Bekleidung** mit *Meine Größen* (*"Bitte trage deine Größen ein, damit der Verein Trikots und Trainingskleidung passend bestellen kann."*) und *Meine Anfragen*.  
+- Benachrichtigungstyp: *Bekleidungsanfragen*.  
 
 #### Mein Verein (Mitgliedersicht)
 
@@ -724,8 +724,8 @@ Acht Tabs: **Neuigkeiten · Dateien · Mitglieder · Trainings · Vereinstermine
 
 #### Meine Spiele / Meine Termine
 
-- **Meine Termine** (`/my-dates`): Tabs **Zugesagte Termine** / **Abgesagte Termine**, plus der Button **Kalender abonnieren** (ICS, siehe Modul D).
-- **Meine Spiele** (`/my-games`): nicht separat geöffnet; die ICS-URL liegt unter diesem Pfad.
+- **Meine Termine** (`/my-dates`): Tabs **Zugesagte Termine** / **Abgesagte Termine**, plus der Button **Kalender abonnieren** (ICS, siehe Modul D).  
+- **Meine Spiele** (`/my-games`): nicht separat geöffnet; die ICS-URL liegt unter diesem Pfad.  
 
 #### Updates / Feedback
 
@@ -811,11 +811,11 @@ Gefundene Exportwege:
 
 ### J — Technisches
 
-- **PWA:** Ja. Seite `/mobile-app` mit zwei Anleitungen (**Installation für iOS** / **Installation für Android**). iOS-Weg: `https://app.tt-planer.de` in Safari öffnen → anmelden → Teilen-Icon → „Zum Home-Bildschirm" → App hinzufügen → *"Öffne diese und tippe auf das Glocken-Symbol, um Mitteilungen zu erlauben."* Keine native App im App Store erwähnt.
-- **Push:** Web-Push über die Browser-Berechtigung, ausgelöst durch die Glocke in der Kopfzeile (drei Zustände, siehe Modul B).
-- **URL-Muster:** Durchgehend klassische server-gerenderte Routen, keine sichtbare REST-API. Beispiele: `/teams`, `/teams/players-management`, `/games`, `/trainings`, `/players`, `/club`, `/club/customer-area`, `/venues`, `/votes`, `/dates`, `/calendar`, `/statistics/dashboard`, `/my-club/news`, `/chat/{unread|teams|personal}`, `/profile`, `/billing`, `/work-logs`, `/inventory`, `/clothing`, `/updates`, `/mobile-app`, `/logout`. Einziger API-artiger Endpunkt: `GET /my-games/calendar/subscribe?token=<UUID>&user=<UUID>` (ICS). **Ich habe keine URL selbst aufgerufen, außer den regulären Seiten der Navigation.**
-- **Technologie-Indizien:** CSS-Klassen wie `menu-link`, `layout-menu-toggle`, `btn btn-icon btn-sm btn-primary`, `modal show`, `dropdown-menu` — Bootstrap-basiertes Admin-Template (Stil „Sneat"/vergleichbar). Formularfelder haben sprechende `name`-Attribute (`players_option`, `replacements_option`, `reminder_hours` …), was auf ein klassisches Server-Framework mit Formular-Binding hindeutet.
-- **Smartphone-Verhalten:** Die Seitenleiste ist als Overlay mit Hamburger-Toggle ausgeführt (`d-block d-xl-none`), Tabellen scrollen horizontal mit sichtbarer Scrollbar, Kalender hat Monat/Woche/Liste. Das Layout ist responsiv angelegt. **Ich habe die Oberfläche nicht auf einem echten Smartphone oder in einer verkleinerten Ansicht getestet**, die Beurteilung stützt sich nur auf diese Struktur-Indizien.
+- **PWA:** Ja. Seite `/mobile-app` mit zwei Anleitungen (**Installation für iOS** / **Installation für Android**). iOS-Weg: `https://app.tt-planer.de` in Safari öffnen → anmelden → Teilen-Icon → „Zum Home-Bildschirm" → App hinzufügen → *"Öffne diese und tippe auf das Glocken-Symbol, um Mitteilungen zu erlauben."* Keine native App im App Store erwähnt.  
+- **Push:** Web-Push über die Browser-Berechtigung, ausgelöst durch die Glocke in der Kopfzeile (drei Zustände, siehe Modul B).  
+- **URL-Muster:** Durchgehend klassische server-gerenderte Routen, keine sichtbare REST-API. Beispiele: `/teams`, `/teams/players-management`, `/games`, `/trainings`, `/players`, `/club`, `/club/customer-area`, `/venues`, `/votes`, `/dates`, `/calendar`, `/statistics/dashboard`, `/my-club/news`, `/chat/{unread|teams|personal}`, `/profile`, `/billing`, `/work-logs`, `/inventory`, `/clothing`, `/updates`, `/mobile-app`, `/logout`. Einziger API-artiger Endpunkt: `GET /my-games/calendar/subscribe?token=<UUID>&user=<UUID>` (ICS). **Ich habe keine URL selbst aufgerufen, außer den regulären Seiten der Navigation.**  
+- **Technologie-Indizien:** CSS-Klassen wie `menu-link`, `layout-menu-toggle`, `btn btn-icon btn-sm btn-primary`, `modal show`, `dropdown-menu` — Bootstrap-basiertes Admin-Template (Stil „Sneat"/vergleichbar). Formularfelder haben sprechende `name`-Attribute (`players_option`, `replacements_option`, `reminder_hours` …), was auf ein klassisches Server-Framework mit Formular-Binding hindeutet.  
+- **Smartphone-Verhalten:** Die Seitenleiste ist als Overlay mit Hamburger-Toggle ausgeführt (`d-block d-xl-none`), Tabellen scrollen horizontal mit sichtbarer Scrollbar, Kalender hat Monat/Woche/Liste. Das Layout ist responsiv angelegt. **Ich habe die Oberfläche nicht auf einem echten Smartphone oder in einer verkleinerten Ansicht getestet**, die Beurteilung stützt sich nur auf diese Struktur-Indizien.  
 
 ---
 
@@ -896,26 +896,26 @@ Die Rolle **Organisator** taucht in der Rollenauswahl und im Rollenfilter auf, f
 
 Was ich **nicht** sehen konnte, und warum:
 
-1. **Verhalten der Ersatzkette in Aktion.** Der Verein hatte nur ein Mitglied. Kein Kader, keine Ersatzliste, keine Anfrage — folglich keine Beobachtung von Weiterrücken, Timing, Leerlauf oder dem Aussehen der Anfrage beim Ersatzspieler. Das Auslösen hätte echte Benachrichtigungen verschickt und war ausgeschlossen.
-2. **Frist, nach der die Ersatzanfrage weiterrückt.** In der gesamten Oberfläche kein Feld dafür. Entweder Backend-Konstante oder an den Spieltermin gekoppelt.
-3. **Wer genau erinnert wird** (alle vs. nur Nichtantworter) bei Typ 8 und Typ 14. Nur aus der Beschriftung erschließbar, nicht nachprüfbar.
-4. **Zeitpunkt/Frequenz** von *„Erinnerung an offene Spiel- und Terminteilnahmen"* und *„Erinnerung an ungelesene Nachrichten im Chat"* — keine einstellbare Vorlaufzeit gefunden.
-5. **Vorlaufzeit für „Erinnerung an Vereinstermin"** — kein Feld gefunden.
-6. **Ergebnisdarstellung von Umfragen** — es existierte keine Umfrage, und ich habe keine angelegt.
-7. **Rechte der Rollen Mannschaftsführer, Trainer, Organisator, Gast** — kein zweites Konto zum Gegentest, keine Rechte-Matrix in der Oberfläche. Die Rolle **Organisator** ist nirgends erklärt.
-8. **Zuweisung von Vereinsrollen an Mitglieder** — im Mitglieds-Dialog gibt es kein Feld dafür. Vermutlich geschieht das im Vereinsrollen-Dialog (dessen unteren Teil ich gesehen habe — dort standen nur die beiden Berechtigungs-Checkboxen) oder unter *Mein Verein → Rollen & Kontaktdaten*. **Nicht gefunden.**
-9. **News/Mitteilungen anlegen** — Dialog nicht geöffnet, kein Beitrag vorhanden. Reichweite, Formatierung und Benachrichtigungsverhalten unbekannt.
-10. **Dateien-Modul** — nicht geprüft.
-11. **Mängel-Workflow im Inventar** — nur der Filter *Mangel vorhanden* und der Rollen-Hilfetext gesehen, nicht der Ablauf.
-12. **Bekleidungstypen und Anfrage-Workflow** — es waren keine Typen angelegt.
-13. **Verein → Kalender-Tab und Verein → Dateien-Tab** — nicht geöffnet.
-14. **Adressatenauswahl bei Vereinsterminen** — im Anlegedialog nicht vorhanden; wie die Einladung ausgelöst wird, blieb offen.
-15. **Datenschutzerklärung, AVV, Betreiber, Hosting** — in der eingeloggten Anwendung **nicht verlinkt**. Nur „AGB" im Buchungsformular. Ich habe die öffentliche Website nicht als Ersatz herangezogen, weil der Auftrag die Anwendung betraf. **Das solltest du separat auf `www.tt-planer.de` nachlesen, bevor du das als geklärt betrachtest.**
-16. **Format der Exporte** (Arbeitszeiten, Abrechnung, Statistik) — nicht heruntergeladen, also Dateiendung unbekannt. Nur bei Mitgliedern und Bekleidung steht „Excel" explizit dran.
-17. **Beendete Termine** (Spiele/Vereinstermine) — beide Listen waren leer; wie ein abgeschlossenes Spiel mit Ergebnis dargestellt wird, ist unbekannt. Insbesondere: **ob überhaupt Ergebnisse erfasst oder importiert werden**, konnte ich nicht feststellen.
-18. **Massenaktionen** über die Zeilen-Checkboxen in der Spielterminliste — Aktionsleiste nicht sichtbar gemacht (hätte Auswahl erfordert, was ungefährlich gewesen wäre, aber die dann angebotenen Aktionen wären teils schreibend).
-19. **Verhalten auf echtem Smartphone** — nicht getestet.
-20. **„Ränge bearbeiten"** — Button aktiviert offenbar einen Inline-Bearbeitungsmodus in der Mitgliedertabelle; mit einem Mitglied ohne Rang war nichts sichtbar.
+1. **Verhalten der Ersatzkette in Aktion.** Der Verein hatte nur ein Mitglied. Kein Kader, keine Ersatzliste, keine Anfrage — folglich keine Beobachtung von Weiterrücken, Timing, Leerlauf oder dem Aussehen der Anfrage beim Ersatzspieler. Das Auslösen hätte echte Benachrichtigungen verschickt und war ausgeschlossen.  
+2. **Frist, nach der die Ersatzanfrage weiterrückt.** In der gesamten Oberfläche kein Feld dafür. Entweder Backend-Konstante oder an den Spieltermin gekoppelt.  
+3. **Wer genau erinnert wird** (alle vs. nur Nichtantworter) bei Typ 8 und Typ 14. Nur aus der Beschriftung erschließbar, nicht nachprüfbar.  
+4. **Zeitpunkt/Frequenz** von *„Erinnerung an offene Spiel- und Terminteilnahmen"* und *„Erinnerung an ungelesene Nachrichten im Chat"* — keine einstellbare Vorlaufzeit gefunden.  
+5. **Vorlaufzeit für „Erinnerung an Vereinstermin"** — kein Feld gefunden.  
+6. **Ergebnisdarstellung von Umfragen** — es existierte keine Umfrage, und ich habe keine angelegt.  
+7. **Rechte der Rollen Mannschaftsführer, Trainer, Organisator, Gast** — kein zweites Konto zum Gegentest, keine Rechte-Matrix in der Oberfläche. Die Rolle **Organisator** ist nirgends erklärt.  
+8. **Zuweisung von Vereinsrollen an Mitglieder** — im Mitglieds-Dialog gibt es kein Feld dafür. Vermutlich geschieht das im Vereinsrollen-Dialog (dessen unteren Teil ich gesehen habe — dort standen nur die beiden Berechtigungs-Checkboxen) oder unter *Mein Verein → Rollen & Kontaktdaten*. **Nicht gefunden.**  
+9. **News/Mitteilungen anlegen** — Dialog nicht geöffnet, kein Beitrag vorhanden. Reichweite, Formatierung und Benachrichtigungsverhalten unbekannt.  
+10. **Dateien-Modul** — nicht geprüft.  
+11. **Mängel-Workflow im Inventar** — nur der Filter *Mangel vorhanden* und der Rollen-Hilfetext gesehen, nicht der Ablauf.  
+12. **Bekleidungstypen und Anfrage-Workflow** — es waren keine Typen angelegt.  
+13. **Verein → Kalender-Tab und Verein → Dateien-Tab** — nicht geöffnet.  
+14. **Adressatenauswahl bei Vereinsterminen** — im Anlegedialog nicht vorhanden; wie die Einladung ausgelöst wird, blieb offen.  
+15. **Datenschutzerklärung, AVV, Betreiber, Hosting** — in der eingeloggten Anwendung **nicht verlinkt**. Nur „AGB" im Buchungsformular. Ich habe die öffentliche Website nicht als Ersatz herangezogen, weil der Auftrag die Anwendung betraf. **Das solltest du separat auf `www.tt-planer.de` nachlesen, bevor du das als geklärt betrachtest.**  
+16. **Format der Exporte** (Arbeitszeiten, Abrechnung, Statistik) — nicht heruntergeladen, also Dateiendung unbekannt. Nur bei Mitgliedern und Bekleidung steht „Excel" explizit dran.  
+17. **Beendete Termine** (Spiele/Vereinstermine) — beide Listen waren leer; wie ein abgeschlossenes Spiel mit Ergebnis dargestellt wird, ist unbekannt. Insbesondere: **ob überhaupt Ergebnisse erfasst oder importiert werden**, konnte ich nicht feststellen.  
+18. **Massenaktionen** über die Zeilen-Checkboxen in der Spielterminliste — Aktionsleiste nicht sichtbar gemacht (hätte Auswahl erfordert, was ungefährlich gewesen wäre, aber die dann angebotenen Aktionen wären teils schreibend).  
+19. **Verhalten auf echtem Smartphone** — nicht getestet.  
+20. **„Ränge bearbeiten"** — Button aktiviert offenbar einen Inline-Bearbeitungsmodus in der Mitgliedertabelle; mit einem Mitglied ohne Rang war nichts sichtbar.  
 
 ---
 
@@ -923,16 +923,16 @@ Was ich **nicht** sehen konnte, und warum:
 
 Ausdrücklich als **Vermutung** markiert — nicht verifiziert:
 
-- **Bundesland für Feiertage und Schulferien:** Es gibt kein Bundesland-Feld. Da der Ort eine **Postleitzahl** hat, vermute ich, dass die Region daraus abgeleitet wird. Möglich wäre auch eine serverseitige Zuordnung über die Vereinsadresse — die es in den Vereinsdaten aber gar nicht gibt. **Ungeklärt.**
-- **„Bequem in click-TT":** Meine Einschätzung ist, dass damit die Ablage von **Spiel Code und Spiel PIN** für den digitalen Spielbericht (NuScore) gemeint ist, nicht ein Datenrückfluss. Eine Export- oder Übertragungsfunktion nach click-TT habe ich **nicht gefunden** — aber „nicht gefunden" ist nicht dasselbe wie „existiert nicht". Prüfe das gegen die Hilfeseiten des Anbieters, bevor du es als gesichert nimmst.
-- **Erinnerung nur an Nichtantworter:** Der Typname *„Erinnerung an offene Spiel- und Terminteilnahmen"* legt das nahe. Vermutung.
-- **Vereinsneuigkeiten lösen keine Benachrichtigung aus:** In der 15-zeiligen Benachrichtigungsmatrix gibt es keinen entsprechenden Typ. Daraus schließe ich, dass News still veröffentlicht werden. Vermutung.
-- **Starter-Paket-Sperren in der Oberfläche:** Da der Verein im Testzeitraum ist, war **nichts** gesperrt. Wie eine Sperre im Starter-Paket konkret aussieht (ausgegraut, Schloss, Menüpunkt fehlt ganz), habe ich **nicht gesehen**. Die Paketabgrenzung in Abschnitt I stammt ausschließlich aus der Vergleichstabelle im Kundenbereich.
-- **Rollenrechte:** Die gesamte Matrix in Abschnitt 3 ist über weite Strecken erschlossen, nicht getestet. Behandle sie als Hypothese.
-- **Aufstellung automatisch oder manuell:** Ich schließe aus der Struktur des Dialogs *Spieler verwalten* auf „halbautomatisch mit manueller Endentscheidung". Bei *Feste Stammspieler* deutet der Hilfetext auf automatisches Setzen der Stammspieler hin, bei *Offene Spieler* legt der Mannschaftsführer laut Hilfetext bei Überbesetzung die finale Aufstellung fest. Den tatsächlichen Ablauf habe ich nicht beobachtet.
-- **Technologie-Stack:** Bootstrap-Admin-Template mit klassischem serverseitigem Rendering — Indizienschluss aus CSS-Klassen und Formularaufbau, keine Bestätigung.
-- **Rückmelde-Optionen bei Spielen:** Dass Spieler bei Spielen dieselben drei Buttons haben wie beim Training, habe ich **nicht gesehen**. Die Zustände in Abschnitt C sind aus den Abschnittsüberschriften des Verwaltungsdialogs abgeleitet.
-- **Ob ein Bemerkungsfeld zur Rückmeldung existiert:** Ich habe keines gefunden, kann aber nicht ausschließen, dass es in der Spielersicht auf einen Spieltermin erscheint, die ich nicht in der Spielerrolle gesehen habe.
+- **Bundesland für Feiertage und Schulferien:** Es gibt kein Bundesland-Feld. Da der Ort eine **Postleitzahl** hat, vermute ich, dass die Region daraus abgeleitet wird. Möglich wäre auch eine serverseitige Zuordnung über die Vereinsadresse — die es in den Vereinsdaten aber gar nicht gibt. **Ungeklärt.**  
+- **„Bequem in click-TT":** Meine Einschätzung ist, dass damit die Ablage von **Spiel Code und Spiel PIN** für den digitalen Spielbericht (NuScore) gemeint ist, nicht ein Datenrückfluss. Eine Export- oder Übertragungsfunktion nach click-TT habe ich **nicht gefunden** — aber „nicht gefunden" ist nicht dasselbe wie „existiert nicht". Prüfe das gegen die Hilfeseiten des Anbieters, bevor du es als gesichert nimmst.  
+- **Erinnerung nur an Nichtantworter:** Der Typname *„Erinnerung an offene Spiel- und Terminteilnahmen"* legt das nahe. Vermutung.  
+- **Vereinsneuigkeiten lösen keine Benachrichtigung aus:** In der 15-zeiligen Benachrichtigungsmatrix gibt es keinen entsprechenden Typ. Daraus schließe ich, dass News still veröffentlicht werden. Vermutung.  
+- **Starter-Paket-Sperren in der Oberfläche:** Da der Verein im Testzeitraum ist, war **nichts** gesperrt. Wie eine Sperre im Starter-Paket konkret aussieht (ausgegraut, Schloss, Menüpunkt fehlt ganz), habe ich **nicht gesehen**. Die Paketabgrenzung in Abschnitt I stammt ausschließlich aus der Vergleichstabelle im Kundenbereich.  
+- **Rollenrechte:** Die gesamte Matrix in Abschnitt 3 ist über weite Strecken erschlossen, nicht getestet. Behandle sie als Hypothese.  
+- **Aufstellung automatisch oder manuell:** Ich schließe aus der Struktur des Dialogs *Spieler verwalten* auf „halbautomatisch mit manueller Endentscheidung". Bei *Feste Stammspieler* deutet der Hilfetext auf automatisches Setzen der Stammspieler hin, bei *Offene Spieler* legt der Mannschaftsführer laut Hilfetext bei Überbesetzung die finale Aufstellung fest. Den tatsächlichen Ablauf habe ich nicht beobachtet.  
+- **Technologie-Stack:** Bootstrap-Admin-Template mit klassischem serverseitigem Rendering — Indizienschluss aus CSS-Klassen und Formularaufbau, keine Bestätigung.  
+- **Rückmelde-Optionen bei Spielen:** Dass Spieler bei Spielen dieselben drei Buttons haben wie beim Training, habe ich **nicht gesehen**. Die Zustände in Abschnitt C sind aus den Abschnittsüberschriften des Verwaltungsdialogs abgeleitet.  
+- **Ob ein Bemerkungsfeld zur Rückmeldung existiert:** Ich habe keines gefunden, kann aber nicht ausschließen, dass es in der Spielersicht auf einen Spieltermin erscheint, die ich nicht in der Spielerrolle gesehen habe.  
 
 ---
 

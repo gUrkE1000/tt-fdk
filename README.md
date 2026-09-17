@@ -4,6 +4,12 @@ Vereinseigene Alternative zum [TT-Planer](https://www.tt-planer.de/). Ziel ist d
 Champion-Pakets für den Vereinsalltag (Mitglieder, Mannschaften, Spieltermine aus click-TT, Rückmeldungen,
 Ersatzsuche, Training, Termine, Umfragen, Kalender, Benachrichtigungen) — siehe [docs/zielbild.md](docs/zielbild.md).
 
+![Version](https://img.shields.io/badge/version-1.2.6-blue)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://gUrkE1000.github.io/tt-fdk/)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/gUrkE1000/tt-fdk/graphs/commit-activity)
+![Last commit](https://img.shields.io/github/last-commit/gUrkE1000/tt-fdk)
+
+
 **Status:** Planungsphase abgeschlossen, Umsetzung nach [docs/umsetzungsplan.md](docs/umsetzungsplan.md) noch nicht begonnen.
 Der aktuelle Code ist der unveränderte Übernahmestand des Basisprojekts.
 
@@ -41,15 +47,15 @@ Die aus dem Ursprungsprojekt übernommenen GitHub-Workflows laufen nur bei Pushe
 `main`/`master` (Ausnahme: der tägliche Sync-Cronjob). Sie schlagen fehl, solange sie nicht auf
 unseren Verein umgestellt sind:
 
-- **Repository-Secrets setzen**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SYNC_SECRET`,
-  `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID` (siehe [docs/einrichtung.md](docs/einrichtung.md)).
-- **Supabase-Projekt anlegen** und die Migration `supabase/migrations/20260808000000_init.sql`
-  einspielen; Region EU wählen (DSGVO).
-- **`deploy.yml`** (GitHub Pages) prüfen: Pages im Repository aktivieren, sonst deaktivieren.
-- **`auto-version-badges.yml`** nutzt eine Action aus dem Ursprungs-Account
+- **Repository-Secrets setzen**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SYNC_SECRET`,  
+  `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID` (siehe [docs/einrichtung.md](docs/einrichtung.md)).  
+- **Supabase-Projekt anlegen** und die Migration `supabase/migrations/20260808000000_init.sql`  
+  einspielen; Region EU wählen (DSGVO).  
+- **`deploy.yml`** (GitHub Pages) prüfen: Pages im Repository aktivieren, sonst deaktivieren.  
+- **`auto-version-badges.yml`** nutzt eine Action aus dem Ursprungs-Account  
   (`dgaida/auto-version-action`) und schreibt Badges auf das Upstream-Repo — vor Aktivierung
-  anpassen oder entfernen.
-- **`sync-calendars.yml`** (Cron 04:00 UTC) erst aktivieren, wenn die Edge Function deployt ist.
+  anpassen oder entfernen.  
+- **`sync-calendars.yml`** (Cron 04:00 UTC) erst aktivieren, wenn die Edge Function deployt ist.  
 
 Bis die Lizenzfrage geklärt ist (siehe [NOTICE.md](NOTICE.md)): Repository privat lassen.
 

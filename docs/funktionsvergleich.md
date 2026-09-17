@@ -4,11 +4,11 @@ Stand: 17.09.2026 · Repo-Stand: Merge von `dgaida/tt_hsv_planner` @ `f8ec2a5` (
 
 **Methodik und Belastbarkeit der Angaben**
 
-- **Repo-Spalte:** vollständig verifiziert am Code — `src/`, `supabase/migrations/20260808000000_init.sql`,
+- **Repo-Spalte:** vollständig verifiziert am Code — `src/`, `supabase/migrations/20260808000000_init.sql`,  
   `supabase/functions/sync-calendars/index.ts`, `REQUIREMENTS.md`, `docs/nutzung.md`,
   `docs/architektur.md`, `docs/datenbank.md`. Wo Doku und Code auseinandergehen, gilt der Code;
-  solche Fälle sind markiert.
-- **TT-Planer-Spalte:** aus öffentlich zugänglichen Quellen rekonstruiert (Herstellerseite, Hilfe-
+  solche Fälle sind markiert.  
+- **TT-Planer-Spalte:** aus öffentlich zugänglichen Quellen rekonstruiert (Herstellerseite, Hilfe-  
   und FAQ-Seiten, myTischtennis-Partnerartikel, Vereinsberichte). Die Hilfeseiten sind teilweise
   bot-geschützt, ein vollständiger Durchlauf durch die Anwendung selbst war nicht möglich.
   **Die Liste ist daher als „mindestens dieser Umfang" zu lesen, nicht als garantiert erschöpfend.**
@@ -58,12 +58,12 @@ Gemeinsame Schnittmenge, sortiert nach Wichtigkeit für den Spieltagsbetrieb.
 
 **Teilabdeckungen im Detail** (Zeilen 12, 16, 17 oben):
 
-- **Benachrichtigung (12):** Der TT-Planer stößt Kommunikation aktiv an (Push/E-Mail), das Repo
+- **Benachrichtigung (12):** Der TT-Planer stößt Kommunikation aktiv an (Push/E-Mail), das Repo  
   zeigt Informationen nur an, wenn jemand die Seite öffnet. Funktional dieselbe Information,
-  operativ ein großer Unterschied — siehe Teil 2, Punkt 1.
-- **Kalender (16):** Der TT-Planer bündelt Training, Spiele, Geburtstage und Vereinsevents in
-  einem Kalender mit mehreren Ansichten. Das Repo kennt ausschließlich Mannschaftsspiele.
-- **PWA (17):** Beide sind Webanwendungen ohne App-Store. Der TT-Planer ist als PWA installierbar
+  operativ ein großer Unterschied — siehe Teil 2, Punkt 1.  
+- **Kalender (16):** Der TT-Planer bündelt Training, Spiele, Geburtstage und Vereinsevents in  
+  einem Kalender mit mehreren Ansichten. Das Repo kennt ausschließlich Mannschaftsspiele.  
+- **PWA (17):** Beide sind Webanwendungen ohne App-Store. Der TT-Planer ist als PWA installierbar  
   inkl. Push; im Repo fehlt die PWA-Hülle komplett.
 
 ---
@@ -170,18 +170,18 @@ Gemessen an den in Teil 1 und 2 gelisteten TT-Planer-Funktionen:
 
 ## Teil 6 — Vorgeschlagene Reihenfolge
 
-1. **Vereinsspezifika parametrisieren** (Teil 4, #3 + #5) — ohne das läuft bei uns gar nichts.
+1. **Vereinsspezifika parametrisieren** (Teil 4, #3 + #5) — ohne das läuft bei uns gar nichts.  
    Vereinsname, Verband, Webcal-Links, Kadergröße nach `club_settings`; Demodaten und
-   Default-Passwort raus. *~8 h*
-2. **RLS scharf stellen** (Teil 4, #1) — rollenbasierte Policies, Rollenprüfung serverseitig.
-   Muss vor dem ersten echten Mitgliederdatensatz stehen. *~12 h*
-3. **E-Mail im Profil + Erinnerungen** (Teil 2, A1/A4/A5) — der größte spürbare Gewinn gegenüber
-   dem heutigen Stand und Voraussetzung für alles Weitere. *~16 h*
-4. **Ersatzspieler-Automatik** (Teil 2, A2) — die Funktion, für die Vereine den TT-Planer loben.
-   Baut auf Schritt 3 auf. *~20 h*
-5. **PWA-Hülle + Web Push** (Teil 1, #17) — installierbar auf dem Homescreen, Erinnerungen
-   erreichen die Leute wirklich. *~12 h*
-6. Erst danach abwägen: Trainingsmodul, Vereinskalender, Umfragen. Vorher im Verein prüfen, ob
+   Default-Passwort raus. *~8 h*  
+2. **RLS scharf stellen** (Teil 4, #1) — rollenbasierte Policies, Rollenprüfung serverseitig.  
+   Muss vor dem ersten echten Mitgliederdatensatz stehen. *~12 h*  
+3. **E-Mail im Profil + Erinnerungen** (Teil 2, A1/A4/A5) — der größte spürbare Gewinn gegenüber  
+   dem heutigen Stand und Voraussetzung für alles Weitere. *~16 h*  
+4. **Ersatzspieler-Automatik** (Teil 2, A2) — die Funktion, für die Vereine den TT-Planer loben.  
+   Baut auf Schritt 3 auf. *~20 h*  
+5. **PWA-Hülle + Web Push** (Teil 1, #17) — installierbar auf dem Homescreen, Erinnerungen  
+   erreichen die Leute wirklich. *~12 h*  
+6. Erst danach abwägen: Trainingsmodul, Vereinskalender, Umfragen. Vorher im Verein prüfen, ob  
    diese Module überhaupt genutzt werden — im Zweifel bleibt der TT-Planer für die Vereinsorga
    und die Eigenlösung macht den Spieltag.
 

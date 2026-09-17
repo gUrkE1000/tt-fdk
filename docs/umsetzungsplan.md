@@ -14,18 +14,18 @@ Wenn etwas offenbleibt: stoppen, in Teil K unter „Fragen" eintragen, nicht rat
 
 ### A.1 Arbeitsablauf pro Aufgabe
 
-1. Aufgabe vollständig lesen: Endzustand, Vorgehen, Verifikation, Nicht tun.
-2. Die referenzierten Zielbild-Abschnitte und alle unter „Dateien" genannten Dateien vollständig lesen.
-3. Voraussetzungen prüfen (`git log --oneline -30`, genannte Tabellen/Dateien existieren).
-4. Umsetzen. Nur genannte Dateien plus die neuen, die die Aufgabe vorsieht. Jede weitere Änderung im
-   Commit-Body mit einem Satz begründen.
-5. Verifikation exakt ausführen. Grundprüfungen immer:
+1. Aufgabe vollständig lesen: Endzustand, Vorgehen, Verifikation, Nicht tun.  
+2. Die referenzierten Zielbild-Abschnitte und alle unter „Dateien" genannten Dateien vollständig lesen.  
+3. Voraussetzungen prüfen (`git log --oneline -30`, genannte Tabellen/Dateien existieren).  
+4. Umsetzen. Nur genannte Dateien plus die neuen, die die Aufgabe vorsieht. Jede weitere Änderung im  
+   Commit-Body mit einem Satz begründen.  
+5. Verifikation exakt ausführen. Grundprüfungen immer:  
    ```bash
    npx tsc --noEmit && npm test && npm run build
    npx supabase db reset && npx supabase test db     # sobald Migrationen/Policies betroffen sind
    ```
-6. Ein Commit pro Aufgabe mit dem vorgegebenen Titel; Body 2–5 Zeilen (was, wie verifiziert).
-7. Teil K (Status) aktualisieren: Aufgabe, Datum, Commit-Hash.
+6. Ein Commit pro Aufgabe mit dem vorgegebenen Titel; Body 2–5 Zeilen (was, wie verifiziert).  
+7. Teil K (Status) aktualisieren: Aufgabe, Datum, Commit-Hash.  
 
 ### A.2 Konventionen
 
@@ -45,17 +45,17 @@ Wenn etwas offenbleibt: stoppen, in Teil K unter „Fragen" eintragen, nicht rat
 
 ### A.3 Definition of Done (jede Aufgabe)
 
-- [ ] Alle Punkte unter „Endzustand" erfüllt und einzeln geprüft.
-- [ ] Grundprüfungen grün; bei DB-Änderungen zusätzlich `supabase db reset` + `supabase test db` grün.
-- [ ] Tests ergänzt (Logik, Policies, Route-Smoke), keine bestehenden gelöscht oder übersprungen.
-- [ ] Zielbild nicht verletzt (Namen, Enums, Rechte). Abweichung = Frage in Teil K, nicht Umsetzung.
-- [ ] Commit mit vorgegebenem Titel; Teil K aktualisiert.
+- [ ] Alle Punkte unter „Endzustand" erfüllt und einzeln geprüft.  
+- [ ] Grundprüfungen grün; bei DB-Änderungen zusätzlich `supabase db reset` + `supabase test db` grün.  
+- [ ] Tests ergänzt (Logik, Policies, Route-Smoke), keine bestehenden gelöscht oder übersprungen.  
+- [ ] Zielbild nicht verletzt (Namen, Enums, Rechte). Abweichung = Frage in Teil K, nicht Umsetzung.  
+- [ ] Commit mit vorgegebenem Titel; Teil K aktualisiert.  
 
 ### A.4 Wenn etwas nicht passt
 
-- Stelle nicht mehr an der beschriebenen Position → per `grep` suchen; Verhalten zählt, nicht die Zeile.
-- Fremder Test bricht → nicht anfassen, im Commit-Body nennen, Teil K „Blocker".
-- Unklar → Aufgabe nicht beginnen, Teil K „Fragen".
+- Stelle nicht mehr an der beschriebenen Position → per `grep` suchen; Verhalten zählt, nicht die Zeile.  
+- Fremder Test bricht → nicht anfassen, im Commit-Body nennen, Teil K „Blocker".  
+- Unklar → Aufgabe nicht beginnen, Teil K „Fragen".  
 
 ---
 
@@ -106,14 +106,14 @@ sieht die Navigation und eine leere Mitgliederliste.
 
 **Dateien:** `package.json`, neu `src/app/router.tsx`, `src/app/providers.tsx`, `src/app/layout/AppShell.tsx`, `Sidebar.tsx`, `Header.tsx`, `BottomBar.tsx`, `src/app/nav.ts`, `src/main.tsx`, `src/App.tsx` (wird zur Router-Wurzel), `index.html`, `tailwind.config.js`, Tests `tests/app/router.test.tsx`.
 
-**Endzustand:**
-- Neue Dependencies: `react-router-dom@^6`, `@tanstack/react-query@^5`, `react-hook-form`, `zod`, `@hookform/resolvers`, `date-fns`, `date-fns-tz`, `@radix-ui/react-dialog`, `@radix-ui/react-tabs`, `@radix-ui/react-checkbox`, `@radix-ui/react-popover`, `@radix-ui/react-select`, `@dnd-kit/core`, `@dnd-kit/sortable`, `clsx`. Versionen im Lockfile gepinnt.
-- `src/app/nav.ts` exportiert die Navigationsstruktur aus Zielbild 2 als Datenstruktur: `{ section, items: [{ to, label, icon, roles: Role[] }] }` — `roles` leer = alle.
-- `router.tsx`: `createBrowserRouter` mit allen Routen aus Zielbild 2; jede Route rendert vorerst `<Placeholder title="…"/>`. Öffentliche Routen `/login`, `/r/:token`, `/register/:code` außerhalb des `AppShell`.
-- `AppShell`: Desktop-Sidebar 256 px ab `xl`, sonst Drawer + Header + `BottomBar` (Übersicht, Meine Spiele, Trainings, Kalender, Mehr). Aktiver Link teal. Header: Seitentitel (aus Route-Handle), Platzhalter für Glocke und Profilmenü.
-- `providers.tsx`: `QueryClientProvider` (staleTime 30 s, retry 1), `BrowserRouter` wird vom Router gestellt.
-- `tailwind.config.js`: Tokens aus Zielbild 6.3 als `theme.extend.colors` (`primary`, `status.*`, `cal.*`).
-- `index.html` `<title>` = „Vereinsplaner"; `lang="de"`.
+**Endzustand:**  
+- Neue Dependencies: `react-router-dom@^6`, `@tanstack/react-query@^5`, `react-hook-form`, `zod`, `@hookform/resolvers`, `date-fns`, `date-fns-tz`, `@radix-ui/react-dialog`, `@radix-ui/react-tabs`, `@radix-ui/react-checkbox`, `@radix-ui/react-popover`, `@radix-ui/react-select`, `@dnd-kit/core`, `@dnd-kit/sortable`, `clsx`. Versionen im Lockfile gepinnt.  
+- `src/app/nav.ts` exportiert die Navigationsstruktur aus Zielbild 2 als Datenstruktur: `{ section, items: [{ to, label, icon, roles: Role[] }] }` — `roles` leer = alle.  
+- `router.tsx`: `createBrowserRouter` mit allen Routen aus Zielbild 2; jede Route rendert vorerst `<Placeholder title="…"/>`. Öffentliche Routen `/login`, `/r/:token`, `/register/:code` außerhalb des `AppShell`.  
+- `AppShell`: Desktop-Sidebar 256 px ab `xl`, sonst Drawer + Header + `BottomBar` (Übersicht, Meine Spiele, Trainings, Kalender, Mehr). Aktiver Link teal. Header: Seitentitel (aus Route-Handle), Platzhalter für Glocke und Profilmenü.  
+- `providers.tsx`: `QueryClientProvider` (staleTime 30 s, retry 1), `BrowserRouter` wird vom Router gestellt.  
+- `tailwind.config.js`: Tokens aus Zielbild 6.3 als `theme.extend.colors` (`primary`, `status.*`, `cal.*`).  
+- `index.html` `<title>` = „Vereinsplaner"; `lang="de"`.  
 
 **Tests:** Router rendert `/` und `/teams` ohne Fehler; Sidebar zeigt für Rolle `member` keine „Verwalten"-Gruppe, für `admin` alle Gruppen (`nav.ts` als reine Funktion `visibleNav(role)` getestet).
 **Verifikation:** Grundprüfungen; `npm run dev` zeigt Sidebar + Platzhalter. Alte Komponenten bleiben vorerst im Baum (werden in 1.7 entfernt), müssen aber nicht mehr erreichbar sein.
@@ -131,17 +131,17 @@ sieht die Navigation und eine leere Mitgliederliste.
 
 **Dateien:** löschen `supabase/migrations/20260808000000_init.sql`; neu `supabase/migrations/20261001000000_schema_v2.sql`; neu `supabase/tests/001_helpers.sql`, `supabase/tests/010_profiles_rls.test.sql`, `020_groups_venues_rls.test.sql`; `supabase/seed.sql`; `docs/datenbank.md` (neu schreiben, v2).
 
-**Endzustand — Migration enthält (exakt Zielbild 3.1, 3.8, 5):**
-1. Extensions `pgcrypto`, `pg_cron`, `pg_net`; Schema `private` mit `private.cron_config(key, value)`.
-2. Enums `user_role`, `member_status`, `gender`, `ranking_type`.
-3. Tabellen `club_settings`, `profiles`, `member_rankings`, `groups`, `group_members`, `venues` (Ämter/Schlüssel/Delegationen kommen in Phase 9).
-4. Trigger `set_updated_at()` auf allen Tabellen mit `updated_at`.
-5. Funktion `handle_new_user()` + Trigger auf `auth.users`: verknüpft nach `LOWER(email)`, sonst neues Profil `role=member, status=pending_approval`; setzt `auth_linked_at`; bei Verknüpfung eines `unconfirmed`-Profils → `status=active`.
-6. Helfer (SECURITY DEFINER, STABLE): `current_role()`, `is_admin()`, `is_organizer_or_admin()`, `is_active_member()` (status=active und deleted_at IS NULL).
-7. Spaltenschutz-Trigger `protect_profile_columns()`: `role, status, qttr, member_number, no_games` nur `is_admin()`; `member_rankings` nur admin.
-8. RLS (Zielbild 5): `profiles` SELECT für `is_active_member()` (Gast: nur eigene Zeile + Zeilen mit `role IN ('admin','trainer')`); UPDATE eigene Zeile oder admin; INSERT/DELETE admin. Kontaktspalten werden nicht per RLS versteckt (Spaltenebene) — stattdessen View `v_members_directory` mit `CASE WHEN contact_visible OR is_admin() THEN email END`. `groups/group_members/venues`: SELECT aktive Mitglieder, Schreiben admin. `club_settings`: SELECT aktive Mitglieder außer Keys mit Präfix `secret_`; Schreiben admin.
-9. RPC `get_public_club_info()` (anon): `club_name`, `club_short_name`.
-10. Seeds in `club_settings` mit Defaults aus Zielbild 3.8.
+**Endzustand — Migration enthält (exakt Zielbild 3.1, 3.8, 5):**  
+1. Extensions `pgcrypto`, `pg_cron`, `pg_net`; Schema `private` mit `private.cron_config(key, value)`.  
+2. Enums `user_role`, `member_status`, `gender`, `ranking_type`.  
+3. Tabellen `club_settings`, `profiles`, `member_rankings`, `groups`, `group_members`, `venues` (Ämter/Schlüssel/Delegationen kommen in Phase 9).  
+4. Trigger `set_updated_at()` auf allen Tabellen mit `updated_at`.  
+5. Funktion `handle_new_user()` + Trigger auf `auth.users`: verknüpft nach `LOWER(email)`, sonst neues Profil `role=member, status=pending_approval`; setzt `auth_linked_at`; bei Verknüpfung eines `unconfirmed`-Profils → `status=active`.  
+6. Helfer (SECURITY DEFINER, STABLE): `current_role()`, `is_admin()`, `is_organizer_or_admin()`, `is_active_member()` (status=active und deleted_at IS NULL).  
+7. Spaltenschutz-Trigger `protect_profile_columns()`: `role, status, qttr, member_number, no_games` nur `is_admin()`; `member_rankings` nur admin.  
+8. RLS (Zielbild 5): `profiles` SELECT für `is_active_member()` (Gast: nur eigene Zeile + Zeilen mit `role IN ('admin','trainer')`); UPDATE eigene Zeile oder admin; INSERT/DELETE admin. Kontaktspalten werden nicht per RLS versteckt (Spaltenebene) — stattdessen View `v_members_directory` mit `CASE WHEN contact_visible OR is_admin() THEN email END`. `groups/group_members/venues`: SELECT aktive Mitglieder, Schreiben admin. `club_settings`: SELECT aktive Mitglieder außer Keys mit Präfix `secret_`; Schreiben admin.  
+9. RPC `get_public_club_info()` (anon): `club_name`, `club_short_name`.  
+10. Seeds in `club_settings` mit Defaults aus Zielbild 3.8.  
 
 **Endzustand — `seed.sql` (lokal):** 1 Admin, 1 Organisator, 2 Trainer, 3 Mannschaftsführer, 20 Mitglieder, 1 Gast; alle mit E-Mail `<vorname>@example.com`; 2 Orte; 3 Gruppen. Rangdaten `men` für 12 Spieler (1.1–1.4, 2.1–2.4, 3.1–3.4).
 
@@ -154,13 +154,13 @@ sieht die Navigation und eine leere Mitgliederliste.
 
 **Dateien:** neu `src/features/auth/{api.ts,session.tsx,LoginPage.tsx,RegisterPage.tsx,guards.tsx,schemas.ts}`, `src/app/router.tsx`, `src/lib/supabaseClient.ts`, Tests.
 
-**Endzustand:**
-- `LoginPage` (`/login`): Tab „Mit E-Mail-Link" (Standard): E-Mail → `signInWithOtp({ email, options: { emailRedirectTo: VITE_APP_URL, shouldCreateUser: false } })` → Hinweistext. `shouldCreateUser:false`: Unbekannte E-Mails erzeugen **keinen** Account (Schutz vor Fremden); Fehlermeldung „Diese E-Mail ist im Verein nicht bekannt. Bitte beim Admin melden oder den Registrierungslink des Vereins nutzen." Tab „Mit Passwort": `signInWithPassword`. Link „Passwort vergessen" → `resetPasswordForEmail`.
-- `RegisterPage` (`/register/:code`): prüft `code` gegen `club_settings.registration_code` per RPC `rpc_validate_registration_code(code)` (anon). Felder Vorname, Nachname, E-Mail, Passwort (optional; leer = nur Magic Link). Ruft `signUp` mit `options.data = { first_name, last_name, registration_code }`; `handle_new_user()` legt Profil `pending_approval` an, wenn `registration_code` gültig ist, sonst verweigert der Trigger (`RAISE EXCEPTION`). QR-Code für den Link wird in 2.3 erzeugt.
-- `session.tsx`: `SessionProvider` mit `useSession()` → `{ user, profile, role, loading }`; lädt Profil per react-query; `onAuthStateChange` hält es aktuell. Bei `status=pending_approval`: Seite „Dein Zugang wartet auf Freischaltung durch den Admin." Bei `deleted_at`: Logout.
-- `guards.tsx`: `<RequireAuth/>`, `<RequireRole roles={[...]}/>` → Redirect `/` mit Toast „Keine Berechtigung".
-- Header-Profilmenü: Name, Rollenlabel, QTTR-Badge, Links „Mein Profil", „Abmelden".
-- `supabaseClient.ts` wirft beim Start, wenn `VITE_SUPABASE_URL` fehlt (kein Placeholder mehr).
+**Endzustand:**  
+- `LoginPage` (`/login`): Tab „Mit E-Mail-Link" (Standard): E-Mail → `signInWithOtp({ email, options: { emailRedirectTo: VITE_APP_URL, shouldCreateUser: false } })` → Hinweistext. `shouldCreateUser:false`: Unbekannte E-Mails erzeugen **keinen** Account (Schutz vor Fremden); Fehlermeldung „Diese E-Mail ist im Verein nicht bekannt. Bitte beim Admin melden oder den Registrierungslink des Vereins nutzen." Tab „Mit Passwort": `signInWithPassword`. Link „Passwort vergessen" → `resetPasswordForEmail`.  
+- `RegisterPage` (`/register/:code`): prüft `code` gegen `club_settings.registration_code` per RPC `rpc_validate_registration_code(code)` (anon). Felder Vorname, Nachname, E-Mail, Passwort (optional; leer = nur Magic Link). Ruft `signUp` mit `options.data = { first_name, last_name, registration_code }`; `handle_new_user()` legt Profil `pending_approval` an, wenn `registration_code` gültig ist, sonst verweigert der Trigger (`RAISE EXCEPTION`). QR-Code für den Link wird in 2.3 erzeugt.  
+- `session.tsx`: `SessionProvider` mit `useSession()` → `{ user, profile, role, loading }`; lädt Profil per react-query; `onAuthStateChange` hält es aktuell. Bei `status=pending_approval`: Seite „Dein Zugang wartet auf Freischaltung durch den Admin." Bei `deleted_at`: Logout.  
+- `guards.tsx`: `<RequireAuth/>`, `<RequireRole roles={[...]}/>` → Redirect `/` mit Toast „Keine Berechtigung".  
+- Header-Profilmenü: Name, Rollenlabel, QTTR-Badge, Links „Mein Profil", „Abmelden".  
+- `supabaseClient.ts` wirft beim Start, wenn `VITE_SUPABASE_URL` fehlt (kein Placeholder mehr).  
 
 **Tests:** Login-Tab-Wechsel; OTP-Aufruf mit `shouldCreateUser:false`; Guard leitet `member` von `/players` um; Register mit ungültigem Code zeigt Fehler. pgTAP: `handle_new_user` mit gültigem/ungültigem Code.
 **Commit:** `Authentifizierung: Magic Link, Passwort, Registrierung per Code`
@@ -169,12 +169,12 @@ sieht die Navigation und eine leere Mitgliederliste.
 
 **Dateien:** `package.json` (Skript `gen:types`: `supabase gen types typescript --local > src/lib/database.types.ts`), neu `src/lib/database.types.ts` (generiert), `src/lib/labels.ts`, `src/lib/dates.ts`, `src/lib/queryKeys.ts`, `src/features/members/api.ts` (erstes Beispiel), Tests.
 
-**Endzustand:**
-- `database.types.ts` generiert und eingecheckt; CI prüft in 1.8, dass es aktuell ist (Diff nach `gen:types` leer).
-- `labels.ts`: `roleLabel`, `statusLabel`, `rankingTypeLabel`, später weitere — jede Enum aus dem Schema hat hier genau eine deutsche Bezeichnung (Werte wie in der Bestandsaufnahme: „Admin, Mannschaftsführer, Trainer, Organisator, Mitglied, Gast" …).
-- `dates.ts`: `formatDate`, `formatTime`, `formatDateTime`, `formatShortDayDate` („Do., 08.10.2026"), `toBerlin`, `fromBerlin`, `weekdayLabel` — alle auf date-fns-tz mit `Europe/Berlin`.
-- `queryKeys.ts`: Factory je Feature (`members.list(filters)`, `members.detail(id)` …).
-- `features/members/api.ts`: `useMembers(filters)`, `useMember(id)`, `useUpdateMember()`, mit Invalidation. Dient als Vorlage; ein Kommentarblock am Dateikopf beschreibt das Muster (Query, Mutation, Invalidation, Fehler → Toast).
+**Endzustand:**  
+- `database.types.ts` generiert und eingecheckt; CI prüft in 1.8, dass es aktuell ist (Diff nach `gen:types` leer).  
+- `labels.ts`: `roleLabel`, `statusLabel`, `rankingTypeLabel`, später weitere — jede Enum aus dem Schema hat hier genau eine deutsche Bezeichnung (Werte wie in der Bestandsaufnahme: „Admin, Mannschaftsführer, Trainer, Organisator, Mitglied, Gast" …).  
+- `dates.ts`: `formatDate`, `formatTime`, `formatDateTime`, `formatShortDayDate` („Do., 08.10.2026"), `toBerlin`, `fromBerlin`, `weekdayLabel` — alle auf date-fns-tz mit `Europe/Berlin`.  
+- `queryKeys.ts`: Factory je Feature (`members.list(filters)`, `members.detail(id)` …).  
+- `features/members/api.ts`: `useMembers(filters)`, `useMember(id)`, `useUpdateMember()`, mit Invalidation. Dient als Vorlage; ein Kommentarblock am Dateikopf beschreibt das Muster (Query, Mutation, Invalidation, Fehler → Toast).  
 
 **Tests:** `dates.test.ts` (Zeitzone Sommer/Winter), `labels.test.ts` (jede Enum vollständig abgedeckt — Test iteriert über `Database['public']['Enums']`).
 **Commit:** `Datenzugriffsschicht, Labels, Datumsfunktionen, generierte Typen`
@@ -183,13 +183,13 @@ sieht die Navigation und eine leere Mitgliederliste.
 
 **Dateien:** neu `supabase/functions/_shared/ics.ts`, `homeAway.ts`, `lineupOrder.ts`, `syncPlanner.ts`; neu `src/lib/names.ts`, `src/lib/lineupText.ts`; Tests dazu (bestehende Tests `icsParser.test.ts`, `realCalendarSync.test.ts`, `nameUtils.test.ts`, `whatsappUtils.test.ts` werden auf die neuen Module umgezogen und angepasst).
 
-**Endzustand:**
-- `ics.ts`: `parseIcs`, `parseLocalDateToUtc`, `extractMatchday` unverändert aus `src/lib/icsParser.ts`.
-- `homeAway.ts`: `determineHomeAway(summary, teamName, clubAliases: string[])` — Alias-Liste statt festem Vereinsnamen; Tests übergeben `['heiligenhaus','heiligenhauser']`, damit die realen Upstream-Kalenderdaten weiter als Testfälle dienen.
-- `lineupOrder.ts`: `orderLineupCandidates(candidates: {profileId, response, isRegular, teamNumber, positionNumber, name}[]): string[]` — Reihenfolge `yes` (regular vor substitute, dann Rang) > `none` > `unclear` > `no`; `yes_sub` existiert nicht mehr.
-- `syncPlanner.ts`: `planSync(existing: MatchRow[], events: IcsEvent[], now): SyncAction[]` mit Aktionen `insert | reschedule(version+1) | update_details | touch | deactivate` und der **Sicherheitssperre** (0 Events bei aktiven Spielen → `[]` + `warning`). Berücksichtigt `dtstart_override` (Zielbild 4.3): liefert der Feed `dtstart_external = override` → Aktion `clear_override`.
-- `names.ts`: `getShortName`, `getFirstName`, `isNameMatch`.
-- `lineupText.ts`: `buildLineupText(input): string` erzeugt exakt das Format aus Bestandsaufnahme C „Aufstellung teilen", ergänzt um Zeile „Treffpunkt: <Ankunftszeit> Uhr <Ort>" (aus `arrival_minutes_*`) und „Hinweis: <comment_home/away>" sowie den Parallelspiel-Satz; zweite Funktion `buildMissingPlayersText` für < required_players (aus Basis-Generator).
+**Endzustand:**  
+- `ics.ts`: `parseIcs`, `parseLocalDateToUtc`, `extractMatchday` unverändert aus `src/lib/icsParser.ts`.  
+- `homeAway.ts`: `determineHomeAway(summary, teamName, clubAliases: string[])` — Alias-Liste statt festem Vereinsnamen; Tests übergeben `['heiligenhaus','heiligenhauser']`, damit die realen Upstream-Kalenderdaten weiter als Testfälle dienen.  
+- `lineupOrder.ts`: `orderLineupCandidates(candidates: {profileId, response, isRegular, teamNumber, positionNumber, name}[]): string[]` — Reihenfolge `yes` (regular vor substitute, dann Rang) > `none` > `unclear` > `no`; `yes_sub` existiert nicht mehr.  
+- `syncPlanner.ts`: `planSync(existing: MatchRow[], events: IcsEvent[], now): SyncAction[]` mit Aktionen `insert | reschedule(version+1) | update_details | touch | deactivate` und der **Sicherheitssperre** (0 Events bei aktiven Spielen → `[]` + `warning`). Berücksichtigt `dtstart_override` (Zielbild 4.3): liefert der Feed `dtstart_external = override` → Aktion `clear_override`.  
+- `names.ts`: `getShortName`, `getFirstName`, `isNameMatch`.  
+- `lineupText.ts`: `buildLineupText(input): string` erzeugt exakt das Format aus Bestandsaufnahme C „Aufstellung teilen", ergänzt um Zeile „Treffpunkt: <Ankunftszeit> Uhr <Ort>" (aus `arrival_minutes_*`) und „Hinweis: <comment_home/away>" sowie den Parallelspiel-Satz; zweite Funktion `buildMissingPlayersText` für < required_players (aus Basis-Generator).  
 
 **Tests:** Alle bisherigen Fälle bestehen weiter (umbenannt); neu: `syncPlanner` mit 8 Fällen (neu, verlegt, Details, unverändert, entfallen, Sicherheitssperre, Override bestätigt, Override abweichend), `lineupText` mit 3 Fällen (Heim, Auswärts, zu wenige).
 **Commit:** `Reine Logik aus der Basis uebernehmen`

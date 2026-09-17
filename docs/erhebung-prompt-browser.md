@@ -7,12 +7,12 @@ Markdown-Datei, die zurück in die Entwicklungs-Session gespielt wird.
 Anwendung: Im TT-Planer einloggen (möglichst mit Admin-Rechten), dann den Prompt unten
 vollständig an Claude im Browser übergeben.
 
-Hinweise vorab:
-- Der Browser-Claude handelt in deiner Session mit deinen Rechten. Der Prompt ist deshalb
-  strikt lesend formuliert. Wenn er trotzdem etwas ändern will: ablehnen.
-- Der TT-Planer enthält echte Mitgliederdaten. Der Prompt fordert Pseudonymisierung —
-  bitte beim Zurückspielen trotzdem kurz drüberschauen.
-- Realistisch sind 30–60 Minuten. Der Prompt ist so gebaut, dass Claude auch dann ein
+Hinweise vorab:  
+- Der Browser-Claude handelt in deiner Session mit deinen Rechten. Der Prompt ist deshalb  
+  strikt lesend formuliert. Wenn er trotzdem etwas ändern will: ablehnen.  
+- Der TT-Planer enthält echte Mitgliederdaten. Der Prompt fordert Pseudonymisierung —  
+  bitte beim Zurückspielen trotzdem kurz drüberschauen.  
+- Realistisch sind 30–60 Minuten. Der Prompt ist so gebaut, dass Claude auch dann ein  
   verwertbares Ergebnis liefert, wenn er nur einen Teil schafft.
 
 ---
@@ -188,7 +188,7 @@ WICHTIG ZUM SCHLUSS
 Die erzeugte Markdown-Datei als `docs/tt-planer-bestandsaufnahme.md` ins Repo legen oder in die
 Entwicklungs-Session einfügen. Daraus werden dann aktualisiert:
 
-- `funktionsvergleich.md` — Teil 1 und 2 auf verifizierte Fakten umstellen, Vermutungen entfernen
-- `recherche-tt-planer.md` — Preise und Paketgrenzen bestätigen oder korrigieren
-- die Roadmap — insbesondere Ersatzspieler-Automatik (Fristen, Modi) und Benachrichtigungen
+- `funktionsvergleich.md` — Teil 1 und 2 auf verifizierte Fakten umstellen, Vermutungen entfernen  
+- `recherche-tt-planer.md` — Preise und Paketgrenzen bestätigen oder korrigieren  
+- die Roadmap — insbesondere Ersatzspieler-Automatik (Fristen, Modi) und Benachrichtigungen  
   (Auslöser, Kanäle) lassen sich erst nach Punkt B und C sauber spezifizieren

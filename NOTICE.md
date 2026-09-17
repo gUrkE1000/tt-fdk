@@ -30,9 +30,9 @@ sie erlauben ausdrücklich **keine** darüber hinausgehende Nutzung, Veränderun
 
 Daraus folgt für dieses Projekt:
 
-- Interne Weiterentwicklung und Erprobung im Verein: vertretbares Risiko, aber nicht sauber.
-- Produktivbetrieb mit Mitgliederdaten oder Veröffentlichung: **erst nach geklärter Lizenz.**
-- Dieses Repository sollte bis dahin **privat** bleiben.
+- Interne Weiterentwicklung und Erprobung im Verein: vertretbares Risiko, aber nicht sauber.  
+- Produktivbetrieb mit Mitgliederdaten oder Veröffentlichung: **erst nach geklärter Lizenz.**  
+- Dieses Repository sollte bis dahin **privat** bleiben.  
 
 ## Nächster Schritt: Lizenz anfragen
 

@@ -10,18 +10,18 @@ Preise und Vertragskonditionen sind vor einer Entscheidung auf der Herstellersei
 
 ## 1. Kurzfassung
 
-- **TT-Planer** ist eine Web-App (PWA, keine native App) speziell für Tischtennisvereine:
+- **TT-Planer** ist eine Web-App (PWA, keine native App) speziell für Tischtennisvereine:  
   Vereinskalender, Trainings-An-/Abmeldung, Hallen-/Tischbelegung, Mannschaftsspiel-Organisation
-  mit automatischer Ersatzspieler-Kette, Umfragen (z. B. Spielverlegung), Arbeitsstunden-Erfassung.
-- **Kosten**: 3 Monate kostenlos, danach Starter 5 €/Monat, Vollpaket 15 €/Monat.
+  mit automatischer Ersatzspieler-Kette, Umfragen (z. B. Spielverlegung), Arbeitsstunden-Erfassung.  
+- **Kosten**: 3 Monate kostenlos, danach Starter 5 €/Monat, Vollpaket 15 €/Monat.  
   Laufzeit 12 Monate, Verlängerung um 12 Monate, Kündigungsfrist 3 Monate.
-  → Vollpaket ≈ **180 €/Jahr**, Starter ≈ **60 €/Jahr**.
-- **Der teuerste Teil eines Nachbaus ist nicht das Hosting, sondern die Pflege.** Hosting einer
+  → Vollpaket ≈ **180 €/Jahr**, Starter ≈ **60 €/Jahr**.  
+- **Der teuerste Teil eines Nachbaus ist nicht das Hosting, sondern die Pflege.** Hosting einer  
   eigenen Lösung liegt bei 0–60 €/Jahr (Supabase-Free/Hetzner-VPS + Domain). Die Ersparnis
   gegenüber dem Vollpaket beträgt also grob 120–180 €/Jahr — das ist ungefähr der Gegenwert von
   2–4 Entwicklerstunden pro Jahr. Der Bau lohnt sich, wenn man ihn ohnehin machen will
-  (Lernprojekt, exakter Zuschnitt auf den Verein), nicht als reine Sparmaßnahme.
-- **Schlanker Einstieg**: Nur die Funktionen bauen, die der Verein wirklich nutzt — erfahrungsgemäß
+  (Lernprojekt, exakter Zuschnitt auf den Verein), nicht als reine Sparmaßnahme.  
+- **Schlanker Einstieg**: Nur die Funktionen bauen, die der Verein wirklich nutzt — erfahrungsgemäß  
   sind das Spieltermine + Zu-/Absagen + Aufstellung + Erinnerung. Das ist ein überschaubares MVP
   (siehe Abschnitt 7), weil die Termindaten **kostenlos als ICS/Webcal aus click-TT** kommen.
 
@@ -107,12 +107,12 @@ ist der Grund, warum Vereine die App schätzen. Wer nachbaut, sollte das nicht w
 
 Das ist entscheidend für den Eigenbau, weil hier die Daten herkommen.
 
-- **click-TT / nuLiga** (Betreiber: [nu Datenautomaten GmbH](https://www.nu-gmbh.com/sportarten/tischtennis))
+- **click-TT / nuLiga** (Betreiber: [nu Datenautomaten GmbH](https://www.nu-gmbh.com/sportarten/tischtennis))  
   ist das Verbandssystem für Spielbetrieb, Mannschaftsmeldung, Spielberechtigungen, Ergebnisse.
-  Jeder Landesverband hat eine eigene Instanz (z. B. `wttv.click-tt.de`, `ttvn.click-tt.de`).
-- **myTischtennis.de** ist das Portal, in das click-TT seit 2017 integriert ist (TTR/QTTR-Werte,
-  Profile, Ergebnisse).
-- **nuScore** ist seit Saison 2023/24 der digitale Spielbericht, der den Papier-Spielblock
+  Jeder Landesverband hat eine eigene Instanz (z. B. `wttv.click-tt.de`, `ttvn.click-tt.de`).  
+- **myTischtennis.de** ist das Portal, in das click-TT seit 2017 integriert ist (TTR/QTTR-Werte,  
+  Profile, Ergebnisse).  
+- **nuScore** ist seit Saison 2023/24 der digitale Spielbericht, der den Papier-Spielblock  
   ersetzt; er lädt die aktuelle Mannschaftsmeldung per Spielcode aus click-TT.
 
 ### 3.1 Legale, offizielle Datenwege (empfohlen)
@@ -130,12 +130,12 @@ Verlegungen erkennen lassen) und erfordert keinerlei Scraping. Ein fertiges Beis
 
 ### 3.2 Inoffizielle Wege (mit Vorsicht)
 
-- [notMYcupofTeeTee/mytt-api](https://github.com/notMYcupofTeeTee/mytt-api) — inoffizielle
+- [notMYcupofTeeTee/mytt-api](https://github.com/notMYcupofTeeTee/mytt-api) — inoffizielle  
   Dokumentation der myTischtennis-Endpunkte (Suche, Spieler/TTR, Ligen/Gruppen, Mannschaften,
   Vereine, Spiele), erstellt durch Beobachtung des Netzwerk-Tabs. MIT-lizenzierte Doku, aber:
   **keine Verbindung zum DTTB**, teils Cookie-Auth nötig, Rate Limit ca. 90 Requests/Stunde,
-  Nutzung unterliegt den AGB von myTischtennis.
-- [legout/mytt-scraper](https://github.com/legout/mytt-scraper) — Playwright-Scraper für
+  Nutzung unterliegt den AGB von myTischtennis.  
+- [legout/mytt-scraper](https://github.com/legout/mytt-scraper) — Playwright-Scraper für  
   TTR-Werte und Profile, explizit "for personal use only", keine Open-Source-Lizenz.
 
 **Bewertung:** Für eine Vereinslösung, die dauerhaft laufen soll, sollte man sich nicht auf
@@ -171,14 +171,14 @@ Ersatzspieler-Kette nach Reihenfolge, Aufstellung nach Stammspieler-Positionen.
 
 ### 4.3 Kostenlose Bausteine, die es schon gibt
 
-- **Hallenbuchungstool des DTTB** — in click-TT/myTT integriert, **kostenlos** für alle Vereine:
+- **Hallenbuchungstool des DTTB** — in click-TT/myTT integriert, **kostenlos** für alle Vereine:  
   Admin legt Tische, Trainingstage und Zeiten fest, Spieler buchen Tische (ohne eigene
   Registrierung), Freitextfeld für Regeln, Trainingspartner kann eingetragen werden.
   ([Info-PDF](https://www.tischtennis.de/fileadmin/documents/01_Verbaende/Hallenbelegungstool/Info_Vereine_Hallenbelegungstool.pdf),
   [News](https://www.tischtennis.de/news/vereinsservice-kostenloses-online-hallenbuchungstool-jetzt-nutzbar.html))
-  → **Das Modul "Hallenbelegung" muss man nicht nachbauen.**
-- **click-TT-Kalenderabo** — Spieltermine im Telefonkalender, kostenlos.
-- **Kostenlose Clubmodule von myTischtennis** für die Vereinsseite (Tabellen, Spielpläne).
+  → **Das Modul "Hallenbelegung" muss man nicht nachbauen.**  
+- **click-TT-Kalenderabo** — Spieltermine im Telefonkalender, kostenlos.  
+- **Kostenlose Clubmodule von myTischtennis** für die Vereinsseite (Tabellen, Spielpläne).  
 
 ### 4.4 Open Source (die interessanteste Fundstelle)
 
@@ -212,28 +212,28 @@ die kostenlosen click-TT-Bausteine (Kalenderabo + Hallenbuchungstool) plus eine 
 
 Der Eigenbau lohnt sich, wenn zusätzlich mindestens einer dieser Punkte gilt:
 
-- Es soll genau auf die Abläufe **unseres** Vereins passen (z. B. eigene Ersatzregeln, Fahrdienst,
-  Schlüsselverwaltung, Arbeitsstunden nach unserer Satzung).
-- Datenhoheit ist ein Argument (DSGVO, eigenes Hosting in der EU, keine Mitgliederdaten bei Dritten).
-- Es gibt jemanden im Verein, der das dauerhaft betreut — **Bus-Faktor 1 ist das echte Risiko**,
-  nicht die Technik.
-- Der Bau macht Spaß / ist ein Lernprojekt. Das ist ein legitimer Grund, sollte aber im Vorstand
+- Es soll genau auf die Abläufe **unseres** Vereins passen (z. B. eigene Ersatzregeln, Fahrdienst,  
+  Schlüsselverwaltung, Arbeitsstunden nach unserer Satzung).  
+- Datenhoheit ist ein Argument (DSGVO, eigenes Hosting in der EU, keine Mitgliederdaten bei Dritten).  
+- Es gibt jemanden im Verein, der das dauerhaft betreut — **Bus-Faktor 1 ist das echte Risiko**,  
+  nicht die Technik.  
+- Der Bau macht Spaß / ist ein Lernprojekt. Das ist ein legitimer Grund, sollte aber im Vorstand  
   ehrlich so benannt werden.
 
 ---
 
 ## 6. Empfohlener Weg
 
-1. **Vorher klären, was wirklich gebraucht wird.** Im Verein abfragen, welche TT-Planer-Module
+1. **Vorher klären, was wirklich gebraucht wird.** Im Verein abfragen, welche TT-Planer-Module  
    tatsächlich genutzt werden. Erfahrungsgemäß sind das Spieltermine + Rückmeldungen +
-   Aufstellung + Erinnerung; Arbeitsstunden und Umfragen werden oft nie angefasst.
-2. **Kostenlose Bausteine nutzen statt nachbauen**: Hallenbelegung über das DTTB-Tool,
-   Spieltermine über das click-TT-ICS-Abo.
-3. **`dgaida/tt_hsv_planner` ansehen und den Autor kontaktieren.** Das Projekt macht fachlich
+   Aufstellung + Erinnerung; Arbeitsstunden und Umfragen werden oft nie angefasst.  
+2. **Kostenlose Bausteine nutzen statt nachbauen**: Hallenbelegung über das DTTB-Tool,  
+   Spieltermine über das click-TT-ICS-Abo.  
+3. **`dgaida/tt_hsv_planner` ansehen und den Autor kontaktieren.** Das Projekt macht fachlich  
    genau das Richtige. Eine Lizenz-Anfrage kostet eine E-Mail und spart im Erfolgsfall den
    Großteil der 40–80 Stunden. Ohne Lizenz darf man es nicht übernehmen, sich aber davon
-   inspirieren lassen (Konzepte sind nicht geschützt, Code schon).
-4. **Parallelbetrieb planen.** Kündigungsfrist von 3 Monaten beachten: Die Eigenlösung muss eine
+   inspirieren lassen (Konzepte sind nicht geschützt, Code schon).  
+4. **Parallelbetrieb planen.** Kündigungsfrist von 3 Monaten beachten: Die Eigenlösung muss eine  
    volle Halbserie stabil gelaufen sein, bevor der TT-Planer gekündigt wird.
 
 ---
@@ -244,16 +244,16 @@ Der Eigenbau lohnt sich, wenn zusätzlich mindestens einer dieser Punkte gilt:
 
 Alles andere ist Phase 2+.
 
-- Mannschaften anlegen, Kader mit Stammspielern (Position 1..n) und geordneter Ersatzliste
-- Spieltermine automatisch aus dem click-TT-Webcal je Mannschaft synchronisieren (täglich),
-  Verlegungen über die Event-UID erkennen und betroffene Rückmeldungen als "veraltet" markieren
-- Rückmeldung je Termin: **zu / ab / nur als Ersatz**, mit Kommentar
-- Automatische Erinnerung an alle ohne Rückmeldung (X Stunden vorher, konfigurierbar)
-- Ersatzkette: Bei Absage eines Stammspielers sequentielle Anfrage der Ersatzspieler mit Timeout,
-  Eskalation an den Mannschaftsführer wenn die Kette leer läuft
-- Aufstellung ansehen/festlegen + Textexport für WhatsApp
-- Rollen: Spieler, Mannschaftsführer, Admin
-- Passwortloser Login (Magic Link) — Vereinsmitglieder installieren keine App und merken sich
+- Mannschaften anlegen, Kader mit Stammspielern (Position 1..n) und geordneter Ersatzliste  
+- Spieltermine automatisch aus dem click-TT-Webcal je Mannschaft synchronisieren (täglich),  
+  Verlegungen über die Event-UID erkennen und betroffene Rückmeldungen als "veraltet" markieren  
+- Rückmeldung je Termin: **zu / ab / nur als Ersatz**, mit Kommentar  
+- Automatische Erinnerung an alle ohne Rückmeldung (X Stunden vorher, konfigurierbar)  
+- Ersatzkette: Bei Absage eines Stammspielers sequentielle Anfrage der Ersatzspieler mit Timeout,  
+  Eskalation an den Mannschaftsführer wenn die Kette leer läuft  
+- Aufstellung ansehen/festlegen + Textexport für WhatsApp  
+- Rollen: Spieler, Mannschaftsführer, Admin  
+- Passwortloser Login (Magic Link) — Vereinsmitglieder installieren keine App und merken sich  
   keine Passwörter
 
 ### 7.2 Stack-Empfehlung
@@ -301,28 +301,28 @@ nicht mehr auf, ist das Spiel entfallen.
 
 ## 8. Offene Punkte vor der Entscheidung
 
-- [ ] Preise und AGB auf tt-planer.de verifizieren (Recherche basiert teils auf Snapshots).
-- [ ] Im Verein erheben: Welche Module werden heute tatsächlich genutzt?
-- [ ] Wer betreut die Lösung in 3 Jahren?
-- [ ] Autor von `tt_hsv_planner` wegen Lizenz anschreiben.
-- [ ] Prüfen, ob unser Landesverband beim click-TT-Kalenderabo je Mannschaft Webcal-Links anbietet
-      (in der Mannschaftsübersicht der click-TT-Vereinsseite unterhalb des Spielplans).
-- [ ] Testen, ob SpielerPlus (kostenlos) mit einem ICS-Import als 80-%-Lösung reicht.
+- [ ] Preise und AGB auf tt-planer.de verifizieren (Recherche basiert teils auf Snapshots).  
+- [ ] Im Verein erheben: Welche Module werden heute tatsächlich genutzt?  
+- [ ] Wer betreut die Lösung in 3 Jahren?  
+- [ ] Autor von `tt_hsv_planner` wegen Lizenz anschreiben.  
+- [ ] Prüfen, ob unser Landesverband beim click-TT-Kalenderabo je Mannschaft Webcal-Links anbietet  
+      (in der Mannschaftsübersicht der click-TT-Vereinsseite unterhalb des Spielplans).  
+- [ ] Testen, ob SpielerPlus (kostenlos) mit einem ICS-Import als 80-%-Lösung reicht.  
 
 ---
 
 ## 9. Quellen
 
-- [TT-Planer — Startseite](https://www.tt-planer.de/), [Preise & Pakete](https://www.tt-planer.de/preise/), [FAQ](https://www.tt-planer.de/faq/), [AGB](https://www.tt-planer.de/agb/), [Hilfe](https://www.tt-planer.de/hilfe/), [Einstieg](https://www.tt-planer.de/hilfe/einstieg-in-den-tt-planer/)
-- [myTischtennis: TT-Planer — Eine App für die ganze Orga](https://www.mytischtennis.de/news/partner/tt-planer-eine-app-fur-die-ganze-orga)
-- [TTC Holzwickede über den TT-Planer](https://ttc-holzwickede.de/tt-planer/)
-- [smart-tt — Funktionen](https://smart-tt.de/funktionen.html)
-- [TT-Coach Vereinsverwaltung](https://tt-coach.de/tt-vereinsverwaltung)
-- [Henke Software / web4sport](https://www.web4sport.de/), [TT-Turnier](https://www.htts.de/?Page=TTTurnier)
-- [SpielerPlus](https://www.spielerplus.de/lp/premium), [SportEasy Tischtennis](https://www.sporteasy.net/de/teams/sports/ping_pong/), [Vereinsplaner](https://vereinsplaner.de/toolset-fuer-vereine), [Sportdeutschland Vereinsapp](https://vereinsapp.sportdeutschland.de/)
-- [DTTB: Kostenloses Online-Hallenbuchungstool](https://www.tischtennis.de/news/vereinsservice-kostenloses-online-hallenbuchungstool-jetzt-nutzbar.html), [Info-PDF für Vereine](https://www.tischtennis.de/fileadmin/documents/01_Verbaende/Hallenbelegungstool/Info_Vereine_Hallenbelegungstool.pdf)
-- [nu Datenautomaten GmbH — Tischtennis](https://www.nu-gmbh.com/sportarten/tischtennis), [click-TT Deutschland](https://dttb.click-tt.de/)
-- [BTTV: Downloads in click-TT](https://www.bttv.de/service/click-tt/click-tt-fuer-vereine/downloads-in-click-tt), [BTTV: nuScore](https://www.bttv.de/service/click-tt/click-tt-fuer-vereine/nuscore-der-digitale-spielbericht)
-- [HTTV: Mannschaftsmeldung in click-TT (PDF)](https://www.httv.de/media/000/click-TT/Anleitungen/Mannschaftsmeldung.pdf)
-- [myTischtennis: Update Kalender-Integration](https://www.mytischtennis.de/news/mytischtennis-news/update-kalender-integration-und-neue-mobile-darstellung)
-- GitHub: [dgaida/tt_hsv_planner](https://github.com/dgaida/tt_hsv_planner), [dominik-lueke/ttr-mannschafts-planer-2.0](https://github.com/dominik-lueke/ttr-mannschafts-planer-2.0), [jolinux/Click-TT-ICS-Kalender-Konverter](https://github.com/jolinux/Click-TT-ICS-Kalender-Konverter), [harald-herberth/nutab](https://github.com/harald-herberth/nutab), [notMYcupofTeeTee/mytt-api](https://github.com/notMYcupofTeeTee/mytt-api), [legout/mytt-scraper](https://github.com/legout/mytt-scraper)
+- [TT-Planer — Startseite](https://www.tt-planer.de/), [Preise & Pakete](https://www.tt-planer.de/preise/), [FAQ](https://www.tt-planer.de/faq/), [AGB](https://www.tt-planer.de/agb/), [Hilfe](https://www.tt-planer.de/hilfe/), [Einstieg](https://www.tt-planer.de/hilfe/einstieg-in-den-tt-planer/)  
+- [myTischtennis: TT-Planer — Eine App für die ganze Orga](https://www.mytischtennis.de/news/partner/tt-planer-eine-app-fur-die-ganze-orga)  
+- [TTC Holzwickede über den TT-Planer](https://ttc-holzwickede.de/tt-planer/)  
+- [smart-tt — Funktionen](https://smart-tt.de/funktionen.html)  
+- [TT-Coach Vereinsverwaltung](https://tt-coach.de/tt-vereinsverwaltung)  
+- [Henke Software / web4sport](https://www.web4sport.de/), [TT-Turnier](https://www.htts.de/?Page=TTTurnier)  
+- [SpielerPlus](https://www.spielerplus.de/lp/premium), [SportEasy Tischtennis](https://www.sporteasy.net/de/teams/sports/ping_pong/), [Vereinsplaner](https://vereinsplaner.de/toolset-fuer-vereine), [Sportdeutschland Vereinsapp](https://vereinsapp.sportdeutschland.de/)  
+- [DTTB: Kostenloses Online-Hallenbuchungstool](https://www.tischtennis.de/news/vereinsservice-kostenloses-online-hallenbuchungstool-jetzt-nutzbar.html), [Info-PDF für Vereine](https://www.tischtennis.de/fileadmin/documents/01_Verbaende/Hallenbelegungstool/Info_Vereine_Hallenbelegungstool.pdf)  
+- [nu Datenautomaten GmbH — Tischtennis](https://www.nu-gmbh.com/sportarten/tischtennis), [click-TT Deutschland](https://dttb.click-tt.de/)  
+- [BTTV: Downloads in click-TT](https://www.bttv.de/service/click-tt/click-tt-fuer-vereine/downloads-in-click-tt), [BTTV: nuScore](https://www.bttv.de/service/click-tt/click-tt-fuer-vereine/nuscore-der-digitale-spielbericht)  
+- [HTTV: Mannschaftsmeldung in click-TT (PDF)](https://www.httv.de/media/000/click-TT/Anleitungen/Mannschaftsmeldung.pdf)  
+- [myTischtennis: Update Kalender-Integration](https://www.mytischtennis.de/news/mytischtennis-news/update-kalender-integration-und-neue-mobile-darstellung)  
+- GitHub: [dgaida/tt_hsv_planner](https://github.com/dgaida/tt_hsv_planner), [dominik-lueke/ttr-mannschafts-planer-2.0](https://github.com/dominik-lueke/ttr-mannschafts-planer-2.0), [jolinux/Click-TT-ICS-Kalender-Konverter](https://github.com/jolinux/Click-TT-ICS-Kalender-Konverter), [harald-herberth/nutab](https://github.com/harald-herberth/nutab), [notMYcupofTeeTee/mytt-api](https://github.com/notMYcupofTeeTee/mytt-api), [legout/mytt-scraper](https://github.com/legout/mytt-scraper)  

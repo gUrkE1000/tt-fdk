@@ -282,10 +282,10 @@ Jede E-Mail geht zusätzlich als Kopie an `profiles.emails_copies`.
 
 ### 3.7 Abgeleitete Sichten (Views, für Frontend-Queries)
 
-- `v_match_lineup_status(match_id, profile_id, status)` mit `status` ∈ `lineup, open, declined, unclear, absent, removed`
-  — genau die Abschnitte des Dialogs „Spieler verwalten"; `absent` aus `absences` über `dtstart`.
-- `v_my_upcoming(profile_id, kind, id, starts_at, title, my_status)` — Dashboard/Meine Termine/ICS-Abo.
-- `v_open_participations(profile_id, kind, id, starts_at)` — Grundlage für den täglichen Sammelhinweis.
+- `v_match_lineup_status(match_id, profile_id, status)` mit `status` ∈ `lineup, open, declined, unclear, absent, removed`  
+  — genau die Abschnitte des Dialogs „Spieler verwalten"; `absent` aus `absences` über `dtstart`.  
+- `v_my_upcoming(profile_id, kind, id, starts_at, title, my_status)` — Dashboard/Meine Termine/ICS-Abo.  
+- `v_open_participations(profile_id, kind, id, starts_at)` — Grundlage für den täglichen Sammelhinweis.  
 
 ### 3.8 Vereinseinstellungen (`club_settings`)
 
@@ -411,24 +411,24 @@ Durchsetzung: RLS-Policies je Tabelle mit den Helferfunktionen `current_role()`,
 
 ### 6.1 Prinzipien
 
-1. **Mobil zuerst.** Die Hauptnutzung ist das Handy nach der Push-Benachrichtigung: eine Frage, ein Tipp,
+1. **Mobil zuerst.** Die Hauptnutzung ist das Handy nach der Push-Benachrichtigung: eine Frage, ein Tipp,  
    fertig. Jede Rückmeldung ist mit maximal zwei Tipps erledigt; Antwort-Links aus Benachrichtigungen
-   erledigen sie mit einem.
-2. **Zustand sichtbar.** Jede Karte zeigt ihren Status farbig (Aufstellung n/size als Balken, eigener
-   Status als Badge, Ersatzkette als Schrittleiste). Nichts ist „irgendwo im Menü".
-3. **Deutsch, kurz, du.** Beschriftungen wie im TT-Planer (Bin dabei / Komme später / Bin nicht dabei;
-   Spieler verwalten; Aufstellung teilen).
-4. **Wenig Dialoge, wenn möglich Inline.** Rückmeldung inline auf der Karte; nur Verwaltung in Dialogen.
-5. **Keine Überraschungen für Admins.** Alles, was das System automatisch tut (Sync, Erinnerung,
+   erledigen sie mit einem.  
+2. **Zustand sichtbar.** Jede Karte zeigt ihren Status farbig (Aufstellung n/size als Balken, eigener  
+   Status als Badge, Ersatzkette als Schrittleiste). Nichts ist „irgendwo im Menü".  
+3. **Deutsch, kurz, du.** Beschriftungen wie im TT-Planer (Bin dabei / Komme später / Bin nicht dabei;  
+   Spieler verwalten; Aufstellung teilen).  
+4. **Wenig Dialoge, wenn möglich Inline.** Rückmeldung inline auf der Karte; nur Verwaltung in Dialogen.  
+5. **Keine Überraschungen für Admins.** Alles, was das System automatisch tut (Sync, Erinnerung,  
    Ersatzanfrage), ist im Admin-Bereich als Protokoll sichtbar.
 
 ### 6.2 Layout
 
-- Desktop ≥ 1280 px: feste Seitenleiste 256 px links (Logo/Vereinsname, Navigation in drei Gruppen,
-  Fußbereich mit Versionsnummer), Kopfzeile mit Seitentitel, Glocke, Profilmenü. Inhalt max. 1200 px.
-- Tablet/Mobil: Kopfzeile mit Hamburger (Drawer = Seitenleiste), Bottom-Bar mit Übersicht · Meine Spiele ·
-  Trainings · Kalender · Mehr. Tabellen werden ab < 768 px zu Kartenlisten.
-- Seitenaufbau: Titel + Primäraktion rechts (z. B. „Training anlegen"), darunter Tab-Leiste, darunter
+- Desktop ≥ 1280 px: feste Seitenleiste 256 px links (Logo/Vereinsname, Navigation in drei Gruppen,  
+  Fußbereich mit Versionsnummer), Kopfzeile mit Seitentitel, Glocke, Profilmenü. Inhalt max. 1200 px.  
+- Tablet/Mobil: Kopfzeile mit Hamburger (Drawer = Seitenleiste), Bottom-Bar mit Übersicht · Meine Spiele ·  
+  Trainings · Kalender · Mehr. Tabellen werden ab < 768 px zu Kartenlisten.  
+- Seitenaufbau: Titel + Primäraktion rechts (z. B. „Training anlegen"), darunter Tab-Leiste, darunter  
   Filterzeile (Suche, Auswahlfelder, Zeitraum, Zurücksetzen), dann Inhalt.
 
 ### 6.3 Design-Tokens (Tailwind-Konfiguration)
@@ -543,20 +543,20 @@ Je Feature: `api.ts` (Queries/Mutations mit react-query), `types.ts`, `component
 
 ### 7.3 Datenfluss-Regeln
 
-- **Schreibzugriffe** laufen über supabase-js mit dem Nutzer-JWT; die Datenbank entscheidet (RLS + Trigger).
+- **Schreibzugriffe** laufen über supabase-js mit dem Nutzer-JWT; die Datenbank entscheidet (RLS + Trigger).  
   Komplexe Aktionen mit Nebenwirkungen (Benachrichtigungen erzeugen) laufen als **RPC** (`SECURITY DEFINER`
   Postgres-Funktionen), nicht als mehrere Client-Statements: `rpc_set_match_response`, `rpc_manage_player`,
-  `rpc_start_reschedule_poll`, `rpc_apply_reschedule`, `rpc_set_training_attendance`, `rpc_answer_action_token`.
-- **Zeitgesteuertes** läuft in Edge Functions, angestoßen durch pg_cron über pg_net (Konfiguration in Schema
+  `rpc_start_reschedule_poll`, `rpc_apply_reschedule`, `rpc_set_training_attendance`, `rpc_answer_action_token`.  
+- **Zeitgesteuertes** läuft in Edge Functions, angestoßen durch pg_cron über pg_net (Konfiguration in Schema  
   `private`): `sync-calendars` täglich 04:00, `generate-training-sessions` täglich 03:00,
   `enqueue-reminders` alle 10 min, `substitute-engine` alle 10 min, `process-notifications` alle 5 min,
-  `purge-deleted` täglich 02:00.
-- **Benachrichtigungen** entstehen ausschließlich über die SQL-Funktion `enqueue_notification(profile_id, type,
+  `purge-deleted` täglich 02:00.  
+- **Benachrichtigungen** entstehen ausschließlich über die SQL-Funktion `enqueue_notification(profile_id, type,  
   payload)`, die Matrix, Kanäle, Kopie-Adressen und Texte (Templates in SQL-Tabelle `notification_templates`)
-  auflöst. Damit können Trigger und Edge Functions denselben Weg nutzen.
-- **Antwort-Links**: `<app_url>/r/<token>?a=<answer>` → Frontend ruft `rpc_answer_action_token` (für `anon`
-  erlaubt) → Bestätigungsseite. Tokens sind einmalig, laufen mit dem Ereignis ab.
-- **Externe Daten**: nur ICS-Abruf in `sync-calendars` (serverseitig, kein CORS-Proxy mehr). Der
+  auflöst. Damit können Trigger und Edge Functions denselben Weg nutzen.  
+- **Antwort-Links**: `<app_url>/r/<token>?a=<answer>` → Frontend ruft `rpc_answer_action_token` (für `anon`  
+  erlaubt) → Bestätigungsseite. Tokens sind einmalig, laufen mit dem Ereignis ab.  
+- **Externe Daten**: nur ICS-Abruf in `sync-calendars` (serverseitig, kein CORS-Proxy mehr). Der  
   clientseitige Proxy-Fallback des Basis-Projekts entfällt.
 
 ### 7.4 Was aus dem Basis-Repo übernommen wird
@@ -579,13 +579,13 @@ nicht weitergeführt. Der HTML-Kader-Import entfällt, weil der TT-Planer ihn au
 
 ## 8. Nicht-funktionale Festlegungen
 
-- **Zeit**: alle Zeitstempel `timestamptz`; Anzeige in `Europe/Berlin`; Tagesgrenzen (Abwesenheiten,
-  Feiertage) sind `date`.
-- **Performance**: Listen paginiert (50), Dashboard-Queries über Views; erste Anzeige < 2 s auf 4G.
-- **Barrierefreiheit**: Radix-Primitives, Fokus-Reihenfolge, Kontrast ≥ 4.5:1, Statusfarben immer mit Text/Icon.
-- **Datenschutz**: Verarbeitungsverzeichnis und AV-Vertrag (Supabase, Resend) als Dokumente in `docs/datenschutz/`
-  vor Go-live; Löschkonzept (Soft-Delete 30 Tage); Kontaktdaten-Sichtbarkeit opt-in; Geburtstag ausblendbar.
-- **Betrieb**: Admin-Seite zeigt letzte Sync-Läufe, Benachrichtigungsfehler, Cron-Zustand; Fehler in
-  Edge Functions landen in `sync_runs`/`notifications.error`, nie stumm.
-- **Tests**: reine Logik ≥ 90 % Zeilen; jede RLS-Policy hat mindestens einen positiven und einen negativen
+- **Zeit**: alle Zeitstempel `timestamptz`; Anzeige in `Europe/Berlin`; Tagesgrenzen (Abwesenheiten,  
+  Feiertage) sind `date`.  
+- **Performance**: Listen paginiert (50), Dashboard-Queries über Views; erste Anzeige < 2 s auf 4G.  
+- **Barrierefreiheit**: Radix-Primitives, Fokus-Reihenfolge, Kontrast ≥ 4.5:1, Statusfarben immer mit Text/Icon.  
+- **Datenschutz**: Verarbeitungsverzeichnis und AV-Vertrag (Supabase, Resend) als Dokumente in `docs/datenschutz/`  
+  vor Go-live; Löschkonzept (Soft-Delete 30 Tage); Kontaktdaten-Sichtbarkeit opt-in; Geburtstag ausblendbar.  
+- **Betrieb**: Admin-Seite zeigt letzte Sync-Läufe, Benachrichtigungsfehler, Cron-Zustand; Fehler in  
+  Edge Functions landen in `sync_runs`/`notifications.error`, nie stumm.  
+- **Tests**: reine Logik ≥ 90 % Zeilen; jede RLS-Policy hat mindestens einen positiven und einen negativen  
   pgTAP-Fall; jede Route hat einen Smoke-Test.
