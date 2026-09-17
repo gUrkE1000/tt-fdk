@@ -70,5 +70,6 @@ Eigene Dokumente:
 |---|---|
 | [docs/recherche-tt-planer.md](docs/recherche-tt-planer.md) | Recherche zu TT-Planer, click-TT/nuLiga-Datenwegen, Alternativen, Kostenvergleich |
 | [docs/funktionsvergleich.md](docs/funktionsvergleich.md) | Vollständiger Funktionsvergleich TT-Planer vs. Repo-Stand: Schnittmenge, Lücken, Vorsprung, Baustellen, Roadmap |
+| [docs/umsetzungsplan.md](docs/umsetzungsplan.md) | **Umsetzungsplan** — Regeln für den ausführenden Agenten, Zielarchitektur, Phasen 0–5 als Einzelaufgaben mit Endzustand, Vorgehen und Verifikation, Abhängigkeiten, Statusliste |
 | [docs/erhebung-prompt-browser.md](docs/erhebung-prompt-browser.md) | Prompt für Claude im Browser: Bestandsaufnahme des TT-Planers in der eingeloggten Session |
 | [NOTICE.md](NOTICE.md) | Herkunft, Lizenzstatus, Upstream-Abgleich |
