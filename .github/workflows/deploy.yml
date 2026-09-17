@@ -1,10 +1,11 @@
 name: Deploy to GitHub Pages
 
+# Nur manuell startbar, solange GitHub Pages und die Supabase-Secrets nicht eingerichtet
+# sind (Aufgabe 0.3 im Umsetzungsplan). Danach hier wieder ergaenzen:
+#
+#   push:
+#     branches: [main]
 on:
-  push:
-    branches:
-      - main
-      - master
   workflow_dispatch:
 
 permissions:
@@ -39,7 +40,8 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_SYNC_SECRET: ${{ secrets.VITE_SYNC_SECRET }}
+          VITE_APP_URL: ${{ secrets.VITE_APP_URL }}
+          VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
         run: npm run build
 
       - name: Setup Pages

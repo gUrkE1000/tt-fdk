@@ -1,0 +1,55 @@
+name: Supabase ausrollen
+
+# Nur manuell startbar, solange es kein Supabase-Projekt gibt (Aufgabe 0.3 im
+# Umsetzungsplan). Sobald das Projekt existiert und die Secrets gesetzt sind, kommt
+# hier wieder ein Auslöser hinzu:
+#
+#   on:
+#     push:
+#       branches: [main]
+#       paths: ['supabase/migrations/**', 'supabase/functions/**']
+#
+# Bis dahin würde der Workflow bei jedem Push scheitern und die CI-Anzeige unbrauchbar
+# machen.
+on:
+  workflow_dispatch:
+    inputs:
+      migrations:
+        description: 'Migrationen einspielen (supabase db push)'
+        type: boolean
+        default: true
+      functions:
+        description: 'Edge Functions ausrollen'
+        type: boolean
+        default: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Projekt verbinden
+        run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}" --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
+
+      - name: Migrationen einspielen
+        if: ${{ inputs.migrations }}
+        run: supabase db push
+
+      - name: Edge Functions ausrollen
+        if: ${{ inputs.functions }}
+        # Jeder Ordner unter supabase/functions außer _shared ist eine Funktion.
+        run: |
+          shopt -s nullglob
+          for dir in supabase/functions/*/; do
+            name=$(basename "$dir")
+            [ "$name" = "_shared" ] && continue
+            echo "→ $name"
+            supabase functions deploy "$name" --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
+          done

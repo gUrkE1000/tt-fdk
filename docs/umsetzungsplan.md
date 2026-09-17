@@ -611,24 +611,51 @@ direkt hinter 4.2.
 
 ## Teil N — Status
 
-| Aufgabe | Status | Datum | Commit | Anmerkung |
-|---|---|---|---|---|
-| 0.1 | offen | | | |
-| 0.2 | offen | | | |
-| 0.3 | offen (Mensch) | | | |
-| 0.4 | offen | | | |
-| 1.1 – 1.9 | offen | | | |
-| 2.1 – 2.6 | offen | | | |
-| 3.1 – 3.8 | offen | | | |
-| 4.1 – 4.6 | offen | | | |
-| 5.1 – 5.5 | offen | | | |
-| 6.1 – 6.7 | offen | | | |
-| 7.1 – 7.5 | offen | | | |
-| 8.1 – 8.4 | offen | | | |
-| 9.1 – 9.11 | offen | | | |
-| 10.1 – 10.4 | offen | | | |
+Vom ausführenden Agenten gepflegt.
 
-Beim Start einer Phase die Sammelzeile in Einzelzeilen auflösen.
+| Aufgabe | Status | Datum | Anmerkung |
+|---|---|---|---|
+| 0.1 Repository und Werkzeuge | erledigt | 17.09.2026 | |
+| 0.2 Lokale Test-Datenbank | erledigt | 17.09.2026 | native PostgreSQL 16 statt Docker; scripts/local-db.sh, supabase-compat.sql |
+| 0.3 Cloud-Projekt | zurückgestellt | — | kein Supabase-Projekt vorhanden; spätestens vor 4.2 nötig |
+| 0.4 Umgebungsvariablen | erledigt | 17.09.2026 | `VITE_SYNC_SECRET` entfällt, `VITE_APP_URL` und `VITE_VAPID_PUBLIC_KEY` neu |
+| 0.6 Geerbte Workflows | erledigt | 17.09.2026 | auto-version-badges und sync-calendars entfernt |
+| 1.1 Router, Layout, Navigation | erledigt | 17.09.2026 | |
+| 1.2 Design-System | erledigt | 17.09.2026 | 26 Primitives, Playground unter /_design |
+| 1.3 Schema-Baseline v2 | erledigt | 17.09.2026 | eingefroren; eigener Typgenerator statt `supabase gen types` |
+| 1.4 Authentifizierung | erledigt | 17.09.2026 | Magic Link mit `shouldCreateUser: false`, Registrierung per Vereinscode |
+| 1.5 Datenzugriffsschicht | erledigt | 17.09.2026 | queryKeys, labels, dates, features/members/api.ts als Vorlage |
+| 1.6 Geteilte Logik übernommen | erledigt | 17.09.2026 | `lineupText` blieb dabei, `_shared` statt Duplikat in der Edge Function |
+| 1.7 Altcode entfernt | erledigt | 17.09.2026 | vorgezogen: der typisierte Client hat die Altlasten erzwungen |
+| 1.8 CI/CD | erledigt | 17.09.2026 | ci.yml mit App- und Datenbank-Job; Deploys vorerst nur manuell |
+| 1.9 Baseline eingefroren | erledigt | 17.09.2026 | |
+| 2.1 – 2.6 Mitglieder und Verein | offen | | |
+| 3.1 – 3.8 Mannschaften und Spiele | offen | | |
+| 4.1 – 4.6 Benachrichtigungen | offen | | |
+| 5.1 – 5.5 Ersatzkette und Verlegung | offen | | |
+| 6.1 – 6.7 Training | offen | | |
+| 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
+| 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
+| 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
+| 10.x Go-live | offen | | |
+
+### Abweichungen vom Plan, die sich beim Bauen ergeben haben
+
+1. **Keine Docker-Umgebung.** Aufgabe 0.2 nutzt eine native PostgreSQL-Instanz mit einer
+   Supabase-Kompatibilitätsschicht. Dieselben Migrationen und Tests laufen unverändert gegen
+   eine echte Supabase-Instanz.
+2. **Eigener Typgenerator.** `supabase gen types` startet einen Container. `scripts/gen-types.mjs`
+   liest denselben Katalog über `psql`. Objekte aus Extensions bleiben draußen, damit die
+   Ausgabe lokal und in Supabase identisch ist.
+3. **1.7 vorgezogen.** Sobald der Supabase-Client typisiert war, fielen 290 Typfehler in den
+   Altkomponenten an — Tabellen, die es im neuen Schema nicht mehr gibt. Der Altcode musste
+   deshalb zusammen mit 1.4 verschwinden.
+4. **`current_role()` heißt `current_member_role()`.** `current_role` ist in SQL bereits ein
+   Schlüsselwort für die aktuelle Datenbankrolle.
+5. **`lineupText` schon in 1.6.** Die Funktion braucht keine Datenbanktypen, nur ihre eigenen
+   Eingabefelder — damit ist sie vollständig testbar, bevor es Mannschaften gibt.
+6. **Deploy-Workflows vorerst manuell.** Ohne Supabase-Projekt und Secrets würden sie bei jedem
+   Push scheitern und die CI-Anzeige unbrauchbar machen.
 
 **Blocker:** —
 

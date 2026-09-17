@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: Typen, Tests, Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typprüfung
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_ANON_KEY: build-placeholder
+          VITE_APP_URL: https://example.invalid
+
+  database:
+    name: Migrationen und RLS
+    runs-on: ubuntu-latest
+
+    # Kein Docker-in-Docker und kein `supabase start`: ein einfacher Postgres-Dienst
+    # plus die Kompatibilitätsschicht aus scripts/ reicht für Migrationen und pgTAP.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      DB_NAME: vereinsplaner
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: pgTAP und psql installieren
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client \
+            postgresql-16-pgtap libtap-parser-sourcehandler-pgtap-perl
+
+      - name: pgTAP im Dienst-Container bereitstellen
+        # Die Extension muss in der Datenbank installierbar sein. Das Image postgres:16
+        # bringt sie nicht mit, deshalb kopieren wir die Dateien aus dem Runner hinein.
+        run: |
+          CONTAINER=$(docker ps --filter "ancestor=postgres:16" --format '{{.ID}}' | head -1)
+          for file in $(dpkg -L postgresql-16-pgtap | grep -E '\.(sql|control)$'); do
+            docker cp "$file" "$CONTAINER:/usr/share/postgresql/16/extension/"
+          done
+
+      - run: npm ci
+
+      - name: Datenbank aufbauen
+        run: ./scripts/local-db.sh reset
+
+      - name: RLS- und Trigger-Tests
+        run: ./scripts/local-db.sh test
+
+      - name: Generierte Typen sind aktuell
+        run: |
+          npm run gen:types
+          git diff --exit-code src/lib/database.types.ts \
+            || (echo "::error::src/lib/database.types.ts ist veraltet. Bitte 'npm run gen:types' ausführen und einchecken." && exit 1)
