@@ -209,6 +209,11 @@ Wer hat zu welchem Termin noch nicht geantwortet? Grundlage des täglichen
 Sammelhinweises. „Offen" heißt: keine Antwort — oder eine Antwort zu einer Fassung, die
 inzwischen überholt ist.
 
+### `v_reschedule_results`
+
+Je Terminvorschlag, wie viele können und wie viele nicht. Der Mannschaftsführer sieht
+damit auf einen Blick, welcher Termin trägt.
+
 ### `v_match_lineup_status`
 
 Je Beteiligungszeile genau ein Wort: `lineup`, `open`, `declined`, `unclear`, `absent`
@@ -241,6 +246,9 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `rpc_answer_action_token(uuid, text)` | Antwort über den Link aus der E-Mail, ohne Anmeldung |
 | `apply_substitute_answer(uuid, uuid, text)` | Antwort auf eine Ersatzanfrage; nimmt die Person als Parameter, weil der Link keine Anmeldung hat |
 | `enqueue_substitute_request(...)`, `notify_chain_exhausted(uuid)` | Was der Hintergrundlauf der Ersatzkette ausführt |
+| `rpc_start_reschedule_poll(uuid, timestamptz[])` | Terminumfrage mit bis zu drei Vorschlägen |
+| `rpc_vote_reschedule(uuid, int, bool)` | „kann" oder „kann nicht" zu einem Vorschlag |
+| `rpc_apply_reschedule(uuid, int)` | Setzt `dtstart_override` und erhöht die Fassung |
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |

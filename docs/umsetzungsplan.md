@@ -653,7 +653,7 @@ Vom ausführenden Agenten gepflegt.
 | 5.2 Planungslogik der Ersatzkette | erledigt | 17.09.2026 | 28 Tests |
 | 5.3 Edge Function substitute-engine | erledigt | 17.09.2026 | Sofort-Anstoß als Trigger auf `match_participations` statt in den RPCs |
 | 5.4 Ersatzkette in der Oberfläche | erledigt | 17.09.2026 | Schrittleiste im Dialog, Banner unter „Meine Spiele" |
-| 5.5 Spielverlegung | offen | | |
+| 5.5 Spielverlegung | erledigt | 17.09.2026 | Ergebnisansicht `v_reschedule_results`; Umfrage schließt sich selbst, wenn alle abgestimmt haben |
 | 6.1 – 6.7 Training | offen | | |
 | 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |

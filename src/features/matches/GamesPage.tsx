@@ -32,6 +32,7 @@ import GameDialog from './GameDialog';
 import ImportDialog from './ImportDialog';
 import ManagePlayersDialog from './ManagePlayersDialog';
 import ShareLineupDialog from './ShareLineupDialog';
+import RescheduleDialog from './RescheduleDialog';
 
 export default function GamesPage() {
   const { toast } = useToast();
@@ -49,6 +50,7 @@ export default function GamesPage() {
   const [toDelete, setToDelete] = useState<MatchRow[] | null>(null);
   const [managing, setManaging] = useState<MatchRow | null>(null);
   const [sharing, setSharing] = useState<MatchRow | null>(null);
+  const [rescheduling, setRescheduling] = useState<MatchRow | null>(null);
 
   const teamList = teams.data ?? [];
   const venueList = venues.data ?? [];
@@ -107,6 +109,7 @@ export default function GamesPage() {
         onDelete={(match) => setToDelete([match])}
         onManagePlayers={setManaging}
         onShareLineup={setSharing}
+        onReschedule={setRescheduling}
       />
     );
   }
@@ -309,6 +312,12 @@ export default function GamesPage() {
         )}
         volunteers={(volunteers.data ?? []).filter((entry) => entry.match_id === sharing?.id)}
         nameOf={nameOf}
+      />
+
+      <RescheduleDialog
+        open={rescheduling !== null}
+        onOpenChange={(next) => !next && setRescheduling(null)}
+        match={rescheduling}
       />
 
       <Dialog

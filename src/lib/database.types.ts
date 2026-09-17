@@ -124,17 +124,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "group_members_group_id_fkey";
-            columns: ["group_id"];
-            isOneToOne: false;
-            referencedRelation: "groups";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "group_members_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "group_members_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "groups";
             referencedColumns: ["id"];
           },
         ];
@@ -190,17 +190,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "match_changes_match_id_fkey";
-            columns: ["match_id"];
-            isOneToOne: false;
-            referencedRelation: "matches";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "match_changes_actor_fkey";
             columns: ["actor"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "match_changes_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
             referencedColumns: ["id"];
           },
         ];
@@ -247,10 +247,10 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "match_participations_match_id_fkey";
-            columns: ["match_id"];
+            foreignKeyName: "match_participations_updated_by_fkey";
+            columns: ["updated_by"];
             isOneToOne: false;
-            referencedRelation: "matches";
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
           {
@@ -261,10 +261,10 @@ export interface Database {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "match_participations_updated_by_fkey";
-            columns: ["updated_by"];
+            foreignKeyName: "match_participations_match_id_fkey";
+            columns: ["match_id"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "matches";
             referencedColumns: ["id"];
           },
         ];
@@ -290,17 +290,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "match_reminders_match_id_fkey";
-            columns: ["match_id"];
-            isOneToOne: false;
-            referencedRelation: "matches";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "match_reminders_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "match_reminders_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
             referencedColumns: ["id"];
           },
         ];
@@ -329,17 +329,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "match_volunteers_match_id_fkey";
-            columns: ["match_id"];
-            isOneToOne: false;
-            referencedRelation: "matches";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "match_volunteers_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "match_volunteers_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
             referencedColumns: ["id"];
           },
         ];
@@ -439,10 +439,10 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "matches_team_id_fkey";
-            columns: ["team_id"];
+            foreignKeyName: "matches_supervisor_id_fkey";
+            columns: ["supervisor_id"];
             isOneToOne: false;
-            referencedRelation: "teams";
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
           {
@@ -453,10 +453,10 @@ export interface Database {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "matches_supervisor_id_fkey";
-            columns: ["supervisor_id"];
+            foreignKeyName: "matches_team_id_fkey";
+            columns: ["team_id"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "teams";
             referencedColumns: ["id"];
           },
         ];
@@ -520,18 +520,18 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "notification_preferences_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "notification_preferences_type_fkey";
             columns: ["type"];
             isOneToOne: false;
             referencedRelation: "notification_templates";
             referencedColumns: ["type"];
+          },
+          {
+            foreignKeyName: "notification_preferences_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -797,17 +797,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "reschedule_polls_match_id_fkey";
-            columns: ["match_id"];
-            isOneToOne: false;
-            referencedRelation: "matches";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "reschedule_polls_initiated_by_fkey";
             columns: ["initiated_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reschedule_polls_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
             referencedColumns: ["id"];
           },
         ];
@@ -836,17 +836,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "reschedule_votes_poll_id_fkey";
-            columns: ["poll_id"];
-            isOneToOne: false;
-            referencedRelation: "reschedule_polls";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "reschedule_votes_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reschedule_votes_poll_id_fkey";
+            columns: ["poll_id"];
+            isOneToOne: false;
+            referencedRelation: "reschedule_polls";
             referencedColumns: ["id"];
           },
         ];
@@ -890,17 +890,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "substitute_requests_match_id_fkey";
-            columns: ["match_id"];
-            isOneToOne: false;
-            referencedRelation: "matches";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "substitute_requests_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "substitute_requests_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
             referencedColumns: ["id"];
           },
         ];
@@ -947,17 +947,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "team_leaders_team_id_fkey";
-            columns: ["team_id"];
-            isOneToOne: false;
-            referencedRelation: "teams";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "team_leaders_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_leaders_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
             referencedColumns: ["id"];
           },
         ];
@@ -986,17 +986,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "team_members_team_id_fkey";
-            columns: ["team_id"];
-            isOneToOne: false;
-            referencedRelation: "teams";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "team_members_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
             referencedColumns: ["id"];
           },
         ];
@@ -1187,6 +1187,19 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_reschedule_results: {
+        Row: {
+          poll_id: string | null;
+          match_id: string | null;
+          status: Database["public"]["Enums"]["poll_status"] | null;
+          chosen_index: number | null;
+          option_index: number | null;
+          option_at: string | null;
+          available_count: number | null;
+          unavailable_count: number | null;
+        };
+        Relationships: [];
+      };
       v_substitute_requests: {
         Row: {
           id: string | null;
@@ -1206,6 +1219,10 @@ export interface Database {
       };
     };
     Functions: {
+      apply_reschedule_vote: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       apply_substitute_answer: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -1266,6 +1283,10 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      notify_reschedule_confirmed: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       recompute_lineup: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -1286,7 +1307,15 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      rpc_apply_reschedule: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       rpc_cancel_substitute_request: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_close_reschedule_poll: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
@@ -1318,6 +1347,10 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      rpc_start_reschedule_poll: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       rpc_unlock_lineup: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -1327,6 +1360,10 @@ export interface Database {
         Returns: unknown;
       };
       rpc_validate_registration_code: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_vote_reschedule: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };

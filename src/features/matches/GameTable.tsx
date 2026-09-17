@@ -1,4 +1,4 @@
-import { CalendarDays, Pencil, RefreshCw, Share2, Trash2, Users } from 'lucide-react';
+import { CalendarClock, CalendarDays, Pencil, RefreshCw, Share2, Trash2, Users } from 'lucide-react';
 import {
   Badge,
   Button,
@@ -25,6 +25,7 @@ export interface GameTableProps {
   onDelete: (match: MatchRow) => void;
   onManagePlayers: (match: MatchRow) => void;
   onShareLineup: (match: MatchRow) => void;
+  onReschedule: (match: MatchRow) => void;
 }
 
 export default function GameTable({
@@ -37,6 +38,7 @@ export default function GameTable({
   onDelete,
   onManagePlayers,
   onShareLineup,
+  onReschedule,
 }: GameTableProps) {
   const teamOf = (id: string) => teams.find((team) => team.id === id);
   const venueOf = (id: string | null) => venues.find((venue) => venue.id === id);
@@ -105,6 +107,10 @@ export default function GameTable({
           <Button size="sm" onClick={() => onShareLineup(match)}>
             <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
             Aufstellung teilen
+          </Button>
+          <Button size="sm" onClick={() => onReschedule(match)}>
+            <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
+            Spielverlegung
           </Button>
         </div>
       </div>

@@ -14,6 +14,7 @@ import {
 } from './api';
 import { isFinished } from './filters';
 import GameCard from './GameCard';
+import RescheduleDialog from './RescheduleDialog';
 import SubstituteBanner from '../substitutes/SubstituteBanner';
 
 type Scope = 'all' | 'home' | 'away';
@@ -39,6 +40,7 @@ export default function MyGamesPage() {
   const members = useMembers();
 
   const [scope, setScope] = useState<Scope>('all');
+  const [rescheduling, setRescheduling] = useState<MatchRow | null>(null);
 
   const profileId = profile?.id ?? null;
 
@@ -131,10 +133,17 @@ export default function MyGamesPage() {
               nameOf={nameOf}
               profileId={profileId}
               canManage={leaderTeamIds.has(match.team_id)}
+              onReschedule={() => setRescheduling(match)}
             />
           ))}
         </div>
       )}
+
+      <RescheduleDialog
+        open={rescheduling !== null}
+        onOpenChange={(next) => !next && setRescheduling(null)}
+        match={rescheduling}
+      />
     </div>
   );
 }

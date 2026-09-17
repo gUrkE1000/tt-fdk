@@ -1,4 +1,4 @@
-import { AlertTriangle, MapPin, Share2, Users } from 'lucide-react';
+import { AlertTriangle, CalendarClock, MapPin, Share2, Users } from 'lucide-react';
 import {
   Avatar,
   Badge,
@@ -14,6 +14,7 @@ import type { TeamWithRoster } from '../teams/api';
 import type { MatchRow, Participation, Volunteer } from './api';
 import ResponseButtons from './ResponseButtons';
 import VolunteerToggles from './VolunteerToggles';
+import RescheduleVotePanel from './RescheduleVotePanel';
 
 export interface GameCardProps {
   match: MatchRow;
@@ -28,6 +29,7 @@ export interface GameCardProps {
   canManage?: boolean;
   onManagePlayers?: () => void;
   onShareLineup?: () => void;
+  onReschedule?: () => void;
 }
 
 export default function GameCard({
@@ -41,6 +43,7 @@ export default function GameCard({
   canManage,
   onManagePlayers,
   onShareLineup,
+  onReschedule,
 }: GameCardProps) {
   const mine = participations.find((entry) => entry.profile_id === profileId) ?? null;
 
@@ -121,6 +124,8 @@ export default function GameCard({
           </p>
         )}
 
+        <RescheduleVotePanel matchId={match.id} />
+
         {profileId && (
           <ResponseButtons
             matchId={match.id}
@@ -156,6 +161,10 @@ export default function GameCard({
             <Button size="sm" onClick={onShareLineup}>
               <Share2 className="h-4 w-4" aria-hidden="true" />
               Aufstellung teilen
+            </Button>
+            <Button size="sm" onClick={onReschedule}>
+              <CalendarClock className="h-4 w-4" aria-hidden="true" />
+              Spielverlegung
             </Button>
           </div>
         )}

@@ -9,6 +9,7 @@ import {
   useAllParticipations,
   useAllVolunteers,
   useMatches,
+  type MatchRow,
 } from '../matches/api';
 import {
   EMPTY_MATCH_FILTERS,
@@ -18,6 +19,7 @@ import {
   type MatchFilters,
 } from '../matches/filters';
 import GameCard from '../matches/GameCard';
+import RescheduleDialog from '../matches/RescheduleDialog';
 
 const PAGE_SIZES = [10, 25, 50];
 
@@ -36,6 +38,7 @@ export default function ClubGamesTab() {
 
   const [filters, setFilters] = useState<MatchFilters>(EMPTY_MATCH_FILTERS);
   const [pageSize, setPageSize] = useState(10);
+  const [rescheduling, setRescheduling] = useState<MatchRow | null>(null);
 
   const teamList = teams.data ?? [];
   const venueList = venues.data ?? [];
@@ -129,6 +132,7 @@ export default function ClubGamesTab() {
                 nameOf={nameOf}
                 profileId={profile?.id ?? null}
                 canManage={leaderTeamIds.has(match.team_id)}
+                onReschedule={() => setRescheduling(match)}
               />
             ))}
           </div>
@@ -142,6 +146,12 @@ export default function ClubGamesTab() {
           )}
         </>
       )}
+
+      <RescheduleDialog
+        open={rescheduling !== null}
+        onOpenChange={(next) => !next && setRescheduling(null)}
+        match={rescheduling}
+      />
     </div>
   );
 }
