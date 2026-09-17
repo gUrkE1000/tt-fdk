@@ -96,6 +96,16 @@ GRANT EXECUTE ON FUNCTION auth.jwt(), auth.uid(), auth.role(), auth.email()
 -- ---------------------------------------------------------------- Testhilfen
 CREATE SCHEMA IF NOT EXISTS tests;
 
+-- E-Mail zu einer Benutzer-ID. Eigene Funktion mit SECURITY DEFINER, damit login_as
+-- selbst im Invoker-Kontext bleiben kann: ein Rollenwechsel per set_config wirkt nur
+-- dann über das Funktionsende hinaus.
+CREATE OR REPLACE FUNCTION tests._email_of(p_user UUID)
+RETURNS TEXT
+LANGUAGE sql STABLE SECURITY DEFINER
+AS $$
+    SELECT email FROM auth.users WHERE id = p_user;
+$$;
+
 -- Meldet die laufende Transaktion als dieser Benutzer an: setzt die JWT-Claims und
 -- wechselt in die Rolle authenticated. Wirkt nur bis zum Ende der Transaktion.
 CREATE OR REPLACE FUNCTION tests.login_as(p_user UUID)
@@ -105,7 +115,7 @@ AS $$
 DECLARE
     v_email TEXT;
 BEGIN
-    SELECT email INTO v_email FROM auth.users WHERE id = p_user;
+    v_email := tests._email_of(p_user);
 
     PERFORM set_config(
         'request.jwt.claims',
@@ -127,7 +137,7 @@ BEGIN
 END;
 $$;
 
--- Zurück zur Superuser-Sicht (entspricht dem service_role-Zugriff der Edge Functions).
+-- Zurück zur Sicht der Edge Functions (umgeht RLS).
 CREATE OR REPLACE FUNCTION tests.as_service_role()
 RETURNS VOID
 LANGUAGE plpgsql
@@ -138,15 +148,37 @@ BEGIN
 END;
 $$;
 
--- Legt einen Auth-Benutzer an, wie es Supabase bei der Registrierung tut.
--- Der Trigger on_auth_user_created verknüpft daraufhin das Profil.
+-- Legt einen Auth-Benutzer als reine Testvorrichtung an, OHNE den Trigger
+-- on_auth_user_created auszulösen. Für Fälle, in denen das Profil schon existiert
+-- oder gar nicht gebraucht wird.
 CREATE OR REPLACE FUNCTION tests.create_auth_user(
     p_id    UUID,
     p_email TEXT,
     p_meta  JSONB DEFAULT '{}'::jsonb
 )
 RETURNS UUID
-LANGUAGE plpgsql
+LANGUAGE plpgsql SECURITY DEFINER
+AS $$
+BEGIN
+    -- session_replication_role = replica schaltet Trigger transaktionslokal ab;
+    -- sauberer als ALTER TABLE, das eine exklusive Sperre nähme.
+    PERFORM set_config('session_replication_role', 'replica', true);
+    INSERT INTO auth.users (id, email, raw_user_meta_data)
+    VALUES (p_id, p_email, p_meta);
+    PERFORM set_config('session_replication_role', 'origin', true);
+    RETURN p_id;
+END;
+$$;
+
+-- Registriert einen Benutzer auf dem echten Weg: der Trigger on_auth_user_created
+-- läuft mit. Damit lässt sich prüfen, ob Verknüpfung und Codeprüfung greifen.
+CREATE OR REPLACE FUNCTION tests.signup(
+    p_email TEXT,
+    p_meta  JSONB DEFAULT '{}'::jsonb,
+    p_id    UUID DEFAULT gen_random_uuid()
+)
+RETURNS UUID
+LANGUAGE plpgsql SECURITY DEFINER
 AS $$
 BEGIN
     INSERT INTO auth.users (id, email, raw_user_meta_data)
@@ -156,3 +188,4 @@ END;
 $$;
 
 GRANT USAGE ON SCHEMA tests TO anon, authenticated, service_role;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA tests TO anon, authenticated, service_role;
