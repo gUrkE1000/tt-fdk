@@ -131,6 +131,7 @@ die gesamte Datenbank an jeder Policy vorbei.
 | `invite-member` | `auth.admin.inviteUserByEmail` für ein angelegtes Profil | JWT des Aufrufers muss zu einem aktiven Admin gehören |
 | `sync-calendars` | Spielplan aus myTischtennis abgleichen | Cron-Secret **oder** JWT eines Admins bzw. Mannschaftsführers |
 | `process-notifications` | Fällige Nachrichten aus dem Postfach verschicken | Cron-Secret **oder** JWT eines Admins |
+| `enqueue-reminders` | Erinnerungen an Spiele und offene Rückmeldungen einreihen | Cron-Secret **oder** JWT eines Admins |
 
 Jede Funktion prüft die Rechte des Aufrufers **selbst**, bevor sie den Admin-Client
 benutzt. Der Ablauf ist immer derselbe: mit dem Anon-Schlüssel und dem `Authorization`-

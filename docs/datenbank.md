@@ -151,6 +151,15 @@ gültig für genau eine Handlung an genau einem Objekt. **Für niemanden lesbar*
 Token hat, hat ihn aus der eigenen E-Mail; ihn abfragen zu können hieße, fremde Antworten
 abgeben zu können.
 
+### `match_reminders`, `open_reminder_log`
+
+Das Gedächtnis des Erinnerungslaufs, der alle zehn Minuten läuft. Ohne sie ginge
+dieselbe Erinnerung sechsmal pro Stunde raus. Getrennt vom Postfach, weil eine
+verschickte Nachricht irgendwann aufgeräumt wird, der Merkposten aber bleiben muss.
+
+Die Fassung gehört in den Schlüssel von `match_reminders`: Wird ein Spiel verlegt, ist
+die alte Erinnerung überholt und es gibt zur neuen Fassung wieder eine.
+
 ### `private.cron_config`
 
 Liegt im Schema `private`, das PostgREST nicht veröffentlicht. Ab Aufgabe 3.3 lesen die
@@ -177,6 +186,12 @@ Gleiches Muster und gleiche Begründung wie beim Verzeichnis.
 Für jeden abwählbaren Ereignistyp die geltende Einstellung des Angemeldeten — auch dann,
 wenn dazu keine Zeile existiert. Die Regel „fehlende Zeile heißt an" bleibt damit in der
 Datenbank, statt in der Oberfläche wiederholt zu werden.
+
+### `v_open_participations`
+
+Wer hat zu welchem Termin noch nicht geantwortet? Grundlage des täglichen
+Sammelhinweises. „Offen" heißt: keine Antwort — oder eine Antwort zu einer Fassung, die
+inzwischen überholt ist.
 
 ### `v_match_lineup_status`
 

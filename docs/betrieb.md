@@ -104,7 +104,32 @@ SELECT created_at, type, channel, attempts, error
 Eine Zeile wird höchstens dreimal versucht, mit fünfzehn Minuten Abstand. Danach bleibt
 sie als `failed` stehen — sichtbar, statt still verloren.
 
-## 4. Ersten Administrator anlegen
+## 4. Erinnerungen
+
+Ein dritter Job, alle zehn Minuten, mit zwei Aufgaben:
+
+1. **Erinnerung an ein Spiel**, je Person mit ihrem eigenen Vorlauf aus dem Profil.
+2. **Täglicher Sammelhinweis** auf alles, wozu noch eine Antwort fehlt — einer statt
+   einer je Termin. Ab der in den Vereinsdaten eingestellten Uhrzeit
+   (`open_reminder_time`), für Termine innerhalb von `open_reminder_days`.
+
+Zwei Merkposten verhindern Wiederholungen: `match_reminders` je Spiel, Person und
+Fassung, `open_reminder_log` je Person und Tag. Beide gehören dem Hintergrundlauf und
+sind für niemanden sonst sichtbar.
+
+```sql
+-- Wer wurde zuletzt erinnert?
+SELECT sent_at, match_id, profile_id FROM public.match_reminders
+ ORDER BY sent_at DESC LIMIT 20;
+
+-- Wer hat noch offene Rückmeldungen?
+SELECT profile_id, count(*) FROM public.v_open_participations GROUP BY profile_id;
+```
+
+Wird ein Spiel verlegt, steigt seine Fassung — und es gibt zur neuen Fassung wieder eine
+Erinnerung. Das ist gewollt: die alte Zusage gilt ja auch nicht mehr.
+
+## 5. Ersten Administrator anlegen
 
 Die Anwendung legt niemanden automatisch an. Nach dem ersten Deployment:
 
@@ -116,7 +141,7 @@ VALUES ('Vorname', 'Nachname', 'admin@example.org', 'admin', 'unconfirmed');
 Danach meldet sich diese Adresse per E-Mail-Link an; `handle_new_user()` verknüpft das
 vorhandene Profil und setzt es auf `active`.
 
-## 5. Sicherung
+## 6. Sicherung
 
 Supabase sichert die Datenbank selbst. Zusätzlich empfiehlt sich ein wöchentlicher
 `pg_dump` in ein privates Artefakt (kommt in Aufgabe 10.x).

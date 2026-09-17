@@ -647,7 +647,7 @@ Vom ausführenden Agenten gepflegt.
 | 4.2 E-Mail-Versand | erledigt | 17.09.2026 | Zustandslogik als reine Funktion; Push wird bis 8.3 als „übersprungen" markiert |
 | 4.3 Einstellungs-Matrix | erledigt | 17.09.2026 | Tabelle ab sm, Liste darunter |
 | 4.4 Ereignisgesteuerte Benachrichtigungen | erledigt | 17.09.2026 | `rpc_share_lineup` ergänzt; Spiele in der Vergangenheit lösen nichts aus |
-| 4.5 Erinnerungen | offen | | |
+| 4.5 Erinnerungen | erledigt | 17.09.2026 | `reminderPlanner` als reine Funktion; Fangfenster sechs Stunden |
 | 4.6 Antwort-Links ohne Login | erledigt | 17.09.2026 | `rpc_describe_action_token` ergänzt, damit die Seite fragen kann statt blind zu handeln |
 | 5.1 – 5.5 Ersatzkette und Verlegung | offen | | |
 | 6.1 – 6.7 Training | offen | | |

@@ -124,17 +124,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "group_members_group_id_fkey";
-            columns: ["group_id"];
-            isOneToOne: false;
-            referencedRelation: "groups";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "group_members_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "group_members_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "groups";
             referencedColumns: ["id"];
           },
         ];
@@ -190,17 +190,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "match_changes_match_id_fkey";
-            columns: ["match_id"];
-            isOneToOne: false;
-            referencedRelation: "matches";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "match_changes_actor_fkey";
             columns: ["actor"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "match_changes_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
             referencedColumns: ["id"];
           },
         ];
@@ -247,10 +247,10 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "match_participations_match_id_fkey";
-            columns: ["match_id"];
+            foreignKeyName: "match_participations_updated_by_fkey";
+            columns: ["updated_by"];
             isOneToOne: false;
-            referencedRelation: "matches";
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
           {
@@ -261,10 +261,46 @@ export interface Database {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "match_participations_updated_by_fkey";
-            columns: ["updated_by"];
+            foreignKeyName: "match_participations_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      match_reminders: {
+        Row: {
+          match_id: string;
+          profile_id: string;
+          match_version: number;
+          sent_at: string;
+        };
+        Insert: {
+          match_id: string;
+          profile_id: string;
+          match_version: number;
+          sent_at?: string;
+        };
+        Update: {
+          match_id?: string;
+          profile_id?: string;
+          match_version?: number;
+          sent_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "match_reminders_profile_id_fkey";
+            columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "match_reminders_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
             referencedColumns: ["id"];
           },
         ];
@@ -293,17 +329,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "match_volunteers_match_id_fkey";
-            columns: ["match_id"];
-            isOneToOne: false;
-            referencedRelation: "matches";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "match_volunteers_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "match_volunteers_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
             referencedColumns: ["id"];
           },
         ];
@@ -403,10 +439,10 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "matches_team_id_fkey";
-            columns: ["team_id"];
+            foreignKeyName: "matches_supervisor_id_fkey";
+            columns: ["supervisor_id"];
             isOneToOne: false;
-            referencedRelation: "teams";
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
           {
@@ -417,10 +453,10 @@ export interface Database {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "matches_supervisor_id_fkey";
-            columns: ["supervisor_id"];
+            foreignKeyName: "matches_team_id_fkey";
+            columns: ["team_id"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "teams";
             referencedColumns: ["id"];
           },
         ];
@@ -484,18 +520,18 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "notification_preferences_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "notification_preferences_type_fkey";
             columns: ["type"];
             isOneToOne: false;
             referencedRelation: "notification_templates";
             referencedColumns: ["type"];
+          },
+          {
+            foreignKeyName: "notification_preferences_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -578,6 +614,29 @@ export interface Database {
         Relationships: [
           {
             foreignKeyName: "notifications_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      open_reminder_log: {
+        Row: {
+          profile_id: string;
+          sent_on: string;
+        };
+        Insert: {
+          profile_id: string;
+          sent_on: string;
+        };
+        Update: {
+          profile_id?: string;
+          sent_on?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "open_reminder_log_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
@@ -747,17 +806,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "team_leaders_team_id_fkey";
-            columns: ["team_id"];
-            isOneToOne: false;
-            referencedRelation: "teams";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "team_leaders_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_leaders_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
             referencedColumns: ["id"];
           },
         ];
@@ -786,17 +845,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "team_members_team_id_fkey";
-            columns: ["team_id"];
-            isOneToOne: false;
-            referencedRelation: "teams";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "team_members_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
             referencedColumns: ["id"];
           },
         ];
@@ -977,6 +1036,16 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_open_participations: {
+        Row: {
+          profile_id: string | null;
+          kind: string | null;
+          id: string | null;
+          starts_at: string | null;
+          title: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       can_see_absences: {
@@ -985,6 +1054,10 @@ export interface Database {
       };
       current_member_role: {
         Args: Record<string, never>;
+        Returns: unknown;
+      };
+      enqueue_match_reminder: {
+        Args: { [key: string]: unknown };
         Returns: unknown;
       };
       enqueue_notification: {
