@@ -6,6 +6,7 @@ import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import { RequireAuth, RequireRole } from '../features/auth/guards';
 import ProfilePage from '../features/profile/ProfilePage';
+import MembersPage from '../features/members/MembersPage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -79,7 +80,7 @@ export const router = createBrowserRouter([
           {
             element: <RequireRole roles={['admin']} />,
             children: [
-              { path: 'players', element: <Placeholder title="Mitglieder" task="2.2" /> },
+              { path: 'players', element: <MembersPage /> },
               { path: 'club', element: <Placeholder title="Verein" task="2.5" /> },
               { path: 'venues', element: <Placeholder title="Orte & Schlüssel" task="2.5" /> },
             ],

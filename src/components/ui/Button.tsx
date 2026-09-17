@@ -19,6 +19,33 @@ const SIZES: Record<ButtonSize, string> = {
   lg: 'min-h-[48px] px-5 py-2.5 text-base gap-2',
 };
 
+/**
+ * Die Klassen eines Buttons ohne das <button> selbst — für Fälle, in denen ein anderes
+ * Element wie ein Button aussehen muss (etwa der Auslöser eines Radix-Menüs, der sein
+ * eigenes Element mitbringt).
+ */
+export function buttonClasses({
+  variant = 'secondary',
+  size = 'md',
+  block,
+  className,
+}: {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  block?: boolean;
+  className?: string;
+} = {}): string {
+  return cn(
+    'inline-flex items-center justify-center rounded-xl border font-semibold transition-colors',
+    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+    'disabled:cursor-not-allowed disabled:opacity-50',
+    VARIANTS[variant],
+    SIZES[size],
+    block && 'w-full',
+    className,
+  );
+}
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -37,15 +64,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       type={type ?? 'button'}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={cn(
-        'inline-flex items-center justify-center rounded-xl border font-semibold transition-colors',
-        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
-        'disabled:cursor-not-allowed disabled:opacity-50',
-        VARIANTS[variant],
-        SIZES[size],
-        block && 'w-full',
-        className,
-      )}
+      className={buttonClasses({ variant, size, block, className })}
       {...props}
     >
       {loading && <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />}

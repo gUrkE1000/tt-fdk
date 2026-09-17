@@ -80,6 +80,12 @@ Gruppen sind die Adressierungsdimension neben den Mannschaften: Trainings, Umfra
 Sichtbarkeit von Statistiken greifen darauf zu. Eine Gruppe hat, wie im TT-Planer, nur einen
 Namen.
 
+### `absences`
+
+Zeiträume, in denen jemand nicht kann. `comment_private` ist der Grund und geht niemanden
+außer dem Mitglied etwas an — Mannschaftsführer und Trainer sehen über `v_absences` nur
+den Zeitraum. Ab Phase 3 zieht die Aufstellungsplanung diese Zeiträume heran.
+
 ### `venues`
 
 Orte mit Adresse. `max_games` ist die „maximale Anzahl gleichzeitiger Spieltermine" —
@@ -102,6 +108,11 @@ Sichtbarkeit von Spalten ist keine Zeilenfrage, deshalb eine View statt einer Po
 `security_invoker = true` sorgt dafür, dass die RLS von `profiles` weiterhin für den
 Aufrufer gilt — die View ist keine Hintertür.
 
+### `v_absences`
+
+Abwesenheiten mit maskiertem Grund: `comment_private` erscheint nur in den eigenen Zeilen.
+Gleiches Muster und gleiche Begründung wie beim Verzeichnis.
+
 ## Funktionen
 
 | Funktion | Zweck |
@@ -109,7 +120,11 @@ Aufrufer gilt — die View ist keine Hintertür.
 | `set_updated_at()` | Trigger, hält `updated_at` aktuell |
 | `current_member_role()` | Rolle des angemeldeten Mitglieds. Heißt bewusst nicht `current_role()` — das ist in SQL bereits ein Schlüsselwort |
 | `is_active_member()`, `is_admin()`, `is_organizer_or_admin()` | Rechteprüfungen für die Policies |
-| `protect_profile_columns()` | Trigger: `role`, `status`, `qttr`, `member_number`, `no_games` darf nur ein Admin ändern |
+| `protect_profile_columns()` | Trigger: `role`, `status`, `qttr`, `member_number`, `no_games` darf nur ein Admin ändern; `deleted_at` darf man setzen, aber nicht zurücknehmen |
+| `can_see_absences()` | Wer außer dem Mitglied selbst Abwesenheiten sehen darf |
+| `rpc_delete_my_account()` | Soft-Delete des eigenen Kontos; verweigert beim letzten Admin |
+| `rpc_activate_member(uuid)` | Schaltet ein wartendes Mitglied frei (nur Admin) |
+| `rpc_update_qttr_bulk(jsonb)` | QTTR-Werte einer ganzen Liste in einem Aufruf (nur Admin) |
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |
@@ -136,13 +151,21 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | Tabelle | SELECT | INSERT / UPDATE / DELETE |
 |---|---|---|
 | `club_settings` | aktive Mitglieder, außer `secret_*` | Admin |
-| `profiles` | eigene Zeile immer; sonst aktive Mitglieder. Ein Gast sieht nur Admins und Trainer | eigene Zeile oder Admin; Spaltenschutz per Trigger |
+| `profiles` | eigene Zeile immer; Admin alles, auch Gelöschte; sonst aktive Mitglieder. Ein Gast sieht nur Admins und Trainer | eigene Zeile oder Admin; Spaltenschutz per Trigger |
+| `absences` | eigene Zeilen; Admin, Trainer und Mannschaftsführer die Zeiträume aller | eigene Zeilen oder Admin |
 | `member_rankings` | aktive Mitglieder | Admin |
 | `groups`, `group_members` | aktive Mitglieder | Admin |
 | `venues` | aktive Mitglieder | Admin |
 
 `service_role` (Edge Functions) umgeht RLS — das ist gewollt und der Grund, warum der
 `service_role`-Schlüssel niemals ins Frontend gehört.
+
+**Warum der Admin auch gelöschte Profile sieht:** PostgreSQL prüft beim UPDATE nicht nur
+die UPDATE-Policy, sondern auch die SELECT-Policy gegen die *neue* Zeile. Solange die
+SELECT-Policy für fremde Zeilen `deleted_at IS NULL` verlangte, scheiterte jedes
+Soft-Delete durch den Admin an „new row violates row-level security policy". Er muss die
+Zeile ohnehin sehen können, sonst ließe sich eine versehentliche Löschung nie rückgängig
+machen.
 
 ## Typen für TypeScript
 

@@ -120,7 +120,31 @@ Jede RLS-Policy braucht mindestens einen positiven und einen negativen Fall: ein
 einmal `throws_ok` oder „sieht 0 Zeilen". Eine Policy, die nur positiv getestet ist, ist nicht
 getestet.
 
-## 4. Konfiguration
+## 4. Edge Functions
+
+Alles, wofür der `service_role`-Schlüssel nötig ist, läuft als Edge Function — nie im
+Browser. Der Schlüssel darf das Backend nicht verlassen: wer ihn hat, liest und schreibt
+die gesamte Datenbank an jeder Policy vorbei.
+
+| Funktion | Zweck | Prüft |
+|---|---|---|
+| `invite-member` | `auth.admin.inviteUserByEmail` für ein angelegtes Profil | JWT des Aufrufers muss zu einem aktiven Admin gehören |
+
+Jede Funktion prüft die Rechte des Aufrufers **selbst**, bevor sie den Admin-Client
+benutzt. Der Ablauf ist immer derselbe: mit dem Anon-Schlüssel und dem `Authorization`-
+Header des Aufrufers einen Client bauen (für den gilt dann RLS), damit Rolle und Status
+lesen, und erst danach den `service_role`-Client für die eigentliche Aktion.
+
+Setzen der Secrets nach dem Anlegen des Supabase-Projekts:
+
+```bash
+supabase secrets set APP_URL="https://verein.example.org"
+```
+
+`SUPABASE_URL`, `SUPABASE_ANON_KEY` und `SUPABASE_SERVICE_ROLE_KEY` stellt Supabase
+selbst bereit.
+
+## 5. Konfiguration
 
 `scripts/local-db.sh` liest diese Umgebungsvariablen:
 

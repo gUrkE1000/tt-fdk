@@ -332,8 +332,16 @@ export interface Database {
         Args: Record<string, never>;
         Returns: unknown;
       };
+      rpc_activate_member: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       rpc_delete_my_account: {
         Args: Record<string, never>;
+        Returns: unknown;
+      };
+      rpc_update_qttr_bulk: {
+        Args: { [key: string]: unknown };
         Returns: unknown;
       };
       rpc_validate_registration_code: {

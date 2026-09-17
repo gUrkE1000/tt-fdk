@@ -4,8 +4,11 @@
  * Features importieren ausschließlich von hier, nie aus den Einzeldateien — dadurch bleibt
  * der Bestand an Primitives überschaubar und eine Umbenennung ist eine Änderung an einer Stelle.
  */
-export { default as Button } from './Button';
+export { default as Button, buttonClasses } from './Button';
 export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';
+
+export { default as Menu } from './Menu';
+export type { MenuProps, MenuItem } from './Menu';
 
 export { default as IconButton } from './IconButton';
 export type { IconButtonProps } from './IconButton';

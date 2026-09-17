@@ -630,7 +630,10 @@ Vom ausführenden Agenten gepflegt.
 | 1.8 CI/CD | erledigt | 17.09.2026 | ci.yml mit App- und Datenbank-Job; Deploys vorerst nur manuell |
 | 1.9 Baseline eingefroren | erledigt | 17.09.2026 | |
 | 2.1 Mein Profil und Abwesenheiten | erledigt | 17.09.2026 | Tabelle `absences` + View `v_absences`; `rpc_delete_my_account` als Soft-Delete |
-| 2.2 – 2.6 Mitglieder und Verein | offen | | |
+| 2.2 Mitgliederverwaltung | erledigt | 17.09.2026 | `rpc_activate_member`, `rpc_update_qttr_bulk`; Filter als reine Funktion `filterMembers` |
+| 2.3 Einladung und Registrierung | erledigt | 17.09.2026 | Edge Function `invite-member`; Registrierungslink mit QR-Code; neues Primitive `Menu` |
+| 2.4 Gruppen | erledigt | 17.09.2026 | Tab „Gruppen" mit Anlegen, Umbenennen, Zuweisen |
+| 2.5 – 2.6 Verein, Orte, Mein Verein | offen | | |
 | 3.1 – 3.8 Mannschaften und Spiele | offen | | |
 | 4.1 – 4.6 Benachrichtigungen | offen | | |
 | 5.1 – 5.5 Ersatzkette und Verlegung | offen | | |
@@ -661,6 +664,14 @@ Vom ausführenden Agenten gepflegt.
    dass ein gelöschtes Profil sich selbst hätte wiederbeleben können. Der Trigger
    `protect_profile_columns()` lässt `deleted_at` jetzt nur noch von NULL auf einen Zeitpunkt
    setzen, nie zurück. Der letzte Administrator kann sich nicht löschen.
+8. **`profiles_select` um den Admin erweitert (2.2).** Der Admin konnte niemanden löschen:
+   PostgreSQL prüft beim UPDATE auch die SELECT-Policy gegen die neue Zeile, und die verlangte
+   für fremde Zeilen `deleted_at IS NULL`. Siehe `docs/datenbank.md`.
+9. **Neues Primitive `Menu` (2.3).** Der Plan verlangt ein Aufklappmenü „Mitglieder
+   hinzufügen". Im Design-System aus 1.2 gab es keins; es steht jetzt als `Menu` bereit und
+   wird in Phase 3 für die Zeilenaktionen der Spieltermine wiederverwendet.
+10. **QTTR-Massenpflege als eigene Datenbankfunktion.** Der Plan sah dafür nur einen Dialog vor.
+    Dreißig einzelne Aufrufe wären dreißig Anfragen; `rpc_update_qttr_bulk` macht daraus eine.
 
 **Blocker:** —
 
