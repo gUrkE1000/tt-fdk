@@ -636,7 +636,10 @@ Vom ausführenden Agenten gepflegt.
 | 2.5 Vereinsdaten und Orte | erledigt | 17.09.2026 | Bundesland als eigenes Feld (16 Länder), Orte mit Stilllegen statt Löschen |
 | 2.6 Mein Verein | erledigt | 17.09.2026 | Verzeichnis aus `v_members_directory`, Ansprechpartner, Vereinstext |
 | 3.1 Schema Mannschaften und Spiele | erledigt | 17.09.2026 | `v_match_lineup_status` vorgezogen; `rpc_unlock_lineup` ergänzt |
-| 3.2 – 3.8 Mannschaften und Spiele | offen | | |
+| 3.2 Mannschaften und Kader | erledigt | 17.09.2026 | Ligen als Freitext statt Katalog; Frist der Ersatzkette als eigenes Feld |
+| 3.3 ICS-Import und Kalender-Sync | erledigt | 17.09.2026 | `sync-calendars`, Cron-Migration mit Prüfung auf pg_cron/pg_net, `docs/betrieb.md` |
+| 3.4 Spieltermine: Liste, Filter, Bearbeitung | erledigt | 17.09.2026 | Filter als reine Funktion `filterMatches` |
+| 3.5 – 3.8 Spielkarte, Aufstellung, Teilen | offen | | |
 | 4.1 – 4.6 Benachrichtigungen | offen | | |
 | 5.1 – 5.5 Ersatzkette und Verlegung | offen | | |
 | 6.1 – 6.7 Training | offen | | |
@@ -689,6 +692,19 @@ Vom ausführenden Agenten gepflegt.
 15. **Reihenfolge der Ersatzspieler in der Aufstellung.** Beim Testen fiel auf, dass ein
     Vereinsrang die Ersatzreihenfolge aushebeln kann. `recompute_lineup` sortiert Stammspieler
     jetzt nach Vereinsrang, Ersatzspieler nach Ersatzrang — getrennt, nicht gemischt.
+16. **Ligen als Freitext (3.2).** Der TT-Planer pflegt einen Katalog mit 1.657 Ligen. Ein
+    eigener Katalog wäre am ersten Tag veraltet und für einen Verein ohnehin sinnlos — er
+    braucht drei Einträge. Die Ligen sind deshalb ein kommagetrenntes Textfeld.
+17. **Frist der Ersatzkette als Feld an der Mannschaft (3.2).** Im TT-Planer ist die Wartezeit
+    unsichtbar; die Bestandsaufnahme konnte sie nicht ermitteln. Statt sie zu raten und fest zu
+    verdrahten, steht sie als `substitute_timeout_hours` am Team.
+18. **Cron-Migration mit Prüfung auf die Erweiterungen (3.3).** pg_cron und pg_net gibt es in
+    Supabase, aber nicht in der lokalen Testdatenbank und nicht im CI-Container. Die Migration
+    prüft und meldet, statt zu scheitern — dieselbe Datei läuft überall.
+19. **„Codes & PINs Import" aus PDF nicht gebaut.** Der Plan nennt den Kopfbutton, die
+    Bestandsaufnahme beschreibt zwei PDF-Uploads. Code und PIN lassen sich am Spieltermin
+    eintippen; ein PDF-Parser für zwei Zahlen wäre viel Aufwand für wenig Ertrag. Falls es
+    doch gebraucht wird, gehört es in Phase 9.
 
 **Blocker:** —
 

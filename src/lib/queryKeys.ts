@@ -30,5 +30,19 @@ export const queryKeys = {
     list: () => ['venues', 'list'] as const,
   },
 
+  teams: {
+    all: ['teams'] as const,
+    list: () => ['teams', 'list'] as const,
+    detail: (id: string) => ['teams', 'detail', id] as const,
+  },
+
+  matches: {
+    all: ['matches'] as const,
+    list: (filters?: unknown) => ['matches', 'list', filters ?? null] as const,
+    detail: (id: string) => ['matches', 'detail', id] as const,
+    participations: (matchId: string) => ['matches', 'participations', matchId] as const,
+    mine: () => ['matches', 'mine'] as const,
+  },
+
   clubSettings: ['club-settings'] as const,
 } as const;

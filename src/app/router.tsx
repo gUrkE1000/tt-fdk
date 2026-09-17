@@ -10,6 +10,9 @@ import MembersPage from '../features/members/MembersPage';
 import ClubPage from '../features/club/ClubPage';
 import MyClubPage from '../features/club/MyClubPage';
 import VenuesPage from '../features/venues/VenuesPage';
+import TeamsPage from '../features/teams/TeamsPage';
+import PlayersManagementPage from '../features/teams/PlayersManagementPage';
+import GamesPage from '../features/matches/GamesPage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -68,12 +71,9 @@ export const router = createBrowserRouter([
           {
             element: <RequireRole roles={['admin', 'team_leader']} />,
             children: [
-              { path: 'teams', element: <Placeholder title="Mannschaften" task="3.2" /> },
-              {
-                path: 'teams/players-management',
-                element: <Placeholder title="Mannschaften bearbeiten" task="3.2" />,
-              },
-              { path: 'games', element: <Placeholder title="Spieltermine" task="3.4" /> },
+              { path: 'teams', element: <TeamsPage /> },
+              { path: 'teams/players-management', element: <PlayersManagementPage /> },
+              { path: 'games', element: <GamesPage /> },
             ],
           },
           {

@@ -58,6 +58,7 @@ scripts/          Lokale Testdatenbank, Supabase-Kompatibilitätsschicht, Typgen
 | [docs/umsetzungsplan.md](docs/umsetzungsplan.md) | **Arbeitsanweisung**: Phasen 0–10 als Einzelaufgaben mit Endzustand, Vorgehen, Verifikation |
 | [docs/entwicklung.md](docs/entwicklung.md) | Entwicklungsumgebung, Testdatenbank, pgTAP-Konventionen |
 | [docs/datenbank.md](docs/datenbank.md) | Schema-Referenz und die Begründungen dahinter |
+| [docs/betrieb.md](docs/betrieb.md) | Einrichtung nach dem Anlegen des Supabase-Projekts, Cron, Fehlerbilder |
 | [docs/tt-planer-bestandsaufnahme.md](docs/tt-planer-bestandsaufnahme.md) | Erhebung des TT-Planers auf Feldebene (Referenzprodukt) |
 | [docs/funktionsvergleich.md](docs/funktionsvergleich.md) | Vergleich TT-Planer gegen den übernommenen Basisstand (historisch) |
 | [docs/recherche-tt-planer.md](docs/recherche-tt-planer.md) | Marktrecherche, Datenwege aus click-TT, Kostenvergleich |
