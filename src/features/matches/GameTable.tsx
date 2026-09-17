@@ -1,6 +1,7 @@
-import { CalendarDays, Pencil, RefreshCw, Trash2 } from 'lucide-react';
+import { CalendarDays, Pencil, RefreshCw, Share2, Trash2, Users } from 'lucide-react';
 import {
   Badge,
+  Button,
   Card,
   CardBody,
   EmptyState,
@@ -22,6 +23,8 @@ export interface GameTableProps {
   onSelectedChange: (ids: string[]) => void;
   onEdit: (match: MatchRow) => void;
   onDelete: (match: MatchRow) => void;
+  onManagePlayers: (match: MatchRow) => void;
+  onShareLineup: (match: MatchRow) => void;
 }
 
 export default function GameTable({
@@ -32,6 +35,8 @@ export default function GameTable({
   onSelectedChange,
   onEdit,
   onDelete,
+  onManagePlayers,
+  onShareLineup,
 }: GameTableProps) {
   const teamOf = (id: string) => teams.find((team) => team.id === id);
   const venueOf = (id: string | null) => venues.find((venue) => venue.id === id);
@@ -92,6 +97,16 @@ export default function GameTable({
           {`${match.confirmedCount} / ${required}`}
         </p>
         <ProgressBar value={match.confirmedCount} max={required} />
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          <Button size="sm" onClick={() => onManagePlayers(match)}>
+            <Users className="h-3.5 w-3.5" aria-hidden="true" />
+            Spieler verwalten
+          </Button>
+          <Button size="sm" onClick={() => onShareLineup(match)}>
+            <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
+            Aufstellung teilen
+          </Button>
+        </div>
       </div>
     );
   }

@@ -639,7 +639,10 @@ Vom ausführenden Agenten gepflegt.
 | 3.2 Mannschaften und Kader | erledigt | 17.09.2026 | Ligen als Freitext statt Katalog; Frist der Ersatzkette als eigenes Feld |
 | 3.3 ICS-Import und Kalender-Sync | erledigt | 17.09.2026 | `sync-calendars`, Cron-Migration mit Prüfung auf pg_cron/pg_net, `docs/betrieb.md` |
 | 3.4 Spieltermine: Liste, Filter, Bearbeitung | erledigt | 17.09.2026 | Filter als reine Funktion `filterMatches` |
-| 3.5 – 3.8 Spielkarte, Aufstellung, Teilen | offen | | |
+| 3.5 Spielkarte, Rückmeldung, Fahrdienst | erledigt | 17.09.2026 | Warnbanner bei veralteter Fassung; Bemerkung als Popover |
+| 3.6 Aufstellung und „Spieler verwalten" | erledigt | 17.09.2026 | Einteilung als reine Funktion `groupParticipations`; Ersatzanfragen erst in Phase 5 |
+| 3.7 Aufstellung teilen | erledigt | 17.09.2026 | E-Mail-Versand sichtbar deaktiviert bis 4.4 |
+| 3.8 Mein Verein: Mannschaften und Spiele | erledigt | 17.09.2026 | |
 | 4.1 – 4.6 Benachrichtigungen | offen | | |
 | 5.1 – 5.5 Ersatzkette und Verlegung | offen | | |
 | 6.1 – 6.7 Training | offen | | |
@@ -705,6 +708,10 @@ Vom ausführenden Agenten gepflegt.
     Bestandsaufnahme beschreibt zwei PDF-Uploads. Code und PIN lassen sich am Spieltermin
     eintippen; ein PDF-Parser für zwei Zahlen wäre viel Aufwand für wenig Ertrag. Falls es
     doch gebraucht wird, gehört es in Phase 9.
+20. **Einteilung der Spieler doppelt (3.6).** `v_match_lineup_status` in der Datenbank und
+    `groupParticipations` im Browser berechnen dasselbe. Die Oberfläche braucht die Einteilung
+    zusammen mit Namen und Reihenfolge; ein zweiter Rundtrip dafür wäre teurer als die
+    doppelte Regel. Beide sind getestet, die Datenbank bleibt maßgeblich.
 
 **Blocker:** —
 

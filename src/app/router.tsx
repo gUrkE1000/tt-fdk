@@ -13,6 +13,7 @@ import VenuesPage from '../features/venues/VenuesPage';
 import TeamsPage from '../features/teams/TeamsPage';
 import PlayersManagementPage from '../features/teams/PlayersManagementPage';
 import GamesPage from '../features/matches/GamesPage';
+import MyGamesPage from '../features/matches/MyGamesPage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -51,7 +52,7 @@ export const router = createBrowserRouter([
         element: <AppShell />,
         children: [
           { index: true, element: <Placeholder title="Übersicht" task="8.1" /> },
-          { path: 'my-games', element: <Placeholder title="Meine Spiele" task="3.5" /> },
+          { path: 'my-games', element: <MyGamesPage /> },
           { path: 'my-dates', element: <Placeholder title="Meine Termine" task="7.5" /> },
           { path: 'my-club', element: <MyClubPage /> },
           { path: 'calendar', element: <Placeholder title="Kalender" task="7.3" /> },

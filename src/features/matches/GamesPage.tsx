@@ -12,7 +12,14 @@ import {
 import { RANKING_TYPE_LABELS } from '../../lib/labels';
 import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
-import { useDeleteMatches, useMatches, type MatchRow } from './api';
+import { useMembers } from '../members/api';
+import {
+  useAllParticipations,
+  useAllVolunteers,
+  useDeleteMatches,
+  useMatches,
+  type MatchRow,
+} from './api';
 import {
   EMPTY_MATCH_FILTERS,
   filterMatches,
@@ -23,6 +30,8 @@ import {
 import GameTable from './GameTable';
 import GameDialog from './GameDialog';
 import ImportDialog from './ImportDialog';
+import ManagePlayersDialog from './ManagePlayersDialog';
+import ShareLineupDialog from './ShareLineupDialog';
 
 export default function GamesPage() {
   const { toast } = useToast();
@@ -38,9 +47,21 @@ export default function GamesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [toDelete, setToDelete] = useState<MatchRow[] | null>(null);
+  const [managing, setManaging] = useState<MatchRow | null>(null);
+  const [sharing, setSharing] = useState<MatchRow | null>(null);
 
   const teamList = teams.data ?? [];
   const venueList = venues.data ?? [];
+  const members = useMembers();
+  const participations = useAllParticipations();
+  const volunteers = useAllVolunteers();
+
+  const nameOf = useMemo(() => {
+    const names = new Map(
+      (members.data ?? []).map((member) => [member.id, member.full_name ?? '']),
+    );
+    return (id: string) => names.get(id) ?? '';
+  }, [members.data]);
 
   const rankingTypes = useMemo(
     () => Object.fromEntries(teamList.map((team) => [team.id, team.ranking_type])),
@@ -84,6 +105,8 @@ export default function GamesPage() {
           setDialogOpen(true);
         }}
         onDelete={(match) => setToDelete([match])}
+        onManagePlayers={setManaging}
+        onShareLineup={setSharing}
       />
     );
   }
@@ -266,6 +289,27 @@ export default function GamesPage() {
       />
 
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} teams={teamList} />
+
+      <ManagePlayersDialog
+        open={managing !== null}
+        onOpenChange={(next) => !next && setManaging(null)}
+        match={managing}
+        team={teamList.find((team) => team.id === managing?.team_id)}
+        members={members.data ?? []}
+      />
+
+      <ShareLineupDialog
+        open={sharing !== null}
+        onOpenChange={(next) => !next && setSharing(null)}
+        match={sharing}
+        team={teamList.find((team) => team.id === sharing?.team_id)}
+        venue={venueList.find((venue) => venue.id === sharing?.venue_id)}
+        participations={(participations.data ?? []).filter(
+          (entry) => entry.match_id === sharing?.id,
+        )}
+        volunteers={(volunteers.data ?? []).filter((entry) => entry.match_id === sharing?.id)}
+        nameOf={nameOf}
+      />
 
       <Dialog
         open={toDelete !== null}

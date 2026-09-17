@@ -37,6 +37,32 @@ export function useMatches() {
   });
 }
 
+/**
+ * Alle Beteiligungszeilen auf einmal. Für die Kartenansichten braucht es sie ohnehin zu
+ * jedem sichtbaren Spiel; eine Abfrage je Karte wären zwanzig Abfragen für eine Seite.
+ */
+export function useAllParticipations() {
+  return useQuery({
+    queryKey: queryKeys.matches.participations('alle'),
+    queryFn: async (): Promise<Participation[]> => {
+      const { data, error } = await supabase.from('match_participations').select('*');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useAllVolunteers() {
+  return useQuery({
+    queryKey: ['match-volunteers', 'alle'],
+    queryFn: async (): Promise<Volunteer[]> => {
+      const { data, error } = await supabase.from('match_volunteers').select('*');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
 export function useParticipations(matchId: string | null) {
   return useQuery({
     queryKey: queryKeys.matches.participations(matchId ?? ''),

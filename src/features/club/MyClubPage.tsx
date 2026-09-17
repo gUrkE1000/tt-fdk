@@ -14,6 +14,8 @@ import {
 import Placeholder from '../../app/Placeholder';
 import { roleLabel } from '../../lib/labels';
 import { useClubSettings } from './api';
+import ClubTeamsTab from './ClubTeamsTab';
+import ClubGamesTab from './ClubGamesTab';
 import { contactPeople, searchDirectory, useDirectory, type DirectoryEntry } from './directory';
 
 export default function MyClubPage() {
@@ -30,6 +32,8 @@ export default function MyClubPage() {
         tabs={[
           { value: 'members', label: 'Mitglieder', content: <MembersDirectory /> },
           { value: 'contacts', label: 'Rollen & Kontaktdaten', content: <Contacts /> },
+          { value: 'teams', label: 'Mannschaften', content: <ClubTeamsTab /> },
+          { value: 'games', label: 'Spiele', content: <ClubGamesTab /> },
           {
             value: 'news',
             label: 'Neuigkeiten',
