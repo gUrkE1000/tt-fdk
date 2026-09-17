@@ -7,6 +7,9 @@ import RegisterPage from '../features/auth/RegisterPage';
 import { RequireAuth, RequireRole } from '../features/auth/guards';
 import ProfilePage from '../features/profile/ProfilePage';
 import MembersPage from '../features/members/MembersPage';
+import ClubPage from '../features/club/ClubPage';
+import MyClubPage from '../features/club/MyClubPage';
+import VenuesPage from '../features/venues/VenuesPage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -47,7 +50,7 @@ export const router = createBrowserRouter([
           { index: true, element: <Placeholder title="Übersicht" task="8.1" /> },
           { path: 'my-games', element: <Placeholder title="Meine Spiele" task="3.5" /> },
           { path: 'my-dates', element: <Placeholder title="Meine Termine" task="7.5" /> },
-          { path: 'my-club', element: <Placeholder title="Mein Verein" task="2.6" /> },
+          { path: 'my-club', element: <MyClubPage /> },
           { path: 'calendar', element: <Placeholder title="Kalender" task="7.3" /> },
           { path: 'votes', element: <Placeholder title="Umfragen" task="7.2" /> },
           { path: 'profile', element: <ProfilePage /> },
@@ -81,8 +84,8 @@ export const router = createBrowserRouter([
             element: <RequireRole roles={['admin']} />,
             children: [
               { path: 'players', element: <MembersPage /> },
-              { path: 'club', element: <Placeholder title="Verein" task="2.5" /> },
-              { path: 'venues', element: <Placeholder title="Orte & Schlüssel" task="2.5" /> },
+              { path: 'club', element: <ClubPage /> },
+              { path: 'venues', element: <VenuesPage /> },
             ],
           },
 

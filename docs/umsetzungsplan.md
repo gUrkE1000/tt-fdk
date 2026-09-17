@@ -633,7 +633,8 @@ Vom ausführenden Agenten gepflegt.
 | 2.2 Mitgliederverwaltung | erledigt | 17.09.2026 | `rpc_activate_member`, `rpc_update_qttr_bulk`; Filter als reine Funktion `filterMembers` |
 | 2.3 Einladung und Registrierung | erledigt | 17.09.2026 | Edge Function `invite-member`; Registrierungslink mit QR-Code; neues Primitive `Menu` |
 | 2.4 Gruppen | erledigt | 17.09.2026 | Tab „Gruppen" mit Anlegen, Umbenennen, Zuweisen |
-| 2.5 – 2.6 Verein, Orte, Mein Verein | offen | | |
+| 2.5 Vereinsdaten und Orte | erledigt | 17.09.2026 | Bundesland als eigenes Feld (16 Länder), Orte mit Stilllegen statt Löschen |
+| 2.6 Mein Verein | erledigt | 17.09.2026 | Verzeichnis aus `v_members_directory`, Ansprechpartner, Vereinstext |
 | 3.1 – 3.8 Mannschaften und Spiele | offen | | |
 | 4.1 – 4.6 Benachrichtigungen | offen | | |
 | 5.1 – 5.5 Ersatzkette und Verlegung | offen | | |
@@ -672,6 +673,12 @@ Vom ausführenden Agenten gepflegt.
    wird in Phase 3 für die Zeilenaktionen der Spieltermine wiederverwendet.
 10. **QTTR-Massenpflege als eigene Datenbankfunktion.** Der Plan sah dafür nur einen Dialog vor.
     Dreißig einzelne Aufrufe wären dreißig Anfragen; `rpc_update_qttr_bulk` macht daraus eine.
+11. **Vereinstext wird als Text angezeigt, nicht als HTML (2.5/2.6).** Der TT-Planer hat dort
+    einen WYSIWYG-Editor. Fremdes Markup ungeprüft einzuhängen wäre eine offene Tür für
+    Skripte; ein Editor mit Bereinigung kommt in Phase 9. Bis dahin bleibt der Absatz Text.
+12. **Orte werden stillgelegt, nicht gelöscht (2.5).** An einem Ort hängen vergangene Spiele
+    und Trainings. Ein inaktiver Ort verschwindet aus den Auswahllisten, bleibt aber an den
+    Terminen sichtbar.
 
 **Blocker:** —
 
