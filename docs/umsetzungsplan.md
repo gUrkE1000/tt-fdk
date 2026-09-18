@@ -663,7 +663,8 @@ Vom ausführenden Agenten gepflegt.
 | 6.7 Automatische Trainingszusagen | erledigt | 18.09.2026 | Logik steckt in 6.3; hier nur die Oberfläche |
 | 7.1 Vereinstermine | erledigt | 18.09.2026 | eigener Sanitizer statt WYSIWYG-Bibliothek; Antwortlink ohne Anmeldung ergänzt |
 | 7.2 Umfragen | erledigt | 18.09.2026 | Antworten einer laufenden Umfrage sind gesperrt; Balken messen am stärksten Balken |
-| 7.3 – 7.5 Kalender, ICS-Abo, Meine Termine | offen | | |
+| 7.3 Kalender | erledigt | 18.09.2026 | Geburtstage als gerechneter Jahrestag; abgesagte Termine bleiben blass stehen |
+| 7.4 – 7.5 ICS-Abo, Meine Termine | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
@@ -869,6 +870,16 @@ Vom ausführenden Agenten gepflegt.
     Trainingszähler: Eine Auszählung soll die volle Zahl nennen. Wer sie sehen darf,
     entscheidet die WHERE-Bedingung über `may_see_poll_results()` — bei
     „Antworten für Mitglieder nicht anzeigen" also nur Organisator und Admin.
+
+55. **Geburtstage werden gerechnet, nicht gespeichert (7.3).** Ein wiederkehrender Termin
+    als Datenzeile wäre eine Tabelle mit 365 Einträgen je Mitglied. `v_calendar_items`
+    liefert stattdessen den nächsten Jahrestag ab heute — `hide_birthday` fällt dabei raus.
+56. **Abgesagte Termine verschwinden nicht aus dem Kalender (7.3).** Sie stehen grau da,
+    mit „(fällt aus)" im Titel. Wer zugesagt hatte, soll sehen, dass etwas ausfällt —
+    ein leerer Platz sieht aus wie ein vergessener Termin.
+57. **„Ereignisse" als Kategorie fehlt (7.3).** Die Bestandsaufnahme nennt sie neben den
+    vier anderen, aber ohne erkennbaren Inhalt — im geprüften Verein gab es keine. Sobald
+    klar ist, was dort steht, ist es eine Zeile in `v_calendar_items`.
 
 **Blocker:** —
 

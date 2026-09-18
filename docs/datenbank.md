@@ -4,8 +4,8 @@ Referenz zum Schema. Verbindlich ist immer die Migration in `supabase/migrations
 dieses Dokument erklärt, warum etwas so aussieht.
 
 Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
-Beteiligung, Benachrichtigungen, Training, Vereinstermine und Umfragen. Kalender und
-ICS-Abo folgen in Aufgabe 7.3.
+Beteiligung, Benachrichtigungen, Training, Vereinstermine, Umfragen und Kalender. Das
+ICS-Abo folgt in Aufgabe 7.4.
 
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
 eigene Migration.
@@ -312,6 +312,17 @@ Absicht: ein Zähler soll die volle Zahl nennen, nicht nur die Zahl der sichtbar
 Sonst stünde bei Inkognito „1 Teilnehmer" — nämlich man selbst. Wer die Zahl überhaupt sehen
 darf, entscheidet stattdessen die `WHERE`-Bedingung der View über
 `may_see_session_roster()`.
+
+### `v_calendar_items`
+
+Alles, was im Vereinskalender steht, in einer View: Trainingstermine, Spiele,
+Vereinstermine, Geburtstage und gesperrte Hallen. `security_invoker`, damit jeder Teil
+weiterhin der RLS seiner Tabelle folgt — ein Gast sieht hier genau das, was er auch sonst
+sieht.
+
+Die Regeln, was auftaucht (`hide_in_calendar`, `exclude_calendar`, `hide_birthday`),
+stehen hier und nicht im Browser. Geburtstage werden gerechnet: der nächste Jahrestag ab
+heute, statt einer Datenzeile je Jahr.
 
 ### `v_match_lineup_status`
 

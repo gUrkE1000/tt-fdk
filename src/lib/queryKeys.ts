@@ -66,5 +66,10 @@ export const queryKeys = {
     voters: () => ['polls', 'voters'] as const,
   },
 
+  calendar: {
+    all: ['calendar'] as const,
+    items: () => ['calendar', 'items'] as const,
+  },
+
   clubSettings: ['club-settings'] as const,
 } as const;

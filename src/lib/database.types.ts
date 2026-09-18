@@ -195,17 +195,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "event_participations_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "event_participations_event_id_fkey";
             columns: ["event_id"];
             isOneToOne: false;
             referencedRelation: "club_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_participations_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -228,17 +228,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "group_members_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "group_members_group_id_fkey";
             columns: ["group_id"];
             isOneToOne: false;
             referencedRelation: "groups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "group_members_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -324,17 +324,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "match_changes_actor_fkey";
-            columns: ["actor"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "match_changes_match_id_fkey";
             columns: ["match_id"];
             isOneToOne: false;
             referencedRelation: "matches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "match_changes_actor_fkey";
+            columns: ["actor"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -381,10 +381,10 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "match_participations_updated_by_fkey";
-            columns: ["updated_by"];
+            foreignKeyName: "match_participations_match_id_fkey";
+            columns: ["match_id"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "matches";
             referencedColumns: ["id"];
           },
           {
@@ -395,10 +395,10 @@ export interface Database {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "match_participations_match_id_fkey";
-            columns: ["match_id"];
+            foreignKeyName: "match_participations_updated_by_fkey";
+            columns: ["updated_by"];
             isOneToOne: false;
-            referencedRelation: "matches";
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -424,17 +424,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "match_reminders_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "match_reminders_match_id_fkey";
             columns: ["match_id"];
             isOneToOne: false;
             referencedRelation: "matches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "match_reminders_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -463,17 +463,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "match_volunteers_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "match_volunteers_match_id_fkey";
             columns: ["match_id"];
             isOneToOne: false;
             referencedRelation: "matches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "match_volunteers_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -573,10 +573,10 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "matches_supervisor_id_fkey";
-            columns: ["supervisor_id"];
+            foreignKeyName: "matches_team_id_fkey";
+            columns: ["team_id"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "teams";
             referencedColumns: ["id"];
           },
           {
@@ -587,10 +587,10 @@ export interface Database {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "matches_team_id_fkey";
-            columns: ["team_id"];
+            foreignKeyName: "matches_supervisor_id_fkey";
+            columns: ["supervisor_id"];
             isOneToOne: false;
-            referencedRelation: "teams";
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -654,18 +654,18 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "notification_preferences_type_fkey";
-            columns: ["type"];
-            isOneToOne: false;
-            referencedRelation: "notification_templates";
-            referencedColumns: ["type"];
-          },
-          {
             foreignKeyName: "notification_preferences_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notification_preferences_type_fkey";
+            columns: ["type"];
+            isOneToOne: false;
+            referencedRelation: "notification_templates";
+            referencedColumns: ["type"];
           },
         ];
       };
@@ -825,10 +825,10 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "poll_targets_group_id_fkey";
-            columns: ["group_id"];
+            foreignKeyName: "poll_targets_poll_id_fkey";
+            columns: ["poll_id"];
             isOneToOne: false;
-            referencedRelation: "groups";
+            referencedRelation: "polls";
             referencedColumns: ["id"];
           },
           {
@@ -839,10 +839,10 @@ export interface Database {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "poll_targets_poll_id_fkey";
-            columns: ["poll_id"];
+            foreignKeyName: "poll_targets_group_id_fkey";
+            columns: ["group_id"];
             isOneToOne: false;
-            referencedRelation: "polls";
+            referencedRelation: "groups";
             referencedColumns: ["id"];
           },
         ];
@@ -865,17 +865,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "poll_votes_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "poll_votes_option_id_fkey";
             columns: ["option_id"];
             isOneToOne: false;
             referencedRelation: "poll_options";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "poll_votes_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1080,17 +1080,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "reschedule_polls_initiated_by_fkey";
-            columns: ["initiated_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "reschedule_polls_match_id_fkey";
             columns: ["match_id"];
             isOneToOne: false;
             referencedRelation: "matches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reschedule_polls_initiated_by_fkey";
+            columns: ["initiated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1119,17 +1119,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "reschedule_votes_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "reschedule_votes_poll_id_fkey";
             columns: ["poll_id"];
             isOneToOne: false;
             referencedRelation: "reschedule_polls";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reschedule_votes_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1173,17 +1173,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "substitute_requests_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "substitute_requests_match_id_fkey";
             columns: ["match_id"];
             isOneToOne: false;
             referencedRelation: "matches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "substitute_requests_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1230,17 +1230,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "team_leaders_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "team_leaders_team_id_fkey";
             columns: ["team_id"];
             isOneToOne: false;
             referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_leaders_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1269,17 +1269,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "team_members_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "team_members_team_id_fkey";
             columns: ["team_id"];
             isOneToOne: false;
             referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_members_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1398,10 +1398,10 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "training_attendance_updated_by_fkey";
-            columns: ["updated_by"];
+            foreignKeyName: "training_attendance_session_id_fkey";
+            columns: ["session_id"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "training_sessions";
             referencedColumns: ["id"];
           },
           {
@@ -1412,10 +1412,10 @@ export interface Database {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "training_attendance_session_id_fkey";
-            columns: ["session_id"];
+            foreignKeyName: "training_attendance_updated_by_fkey";
+            columns: ["updated_by"];
             isOneToOne: false;
-            referencedRelation: "training_sessions";
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1444,17 +1444,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "training_auto_attendance_training_id_fkey";
-            columns: ["training_id"];
-            isOneToOne: false;
-            referencedRelation: "trainings";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "training_auto_attendance_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_auto_attendance_training_id_fkey";
+            columns: ["training_id"];
+            isOneToOne: false;
+            referencedRelation: "trainings";
             referencedColumns: ["id"];
           },
         ];
@@ -1495,10 +1495,10 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "training_cancellations_created_by_fkey";
-            columns: ["created_by"];
+            foreignKeyName: "training_cancellations_training_id_fkey";
+            columns: ["training_id"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "trainings";
             referencedColumns: ["id"];
           },
           {
@@ -1509,10 +1509,10 @@ export interface Database {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "training_cancellations_training_id_fkey";
-            columns: ["training_id"];
+            foreignKeyName: "training_cancellations_created_by_fkey";
+            columns: ["created_by"];
             isOneToOne: false;
-            referencedRelation: "trainings";
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1535,17 +1535,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "training_members_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "training_members_training_id_fkey";
             columns: ["training_id"];
             isOneToOne: false;
             referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_members_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1565,17 +1565,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "training_reminder_filter_training_id_fkey";
-            columns: ["training_id"];
-            isOneToOne: false;
-            referencedRelation: "trainings";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "training_reminder_filter_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_reminder_filter_training_id_fkey";
+            columns: ["training_id"];
+            isOneToOne: false;
+            referencedRelation: "trainings";
             referencedColumns: ["id"];
           },
         ];
@@ -1622,17 +1622,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "training_sessions_cancellation_id_fkey";
-            columns: ["cancellation_id"];
-            isOneToOne: false;
-            referencedRelation: "training_cancellations";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "training_sessions_training_id_fkey";
             columns: ["training_id"];
             isOneToOne: false;
             referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_sessions_cancellation_id_fkey";
+            columns: ["cancellation_id"];
+            isOneToOne: false;
+            referencedRelation: "training_cancellations";
             referencedColumns: ["id"];
           },
         ];
@@ -1652,17 +1652,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "training_statistics_groups_group_id_fkey";
-            columns: ["group_id"];
-            isOneToOne: false;
-            referencedRelation: "groups";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "training_statistics_groups_training_id_fkey";
             columns: ["training_id"];
             isOneToOne: false;
             referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_statistics_groups_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "groups";
             referencedColumns: ["id"];
           },
         ];
@@ -1685,17 +1685,17 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "training_trainers_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "training_trainers_training_id_fkey";
             columns: ["training_id"];
             isOneToOne: false;
             referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_trainers_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1842,6 +1842,21 @@ export interface Database {
           comment_private: string | null;
           created_at: string | null;
           updated_at: string | null;
+        };
+        Relationships: [];
+      };
+      v_calendar_items: {
+        Row: {
+          kind: string | null;
+          id: string | null;
+          title: string | null;
+          starts_at: string | null;
+          ends_at: string | null;
+          all_day: boolean | null;
+          color: string | null;
+          venue_id: string | null;
+          is_home: boolean | null;
+          cancelled: boolean | null;
         };
         Relationships: [];
       };

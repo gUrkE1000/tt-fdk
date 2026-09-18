@@ -53,6 +53,14 @@ SELECT
 FROM generate_series(1, 20) AS i
 ON CONFLICT (id) DO NOTHING;
 
+-- Ein paar Geburtstage, damit der Kalender auch diese Kategorie zeigt.
+UPDATE public.profiles SET birthday = DATE '1988-03-14'
+ WHERE id = '22222222-0000-0000-0000-000000000001';
+UPDATE public.profiles SET birthday = DATE '1995-07-02'
+ WHERE id = '22222222-0000-0000-0000-000000000005';
+UPDATE public.profiles SET birthday = DATE '2009-11-23', hide_birthday = true
+ WHERE id = '22222222-1111-0000-0000-000000000004';
+
 -- ----------------------------------------------------------------- Ränge
 -- Mannschaft 1 und 2 mit je vier Positionen, Mannschaft 3 mit vier weiteren.
 INSERT INTO public.member_rankings (profile_id, ranking_type, team_number, position_number) VALUES

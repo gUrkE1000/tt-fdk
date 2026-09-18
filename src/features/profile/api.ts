@@ -26,6 +26,26 @@ export function useMyAbsences(profileId: string | null) {
   });
 }
 
+/**
+ * Alle Abwesenheiten des Vereins — für den Kalender-Tab (Aufgabe 7.3).
+ *
+ * Die View maskiert den Grund für alle außer dem Mitglied selbst; wer überhaupt fremde
+ * Zeiträume sieht, entscheidet die Policy (Admin, Trainer, Mannschaftsführer).
+ */
+export function useAllAbsences() {
+  return useQuery({
+    queryKey: ['absences', 'all'],
+    queryFn: async (): Promise<Absence[]> => {
+      const { data, error } = await supabase
+        .from('v_absences')
+        .select('*')
+        .order('start_date', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
 export interface AbsenceInput {
   profileId: string;
   startDate: string;
