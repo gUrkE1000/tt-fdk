@@ -236,3 +236,37 @@ export function resolveAssignment(input: {
 
   return [...result];
 }
+
+// ---------------------------------------------------------------------------- Auswahl
+
+/**
+ * Welche Trainings mich betreffen: die offenen und die, in denen ich eingetragen bin.
+ *
+ * Steht hier und nicht in der jeweiligen Komponente, weil der Reiter „Termine" und die
+ * Kachelzahl auf der Übersicht sonst auseinanderlaufen könnten — und niemand würde es
+ * merken, außer an einer Zahl, die nicht zur Liste darunter passt.
+ */
+export function myTrainingIds(
+  trainings: readonly { id: string; is_open: boolean; memberIds: readonly string[] }[],
+  profileId: string | null,
+): Set<string> {
+  if (!profileId) return new Set(trainings.map((training) => training.id));
+
+  return new Set(
+    trainings
+      .filter((training) => training.is_open || training.memberIds.includes(profileId))
+      .map((training) => training.id),
+  );
+}
+
+/**
+ * „Offene Trainings": die zum Selbst-Eintragen. `trainer_invites_only` schließt aus —
+ * dort lädt der Trainer ein, man trägt sich nicht selbst ein.
+ */
+export function openTrainings<
+  T extends { active: boolean; is_open: boolean; trainer_invites_only: boolean },
+>(trainings: readonly T[]): T[] {
+  return trainings.filter(
+    (training) => training.active && training.is_open && !training.trainer_invites_only,
+  );
+}

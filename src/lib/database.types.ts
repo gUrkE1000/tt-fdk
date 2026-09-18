@@ -2096,6 +2096,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: unknown;
       };
+      is_playing_member: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
       is_poll_target: {
         Args: { [key: string]: unknown };
         Returns: unknown;

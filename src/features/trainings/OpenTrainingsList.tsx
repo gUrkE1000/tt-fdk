@@ -17,7 +17,7 @@ import {
   useTrainings,
   type TrainingWithPeople,
 } from './api';
-import { RHYTHM_LABELS, formatSchedule } from './schemas';
+import { RHYTHM_LABELS, formatSchedule, openTrainings } from './schemas';
 
 /**
  * „Offene Trainings": die Liste zum Selbst-Eintragen.
@@ -42,9 +42,7 @@ export default function OpenTrainingsList() {
     return (id: string) => names.get(id) ?? '';
   }, [members.data]);
 
-  const open = (trainings.data ?? []).filter(
-    (training) => training.active && training.is_open && !training.trainer_invites_only,
-  );
+  const open = openTrainings(trainings.data ?? []);
 
   async function toggle(training: TrainingWithPeople, joined: boolean) {
     if (!profile?.id) return;

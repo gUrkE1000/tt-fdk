@@ -21,6 +21,7 @@ import EventsPage from '../features/events/EventsPage';
 import PollsPage from '../features/polls/PollsPage';
 import CalendarPage from '../features/calendar/CalendarPage';
 import MyDatesPage from '../features/calendar/MyDatesPage';
+import DashboardPage from '../features/dashboard/DashboardPage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -58,7 +59,7 @@ export const router = createBrowserRouter([
         path: '/',
         element: <AppShell />,
         children: [
-          { index: true, element: <Placeholder title="Übersicht" task="8.1" /> },
+          { index: true, element: <DashboardPage /> },
           { path: 'my-games', element: <MyGamesPage /> },
           { path: 'my-dates', element: <MyDatesPage /> },
           { path: 'my-club', element: <MyClubPage /> },

@@ -43,6 +43,7 @@ passiert in `src/lib/clubSettings.ts` bzw. in den Funktionen, die den Wert brauc
 | `notification_sender_name`, `notification_sender_email` | Absender der E-Mails |
 | `registration_code` | Vereinscode für die Selbstregistrierung; leer = aus |
 | `default_venue_id` | Vorbelegung bei neuen Terminen |
+| `quicklinks_json` | Links der Übersicht als JSON-Array `[{"label":…,"url":…}]` (Aufgabe 8.1) |
 
 Schlüssel mit dem Präfix `secret_` sind per Policy von jedem Lesezugriff ausgenommen —
 dort gehören Werte hin, die nur Edge Functions mit `service_role` sehen dürfen.

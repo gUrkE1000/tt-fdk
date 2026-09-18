@@ -12,6 +12,7 @@ import {
   useTrainings,
 } from './api';
 import SessionCard from './SessionCard';
+import { myTrainingIds } from './schemas';
 
 export interface SessionsTabProps {
   /** Nur die Termine dieses Mitglieds statt aller sichtbaren. */
@@ -46,11 +47,7 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
     const rows = sessions.data ?? [];
     if (!onlyMine || !profile?.id) return rows;
 
-    const mine = new Set(
-      trainingList
-        .filter((training) => training.is_open || training.memberIds.includes(profile.id))
-        .map((training) => training.id),
-    );
+    const mine = myTrainingIds(trainingList, profile.id);
     return rows.filter((session) => mine.has(session.training_id));
   }, [sessions.data, onlyMine, profile?.id, trainingList]);
 

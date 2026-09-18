@@ -666,7 +666,8 @@ Vom ausführenden Agenten gepflegt.
 | 7.3 Kalender | erledigt | 18.09.2026 | Geburtstage als gerechneter Jahrestag; abgesagte Termine bleiben blass stehen |
 | 7.4 ICS-Abo pro Mitglied | erledigt | 18.09.2026 | `v_my_upcoming` als gemeinsame Grundlage; Token neu erzeugbar |
 | 7.5 Meine Termine | erledigt | 18.09.2026 | |
-| 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
+| 8.1 Übersicht | erledigt | 18.09.2026 | `v_my_upcoming` kam schon in 7.4; neu nur `quicklinks_json` |
+| 8.2 – 8.4 PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
 
@@ -898,6 +899,23 @@ Vom ausführenden Agenten gepflegt.
     Gast öffnen darf. `is_playing_member()` zieht die Grenze jetzt in den Policies; die
     pgTAP-Zusicherung aus Phase 3, die das Gegenteil behauptete, war falsch und ist
     korrigiert.
+
+62. **Die Übersicht baut auf den vorhandenen Komponenten auf (8.1).** Der Plan nennt für
+    die Reiter „die bestehenden Karten". Damit sie das auch bleiben, sind die Listen jetzt
+    eigene Komponenten: `MyGamesList` (aus `MyGamesPage` herausgelöst), `SessionsTab` und
+    `OpenTrainingsList`. Sonst gäbe es zwei Spielkarten, von denen künftig nur eine
+    gepflegt wird. Aus demselben Grund stehen `myTrainingIds` und `openTrainings` als
+    reine Funktionen in `trainings/schemas.ts`: die Zahl am Reiter und die Liste darunter
+    müssen dieselbe Antwort geben.
+63. **Quicklinks als JSON-Array statt drei Schlüsseln (8.1).** Der Plan nennt drei feste
+    Links. Ein Array kostet dasselbe und erlaubt dem Verein einen vierten. `parseQuicklinks`
+    lässt nur `http` und `https` durch — eine Einstellung, die der Administrator pflegt,
+    darf kein `javascript:`-Ziel auf die Startseite jedes Mitglieds setzen. Das Pflegefeld
+    selbst kommt mit dem Einstellungsbereich in 8.4.
+64. **Kein eigener Countdown in der Datenbank (8.1).** `matchCountdown` rechnet im Browser
+    aus den ohnehin geladenen Spielen. Eine View dafür wäre eine weitere Abfrage für eine
+    Subtraktion — und Kalendertage („heute", „morgen") hängen an der Zeitzone des
+    Betrachters, nicht an der des Servers.
 
 **Blocker:** —
 
