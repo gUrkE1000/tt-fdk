@@ -20,6 +20,7 @@ import {
   type TrainingSession,
   type TrainingWithPeople,
 } from './api';
+import type { SessionKeys } from '../keys/api';
 
 const CHOICES: {
   value: AttendanceStatus;
@@ -57,6 +58,8 @@ export interface SessionCardProps {
   counts: SessionCounts | undefined;
   profileId: string | null;
   nameOf: (profileId: string) => string;
+  /** Schlüssellage zu diesem Termin (Aufgabe 9.1); fehlt, solange sie lädt. */
+  keys?: SessionKeys;
 }
 
 /**
@@ -74,6 +77,7 @@ export default function SessionCard({
   counts,
   profileId,
   nameOf,
+  keys,
 }: SessionCardProps) {
   const { toast } = useToast();
   const setAttendance = useSetAttendance();
@@ -179,15 +183,24 @@ export default function SessionCard({
               </p>
             )}
 
-            {training?.requires_key_owner && (
-              <p className="flex items-start gap-1.5 rounded-xl bg-status-late-soft p-2.5 text-sm text-status-late">
-                <KeyRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                <span>
-                  Für diesen Termin wird jemand mit Hallenschlüssel gebraucht. Wer einen hat,
-                  steht ab Aufgabe 9.1 hier.
-                </span>
-              </p>
-            )}
+            {training?.requires_key_owner &&
+              (keys?.has_key_holder ? (
+                <p className="flex items-start gap-1.5 rounded-xl bg-status-yes-soft p-2.5 text-sm text-status-yes">
+                  <KeyRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>
+                    {/* Der Name kommt nur, wenn die Teilnehmerliste sichtbar ist —
+                        bei Inkognito bleibt es bei „jemand". */}
+                    Schlüssel: {keys.holder_name ?? 'jemand mit Schlüssel ist dabei'}
+                  </span>
+                </p>
+              ) : (
+                <p className="flex items-start gap-1.5 rounded-xl bg-status-late-soft p-2.5 text-sm text-status-late">
+                  <KeyRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>
+                    Bisher hat niemand mit Hallenschlüssel zugesagt — so bleibt die Halle zu.
+                  </span>
+                </p>
+              ))}
 
             {profileId && (
               <div className="space-y-1.5">

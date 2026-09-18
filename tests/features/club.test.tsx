@@ -227,10 +227,10 @@ describe('Verzeichnis', () => {
 // ------------------------------------------------------------------ Oberfläche
 
 describe('ClubPage', () => {
-  it('zeigt alle fünf Reiter', async () => {
+  it('zeigt alle Reiter', async () => {
     renderPage(<ClubPage />);
 
-    for (const label of ['Daten', 'Ämter', 'Neuigkeiten', 'Dateien', 'Übersicht']) {
+    for (const label of ['Daten', 'Ämter', 'Neuigkeiten', 'Dateien', 'Übersicht', 'Betrieb']) {
       expect(screen.getByRole('tab', { name: label })).toBeInTheDocument();
     }
   });
@@ -339,9 +339,10 @@ describe('VenuesPage', () => {
     expect(state.updates[0]).toEqual({ table: 'venues', values: { active: false } });
   });
 
-  it('kündigt die Schlüsselverwaltung an, statt sie zu verschweigen', async () => {
+  it('führt die Schlüssel unter den Orten', async () => {
     renderPage(<VenuesPage />);
-    expect(await screen.findByText('Schlüsselverwaltung')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Schlüssel' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Schlüssel anlegen/ })).toBeInTheDocument();
   });
 });
 

@@ -670,7 +670,8 @@ Vom ausführenden Agenten gepflegt.
 | 8.2 PWA | erledigt | 18.09.2026 | `base` von `./` auf `/` (konfigurierbar); Anmeldung des Workers von Hand |
 | 8.3 Web Push und Glocke | erledigt | 18.09.2026 | Knopf-Kennungen und Farben wie im TT-Planer; tote Endpunkte werden gelöscht |
 | 8.4 Admin-Bereich und Betriebsdokumentation | erledigt | 18.09.2026 | `v_cron_status` mit Leer-Fassung ohne pg_cron; `docs/einrichtung.md` neu |
-| 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
+| 9.1 Schlüsselverwaltung | erledigt | 18.09.2026 | Schlüsselwarnung in 6.5 damit scharf; Zuordnungsspalten der Vereinsübersicht nachgezogen |
+| 9.x übrige Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
 
 ### Abweichungen vom Plan, die sich beim Bauen ergeben haben
@@ -979,6 +980,25 @@ Vom ausführenden Agenten gepflegt.
 80. **`docs/einrichtung.md` endet mit einem Probelauf (8.4).** Fünf Schritte, die nacheinander
     zeigen, dass Einladung, Kalenderabgleich, Trainingserzeugung, Push und die nächtlichen
     Jobs wirklich laufen. Eine Einrichtung, die niemand geprüft hat, ist eine Vermutung.
+
+81. **Der aktuelle Inhaber steht als Spalte, nicht nur im Protokoll (9.1).** Der Plan nennt
+    beide Tabellen, aber nicht ihr Verhältnis. Die wichtigste Auskunft des Moduls — wer hat
+    ihn gerade? — an einer Sortierung über die Übergabehistorie hängen zu lassen wäre
+    fahrlässig: Zwei Übergaben in derselben Sekunde gäben den Schlüssel an die falsche
+    Person. `rpc_hand_over_key` schreibt beides in einer Transaktion.
+82. **Verantwortlicher und Administrator dürfen immer weitergeben (9.1).** Die
+    Bestandsaufnahme beschreibt nur den Inhaber und `no_forwarding`. Ohne diese Ausnahme
+    wäre ein Schlüssel bei einem ausgetretenen Mitglied für immer verloren — und genau das
+    ist der Fall, in dem man die Schlüsselverwaltung braucht.
+83. **`v_session_keys` trennt Tatsache und Name (9.1).** Dieselbe Begründung wie bei
+    `v_session_counts`: Ob jemand mit Schlüssel kommt, muss auch bei einem inkognito
+    geführten Training stimmen; der Name darf dann nicht dastehen. Die View liefert deshalb
+    `has_key_holder` immer und `holder_name` nur, wenn die Teilnehmerliste sichtbar ist.
+84. **Die Zuordnungsspalten der Vereinsübersicht nachgezogen (9.1).** Training, Mannschaft
+    und Ersatz standen seit 2.6 als Gedankenstrich da — der Kommentar in der Datei
+    versprach sie für Phase 3 und 6, dort ist es aber untergegangen. Mit der Spalte
+    Schlüssel daneben wären es vier leere Spalten gewesen. `memberAssignments` füllt jetzt
+    alle vier.
 
 **Blocker:** —
 

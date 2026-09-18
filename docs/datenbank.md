@@ -5,7 +5,8 @@ dieses Dokument erklärt, warum etwas so aussieht.
 
 Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
 Beteiligung, Benachrichtigungen (E-Mail und Push), Training, Vereinstermine, Umfragen,
-Kalender, ICS-Abo und die Betriebssicht. Es fehlen noch die Stufe-B-Tabellen (Phase 9).
+Kalender, ICS-Abo, die Betriebssicht und die Schlüsselverwaltung. Es fehlen noch die
+übrigen Stufe-B-Tabellen (Phase 9).
 
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
 eigene Migration.
@@ -155,6 +156,24 @@ kann mehrere haben — Handy, Tablet, Rechner.
 Der Versandlauf löscht einen Eintrag, sobald der Push-Dienst ihn mit 404 oder 410 abweist:
 Das Gerät kommt nicht wieder, und ein toter Endpunkt würde sonst bei jedem Lauf erneut
 versucht. Eine Nachricht gilt als zugestellt, sobald **ein** Gerät sie angenommen hat.
+
+### `keys`, `key_handovers`
+
+Hallenschlüssel und ihr Weg. Der aktuelle Inhaber steht als Spalte an `keys`, das
+Protokoll daneben in `key_handovers` — die Spalte ist die Antwort, das Protokoll die
+Begründung. Läge die Antwort nur im Protokoll, hinge sie an einer Sortierung, und zwei
+Übergaben in derselben Sekunde hätten den Schlüssel an die falsche Person gegeben.
+
+Geschrieben wird `holder_id` ausschließlich von `rpc_hand_over_key`. Wer weitergeben
+darf, sagt `may_hand_over_key()`: der aktuelle Inhaber (außer bei `no_forwarding`), der
+Verantwortliche und der Administrator. Die letzten beiden immer — sonst wäre ein
+Schlüssel bei einem ausgetretenen Mitglied für immer verloren.
+
+`v_session_keys` beantwortet die Frage der Trainingskarte („kommt jemand mit Schlüssel?").
+Wie `v_session_counts` bewusst **ohne** `security_invoker`: Die Antwort muss stimmen, auch
+wenn die Teilnehmerliste verborgen ist. Der **Name** hängt dagegen an
+`may_see_session_roster` — sonst verriete der Hinweis bei einem inkognito geführten
+Training genau das, was Inkognito verbergen soll.
 
 ### `action_tokens`
 
@@ -448,6 +467,8 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 |---|---|---|
 | `club_settings` | aktive Mitglieder, außer `secret_*` | Admin |
 | `v_cron_status` | nur Admin (View prüft selbst) | — (View) |
+| `keys` | aktive Mitglieder | Admin (Inhaber nur über `rpc_hand_over_key`) |
+| `key_handovers` | aktive Mitglieder | niemand direkt |
 | `profiles` | eigene Zeile immer; Admin alles, auch Gelöschte; sonst aktive Mitglieder. Ein Gast sieht nur Admins und Trainer | eigene Zeile oder Admin; Spaltenschutz per Trigger |
 | `absences` | eigene Zeilen; Admin, Trainer und Mannschaftsführer die Zeiträume aller | eigene Zeilen oder Admin |
 | `member_rankings` | aktive Mitglieder | Admin |

@@ -1,22 +1,42 @@
+import { useMemo } from 'react';
 import { Card, CardBody, EmptyState, Table } from '../../components/ui';
 import { Layers, Users } from 'lucide-react';
 import { formatDate } from '../../lib/dates';
 import { roleLabel } from '../../lib/labels';
 import { useGroups, useMembers, type GroupWithMembers, type Member } from '../members/api';
+import { useKeys } from '../keys/api';
+import { useTeams } from '../teams/api';
+import { useTrainings } from '../trainings/api';
+import { assignmentText, memberAssignments, NO_ASSIGNMENTS } from './assignments';
 
 /**
  * Die Vereinsübersicht des TT-Planers (Bestandsaufnahme I): eine Tabelle aller Mitglieder
  * mit ihren Zuordnungen, darunter die Gruppen.
  *
- * Die Spalten Training, Mannschaft und Ersatz stehen schon hier, obwohl sie erst in
- * Phase 6 und 3 gefüllt werden. Wer die Seite heute sieht, erkennt daran, was noch kommt —
- * und die Spaltenbreiten springen später nicht.
+ * Training, Mannschaft, Ersatz und Schlüssel stehen für jedes Mitglied nebeneinander.
+ * Genau das ist der Zweck der Seite: Sie beantwortet Fragen, für die man sonst vier
+ * Listen öffnen müsste — etwa „wer hat einen Schlüssel und trainiert donnerstags?".
  */
 export default function ClubOverviewTab() {
   const members = useMembers();
   const groups = useGroups();
+  const trainings = useTrainings();
+  const teams = useTeams();
+  const keys = useKeys();
 
   const rows = members.data ?? [];
+
+  const assignments = useMemo(
+    () =>
+      memberAssignments({
+        trainings: trainings.data ?? [],
+        teams: teams.data ?? [],
+        keys: keys.data ?? [],
+      }),
+    [trainings.data, teams.data, keys.data],
+  );
+
+  const forMember = (id: string) => assignments.get(id) ?? NO_ASSIGNMENTS;
 
   return (
     <div className="space-y-8">
@@ -43,9 +63,26 @@ export default function ClubOverviewTab() {
                 member.auth_linked_at ? formatDate(member.auth_linked_at) : '—',
             },
             { key: 'role', header: 'Rolle', cell: (member: Member) => roleLabel(member.role) },
-            { key: 'training', header: 'Training', cell: () => '—' },
-            { key: 'team', header: 'Mannschaft', cell: () => '—' },
-            { key: 'sub', header: 'Ersatz', cell: () => '—' },
+            {
+              key: 'training',
+              header: 'Training',
+              cell: (member: Member) => assignmentText(forMember(member.id).trainings),
+            },
+            {
+              key: 'team',
+              header: 'Mannschaft',
+              cell: (member: Member) => assignmentText(forMember(member.id).teams),
+            },
+            {
+              key: 'sub',
+              header: 'Ersatz',
+              cell: (member: Member) => assignmentText(forMember(member.id).substituteFor),
+            },
+            {
+              key: 'keys',
+              header: 'Schlüssel',
+              cell: (member: Member) => assignmentText(forMember(member.id).keys),
+            },
           ]}
           rows={rows}
           rowKey={(member) => member.id}

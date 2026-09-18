@@ -320,6 +320,123 @@ export interface Database {
         };
         Relationships: [];
       };
+      key_handovers: {
+        Row: {
+          id: string;
+          key_id: string;
+          from_profile_id: string | null;
+          to_profile_id: string | null;
+          recorded_by: string | null;
+          note: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          key_id: string;
+          from_profile_id?: string | null;
+          to_profile_id?: string | null;
+          recorded_by?: string | null;
+          note?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          key_id?: string;
+          from_profile_id?: string | null;
+          to_profile_id?: string | null;
+          recorded_by?: string | null;
+          note?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "key_handovers_key_id_fkey";
+            columns: ["key_id"];
+            isOneToOne: false;
+            referencedRelation: "keys";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "key_handovers_from_profile_id_fkey";
+            columns: ["from_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "key_handovers_to_profile_id_fkey";
+            columns: ["to_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "key_handovers_recorded_by_fkey";
+            columns: ["recorded_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      keys: {
+        Row: {
+          id: string;
+          name: string;
+          venue_id: string | null;
+          responsible_id: string;
+          holder_id: string | null;
+          no_forwarding: boolean;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          venue_id?: string | null;
+          responsible_id: string;
+          holder_id?: string | null;
+          no_forwarding?: boolean;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          venue_id?: string | null;
+          responsible_id?: string;
+          holder_id?: string | null;
+          no_forwarding?: boolean;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "keys_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "keys_responsible_id_fkey";
+            columns: ["responsible_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "keys_holder_id_fkey";
+            columns: ["holder_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       match_changes: {
         Row: {
           id: string;
@@ -1910,6 +2027,22 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_keys: {
+        Row: {
+          id: string | null;
+          name: string | null;
+          venue_id: string | null;
+          venue_name: string | null;
+          responsible_id: string | null;
+          responsible_name: string | null;
+          holder_id: string | null;
+          holder_name: string | null;
+          no_forwarding: boolean | null;
+          active: boolean | null;
+          may_hand_over: boolean | null;
+        };
+        Relationships: [];
+      };
       v_match_lineup_status: {
         Row: {
           match_id: string | null;
@@ -2010,6 +2143,14 @@ export interface Database {
           late_count: number | null;
           no_count: number | null;
           guest_count: number | null;
+        };
+        Relationships: [];
+      };
+      v_session_keys: {
+        Row: {
+          session_id: string | null;
+          has_key_holder: boolean | null;
+          holder_name: string | null;
         };
         Relationships: [];
       };
@@ -2137,6 +2278,10 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      may_hand_over_key: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       may_join_training: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -2206,6 +2351,10 @@ export interface Database {
         Returns: unknown;
       };
       rpc_describe_action_token: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_hand_over_key: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };

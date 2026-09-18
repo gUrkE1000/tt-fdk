@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { MessageSquareWarning } from 'lucide-react';
 import { PageHeader, StatTile, Tabs } from '../../components/ui';
-import Placeholder from '../../app/Placeholder';
 import { useSession } from '../auth/session';
 import { useClubSettings } from '../club/api';
 import { useAllParticipations, useMatches } from '../matches/api';
@@ -13,6 +12,7 @@ import { myTrainingIds, openTrainings } from '../trainings/schemas';
 import SessionsTab from '../trainings/SessionsTab';
 import OpenTrainingsList from '../trainings/OpenTrainingsList';
 import PlanningTab from '../calendar/PlanningTab';
+import MyKeysTab from '../keys/MyKeysTab';
 import CountdownTile from './CountdownTile';
 import QuickLinks from './QuickLinks';
 import { countOpenResponses, matchCountdown, parseQuicklinks } from './summary';
@@ -122,7 +122,7 @@ export default function DashboardPage() {
           {
             value: 'keys',
             label: 'Schlüssel',
-            content: <Placeholder title="Schlüssel" task="9.1" />,
+            content: <MyKeysTab />,
           },
           {
             value: 'open-trainings',

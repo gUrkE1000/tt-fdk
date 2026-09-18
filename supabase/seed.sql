@@ -320,3 +320,19 @@ SET session_replication_role = origin;
 UPDATE public.profiles
    SET auth_linked_at = NOW()
  WHERE id IN (SELECT id FROM auth.users);
+
+-- ----------------------------------------------------------------- Schlüssel (9.1)
+-- Zwei Schlüssel: einer unterwegs bei Spieler 01 (der zum ersten Trainingstermin
+-- zugesagt hat — damit greift die Schlüsselanzeige an der Karte), einer beim
+-- Verantwortlichen und ausdrücklich ohne Weitergabe.
+INSERT INTO public.keys (id, name, venue_id, responsible_id, holder_id, no_forwarding) VALUES
+    ('bbbbbbbb-0000-0000-0000-000000000001', 'Hallenschlüssel Sporthalle',
+     '11111111-0000-0000-0000-000000000001',
+     '22222222-0000-0000-0000-000000000001',
+     '22222222-1111-0000-0000-000000000001', false),
+
+    ('bbbbbbbb-0000-0000-0000-000000000002', 'Schlüssel Gymnasium',
+     '11111111-0000-0000-0000-000000000002',
+     '22222222-0000-0000-0000-000000000001',
+     NULL, true)
+ON CONFLICT (id) DO NOTHING;

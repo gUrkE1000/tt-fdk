@@ -11,10 +11,10 @@ import {
   Table,
   useToast,
 } from '../../components/ui';
-import Placeholder from '../../app/Placeholder';
 import { useSetVenueActive, useVenues, type Venue } from './api';
 import { formatVenueAddress } from './schemas';
 import VenueDialog from './VenueDialog';
+import KeysPanel from '../keys/KeysPanel';
 
 export default function VenuesPage() {
   const { toast } = useToast();
@@ -128,10 +128,7 @@ export default function VenuesPage() {
         />
       </div>
 
-      <div>
-        <h2 className="mb-2 text-lg font-bold text-gray-900">Schlüssel</h2>
-        <Placeholder title="Schlüsselverwaltung" task="9.1" />
-      </div>
+      <KeysPanel />
 
       <VenueDialog open={dialogOpen} onOpenChange={setDialogOpen} venue={editing} />
     </div>

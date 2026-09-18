@@ -12,6 +12,7 @@ import {
   useTrainings,
 } from './api';
 import SessionCard from './SessionCard';
+import { useSessionKeys } from '../keys/api';
 import { myTrainingIds } from './schemas';
 
 export interface SessionsTabProps {
@@ -34,6 +35,7 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
   const members = useMembers();
   const participants = useSessionParticipants();
   const counts = useSessionCounts();
+  const sessionKeys = useSessionKeys();
 
   const trainingList = trainings.data ?? [];
   const venueList = venues.data ?? [];
@@ -77,6 +79,7 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
             counts={(counts.data ?? []).find((entry) => entry.session_id === session.id)}
             profileId={profile?.id ?? null}
             nameOf={nameOf}
+            keys={(sessionKeys.data ?? []).find((entry) => entry.session_id === session.id)}
           />
         );
       })}
