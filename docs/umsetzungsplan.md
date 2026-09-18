@@ -674,6 +674,7 @@ Vom ausführenden Agenten gepflegt.
 | 9.5 Excel-Import/-Update | erledigt | 18.09.2026 | `exceljs` statt `xlsx` (Sicherheitslücke); eine Rangspalte statt fünfzehn |
 | 9.6 Ämter | erledigt | 18.09.2026 | ohne Rechtewirkung, weil Inventar und Bekleidung gestrichen sind |
 | 9.3 Vereinsneuigkeiten | erledigt | 18.09.2026 | vordatieren und anheften ergänzt; bewusst ohne Benachrichtigung |
+| 9.2 Nachrichten am Termin | erledigt | 18.09.2026 | Sichtbarkeit erbt vom Termin; Faden lädt erst beim Aufklappen |
 | 9.x übrige Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
 
@@ -1044,6 +1045,21 @@ Vom ausführenden Agenten gepflegt.
 94. **`author_id` kommt aus der Sitzung, nicht aus der Eingabe (9.3).** Sonst könnte
     jemand eine Neuigkeit im Namen des Vorsitzenden einstellen. Ohne Sitzung (Datenübernahme)
     bleibt ein mitgegebener Verfasser stehen.
+
+95. **Die Sichtbarkeit einer Nachricht erbt vom Termin (9.2).** `can_see_message_object()`
+    fragt die Funktionen, die es für Spiele, Trainings und Vereinstermine schon gibt. Eine
+    eigene Regel für Nachrichten wäre eine zweite Wahrheit, die irgendwann von der ersten
+    abweicht — und dann steht etwas in einem Faden, das der Leser am Termin selbst nicht
+    sehen dürfte.
+96. **Kein Fremdschlüssel, dafür Aufräum-Trigger (9.2).** Das Ziel kann drei Tabellen sein.
+    Ohne Trigger blieben Nachrichten zu gelöschten Terminen liegen: unsichtbar, aber
+    gespeichert — bei personenbezogenen Daten kein Schönheitsfehler.
+97. **Der Faden lädt erst beim Aufklappen (9.2).** Zwanzig Spieltermine auf einer Seite
+    wären sonst zwanzig Abfragen für Text, den niemand liest. Der Zähler kommt aus einer
+    einzigen Abfrage über alle Karten.
+98. **Benachrichtigt werden die Beteiligten, nicht alle Sichtberechtigten (9.2).** Wer im
+    Kader steht, will wissen, dass jemand schreibt; der Rest des Vereins nicht. Der
+    Verfasser bekommt nichts — er weiß es.
 
 **Blocker:** —
 

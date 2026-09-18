@@ -10,6 +10,7 @@ import {
   useToast,
 } from '../../components/ui';
 import { cn } from '../../lib/cn';
+import MessagesPanel from '../messages/MessagesPanel';
 import { formatDate, formatDateTime } from '../../lib/dates';
 import { hasRichText } from '../../lib/richText';
 import {
@@ -204,6 +205,8 @@ export default function EventCard({
             )}
           </div>
         )}
+        <MessagesPanel type="event" objectId={event.id} />
+
       </CardBody>
     </Card>
   );

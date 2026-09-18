@@ -5,8 +5,8 @@ dieses Dokument erklärt, warum etwas so aussieht.
 
 Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
 Beteiligung, Benachrichtigungen (E-Mail und Push), Training, Vereinstermine, Umfragen,
-Kalender, ICS-Abo, die Betriebssicht, die Schlüsselverwaltung, die Ämter und die
-Neuigkeiten. Es fehlen noch die übrigen Stufe-B-Tabellen (Phase 9).
+Kalender, ICS-Abo, die Betriebssicht, die Schlüsselverwaltung, die Ämter, die Neuigkeiten und die
+Nachrichten am Termin. Es fehlen noch die übrigen Stufe-B-Tabellen (Phase 9).
 
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
 eigene Migration.
@@ -156,6 +156,24 @@ kann mehrere haben — Handy, Tablet, Rechner.
 Der Versandlauf löscht einen Eintrag, sobald der Push-Dienst ihn mit 404 oder 410 abweist:
 Das Gerät kommt nicht wieder, und ein toter Endpunkt würde sonst bei jedem Lauf erneut
 versucht. Eine Nachricht gilt als zugestellt, sobald **ein** Gerät sie angenommen hat.
+
+### `object_messages`
+
+Ein kurzer Faden an genau einem Spiel, Trainingstermin oder Vereinstermin. **Kein Chat:**
+keine Unterhaltung zwischen zwei Personen, keine Kanäle, keine ungelesen-Zähler über alles
+hinweg. Der Chat des TT-Planers ist gestrichen und bleibt es.
+
+Wer eine Nachricht sehen darf, entscheidet **nicht** diese Tabelle, sondern die
+Sichtbarkeit des Termins — `can_see_message_object()` fragt genau die Funktionen, die es
+dafür schon gibt. Eine eigene Regel wäre eine zweite Wahrheit, die irgendwann von der
+ersten abweicht.
+
+`object_id` hat bewusst **keinen** Fremdschlüssel, weil das Ziel drei Tabellen sein kann.
+Aufgeräumt wird per Trigger beim Löschen des Termins: Verwaiste Nachrichten wären
+unsichtbar und blieben trotzdem gespeichert, und das sind personenbezogene Daten.
+
+Benachrichtigt werden die **Beteiligten** (Kader, Zusagen), nicht alle, die den Termin
+sehen dürfen — und der Verfasser nicht, der weiß es.
 
 ### `news`
 
@@ -496,6 +514,7 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 |---|---|---|
 | `club_settings` | aktive Mitglieder, außer `secret_*` | Admin |
 | `v_cron_status` | nur Admin (View prüft selbst) | — (View) |
+| `object_messages` | wer den Termin sieht | wer den Termin sieht; ändern/löschen nur die eigene (Admin jede) |
 | `news` | aktive Mitglieder ab `published_at` | Admin, Organisator |
 | `club_roles`, `club_role_members` | aktive Mitglieder | Admin |
 | `keys` | aktive Mitglieder | Admin (Inhaber nur über `rpc_hand_over_key`) |

@@ -9,6 +9,7 @@ import {
   useToast,
 } from '../../components/ui';
 import { cn } from '../../lib/cn';
+import MessagesPanel from '../messages/MessagesPanel';
 import { formatDateTime, formatTime } from '../../lib/dates';
 import { formatVenueAddress } from '../venues/schemas';
 import type { Venue } from '../venues/api';
@@ -262,6 +263,8 @@ export default function SessionCard({
         )}
 
         {training?.details && <p className="text-sm text-gray-600">{training.details}</p>}
+        <MessagesPanel type="session" objectId={session.id} />
+
       </CardBody>
     </Card>
   );

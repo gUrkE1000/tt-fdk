@@ -1002,6 +1002,44 @@ export interface Database {
           },
         ];
       };
+      object_messages: {
+        Row: {
+          id: string;
+          object_type: Database["public"]["Enums"]["message_object"];
+          object_id: string;
+          author_id: string | null;
+          body: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          object_type: Database["public"]["Enums"]["message_object"];
+          object_id: string;
+          author_id?: string | null;
+          body: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          object_type?: Database["public"]["Enums"]["message_object"];
+          object_id?: string;
+          author_id?: string | null;
+          body?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "object_messages_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       open_reminder_log: {
         Row: {
           profile_id: string;
@@ -2220,6 +2258,28 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_object_message_counts: {
+        Row: {
+          object_type: Database["public"]["Enums"]["message_object"] | null;
+          object_id: string | null;
+          message_count: number | null;
+        };
+        Relationships: [];
+      };
+      v_object_messages: {
+        Row: {
+          id: string | null;
+          object_type: Database["public"]["Enums"]["message_object"] | null;
+          object_id: string | null;
+          author_id: string | null;
+          author_name: string | null;
+          body: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+          edited: boolean | null;
+        };
+        Relationships: [];
+      };
       v_open_participations: {
         Row: {
           profile_id: string | null;
@@ -2327,6 +2387,10 @@ export interface Database {
       };
       can_see_absences: {
         Args: Record<string, never>;
+        Returns: unknown;
+      };
+      can_see_message_object: {
+        Args: { [key: string]: unknown };
         Returns: unknown;
       };
       can_see_training: {
@@ -2577,6 +2641,7 @@ export interface Database {
       lineup_mode: "fixed" | "open";
       match_source: "ics" | "manual";
       member_status: "active" | "pending_approval" | "unconfirmed";
+      message_object: "match" | "session" | "event";
       notification_channel: "email" | "push";
       notification_status: "pending" | "sent" | "failed" | "skipped";
       participation_response: "none" | "yes" | "no" | "unclear";

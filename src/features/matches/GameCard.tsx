@@ -15,6 +15,7 @@ import type { MatchRow, Participation, Volunteer } from './api';
 import ResponseButtons from './ResponseButtons';
 import VolunteerToggles from './VolunteerToggles';
 import RescheduleVotePanel from './RescheduleVotePanel';
+import MessagesPanel from '../messages/MessagesPanel';
 
 export interface GameCardProps {
   match: MatchRow;
@@ -168,6 +169,8 @@ export default function GameCard({
             </Button>
           </div>
         )}
+        <MessagesPanel type="match" objectId={match.id} />
+
       </CardBody>
     </Card>
   );
