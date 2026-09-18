@@ -94,11 +94,11 @@ pgTAP-Tests ausführt und prüft, ob die generierten Typen noch zum Schema passe
 ## Herkunft und Lizenz
 
 Das Repository ging aus [dgaida/tt_hsv_planner](https://github.com/dgaida/tt_hsv_planner)
-hervor (Übernahme bei Commit `f8ec2a5`, Historie erhalten). Übernommen sind heute nur noch
-der ICS-Parser, die Heim/Auswärts-Erkennung, die Aufstellungssortierung und einige
-Namensfunktionen — unter `supabase/functions/_shared/` und `src/lib/`.
+hervor (Übernahme bei Commit `f8ec2a5`, Historie erhalten). Das Ursprungsprojekt hat kein
+LICENSE-File, weshalb dort alle Rechte beim Autor liegen. **Seit dem 18.09.2026 ist kein
+Code von dort mehr enthalten**: Die vier zuletzt verbliebenen Dateien — ICS, Heim/Auswärts,
+Aufstellungssortierung, Namensfunktionen — wurden samt ihren Tests neu geschrieben.
 
-> ⚠️ **Lizenzstatus ungeklärt.** Das Ursprungsprojekt hat kein LICENSE-File. Vor einem
-> produktiven Einsatz oder einer Veröffentlichung ist die Lizenzfrage zu klären; Details und
-> ein fertiger Anfragetext stehen in [NOTICE.md](NOTICE.md). Bis dahin bleibt das Repository
-> privat.
+> **Eine eigene Lizenz fehlt noch.** Ohne `LICENSE` ist auch für dieses Projekt nicht
+> geregelt, was ein künftiger Vorstand damit tun darf. Stand und Checkliste stehen in
+> [NOTICE.md](NOTICE.md) und [docs/abschluss.md](docs/abschluss.md#3-die-lizenzfrage).

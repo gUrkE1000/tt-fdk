@@ -1,10 +1,19 @@
 /**
- * ICS-Parser für die Spielpläne von myTischtennis.de.
+ * iCalendar lesen und schreiben (RFC 5545), so weit dieses Projekt es braucht.
  *
- * Übernommen aus dem Basisprojekt (src/lib/icsParser.ts) und hierher verschoben, damit
- * Frontend und Edge Function dieselbe Implementierung nutzen. Keine Laufzeit-Abhängigkeit:
- * die Datei läuft unverändert in Deno und im Browser.
+ * Zwei Richtungen, eine Datei, weil sie dasselbe Format von zwei Seiten betrachten:
+ *
+ * - **Lesen** — die Spielpläne, die myTischtennis je Mannschaft als Abo anbietet. Sie
+ *   sind der einzige Weg, auf dem Termine aus click-TT hierher kommen.
+ * - **Schreiben** — der Kalender, den jedes Mitglied in seinem eigenen Kalenderprogramm
+ *   abonnieren kann.
+ *
+ * Bewusst ohne Bibliothek: Die Datei läuft unverändert in Deno und im Browser, und der
+ * Ausschnitt des Standards, um den es geht, ist kleiner als jede Abhängigkeit, die ihn
+ * abdecken würde.
  */
+
+// ============================================================================= Lesen
 
 export interface IcsEvent {
   uid: string;
@@ -15,17 +24,35 @@ export interface IcsEvent {
   location: string;
 }
 
-/** ICS bricht lange Zeilen um und setzt die Fortsetzung mit Leerzeichen oder Tab ein. */
+/** Ohne DTEND: So lang gilt ein Termin. Nur für die Anzeige im Kalender. */
+const DEFAULT_DURATION_MS = 2 * 60 * 60 * 1000;
+
+/** Die Zeitzone, in der Spielpläne deutscher Verbände Ortszeiten meinen. */
+const DEFAULT_TIME_ZONE = 'Europe/Berlin';
+
+/**
+ * Zeilenfortsetzungen auflösen.
+ *
+ * RFC 5545 bricht Zeilen über 75 Oktett um und rückt die Fortsetzung um genau ein
+ * Leerzeichen oder einen Tabulator ein. Dieses eine Zeichen gehört nicht zum Inhalt —
+ * weg damit, und die Zeile ist wieder eine.
+ */
 export function unfoldLines(icsString: string): string {
   return icsString.replace(/\r?\n[ \t]/g, '');
 }
 
 /**
- * Rechnet eine Ortszeit in einen UTC-Zeitpunkt um.
+ * Eine Ortszeit als UTC-Zeitpunkt.
  *
- * myTischtennis liefert `DTSTART;TZID=Europe/Berlin:20260912T180000` — also Ortszeit ohne
- * Offset. Der Weg über Intl.DateTimeFormat vermeidet eine Zeitzonen-Bibliothek und ist
- * über Sommer- und Winterzeit hinweg korrekt.
+ * `DTSTART;TZID=Europe/Berlin:20260912T180000` nennt eine Wanduhrzeit ohne Offset. Ob
+ * davon eine oder zwei Stunden abzuziehen sind, weiß nur die Zeitzonendatenbank.
+ *
+ * Der Weg dorthin ohne Bibliothek: Die Wanduhrzeit **so tun lassen**, als wäre sie UTC,
+ * diesen Zeitpunkt in der Zielzone anzeigen und die Abweichung messen. Was die Anzeige
+ * zu viel hat, hatte der angenommene Zeitpunkt zu wenig — also abziehen.
+ *
+ * Das ist über Sommer- und Winterzeit hinweg richtig, weil `Intl` die Umstellungsdaten
+ * kennt und wir sie nicht nachbauen.
  */
 export function parseLocalDateToUtc(
   year: number,
@@ -34,9 +61,9 @@ export function parseLocalDateToUtc(
   hour: number,
   minute: number,
   second: number,
-  timeZone = 'Europe/Berlin',
+  timeZone = DEFAULT_TIME_ZONE,
 ): Date {
-  const utcDate = new Date(Date.UTC(year, monthIndex, day, hour, minute, second));
+  const wallClock = Date.UTC(year, monthIndex, day, hour, minute, second);
 
   const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone,
@@ -49,117 +76,154 @@ export function parseLocalDateToUtc(
     hour12: false,
   });
 
-  const parts = formatter.formatToParts(utcDate);
-  const partVal = (type: string) =>
-    parseInt(parts.find((p) => p.type === type)?.value ?? '0', 10);
+  const parts = new Map<string, string>(
+    formatter.formatToParts(new Date(wallClock)).map((part) => [part.type, part.value]),
+  );
+  const part = (type: string) => Number.parseInt(parts.get(type) ?? '0', 10);
 
-  const diffMs =
-    Date.UTC(
-      partVal('year'),
-      partVal('month') - 1,
-      partVal('day'),
-      partVal('hour'),
-      partVal('minute'),
-      partVal('second'),
-    ) - Date.UTC(year, monthIndex, day, hour, minute, second);
+  // `hour` kann in manchen Umgebungen als „24" für Mitternacht herauskommen.
+  const shown = Date.UTC(
+    part('year'),
+    part('month') - 1,
+    part('day'),
+    part('hour') % 24,
+    part('minute'),
+    part('second'),
+  );
 
-  return new Date(utcDate.getTime() - diffMs);
+  return new Date(wallClock - (shown - wallClock));
 }
 
-function parseIcsDate(value: string): Date {
-  const clean = value.replace(/[-:]/g, '');
+/**
+ * Ein Datums- oder Zeitwert aus einer ICS-Zeile, oder `null`, wenn er keinem der drei
+ * erlaubten Muster folgt.
+ *
+ * `null` statt eines Ersatzdatums: Ein Termin mit erfundenem Zeitpunkt sähe wie ein
+ * echter aus und stünde bei jemandem im Kalender. Ein übergangener Termin fehlt sichtbar.
+ */
+function parseIcsDate(value: string): Date | null {
+  const digits = value.trim().replace(/[-:]/g, '');
 
-  // Ganztägig: nur ein Datum
-  if (/^\d{8}$/.test(clean)) {
-    return parseLocalDateToUtc(
-      parseInt(clean.slice(0, 4), 10),
-      parseInt(clean.slice(4, 6), 10) - 1,
-      parseInt(clean.slice(6, 8), 10),
-      0,
-      0,
-      0,
-    );
+  // Ganztägig — `VALUE=DATE:20261005`.
+  const dateOnly = /^(\d{4})(\d{2})(\d{2})$/.exec(digits);
+  if (dateOnly) {
+    const [, year, month, day] = dateOnly.map(Number);
+    return parseLocalDateToUtc(year, month - 1, day, 0, 0, 0);
   }
 
-  const match = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z?)$/.exec(clean);
-  if (!match) return new Date();
+  const dateTime = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z?)$/.exec(digits);
+  if (!dateTime) return null;
 
-  const [, y, mo, d, h, mi, s, zulu] = match;
-  const year = parseInt(y, 10);
-  const monthIndex = parseInt(mo, 10) - 1;
-  const day = parseInt(d, 10);
-  const hour = parseInt(h, 10);
-  const minute = parseInt(mi, 10);
-  const second = parseInt(s, 10);
+  const [, year, month, day, hour, minute, second] = dateTime.map(Number);
+  const isUtc = dateTime[7] === 'Z';
 
-  if (zulu === 'Z') {
-    return new Date(Date.UTC(year, monthIndex, day, hour, minute, second));
-  }
-  return parseLocalDateToUtc(year, monthIndex, day, hour, minute, second);
+  return isUtc
+    ? new Date(Date.UTC(year, month - 1, day, hour, minute, second))
+    : parseLocalDateToUtc(year, month - 1, day, hour, minute, second);
 }
 
+/**
+ * Die Eigenschaften eines VEVENT-Blocks als Zuordnung Name → Wert.
+ *
+ * Eine Inhaltszeile heißt `NAME;PARAM=WERT:Inhalt`. Uns interessiert nur der Name —
+ * `TZID` wird nicht ausgewertet, weil die Feeds, um die es geht, ausschließlich
+ * Ortszeit in Europe/Berlin oder UTC liefern. Steht eine Eigenschaft mehrfach da,
+ * gewinnt die erste.
+ */
+function readProperties(block: string): Map<string, string> {
+  const properties = new Map<string, string>();
+
+  for (const line of block.split(/\r?\n/)) {
+    if (line.trim() === '') continue;
+
+    const colon = line.indexOf(':');
+    if (colon === -1) continue;
+
+    const nameAndParams = line.slice(0, colon);
+    const semicolon = nameAndParams.indexOf(';');
+    const name = (semicolon === -1 ? nameAndParams : nameAndParams.slice(0, semicolon))
+      .trim()
+      .toUpperCase();
+
+    if (name !== '' && !properties.has(name)) {
+      properties.set(name, line.slice(colon + 1).trim());
+    }
+  }
+
+  return properties;
+}
+
+/** Gegenstück zu `escapeIcsText`: die Maskierungen des Standards zurücknehmen. */
+function unescapeIcsText(value: string): string {
+  return value.replace(/\\([\\;,nN])/g, (_, character: string) =>
+    character === 'n' || character === 'N' ? '\n' : character,
+  );
+}
+
+/**
+ * Alle Termine eines Kalenders.
+ *
+ * Übergangen wird ein Block, dem UID oder DTSTART fehlt oder dessen DTSTART unlesbar
+ * ist. Das ist die einzige Fehlerbehandlung hier — und sie genügt, weil der Abgleich
+ * eine eigene Sicherung hat: Kommen null Termine zurück, während Spiele aktiv sind,
+ * wird nichts stillgelegt (`planSync`).
+ */
 export function parseIcs(icsContent: string): IcsEvent[] {
   const unfolded = unfoldLines(icsContent);
   const events: IcsEvent[] = [];
 
-  const veventRegex = /BEGIN:VEVENT([\s\S]*?)END:VEVENT/g;
+  const blocks = /BEGIN:VEVENT([\s\S]*?)END:VEVENT/g;
   let block: RegExpExecArray | null;
 
-  while ((block = veventRegex.exec(unfolded)) !== null) {
-    const fields = new Map<string, string>();
+  while ((block = blocks.exec(unfolded)) !== null) {
+    const properties = readProperties(block[1]);
 
-    for (const line of block[1].split(/\r?\n/)) {
-      if (!line.trim()) continue;
-      const colon = line.indexOf(':');
-      if (colon === -1) continue;
+    const uid = properties.get('UID') ?? '';
+    const startRaw = properties.get('DTSTART');
+    if (uid === '' || startRaw === undefined) continue;
 
-      const rawKey = line.slice(0, colon);
-      const semicolon = rawKey.indexOf(';');
-      const key = (semicolon === -1 ? rawKey : rawKey.slice(0, semicolon)).toUpperCase();
+    const dtstart = parseIcsDate(startRaw);
+    if (!dtstart) continue;
 
-      // Mehrfach vorkommende Felder: das erste gewinnt, wie im Bestand.
-      if (!fields.has(key)) fields.set(key, line.slice(colon + 1).trim());
-    }
-
-    const uid = fields.get('UID') ?? '';
-    const dtstartRaw = fields.get('DTSTART');
-    if (!uid || !dtstartRaw) continue;
-
-    const dtstart = parseIcsDate(dtstartRaw);
-    const dtendRaw = fields.get('DTEND');
-    // Ohne Ende rechnen wir mit zwei Stunden — ein Tischtennis-Spieltag dauert länger,
-    // aber der Wert dient nur der Kalenderanzeige.
-    const dtend = dtendRaw
-      ? parseIcsDate(dtendRaw)
-      : new Date(dtstart.getTime() + 2 * 60 * 60 * 1000);
+    const endRaw = properties.get('DTEND');
+    const parsedEnd = endRaw === undefined ? null : parseIcsDate(endRaw);
+    const dtend = parsedEnd ?? new Date(dtstart.getTime() + DEFAULT_DURATION_MS);
 
     events.push({
       uid,
       dtstart,
       dtend,
-      summary: fields.get('SUMMARY') ?? '',
-      description: fields.get('DESCRIPTION') ?? '',
-      location: (fields.get('LOCATION') ?? '').replace(/\\,/g, ','),
+      summary: unescapeIcsText(properties.get('SUMMARY') ?? ''),
+      description: unescapeIcsText(properties.get('DESCRIPTION') ?? ''),
+      location: unescapeIcsText(properties.get('LOCATION') ?? ''),
     });
   }
 
   return events;
 }
 
-/** Spieltagsnummer aus Beschreibung oder Titel, z. B. „Spieltag: 1" oder „2. Spieltag". */
+/**
+ * Die Spieltagsnummer, wenn eine im Text steht.
+ *
+ * Die Verbände schreiben sie unterschiedlich: „Spieltag: 5", „Spieltag 5" oder
+ * „5. Spieltag". Gesucht wird erst in der Beschreibung, dann im Titel — die Beschreibung
+ * ist das Feld, in das der Verband sie absichtlich schreibt, der Titel das, in dem sie
+ * zufällig auftaucht.
+ */
 export function extractMatchday(description: string, summary: string): number | null {
   const patterns = [/Spieltag:?\s*(\d+)/i, /(\d+)\.\s*Spieltag/i];
 
   for (const text of [description, summary]) {
     for (const pattern of patterns) {
-      const match = pattern.exec(text);
-      if (match) return parseInt(match[1], 10);
+      const found = pattern.exec(text);
+      if (found) return Number.parseInt(found[1], 10);
     }
   }
+
   return null;
 }
 
-// ---------------------------------------------------------------------------- Erzeugen
+// ========================================================================== Schreiben
 
 export interface IcsEntry {
   /** Stabil über Läufe hinweg: dasselbe Objekt behält denselben Eintrag im Kalender. */
@@ -173,12 +237,15 @@ export interface IcsEntry {
 }
 
 /**
- * Baut einen ICS-Kalender.
+ * Ein Kalender zum Abonnieren.
  *
- * Kein Baukasten, sondern genau das, was ein Abo braucht: Kopf, Zeitzone in UTC,
- * je Termin ein VEVENT mit stabiler UID. Stabil ist die UID der entscheidende Punkt —
- * ändert sie sich, legt jedes Kalenderprogramm den Termin ein zweites Mal an, statt
- * den vorhandenen zu aktualisieren.
+ * Kein Baukasten, sondern genau das, was ein Abo braucht: Kopf, alle Zeiten in UTC, je
+ * Termin ein VEVENT mit stabiler UID.
+ *
+ * **Die UID ist der Punkt, an dem so etwas scheitert.** Ändert sie sich zwischen zwei
+ * Abrufen, legt jedes Kalenderprogramm den Termin ein zweites Mal an, statt den
+ * vorhandenen zu aktualisieren. Wer sie aus einem Zeitstempel oder einem Zähler bildet,
+ * merkt das erst, wenn ein Mitglied denselben Spieltag viermal im Kalender hat.
  */
 export function buildIcs(
   entries: readonly IcsEntry[],
@@ -198,20 +265,23 @@ export function buildIcs(
 
   for (const entry of entries) {
     const start = new Date(entry.startsAt);
+    // Ein Termin ohne brauchbaren Zeitpunkt wird übergangen. Ein Kalender, der wegen
+    // einer krummen Zeile gar nicht lädt, wäre der teurere Fehler.
     if (Number.isNaN(start.getTime())) continue;
 
-    const end = entry.endsAt ? new Date(entry.endsAt) : null;
-    const until =
-      end && !Number.isNaN(end.getTime()) && end > start
-        ? end
-        : new Date(start.getTime() + 2 * 3600_000);
+    const declaredEnd = entry.endsAt ? new Date(entry.endsAt) : null;
+    const endIsUsable =
+      declaredEnd !== null && !Number.isNaN(declaredEnd.getTime()) && declaredEnd > start;
+    const end = endIsUsable
+      ? (declaredEnd as Date)
+      : new Date(start.getTime() + DEFAULT_DURATION_MS);
 
     lines.push(
       'BEGIN:VEVENT',
       `UID:${entry.uid}`,
       `DTSTAMP:${stamp}`,
       `DTSTART:${formatIcsDate(start)}`,
-      `DTEND:${formatIcsDate(until)}`,
+      `DTEND:${formatIcsDate(end)}`,
       `SUMMARY:${escapeIcsText(entry.title)}`,
     );
 
@@ -223,36 +293,71 @@ export function buildIcs(
 
   lines.push('END:VCALENDAR');
 
-  // ICS verlangt CRLF; manche Kalenderprogramme sind da streng.
-  return lines.flatMap(foldIcsLine).join('\r\n') + '\r\n';
+  // CRLF, und auch die letzte Zeile bekommt einen. Manche Kalenderprogramme sind da
+  // streng und zeigen sonst gar nichts an.
+  return `${lines.flatMap(foldIcsLine).join('\r\n')}\r\n`;
 }
 
-/** `20261005T170000Z` */
+/** `20261005T170000Z` — UTC, ohne Trennzeichen, ohne Millisekunden. */
 export function formatIcsDate(value: Date): string {
   return value.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 }
 
-/** Komma, Semikolon, Backslash und Zeilenumbruch haben in ICS eine Bedeutung. */
+/**
+ * Maskiert die vier Zeichen, die in einem ICS-Wert eine eigene Bedeutung haben.
+ *
+ * Der Backslash zuerst — sonst maskiert der nächste Schritt die Backslashes, die dieser
+ * Schritt gerade erst eingefügt hat, und aus einem Komma wird `\\,`.
+ */
 export function escapeIcsText(value: string): string {
   return value
     .replace(/\\/g, '\\\\')
-    .replace(/;/g, '\;')
+    .replace(/;/g, '\\;')
     .replace(/,/g, '\\,')
     .replace(/\r?\n/g, '\\n');
 }
 
-/** Zeilen über 75 Oktett werden umgebrochen, die Fortsetzung beginnt mit einem Leerzeichen. */
+/** Wie viele Oktett ein Zeichen in UTF-8 belegt. */
+function utf8Length(character: string): number {
+  const code = character.codePointAt(0) ?? 0;
+  if (code < 0x80) return 1;
+  if (code < 0x800) return 2;
+  if (code < 0x10000) return 3;
+  return 4;
+}
+
+/**
+ * Eine zu lange Zeile in Fortsetzungszeilen zerlegen.
+ *
+ * Der Standard zählt **Oktett**, nicht Zeichen. Wer Zeichen zählt, baut Zeilen, die mit
+ * Umlauten über die Grenze gehen — ein Fehler, der im Test mit englischen Namen nie
+ * auftritt und im Verein mit „Sporthalle Königsmühle" sofort.
+ *
+ * Die Fortsetzung beginnt mit einem Leerzeichen, das selbst ein Oktett belegt; deshalb
+ * haben Folgezeilen nur 74 Oktett Inhalt. Ein Zeichen wird nie zerschnitten.
+ */
 function foldIcsLine(line: string): string[] {
-  if (line.length <= 75) return [line];
+  const characters = [...line];
+  const folded: string[] = [];
 
-  const parts: string[] = [line.slice(0, 75)];
-  let rest = line.slice(75);
+  let current = '';
+  let octets = 0;
+  let limit = 75;
 
-  while (rest.length > 74) {
-    parts.push(` ${rest.slice(0, 74)}`);
-    rest = rest.slice(74);
+  for (const character of characters) {
+    const size = utf8Length(character);
+
+    if (octets + size > limit) {
+      folded.push(current);
+      current = ' ';
+      octets = 1;
+      limit = 75;
+    }
+
+    current += character;
+    octets += size;
   }
-  if (rest.length > 0) parts.push(` ${rest}`);
 
-  return parts;
+  folded.push(current);
+  return folded;
 }

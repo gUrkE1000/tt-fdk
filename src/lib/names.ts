@@ -1,45 +1,82 @@
 /**
- * Namensdarstellung. Übernommen aus dem Basisprojekt (src/lib/nameUtils.ts).
+ * Namen kürzen und vergleichen.
+ *
+ * Drei kleine Funktionen mit einem gemeinsamen Begriff von „Name": eine Folge von
+ * Wörtern, durch Leerraum getrennt, deren letztes der Nachname ist und deren übrige
+ * zusammen der Vorname sind. Das ist für deutsche Vereinsmitglieder tragfähig und für
+ * alles andere eine Vereinfachung — sie steht hier ausdrücklich, damit sie nicht für
+ * eine Tatsache gehalten wird.
  */
 
-/** „Max Mustermann" → „Max M" — datenschutzfreundliche Kurzform für Listen. */
-export function getShortName(name: string): string {
-  if (!name) return '';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length < 2) return name;
-
-  const firstNames = parts.slice(0, -1).join(' ');
-  const initial = parts[parts.length - 1][0]?.toUpperCase() ?? '';
-  return initial ? `${firstNames} ${initial}` : name;
-}
-
-/** Nur der Vorname — für WhatsApp-Nachrichten, wo der Nachname stört. */
-export function getFirstName(fullName: string): string {
-  if (!fullName) return '';
-  const trimmed = fullName.trim();
-  const space = trimmed.indexOf(' ');
-  return space === -1 ? trimmed : trimmed.slice(0, space);
+/** Ein Name, zerlegt in seine Wörter. Leerer Name → leere Liste. */
+function words(name: string): string[] {
+  const trimmed = name.trim();
+  return trimmed === '' ? [] : trimmed.split(/\s+/);
 }
 
 /**
- * Erkennt, ob ein gekürzter Name („Max M") denselben Menschen meint wie ein voller Name
- * („Max Mustermann"). Wird beim Abgleich importierter Kaderlisten gebraucht.
+ * „Max Mustermann" → „Max M".
+ *
+ * Für Listen, die auch jemand sehen darf, der nicht den ganzen Verein kennen muss.
+ * Ein Name ohne Nachnamen bleibt, wie er ist: Aus „Max" lässt sich nichts kürzen, und
+ * ein leerer Rückgabewert wäre an der Anzeigestelle schlimmer als der volle Name.
  */
-export function isNameMatch(existingName: string, scrapedName: string): boolean {
-  const existing = existingName.trim().toLowerCase().replace(/\.$/, '');
-  const scraped = scrapedName.trim().toLowerCase();
-  if (existing === scraped) return true;
+export function getShortName(name: string): string {
+  const parts = words(name);
+  if (parts.length < 2) return name;
 
-  const existingParts = existing.split(/\s+/);
-  const scrapedParts = scraped.split(/\s+/);
-  if (existingParts.length === 0 || scrapedParts.length === 0) return false;
+  const initial = parts[parts.length - 1].charAt(0).toUpperCase();
+  if (initial === '') return name;
 
-  const lastExisting = existingParts[existingParts.length - 1];
-  if (lastExisting.length !== 1) return false;
+  return `${parts.slice(0, -1).join(' ')} ${initial}`;
+}
 
-  const prefixExisting = existingParts.slice(0, -1).join(' ');
-  const prefixScraped = scrapedParts.slice(0, existingParts.length - 1).join(' ');
-  const correspondingPart = scrapedParts[existingParts.length - 1] ?? '';
+/**
+ * Nur der Vorname.
+ *
+ * Für Anreden in Nachrichten. „Hallo Max" liest sich wie ein Mensch, „Hallo Max
+ * Mustermann" wie ein Serienbrief.
+ */
+export function getFirstName(fullName: string): string {
+  return words(fullName)[0] ?? '';
+}
 
-  return prefixExisting === prefixScraped && correspondingPart.startsWith(lastExisting);
+/**
+ * Meinen zwei Schreibweisen dieselbe Person?
+ *
+ * Gebraucht beim Abgleich von Namen aus fremden Quellen (Kaderlisten, Spielberichte) mit
+ * den Mitgliedern hier. Zwei Fälle gelten als Treffer:
+ *
+ * 1. **Gleich** — bis auf Groß-/Kleinschreibung, Leerraum und einen Schlusspunkt.
+ * 2. **Abkürzung** — der erste Name endet auf einen einzelnen Buchstaben, die Wörter
+ *    davor stimmen überein, und das entsprechende Wort des zweiten Namens beginnt mit
+ *    diesem Buchstaben. So trifft „Max M" auf „Max Mustermann" und „Karl Heinz M." auf
+ *    „Karl Heinz Müller".
+ *
+ * Nur der **erste** Name darf abgekürzt sein. Das ist Absicht: Sonst träfe „M M" auf
+ * jeden zweiten Verein, und ein falscher Treffer ordnet eine Rückmeldung der falschen
+ * Person zu — deutlich teurer als ein verpasster Treffer, den jemand von Hand nachträgt.
+ */
+export function isNameMatch(abbreviated: string, full: string): boolean {
+  const left = abbreviated.trim().toLowerCase().replace(/\.$/, '');
+  const right = full.trim().toLowerCase();
+
+  if (left === right) return true;
+
+  const leftParts = words(left);
+  const rightParts = words(right);
+  if (leftParts.length === 0 || rightParts.length === 0) return false;
+
+  // Fall 2 greift nur, wenn das letzte Wort links wirklich eine Initiale ist.
+  const initial = leftParts[leftParts.length - 1];
+  if (initial.length !== 1) return false;
+
+  // Die Wörter vor der Initiale müssen Wort für Wort übereinstimmen …
+  const prefixLength = leftParts.length - 1;
+  for (let index = 0; index < prefixLength; index += 1) {
+    if (leftParts[index] !== rightParts[index]) return false;
+  }
+
+  // … und an der Stelle der Initiale muss rechts ein Wort stehen, das mit ihr beginnt.
+  return rightParts[prefixLength]?.startsWith(initial) ?? false;
 }

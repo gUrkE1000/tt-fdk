@@ -94,74 +94,51 @@ zugegangen.
 Dieses Projekt begann als Fork von
 [dgaida/tt_hsv_planner](https://github.com/dgaida/tt_hsv_planner). Das Repository dort
 enthält **kein LICENSE-File**. Ohne Lizenz verbleiben alle Rechte beim Autor; die
-GitHub-Nutzungsbedingungen erlauben Ansehen und Forken auf GitHub, sonst nichts. Die
-Einzelheiten stehen in [../NOTICE.md](../NOTICE.md).
+GitHub-Nutzungsbedingungen erlauben Ansehen und Forken auf GitHub, sonst nichts.
 
-Praktisch heißt das: **Dieses Repository muss privat bleiben, solange die Frage offen
-ist.** Der Betrieb im eigenen Verein ist ein anderes Thema als die Veröffentlichung, aber
-sauber ist er auch nicht.
+**Der Teil, der blockierte, ist erledigt.** Am 18.09.2026 wurden die vier zuletzt
+verbliebenen Dateien samt ihren Tests neu geschrieben — 410 Zeilen, deren Verhalten die
+Tests so genau beschrieben, dass die Neufassung daran zu prüfen war. Seitdem enthält
+dieses Repository keinen Code aus dem Upstream mehr. Die Einzelheiten, einschließlich der
+drei Fehler, die dabei auffielen, stehen in [../NOTICE.md](../NOTICE.md).
 
-### Was noch übrig ist
+### Was noch aussteht
 
-Vom ursprünglichen Code sind nach dem Umbau **vier Dateien mit zusammen 410 Zeilen**
-übrig:
+**Die Anfrage an den Autor.** Sie ist nicht mehr nötig, aber angemessen — der Code war der
+Ausgangspunkt dieses Projekts. Ein Issue im Upstream-Repository oder eine Nachricht über
+das GitHub-Profil; der Textvorschlag steht in [../NOTICE.md](../NOTICE.md). Das kann nur
+der Verein tun, und es kostet zehn Minuten.
 
-| Datei | Zeilen | Was sie tut |
-|---|---|---|
-| `supabase/functions/_shared/ics.ts` | 258 | ICS-Kalenderdateien lesen |
-| `supabase/functions/_shared/homeAway.ts` | 54 | Heim oder auswärts aus dem Termintitel erkennen |
-| `supabase/functions/_shared/lineupOrder.ts` | 53 | Reihenfolge der Aufstellungskandidaten |
-| `src/lib/names.ts` | 45 | Kurznamen, Vornamen, Namensvergleich |
+**Eine eigene Lizenz.** Die ist unabhängig von allem anderen fällig. Auch ein Projekt, das
+privat bleibt, braucht eine Aussage darüber, wem es gehört und was ein künftiger Vorstand
+damit tun darf. Ohne `LICENSE` erbt der nächste Vorstand genau die Unklarheit, die hier
+gerade aufgeräumt wurde.
 
-Alles andere — Datenbankschema, Oberfläche, Benachrichtigungen, Ersatzkette, Training,
-Termine — ist in diesem Projekt entstanden und über die Git-Historie ab dem Merge-Commit
-zweifelsfrei zuzuordnen.
+Zur Auswahl, wenn der Verein das Projekt später weitergeben will:
 
-### Zwei Wege
+| Lizenz | Bedeutet |
+|---|---|
+| **MIT** | Jeder darf alles, solange der Urhebervermerk erhalten bleibt. Die übliche Wahl für so etwas |
+| **Apache-2.0** | Wie MIT, zusätzlich eine ausdrückliche Patentklausel und eine Pflicht, Änderungen zu kennzeichnen |
+| **AGPL-3.0** | Wer die Anwendung betreibt, muss seinen Quelltext offenlegen. Sinnvoll, wenn kein Anbieter daraus ein bezahltes Produkt machen soll |
+| *keine* | Bleibt privat, niemand außer dem Verein darf etwas damit tun — auch kein anderer Verein |
 
-**Weg A — anfragen.** Der Autor ist über GitHub erreichbar. Ein Issue im
-Upstream-Repository oder eine Nachricht über das Profil. Textvorschlag steht in
-[../NOTICE.md](../NOTICE.md). Die meisten Hobbyprojekte haben schlicht vergessen, eine
-Lizenz zu setzen, und ergänzen sie auf Nachfrage binnen Tagen.
-
-- **Dauer:** unbestimmt. Es kann auch nie eine Antwort kommen.
-- **Ergebnis bei Erfolg:** Lizenztext als `LICENSE` ins Repository, `NOTICE.md`
-  aktualisieren, Warnung in der README entfernen. Die vier Dateien dürfen bleiben.
-- **Ergebnis bei Schweigen:** nichts. Keine Antwort ist keine Erlaubnis.
-
-**Weg B — neu schreiben.** 410 Zeilen reiner Funktionen, für die vollständige Tests
-existieren. Sie beschreiben das Verhalten so genau, dass eine Neufassung daran zu prüfen
-ist, ohne in den alten Code zu sehen.
-
-- **Dauer:** überschaubar.
-- **Ergebnis:** die Frage ist erledigt, unabhängig davon, ob je jemand antwortet.
-- **Zu beachten:** Auch die zugehörigen **Testdateien** stammen aus dem Upstream
-  (`tests/shared/ics.test.ts`, `homeAway.test.ts`, `lineupOrder.test.ts`,
-  `tests/lib/names.test.ts`). Eine Neufassung, die nur die Implementierung ersetzt und die
-  alten Tests behält, löst das Problem zur Hälfte. Die Testfälle sind mitzuschreiben; die
-  *Daten* darin (reale Kalendereinträge, reale Namen) sind Tatsachen und keine Werke.
-
-**Empfehlung: beides, in dieser Reihenfolge.** Weg A kostet zehn Minuten und ist die
-höfliche Variante — der Code war nützlich, und das gehört gesagt. Weg B ist der einzige,
-der ein Datum hat. Wer nur A geht, wartet unter Umständen dauerhaft; wer nur B geht,
-verschweigt eine Herkunft, die ohnehin in der Git-Historie steht.
+**Die Entscheidung über die Veröffentlichung.** Sie hängt jetzt nur noch am Verein, nicht
+mehr an einer fremden Rechtslage. Dafür spricht, dass andere Vereine vor demselben Problem
+stehen und 80 €/Jahr statt 180 € ein Argument sind. Dagegen spricht nichts Rechtliches
+mehr — wohl aber, dass ein öffentliches Repository Fragen von Fremden nach sich zieht, die
+jemand beantworten muss.
 
 ### Checkliste
 
 | # | Schritt | erledigt | Datum |
 |---|---|---|---|
-| 1 | Anfrage an den Autor gestellt (Weg A) | ☐ | |
-| 2 | Antwort erhalten? *(ja / nein / Lizenz ergänzt)* | ☐ | |
-| 3 | Die vier Dateien neu geschrieben (Weg B) | ☐ | |
-| 4 | Die vier Testdateien neu geschrieben | ☐ | |
-| 5 | `NOTICE.md` auf den neuen Stand gebracht | ☐ | |
-| 6 | Eigene Lizenz für dieses Projekt gewählt und als `LICENSE` abgelegt | ☐ | |
-| 7 | Entschieden, ob das Repository öffentlich wird | ☐ | |
-
-Schritt 6 ist unabhängig von allem anderen fällig: Auch ein Projekt, das privat bleibt,
-braucht eine Aussage darüber, wem es gehört und was ein künftiger Vorstand damit tun darf.
-Ohne `LICENSE` erbt der nächste Vorstand dieselbe Unklarheit, die hier gerade aufgeräumt
-wird.
+| 1 | ~~Die vier Dateien neu geschrieben~~ | ☑ | 18.09.2026 |
+| 2 | ~~Die zugehörigen Testdateien neu geschrieben~~ | ☑ | 18.09.2026 |
+| 3 | ~~`NOTICE.md` und README auf den neuen Stand gebracht~~ | ☑ | 18.09.2026 |
+| 4 | Anfrage an den Autor gestellt | ☐ | |
+| 5 | Eigene Lizenz gewählt und als `LICENSE` abgelegt | ☐ | |
+| 6 | Entschieden, ob das Repository öffentlich wird | ☐ | |
 
 ---
 
