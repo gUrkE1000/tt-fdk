@@ -238,20 +238,35 @@ npm ci
 Und dann prüf **vor dem ersten Befehl**, dass du den richtigen Stand hast:
 
 ```bash
+git status -sb                    # ## main...origin/main
 ls supabase/migrations | wc -l    # 32
 ls supabase/functions  | wc -l    # 8  (7 Functions + _shared)
-git log --oneline -1
 ```
 
 ```powershell
 # PowerShell
+git status -sb                              # ## main...origin/main
 (Get-ChildItem supabase\migrations).Count   # 32
 (Get-ChildItem supabase\functions).Count    # 8
-git log --oneline -1
 ```
 
 Stimmen die Zahlen nicht, **halt an**. Weitermachen kostet dann mehr Zeit, als jetzt
 nachzusehen.
+
+> ⚠️ **Die erste Zeile ist die wichtigste: auf welchem Branch stehst du?**
+>
+> `git clone` holt den **Standard-Branch**, und der ist nicht zwangsläufig der, auf dem
+> entwickelt wird. Steht dort ein Feature-Branch statt `main`, bekommst du einen älteren
+> Stand — ohne jede Warnung, denn aus Sicht von Git ist alles in Ordnung.
+>
+> Prüfen lässt es sich auch von außen:
+> ```bash
+> git remote show origin | grep "HEAD branch"
+> ```
+> Steht dort nicht `main`, gehört der Standard-Branch umgestellt
+> (*GitHub → Settings → General → Default branch*), bevor irgendjemand sonst klont.
+> Einen veralteten Branch als Standard stehen zu lassen, verteilt den Fehler an jeden
+> Nächsten — an Vereinskollegen ebenso wie an jede KI, der man das Repository zeigt.
 
 > **Warum das eine eigene Überschrift hat.** Ein alter Ordner mit demselben Namen sieht
 > aus wie der richtige, verhält sich aber nicht so — und der Fehler zeigt sich erst viel
@@ -1070,9 +1085,10 @@ PROBLEM
 [FEHLERMELDUNG WÖRTLICH]
 
 ZUSTAND MEINES KLONS
+git status -sb                → [AUSGABE]   (Soll: ## main...origin/main)
 git log --oneline -1          → [AUSGABE]
-Anzahl supabase/migrations    → [ZAHL]   (Soll: 32)
-Anzahl supabase/functions     → [ZAHL]   (Soll: 8)
+Anzahl supabase/migrations    → [ZAHL]      (Soll: 32)
+Anzahl supabase/functions     → [ZAHL]      (Soll: 8)
 
 FRAGE
 Habe ich den richtigen Stand des Repositories? Falls nein: wie komme ich darauf,
