@@ -28,6 +28,7 @@ lassen, und ein paar Tage Wartezeit auf DNS und Verträge.
 - [Teil 1 — Konten und Zugänge](#teil-1--konten-und-zugänge)
   - [Der Stichtag für die Domain](#11a-der-stichtag-für-die-domain)
 - [Teil 2 — Technische Einrichtung](#teil-2--technische-einrichtung)
+  - [Den Klon prüfen — vor allem anderen](#20-den-klon-prüfen--vor-allem-anderen)
 - [Teil 3 — Erster Start](#teil-3--erster-start)
 - [Teil 4 — Daten hineinbekommen](#teil-4--daten-hineinbekommen)
 - [Teil 5 — Rechtliches](#teil-5--rechtliches)
@@ -225,10 +226,52 @@ Das Repository existiert. Zu tun:
 
 Ab hier brauchst du ein Terminal und das Repository lokal.
 
+## 2.0 Den Klon prüfen — vor allem anderen
+
+**Klone frisch. Nutz keinen Ordner, der schon da ist.**
+
 ```bash
 git clone <repo-url> tt-fdk && cd tt-fdk
 npm ci
 ```
+
+Und dann prüf **vor dem ersten Befehl**, dass du den richtigen Stand hast:
+
+```bash
+ls supabase/migrations | wc -l    # 32
+ls supabase/functions  | wc -l    # 8  (7 Functions + _shared)
+git log --oneline -1
+```
+
+```powershell
+# PowerShell
+(Get-ChildItem supabase\migrations).Count   # 32
+(Get-ChildItem supabase\functions).Count    # 8
+git log --oneline -1
+```
+
+Stimmen die Zahlen nicht, **halt an**. Weitermachen kostet dann mehr Zeit, als jetzt
+nachzusehen.
+
+> **Warum das eine eigene Überschrift hat.** Ein alter Ordner mit demselben Namen sieht
+> aus wie der richtige, verhält sich aber nicht so — und der Fehler zeigt sich erst viel
+> später, an einer Stelle, die nichts damit zu tun hat.
+>
+> Der teuerste Fall: `db push` spielt eine **alte, längst gelöschte Migration** in die
+> Produktionsdatenbank ein. Danach steht dort ein Schema, das es im Projekt nicht mehr
+> gibt, `supabase_migrations.schema_migrations` merkt es sich, und jeder weitere `db push`
+> baut darauf auf. Der Weg zurück ist dann eine leere Datenbank.
+>
+> Woran man es außerdem merkt, wenn man die Zahlen nicht geprüft hat:
+> - `functions deploy` bricht ab, weil ein Ordner fehlt, den `config.toml` erwartet
+> - `private.cron_config` existiert nicht
+> - eine Migration verlangt Erweiterungen, die hier niemand braucht
+> - `docs/umsetzungsplan.md` zeigt Aufgaben als „offen", die erledigt sind
+>
+> Jeder dieser Punkte lädt zu einer plausiblen, aber falschen Erklärung ein. Die richtige
+> steht immer in `git log`.
+
+☐ Zahlen geprüft am: ________
 
 ## 2.1 Supabase CLI verbinden
 
@@ -1011,6 +1054,43 @@ WAS ICH NICHT WILL
 Keine Änderung am Import-Code, bevor nicht klar ist, dass es wirklich ein
 Fehler ist und nicht meine Datei.
 ```
+
+## Prompt 8a — Ein Befehl findet etwas nicht, das es geben müsste
+
+Bevor du diesen Prompt abschickst, **prüf die Zahlen aus
+[2.0](#20-den-klon-prüfen--vor-allem-anderen)**. Wenn eine Tabelle, ein Ordner, eine
+Function oder eine Migration fehlt, ist der häufigste Grund kein Fehler im Projekt,
+sondern ein alter lokaler Stand.
+
+```
+[STECKBRIEF]
+
+PROBLEM
+[Befehl/Abfrage] meldet, dass [Objekt] nicht existiert:
+[FEHLERMELDUNG WÖRTLICH]
+
+ZUSTAND MEINES KLONS
+git log --oneline -1          → [AUSGABE]
+Anzahl supabase/migrations    → [ZAHL]   (Soll: 32)
+Anzahl supabase/functions     → [ZAHL]   (Soll: 8)
+
+FRAGE
+Habe ich den richtigen Stand des Repositories? Falls nein: wie komme ich darauf,
+ohne die Arbeit zu verlieren, die ich schon in Supabase, Resend und DNS gesteckt habe?
+
+Falls ja: woran liegt es dann wirklich?
+
+WAS ICH NICHT WILL
+Keine Lösung, die das fehlende Objekt von Hand nachbaut, bevor geklärt ist, warum es
+fehlt. Wenn mein Klon alt ist, macht jedes Nachbauen den Abstand zum echten Stand
+größer, nicht kleiner.
+```
+
+> **Warum dieser Prompt eine eigene Nummer hat.** „Objekt existiert nicht" verführt jede
+> KI dazu, das Objekt zu erfinden — eine Tabelle anzulegen, einen Eintrag zu entfernen,
+> einen `search_path` zu setzen. Jeder dieser Schritte ist für sich plausibel und macht
+> die Lage schlechter. Die Frage lautet nicht „wie baue ich es nach", sondern „warum
+> fehlt es".
 
 ## Prompt 9 — Etwas läuft lokal, aber nicht in Supabase
 
