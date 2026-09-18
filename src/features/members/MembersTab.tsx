@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link2, Mail, Plus, TrendingUp, UserPlus } from 'lucide-react';
+import { FileSpreadsheet, Link2, Mail, Plus, TrendingUp, UserPlus } from 'lucide-react';
 import {
   Button,
   Dialog,
@@ -23,6 +23,7 @@ import MemberDialog from './MemberDialog';
 import QttrDialog from './QttrDialog';
 import InviteDialog from './InviteDialog';
 import RegistrationLinkDialog from './RegistrationLinkDialog';
+import ExcelDialog from './ExcelDialog';
 
 const ROLE_OPTIONS = [
   { value: 'all', label: 'Alle Rollen' },
@@ -48,6 +49,7 @@ export default function MembersTab() {
   const [qttrOpen, setQttrOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
+  const [excelOpen, setExcelOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Member | null>(null);
 
   const groupList = groups.data ?? [];
@@ -90,6 +92,10 @@ export default function MembersTab() {
           {visible.length} von {(members.data ?? []).length} Mitgliedern
         </p>
         <div className="flex flex-wrap gap-2">
+          <Button onClick={() => setExcelOpen(true)}>
+            <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />
+            Excel Import &amp; Update
+          </Button>
           <Button onClick={() => setQttrOpen(true)}>
             <TrendingUp className="h-4 w-4" aria-hidden="true" />
             QTTR-Update
@@ -183,6 +189,8 @@ export default function MembersTab() {
       <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} members={members.data ?? []} />
 
       <RegistrationLinkDialog open={linkOpen} onOpenChange={setLinkOpen} />
+
+      <ExcelDialog open={excelOpen} onOpenChange={setExcelOpen} />
 
       <Dialog
         open={toDelete !== null}

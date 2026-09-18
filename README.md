@@ -37,8 +37,8 @@ Im Entwicklungsmodus zeigt `/_design` alle Komponenten des Design-Systems.
 ## Stack
 
 React 18 · TypeScript · Vite · Tailwind · react-router · TanStack Query · react-hook-form +
-zod · Radix UI · FullCalendar · tiptap · @dnd-kit · vite-plugin-pwa · Vitest · Supabase
-(Postgres, Auth, RLS, Edge Functions) · pgTAP.
+zod · Radix UI · FullCalendar · tiptap · @dnd-kit · exceljs · vite-plugin-pwa · Vitest ·
+Supabase (Postgres, Auth, RLS, Edge Functions) · pgTAP.
 
 ## Ordnerstruktur
 

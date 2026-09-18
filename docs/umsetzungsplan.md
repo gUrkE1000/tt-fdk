@@ -671,6 +671,7 @@ Vom ausführenden Agenten gepflegt.
 | 8.3 Web Push und Glocke | erledigt | 18.09.2026 | Knopf-Kennungen und Farben wie im TT-Planer; tote Endpunkte werden gelöscht |
 | 8.4 Admin-Bereich und Betriebsdokumentation | erledigt | 18.09.2026 | `v_cron_status` mit Leer-Fassung ohne pg_cron; `docs/einrichtung.md` neu |
 | 9.1 Schlüsselverwaltung | erledigt | 18.09.2026 | Schlüsselwarnung in 6.5 damit scharf; Zuordnungsspalten der Vereinsübersicht nachgezogen |
+| 9.5 Excel-Import/-Update | erledigt | 18.09.2026 | `exceljs` statt `xlsx` (Sicherheitslücke); eine Rangspalte statt fünfzehn |
 | 9.x übrige Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
 
@@ -999,6 +1000,30 @@ Vom ausführenden Agenten gepflegt.
     versprach sie für Phase 3 und 6, dort ist es aber untergegangen. Mit der Spalte
     Schlüssel daneben wären es vier leere Spalten gewesen. `memberAssignments` füllt jetzt
     alle vier.
+
+85. **`exceljs` statt `xlsx` (9.5).** Der Plan nennt SheetJS. Die Fassung auf npm ist 0.18.5
+    und hat eine offene Prototype-Pollution-Lücke im Tabellen-Parser (CVE-2023-30533) — also
+    genau in dem Code, der eine hochgeladene Datei liest. Behobene Fassungen vertreibt
+    SheetJS nur über die eigene Adresse, nicht über npm. `exceljs` kann dasselbe und ist
+    gepflegt; es bringt eine Warnung über `uuid` mit, die auf einen Aufruf mit `buf`-Argument
+    zielt, den exceljs nicht macht.
+86. **Die Excel-Bibliothek wird erst beim Öffnen des Dialogs geladen (9.5).** Sie wiegt rund
+    ein Megabyte. Fest eingebunden zahlte jedes Mitglied beim ersten Seitenaufruf dafür,
+    obwohl ein Import zweimal im Vereinsleben vorkommt.
+87. **Eine Spalte „Rang" statt fünfzehn (9.5).** Der TT-Planer führt je Altersklasse eine
+    eigene Spalte. Fünfzehn Rangspalten wären eine Vorlage, die niemand ausfüllt; der Import
+    legt den Rang in der Erwachsenen- beziehungsweise Damenklasse an, weitere pflegt man in
+    der Anwendung.
+88. **Zugeordnet wird über E-Mail, dann Mitgliedsnummer, dann Name (9.5).** Der Plan nennt
+    nur „Update". Passt der Name auf mehrere Mitglieder, bleibt die Zeile **liegen**, statt
+    das falsche Mitglied zu überschreiben — zwei „Max Mustermann" ohne E-Mail sind im Verein
+    keine Seltenheit.
+89. **Eine leere Zelle löscht nichts (9.5).** Wer beim Update die Spalte Gruppen leert, hätte
+    sonst die Zuordnung aller Mitglieder verloren, ohne es zu wollen. Der Import trägt ein,
+    was dasteht; er nimmt nichts weg.
+90. **Der Import zeigt erst, was er tun würde (9.5).** Ein Import läuft einmal, mit echten
+    Daten, und ein Fehler betrifft alle Mitglieder gleichzeitig. Deshalb erst der Bericht
+    („12 neu, 30 aktualisieren, 2 unklar"), dann der Knopf.
 
 **Blocker:** —
 
