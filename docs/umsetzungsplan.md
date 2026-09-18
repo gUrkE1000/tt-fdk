@@ -679,7 +679,9 @@ Vom ausführenden Agenten gepflegt.
 | 9.11 Dark Mode | erledigt | 18.09.2026 | über Farb-Variablen statt `dark:`-Varianten; im Browser geprüft |
 | 9.x übrige Stufe B | offen | | 9.8 Arbeitszeiten gestrichen; 9.4/9.7/9.10 warten auf das Supabase-Projekt |
 | 10.1 Datenschutz-Unterlagen | erledigt | 18.09.2026 | dabei aufgefallen: die versprochene Löschung nach 30 Tagen fand nie statt |
-| 10.2 – 10.4 Go-live | offen | | |
+| 10.2 Datenübernahme | vorbereitet | 18.09.2026 | `docs/migration.md`; ausführbar erst mit Supabase-Projekt und echter TT-Planer-Datei |
+| 10.3 Parallelbetrieb | vorbereitet | 18.09.2026 | `docs/parallelbetrieb.md`: Z1–Z11 als Nachweistabellen, Feedback als Umfrage plus Nachrichtenfaden |
+| 10.4 Kündigung und Abschluss | vorbereitet | 18.09.2026 | `docs/abschluss.md`; Lizenzfrage weiter offen — Weg A (anfragen) kann nur der Verein gehen |
 
 ### Abweichungen vom Plan, die sich beim Bauen ergeben haben
 

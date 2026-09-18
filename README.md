@@ -65,6 +65,9 @@ scripts/          Lokale Testdatenbank, Supabase-Kompatibilitätsschicht, Typgen
 | [docs/datenbank.md](docs/datenbank.md) | Schema-Referenz und die Begründungen dahinter |
 | [docs/einrichtung.md](docs/einrichtung.md) | **Einrichtung von null**: Supabase, Resend, VAPID, Secrets, Cron, erster Administrator |
 | [docs/betrieb.md](docs/betrieb.md) | Laufender Betrieb: Reiter „Betrieb", Cron, Fehlerbilder, Sicherung |
+| [docs/migration.md](docs/migration.md) | **Datenübernahme aus dem TT-Planer**: Reihenfolge, Spalten-Mapping, Checkliste |
+| [docs/parallelbetrieb.md](docs/parallelbetrieb.md) | **Abnahme**: vier Wochen beide Systeme, Nachweise zu Z1–Z11, Feedback der Mitglieder |
+| [docs/abschluss.md](docs/abschluss.md) | **Go-live**: retten, kündigen, Lizenzfrage, Release v1.0.0 |
 | [docs/tt-planer-bestandsaufnahme.md](docs/tt-planer-bestandsaufnahme.md) | Erhebung des TT-Planers auf Feldebene (Referenzprodukt) |
 | [docs/funktionsvergleich.md](docs/funktionsvergleich.md) | Vergleich TT-Planer gegen den übernommenen Basisstand (historisch) |
 | [docs/recherche-tt-planer.md](docs/recherche-tt-planer.md) | Marktrecherche, Datenwege aus click-TT, Kostenvergleich |

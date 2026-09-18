@@ -51,6 +51,28 @@ zu setzen. Textvorschlag:
 Sobald eine Lizenz vorliegt: Lizenztext als `LICENSE` ins Repository aufnehmen, diesen Abschnitt
 aktualisieren und die Warnung in der [README](README.md) entfernen.
 
+**Der zweite Weg** — die verbliebenen vier Dateien neu schreiben und die Frage damit erledigen —
+ist mit Aufwand, Fallstricken und Checkliste in [docs/abschluss.md §3](docs/abschluss.md#3-die-lizenzfrage)
+beschrieben. Er hat den Vorteil, dass er ein Datum hat: Auf eine Anfrage muss niemand antworten.
+
+## Was noch aus dem Upstream stammt
+
+Stand 18.09.2026, nach dem vollständigen Umbau des Projekts:
+
+| Datei | Zeilen |
+|---|---|
+| `supabase/functions/_shared/ics.ts` | 258 |
+| `supabase/functions/_shared/homeAway.ts` | 54 |
+| `supabase/functions/_shared/lineupOrder.ts` | 53 |
+| `src/lib/names.ts` | 45 |
+| **Summe** | **410** |
+
+Dazu die zugehörigen Testdateien `tests/shared/{ics,homeAway,lineupOrder}.test.ts` und
+`tests/lib/names.test.ts`, deren Fälle aus dem Upstream übernommen und angepasst wurden.
+
+Alles andere in diesem Repository — Datenbankschema, Oberfläche, Benachrichtigungen, Ersatzkette,
+Training, Termine, Umfragen, Kalender — ist hier entstanden.
+
 ## Eigene Beiträge
 
 Alle Änderungen, die nach dem oben genannten Commit in diesem Repository entstehen, stammen vom

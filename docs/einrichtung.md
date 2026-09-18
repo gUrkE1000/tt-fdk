@@ -226,3 +226,7 @@ Der Reihe nach, jeweils mit Blick auf **Verein → Betrieb**:
 
 Erst wenn diese fünf Punkte stimmen, ist die Einrichtung fertig. Alles, was danach nicht
 läuft, steht mit Fehlerbild und Abhilfe in [`betrieb.md`](betrieb.md).
+
+Die Anwendung ist jetzt leer. Wie die Daten aus dem TT-Planer hineinkommen, steht in
+[`migration.md`](migration.md); was danach vier Wochen lang zu prüfen ist, in
+[`parallelbetrieb.md`](parallelbetrieb.md).
