@@ -47,6 +47,25 @@ export const operationsSchema = z.object({
       message: 'Bitte eine vollständige Adresse mit https://',
     }),
 
+  /**
+   * Datenschutzhinweis und Impressum (Aufgabe 10.1).
+   *
+   * Ohne die erste Adresse erfährt niemand, was mit seinen Daten passiert — und die
+   * Registrierungsseite verschweigt es, weil sie nichts zu verlinken hat.
+   */
+  privacy_url: z
+    .string()
+    .trim()
+    .refine((value) => value === '' || /^https?:\/\/\S+$/i.test(value), {
+      message: 'Bitte eine vollständige Adresse mit https://',
+    }),
+  imprint_url: z
+    .string()
+    .trim()
+    .refine((value) => value === '' || /^https?:\/\/\S+$/i.test(value), {
+      message: 'Bitte eine vollständige Adresse mit https://',
+    }),
+
   quicklinks_json: z.string().refine(
     (value) => {
       if (value.trim() === '') return true;

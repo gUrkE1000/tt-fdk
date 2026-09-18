@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import BottomBar from './BottomBar';
+import LegalFooter from './LegalFooter';
 import { labelForPath, type Role } from '../nav';
 import { useSession } from '../../features/auth/session';
 import ProfileMenu from '../../features/auth/ProfileMenu';
@@ -93,6 +94,8 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
         <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-4 sm:px-6 sm:py-6">
           <Outlet />
         </main>
+
+        <LegalFooter className="border-t border-gray-200" />
 
         <BottomBar role={effectiveRole} onOpenMenu={() => setDrawerOpen(true)} />
       </div>

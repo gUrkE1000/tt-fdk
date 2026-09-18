@@ -2524,6 +2524,10 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      retention_days: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       rpc_activate_member: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -2584,6 +2588,10 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      rpc_run_retention: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
       rpc_set_event_participation: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -2626,6 +2634,10 @@ export interface Database {
       };
       rpc_vote_reschedule: {
         Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      run_retention: {
+        Args: Record<string, never>;
         Returns: unknown;
       };
       training_audience: {

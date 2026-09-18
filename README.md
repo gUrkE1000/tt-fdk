@@ -69,6 +69,7 @@ scripts/          Lokale Testdatenbank, Supabase-Kompatibilitätsschicht, Typgen
 | [docs/funktionsvergleich.md](docs/funktionsvergleich.md) | Vergleich TT-Planer gegen den übernommenen Basisstand (historisch) |
 | [docs/recherche-tt-planer.md](docs/recherche-tt-planer.md) | Marktrecherche, Datenwege aus click-TT, Kostenvergleich |
 | [docs/erhebung-prompt-browser.md](docs/erhebung-prompt-browser.md) | Prompt für die Bestandsaufnahme im Browser |
+| [docs/datenschutz/](docs/datenschutz/) | Verarbeitungsverzeichnis, Datenschutzhinweis, Löschkonzept, Auftragsverarbeitung |
 | [NOTICE.md](NOTICE.md) | Herkunft und Lizenzstatus |
 
 ## Schema-Baseline

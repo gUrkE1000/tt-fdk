@@ -123,6 +123,29 @@ export default function SettingsPanel() {
 
       <Card>
         <CardHeader>
+          <h3 className="font-bold text-gray-900">Rechtliches</h3>
+        </CardHeader>
+        <CardBody className="grid gap-3 sm:grid-cols-2">
+          <FormField
+            label="Datenschutzhinweis"
+            hint="Ohne diese Adresse erfährt niemand, was mit seinen Daten passiert — und die Registrierung verschweigt es."
+            error={form.formState.errors.privacy_url?.message}
+          >
+            {(p) => <Input {...p} placeholder="https://" {...form.register('privacy_url')} />}
+          </FormField>
+
+          <FormField
+            label="Impressum"
+            hint="Für einen eingetragenen Verein mit Website ohnehin Pflicht."
+            error={form.formState.errors.imprint_url?.message}
+          >
+            {(p) => <Input {...p} placeholder="https://" {...form.register('imprint_url')} />}
+          </FormField>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <h3 className="font-bold text-gray-900">Quicklinks der Übersicht</h3>
         </CardHeader>
         <CardBody className="space-y-3">

@@ -99,6 +99,9 @@ export async function validateRegistrationCode(code: string): Promise<boolean> {
 export interface PublicClubInfo {
   club_name: string;
   club_short_name: string;
+  /** Adresse des Datenschutzhinweises; leer, solange der Verein keinen hinterlegt hat. */
+  privacy_url?: string;
+  imprint_url?: string;
 }
 
 /** Vereinsname für Anmeldung und Registrierung — abrufbar, bevor jemand angemeldet ist. */

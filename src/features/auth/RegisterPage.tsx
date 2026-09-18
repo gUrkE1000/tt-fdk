@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const { code = '' } = useParams();
   const { toast } = useToast();
   const clubInfo = usePublicClubInfo();
+  const privacyUrl = clubInfo.data?.privacy_url?.trim() ?? '';
   const [done, setDone] = useState(false);
 
   const codeCheck = useQuery({
@@ -131,6 +132,27 @@ export default function RegisterPage() {
           <Button type="submit" variant="primary" block loading={isSubmitting}>
             Registrieren
           </Button>
+
+          {/*
+            Hier werden die ersten Daten erhoben — also muss der Datenschutzhinweis
+            hier stehen und nicht nur irgendwo (Art. 13 DSGVO). Bewusst als Satz
+            über dem Knopf und nicht als Häkchen: Eine Kenntnisnahme abzuhaken ist
+            keine Einwilligung und täuscht nur eine vor.
+          */}
+          {privacyUrl !== '' && (
+            <p className="text-center text-xs text-gray-500">
+              Mit der Registrierung nimmst du unseren{' '}
+              <a
+                href={privacyUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="font-semibold text-primary underline-offset-2 hover:underline"
+              >
+                Datenschutzhinweis
+              </a>{' '}
+              zur Kenntnis.
+            </p>
+          )}
         </form>
       </div>
     </div>

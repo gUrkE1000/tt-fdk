@@ -11,6 +11,18 @@ Nachrichten am Termin. Es fehlen noch die übrigen Stufe-B-Tabellen (Phase 9).
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
 eigene Migration.
 
+## Aufbewahrung und Löschung
+
+`run_retention()` läuft täglich um 2 Uhr (pg_cron-Job `retention`) und setzt die Fristen
+aus `club_settings` durch: gelöschte Konten nach 30 Tagen endgültig, Benachrichtigungen
+und Betriebsprotokolle nach einem Jahr, Abwesenheiten zwei Jahre nach Ende, abgelaufene
+Aktions-Token nach 30 Tagen.
+
+Das war lange eine offene Flanke: Die Baseline versprach im Kommentar „endgültig nach 30
+Tagen", aber es gab keinen Job dafür — ein gelöschtes Mitglied blieb mit Name und
+Geburtsdatum unbegrenzt stehen, nur unsichtbar. Die Begründung der Fristen steht in
+`docs/datenschutz/loeschkonzept.md`.
+
 ## Grundsätze
 
 1. **Die Datenbank erzwingt die Rechte, nicht das Frontend.** Jede Tabelle hat RLS, jede
@@ -45,6 +57,8 @@ passiert in `src/lib/clubSettings.ts` bzw. in den Funktionen, die den Wert brauc
 | `registration_code` | Vereinscode für die Selbstregistrierung; leer = aus |
 | `default_venue_id` | Vorbelegung bei neuen Terminen |
 | `quicklinks_json` | Links der Übersicht als JSON-Array `[{"label":…,"url":…}]` (Aufgabe 8.1) |
+| `privacy_url`, `imprint_url` | Datenschutzhinweis und Impressum; verlinkt in Fußzeile und Registrierung (Aufgabe 10.1) |
+| `retention_*_days` | Aufbewahrungsfristen, die `run_retention()` täglich durchsetzt (Aufgabe 10.1) |
 
 Schlüssel mit dem Präfix `secret_` sind per Policy von jedem Lesezugriff ausgenommen —
 dort gehören Werte hin, die nur Edge Functions mit `service_role` sehen dürfen.

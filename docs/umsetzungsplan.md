@@ -678,7 +678,8 @@ Vom ausführenden Agenten gepflegt.
 | 9.9 Trainingsstatistik | erledigt | 18.09.2026 | „nicht gemeldet" bleibt von „abgesagt" getrennt; Menüpunkt jetzt für alle |
 | 9.11 Dark Mode | erledigt | 18.09.2026 | über Farb-Variablen statt `dark:`-Varianten; im Browser geprüft |
 | 9.x übrige Stufe B | offen | | 9.8 Arbeitszeiten gestrichen; 9.4/9.7/9.10 warten auf das Supabase-Projekt |
-| 10.x Go-live | offen | | |
+| 10.1 Datenschutz-Unterlagen | erledigt | 18.09.2026 | dabei aufgefallen: die versprochene Löschung nach 30 Tagen fand nie statt |
+| 10.2 – 10.4 Go-live | offen | | |
 
 ### Abweichungen vom Plan, die sich beim Bauen ergeben haben
 
@@ -1098,6 +1099,32 @@ Vom ausführenden Agenten gepflegt.
 107. **Statusfarben bleiben in beiden Modi kräftig (9.11).** Grün heißt Zusage, rot heißt
      Absage; daran darf der Modus nichts ändern. Nur die blassen Hintergründe kippen, weil
      ein Pastellton auf dunklem Grund leuchtet.
+
+108. **Die Löschung nach 30 Tagen fand nie statt (Fund in 10.1).** Die Baseline versprach
+     im Kommentar „Soft-Delete, endgültig nach 30 Tagen" — einen Job dafür gab es nie. Ein
+     gelöschtes Mitglied blieb mit Name, Adresse und Geburtsdatum unbegrenzt in der
+     Datenbank, nur unsichtbar. Aufgefallen beim Schreiben des Löschkonzepts, und zwar
+     genau deshalb: Ein Konzept, das eine Löschung beschreibt, die nicht stattfindet, ist
+     schlimmer als keins — es begründet eine Zusage, die der Verein bricht.
+     `run_retention()` macht daraus einen täglichen Vorgang.
+109. **Die Fristen stehen als Einstellungen, nicht im Code (10.1).** Satzung und
+     Kassenprüfung können andere Fristen verlangen; der Verein soll sie ändern können, ohne
+     eine Migration zu schreiben.
+110. **Der Löschlauf braucht keine Edge Function (10.1).** Er ist reines SQL und läuft mit
+     den Rechten des Eigentümers. Ein Umweg über pg_net wäre eine Fehlerquelle mehr für
+     eine Anweisung, die die Datenbank selbst ausführen kann — anders als beim
+     Kalenderabgleich, der tatsächlich nach draußen muss.
+111. **Datenschutzhinweis verlinkt statt eingebaut (10.1).** Die meisten Vereine haben ihn
+     längst auf ihrer Website. Zwei Fassungen desselben Textes laufen unweigerlich
+     auseinander, und dann steht in der Anwendung eine, die nicht mehr gilt.
+     `docs/datenschutz/datenschutzhinweis.md` ist der Entwurf zum Veröffentlichen.
+112. **Auf der Registrierung ein Satz, kein Häkchen (10.1).** Eine Kenntnisnahme abzuhaken
+     ist keine Einwilligung und täuscht nur eine vor. Die Verarbeitung dort stützt sich auf
+     das Mitgliedschaftsverhältnis, nicht auf Zustimmung.
+113. **Die AV-Dokumente sind keine Verträge (10.1).** Ein Auftragsverarbeitungsvertrag wird
+     vom Auftragsverarbeiter gestellt und vom Verein abgeschlossen, nicht selbst
+     geschrieben. `av-supabase.md` und `av-resend.md` halten fest, was abzuschließen und
+     was dabei zu prüfen ist — einen Vertragstext zu erfinden wäre wertlos und irreführend.
 
 **Blocker:** —
 
