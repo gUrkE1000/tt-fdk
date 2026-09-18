@@ -110,8 +110,17 @@ Sieben Funktionen: `invite-member`, `sync-calendars`, `process-notifications`,
 `enqueue-reminders`, `substitute-engine`, `generate-training-sessions`, `calendar-feed`.
 
 `calendar-feed` muss **ohne Anmeldung** erreichbar sein — ein Kalenderprogramm kann sich
-nicht anmelden, es hat nur den Abo-Token. In Supabase heißt das: JWT-Prüfung für diese
-Funktion abschalten (*Edge Functions → calendar-feed → Verify JWT: aus*).
+nicht anmelden, es hat nur den Abo-Token in der Adresse. Trag das dauerhaft in
+`supabase/config.toml` ein, die `supabase link` beim ersten Mal anlegt:
+
+```toml
+[functions.calendar-feed]
+verify_jwt = false
+```
+
+Ohne diesen Eintrag ist es ein Klick im Dashboard (*Edge Functions → calendar-feed → Verify
+JWT: aus*), der nach jedem Ausrollen wieder fällig wird — und wenn er fehlt, scheitert das
+Kalenderabo mit einer Meldung, die auf nichts hindeutet.
 
 ## 8. Cron-Konfiguration eintragen
 
@@ -137,8 +146,18 @@ Prüfen:
 SELECT jobname, schedule, active FROM cron.job ORDER BY jobname;
 ```
 
-Es sollten fünf Jobs dastehen: Kalenderabgleich, Versandlauf, Erinnerungen, Ersatzkette
-und Trainingstermine.
+Es sollten **sechs** Jobs dastehen:
+
+| Job | Läuft | Wofür |
+|---|---|---|
+| `retention` | `0 2 * * *` | Löschfristen (Aufgabe 10.1) |
+| `generate-training-sessions` | `0 3 * * *` | Trainingstermine |
+| `sync-calendars` | `0 4 * * *` | Kalenderabgleich |
+| `process-notifications` | `*/5 * * * *` | Versandlauf |
+| `enqueue-reminders` | `*/10 * * * *` | Erinnerungen |
+| `substitute-engine` | `*/10 * * * *` | Ersatzkette |
+
+Stehen dort null Jobs, ist `pg_cron` nicht eingeschaltet — zurück zu Schritt 2.
 
 ## 9. Anwendung bauen und ausliefern
 

@@ -63,6 +63,7 @@ scripts/          Lokale Testdatenbank, Supabase-Kompatibilitätsschicht, Typgen
 | [docs/umsetzungsplan.md](docs/umsetzungsplan.md) | **Arbeitsanweisung**: Phasen 0–10 als Einzelaufgaben mit Endzustand, Vorgehen, Verifikation |
 | [docs/entwicklung.md](docs/entwicklung.md) | Entwicklungsumgebung, Testdatenbank, pgTAP-Konventionen |
 | [docs/datenbank.md](docs/datenbank.md) | Schema-Referenz und die Begründungen dahinter |
+| [docs/go-live.md](docs/go-live.md) | **Der Faden von heute bis zur Kündigung**: alle manuellen Schritte, Checklisten, Fehlerbehandlung, fertige KI-Prompts |
 | [docs/einrichtung.md](docs/einrichtung.md) | **Einrichtung von null**: Supabase, Resend, VAPID, Secrets, Cron, erster Administrator |
 | [docs/betrieb.md](docs/betrieb.md) | Laufender Betrieb: Reiter „Betrieb", Cron, Fehlerbilder, Sicherung |
 | [docs/migration.md](docs/migration.md) | **Datenübernahme aus dem TT-Planer**: Reihenfolge, Spalten-Mapping, Checkliste |
