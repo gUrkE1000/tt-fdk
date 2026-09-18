@@ -44,6 +44,29 @@ jobs:
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
         run: npm run build
 
+      # Guertel zum Hosentraeger. Die eigene Domain steht in den
+      # Repository-Einstellungen (Settings -> Pages -> Custom domain); wird sie dort
+      # versehentlich geleert, liefe die Seite wieder unter der github.io-Adresse — und
+      # jeder Link in jeder Benachrichtigung zeigte ins Leere. Die Datei schreibt sie
+      # noch einmal ins Artefakt.
+      #
+      # Quelle ist VITE_APP_URL, also derselbe Wert, der ohnehin gepflegt wird. Damit
+      # gibt es keine zweite Stelle, an der beim Domainwechsel jemand nachziehen muesste.
+      - name: Eigene Domain ins Artefakt schreiben
+        env:
+          APP_URL: ${{ secrets.VITE_APP_URL }}
+        run: |
+          host="${APP_URL#http://}"
+          host="${host#https://}"
+          host="${host%%/*}"
+          if [ -n "$host" ]; then
+            echo "$host" > dist/CNAME
+            echo "Eigene Domain: $host"
+          else
+            echo "VITE_APP_URL ist leer — keine CNAME-Datei."
+            echo "GitHub Pages nutzt dann die Einstellung aus dem Repository."
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

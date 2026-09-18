@@ -146,6 +146,10 @@ wenigsten gebrauchen kannst.
 ☐ Übergangsdomain: ____________________
 ☐ Endgültige Domain: ____________________ ☐ steht seit: ________
 
+**→ Die DNS-Einrichtung Schritt für Schritt steht in
+[`domain-einrichten.md`](domain-einrichten.md)**: beide Subdomains, alle Einträge, die
+Prüfbefehle und die Liste dessen, was beim späteren Wechsel nachzuziehen ist.
+
 ## 1.2 Supabase-Projekt
 
 1. [supabase.com](https://supabase.com) → Konto anlegen, am besten mit einer
