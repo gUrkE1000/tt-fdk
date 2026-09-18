@@ -16,6 +16,8 @@ import { roleLabel } from '../../lib/labels';
 import { useClubSettings } from './api';
 import ClubTeamsTab from './ClubTeamsTab';
 import ClubGamesTab from './ClubGamesTab';
+import SessionsTab from '../trainings/SessionsTab';
+import OpenTrainingsList from '../trainings/OpenTrainingsList';
 import { contactPeople, searchDirectory, useDirectory, type DirectoryEntry } from './directory';
 
 export default function MyClubPage() {
@@ -32,6 +34,7 @@ export default function MyClubPage() {
         tabs={[
           { value: 'members', label: 'Mitglieder', content: <MembersDirectory /> },
           { value: 'contacts', label: 'Rollen & Kontaktdaten', content: <Contacts /> },
+          { value: 'trainings', label: 'Trainings', content: <ClubTrainingsTab /> },
           { value: 'teams', label: 'Mannschaften', content: <ClubTeamsTab /> },
           { value: 'games', label: 'Spiele', content: <ClubGamesTab /> },
           {
@@ -51,6 +54,25 @@ export default function MyClubPage() {
           },
         ]}
       />
+    </div>
+  );
+}
+
+/**
+ * Trainings aus Mitgliedersicht: die eigenen Termine der nächsten zwei Wochen, darunter
+ * die Liste der offenen Trainings zum Selbst-Eintragen. Dieselben Karten wie unter
+ * „Trainings“ — wer hier zusagt, meldet sich genauso zurück.
+ */
+function ClubTrainingsTab() {
+  return (
+    <div className="space-y-6">
+      <SessionsTab onlyMine />
+      <div>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-600">
+          Offene Trainings
+        </h2>
+        <OpenTrainingsList />
+      </div>
     </div>
   );
 }

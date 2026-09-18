@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
 import { queryKeys } from '../../lib/queryKeys';
-import type { InsertDto, Tables, UpdateDto } from '../../lib/database.types';
+import type { Enums, InsertDto, Tables, UpdateDto, ViewRow } from '../../lib/database.types';
 
 export type Training = Tables<'trainings'>;
 export type TrainingCancellation = Tables<'training_cancellations'>;
@@ -134,6 +134,127 @@ export function useAssignTrainingMembers() {
         trainingId,
         memberIds.map((id) => ({ training_id: trainingId, profile_id: id })),
       );
+    },
+    onSuccess: () => invalidate(queryClient),
+  });
+}
+
+// ---------------------------------------------------------------------------- Termine
+
+export type TrainingSession = Tables<'training_sessions'>;
+export type SessionParticipant = ViewRow<'v_session_participants'>;
+export type SessionCounts = ViewRow<'v_session_counts'>;
+export type AttendanceStatus = Enums<'attendance_status'>;
+
+/** So weit reicht der Blick auf der Terminkarte — zwei Wochen, wie im Zielbild. */
+export const SESSION_WINDOW_DAYS = 14;
+
+export function useTrainingSessions(days = SESSION_WINDOW_DAYS) {
+  return useQuery({
+    queryKey: queryKeys.trainings.sessions(),
+    queryFn: async (): Promise<TrainingSession[]> => {
+      const today = new Date().toISOString().slice(0, 10);
+      const until = new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+
+      const { data, error } = await supabase
+        .from('training_sessions')
+        .select('*')
+        .gte('session_date', today)
+        .lte('session_date', until)
+        .order('starts_at');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+/**
+ * Wer zu welchem Termin kommt — und wie viele.
+ *
+ * Zwei Abfragen, weil die Datenbank zwei Antworten gibt: Namen nur für den, der sie sehen
+ * darf, Zahlen auch dann, wenn die Liste verborgen ist. Bei einem inkognito geführten
+ * Training bleiben beide leer.
+ */
+export function useSessionParticipants() {
+  return useQuery({
+    queryKey: queryKeys.trainings.attendance(),
+    queryFn: async (): Promise<SessionParticipant[]> => {
+      const { data, error } = await supabase.from('v_session_participants').select('*');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useSessionCounts() {
+  return useQuery({
+    queryKey: [...queryKeys.trainings.attendance(), 'counts'],
+    queryFn: async (): Promise<SessionCounts[]> => {
+      const { data, error } = await supabase.from('v_session_counts').select('*');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useSetAttendance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      sessionId,
+      status,
+      guests,
+      profileId,
+    }: {
+      sessionId: string;
+      status: AttendanceStatus;
+      guests?: number;
+      profileId?: string;
+    }) => {
+      const { error } = await supabase.rpc('rpc_set_training_attendance', {
+        p_session_id: sessionId,
+        p_status: status,
+        p_guests: guests ?? 0,
+        p_profile_id: profileId ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => invalidate(queryClient),
+  });
+}
+
+/**
+ * Einem offenen Training beitreten oder es wieder verlassen.
+ *
+ * Direkt auf `training_members`, ohne RPC: Die Policy erlaubt genau diesen einen Fall —
+ * die eigene Zeile bei einem offenen Training, das keine Einladung verlangt.
+ */
+export function useJoinTraining() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ trainingId, profileId }: { trainingId: string; profileId: string }) => {
+      const { error } = await supabase
+        .from('training_members')
+        .insert({ training_id: trainingId, profile_id: profileId });
+      if (error) throw error;
+    },
+    onSuccess: () => invalidate(queryClient),
+  });
+}
+
+export function useLeaveTraining() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ trainingId, profileId }: { trainingId: string; profileId: string }) => {
+      const { error } = await supabase
+        .from('training_members')
+        .delete()
+        .eq('training_id', trainingId)
+        .eq('profile_id', profileId);
+      if (error) throw error;
     },
     onSuccess: () => invalidate(queryClient),
   });

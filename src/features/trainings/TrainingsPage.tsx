@@ -16,7 +16,6 @@ import {
   Tabs,
   useToast,
 } from '../../components/ui';
-import Placeholder from '../../app/Placeholder';
 import { useGroups, useMembers } from '../members/api';
 import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
@@ -32,6 +31,8 @@ import {
   formatSchedule,
 } from './schemas';
 import AssignMembersDialog from './AssignMembersDialog';
+import OpenTrainingsList from './OpenTrainingsList';
+import SessionsTab from './SessionsTab';
 import CancellationDialog from './CancellationDialog';
 import TrainingDialog from './TrainingDialog';
 
@@ -42,11 +43,8 @@ export default function TrainingsPage() {
 
       <Tabs
         tabs={[
-          {
-            value: 'sessions',
-            label: 'Termine',
-            content: <Placeholder title="Trainingstermine" task="6.5" />,
-          },
+          { value: 'sessions', label: 'Termine', content: <SessionsTab /> },
+          { value: 'open', label: 'Offene Trainings', content: <OpenTrainingsList /> },
           { value: 'planning', label: 'Planung', content: <PlanningTab /> },
         ]}
       />

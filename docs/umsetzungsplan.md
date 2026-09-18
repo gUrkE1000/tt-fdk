@@ -658,7 +658,8 @@ Vom ausführenden Agenten gepflegt.
 | 6.2 Feiertage und Schulferien | erledigt | 18.09.2026 | Skript schreibt direkt eine Migration; Feiertage werden gerechnet, wenn die Schnittstelle schweigt |
 | 6.3 Session-Erzeugung | erledigt | 18.09.2026 | `planSessions` mit 31 Tests; vierte Aktion `reschedule`; Auslöser auch bei Ausfall und Dauerzusage |
 | 6.4 Trainings verwalten | erledigt | 18.09.2026 | `resolveAssignment` als reine Funktion; Ausfälle als eigene Seite mit optionalem Training in der Route |
-| 6.5 – 6.7 Training | offen | | |
+| 6.5 Trainingstermine und Teilnahme | erledigt | 18.09.2026 | „Offene Trainings“ als eigener Reiter; Schlüsselhinweis bis 9.1 als Platzhaltertext |
+| 6.6 – 6.7 Training | offen | | |
 | 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
@@ -802,6 +803,15 @@ Vom ausführenden Agenten gepflegt.
     Mannschaften, Gruppen und Einzelne und kann mit „Bisherige überschreiben" eine ganze
     Zuordnung wegwerfen. Die Mengenrechnung steht deshalb getestet neben der Oberfläche,
     und der Dialog zeigt vor dem Speichern, wie viele es danach sind.
+
+40. **„Offene Trainings“ als eigener Reiter (6.5).** Im TT-Planer steht die Liste unter
+    „Mein Verein“. Sie gehört aber auch neben die eigenen Termine: Wer merkt, dass noch
+    Zeit ist, sucht dort und nicht zwei Menüpunkte weiter. Sie steht deshalb an beiden
+    Stellen und ist an beiden dieselbe Komponente.
+41. **Der Schlüsselhinweis nennt noch keinen Namen (6.5).** `requires_key_owner` zeigt
+    einen Hinweis, aber ohne Prüfung, ob ein Zusagender tatsächlich einen Schlüssel hat —
+    Schlüssel gibt es erst ab Aufgabe 9.1. Der Hinweis sagt das, statt eine Sicherheit
+    vorzutäuschen, die es noch nicht gibt.
 
 **Blocker:** —
 
