@@ -26,6 +26,7 @@ lassen, und ein paar Tage Wartezeit auf DNS und Verträge.
 
 - [Teil 0 — Heute, vor allem anderen](#teil-0--heute-vor-allem-anderen)
 - [Teil 1 — Konten und Zugänge](#teil-1--konten-und-zugänge)
+  - [Der Stichtag für die Domain](#11a-der-stichtag-für-die-domain)
 - [Teil 2 — Technische Einrichtung](#teil-2--technische-einrichtung)
 - [Teil 3 — Erster Start](#teil-3--erster-start)
 - [Teil 4 — Daten hineinbekommen](#teil-4--daten-hineinbekommen)
@@ -93,15 +94,57 @@ früh an.
 Eine Domain oder Subdomain, unter der die Anwendung erreichbar ist. Beispiele:
 `planer.tt-musterstadt.de`, `tt-planer.verein.de`.
 
-- Hat der Verein schon eine Website, reicht eine **Subdomain** davon. Kostet nichts extra
-  und ist der einfachste Weg.
-- Sonst: ~15 €/Jahr bei einem beliebigen Anbieter.
+- Hat der Verein schon eine Website, reicht eine **Subdomain** davon
+  (`planer.tsv-musterstadt.de`). Kostet nichts extra und ist der einfachste Weg.
+- Sonst: ~5–15 €/Jahr bei einem Registrar mit vollständiger DNS-Verwaltung — du brauchst
+  `CNAME`, `TXT` und ggf. `MX`.
 
 **Diese Domain wird an drei Stellen gebraucht:** als Adresse der Anwendung, als Absenderdomain
-der E-Mails, und als Basis jedes Links in einer Benachrichtigung. Nimm eine, die in fünf
-Jahren noch dem Verein gehört — nicht die private des Betreibers.
+der E-Mails, und als Basis jedes Links in einer Benachrichtigung.
 
-☐ Domain: ____________________
+⚠️ **Inhaber ist der Verein**, mit Vereinsanschrift, bezahlt vom Vereinskonto. Nicht privat
+„bis wir das mal umschreiben" — genau das passiert nie. Läuft die Anwendung auf der
+Privatdomain des Betreibers, hängen Adresse, E-Mail-Absender und alle Kalender-Abos des
+Vereins an einer Person. Der Datenschutzhinweis behauptet zudem, der Verein betreibe die
+Anwendung; eine Domain im Privatnamen sagt etwas anderes.
+
+## 1.1a Der Stichtag für die Domain
+
+**Eine Übergangsdomain ist in Ordnung — aber nur bis zur ersten Einladung.**
+
+Für Einrichtung, Probelauf und Datenübernahme kannst du nehmen, was gerade da ist. Ein
+Wechsel danach ist jedoch kein DNS-Eintrag, sondern ein Bruch: Die Anwendung ist eine PWA,
+und eine neue Domain ist ein neuer **Origin**.
+
+| Was | Was beim Wechsel passiert |
+|---|---|
+| Service Worker | Neue Registrierung; die alte bleibt als Leiche auf den Geräten |
+| **Push-Anmeldungen** | **Alle weg.** Jeder muss die Glocke neu drücken — und niemand sagt ihm, warum nichts mehr kommt |
+| „Zum Home-Bildschirm" | Zeigt auf die alte Adresse, muss neu installiert werden |
+| **Kalender-Abos (ICS)** | Die volle URL steckt im Kalenderprogramm jedes Mitglieds. Tot |
+| Links in alten Benachrichtigungen | Tot |
+| Redirect-URLs der Anmeldung | Müssen nachgezogen werden (harmlos) |
+
+Mit dir und zwei Mannschaftsführern: zehn Minuten Arbeit. Mit 80 Mitgliedern, die die App
+installiert und Push aktiviert haben: ein Ärgernis in genau der Woche, in der du es am
+wenigsten gebrauchen kannst.
+
+**→ Die endgültige Domain muss vor [Teil 6.1](#61-einladen--in-dieser-reihenfolge) stehen.**
+
+### Wenn du übergangsweise eine fremde oder private Domain nutzt
+
+- **Subdomain nehmen**, nicht die Hauptdomain: `tt.beispiel.de` → `CNAME` auf
+  `<konto>.github.io`.
+- ⚠️ **Für Resend eine eigene Sende-Subdomain** (`mail.beispiel.de`), nicht die Hauptdomain.
+  Resend verlangt SPF-, DKIM- und DMARC-Einträge; liegt auf der Hauptdomain privates
+  E-Mail-Konto, kann eine zu strenge DMARC-Regel die eigene Post ins Nichts schicken. Eine
+  Sende-Subdomain isoliert das und lässt sich später wegwerfen.
+- Prüf vorher, ob der Anbieter **beliebige DNS-Einträge** erlaubt. Manche Baukasten-Hoster
+  (WordPress.com, Wix, Jimdo) geben nur eine Auswahl vorgegebener Typen frei. Dann lohnt der
+  Zwischenschritt nicht — kauf gleich die Vereinsdomain.
+
+☐ Übergangsdomain: ____________________
+☐ Endgültige Domain: ____________________ ☐ steht seit: ________
 
 ## 1.2 Supabase-Projekt
 
