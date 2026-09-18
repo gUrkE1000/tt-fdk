@@ -15,6 +15,8 @@ import TeamsPage from '../features/teams/TeamsPage';
 import PlayersManagementPage from '../features/teams/PlayersManagementPage';
 import GamesPage from '../features/matches/GamesPage';
 import MyGamesPage from '../features/matches/MyGamesPage';
+import TrainingsPage from '../features/trainings/TrainingsPage';
+import CancellationsPage from '../features/trainings/CancellationsPage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -68,7 +70,11 @@ export const router = createBrowserRouter([
           },
           {
             element: <RequireRole roles={['admin', 'trainer']} />,
-            children: [{ path: 'trainings', element: <Placeholder title="Trainings" task="6.4" /> }],
+            children: [
+              { path: 'trainings', element: <TrainingsPage /> },
+              { path: 'trainings/cancellations', element: <CancellationsPage /> },
+              { path: 'trainings/cancellations/:trainingId', element: <CancellationsPage /> },
+            ],
           },
           {
             element: <RequireRole roles={['admin', 'team_leader']} />,

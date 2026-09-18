@@ -184,7 +184,7 @@ export function parsePublicHolidaysApi(payload: unknown): HolidayRow[] {
 /**
  * Schulferien aus ferien-api.de.
  *
- * Die Namen kommen kleingeschrieben („osterferien"); sie gehen in den eindeutigen
+ * Die Namen kommen kleingeschrieben („osterferien“); sie gehen in den eindeutigen
  * Schlüssel ein und werden deshalb einheitlich großgeschrieben, sonst legte ein
  * späterer Lauf mit anderer Schreibweise dieselben Ferien noch einmal an.
  */
@@ -285,7 +285,7 @@ function escape(value: string): string {
 /**
  * Der nächste freie Zeitstempel für eine Migration.
  *
- * Nicht einfach „jetzt": die Migrationen dieses Projekts tragen bewusst Zeitstempel,
+ * Nicht einfach „jetzt“: die Migrationen dieses Projekts tragen bewusst Zeitstempel,
  * die in der Zukunft liegen können. Eine neue Datei muss hinter allen bestehenden
  * einsortieren, sonst liefe sie vor der Tabelle, die sie füllt.
  */

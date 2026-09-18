@@ -44,5 +44,13 @@ export const queryKeys = {
     mine: () => ['matches', 'mine'] as const,
   },
 
+  trainings: {
+    all: ['trainings'] as const,
+    list: () => ['trainings', 'list'] as const,
+    cancellations: () => ['trainings', 'cancellations'] as const,
+    sessions: () => ['trainings', 'sessions'] as const,
+    attendance: () => ['trainings', 'attendance'] as const,
+  },
+
   clubSettings: ['club-settings'] as const,
 } as const;

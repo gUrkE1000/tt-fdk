@@ -657,7 +657,8 @@ Vom ausführenden Agenten gepflegt.
 | 6.1 Schema Training | erledigt | 17.09.2026 | pgTAP als `080_…` (070 war vergeben); `v_session_counts` ergänzt; `training_reminder_filter` vorgezogen |
 | 6.2 Feiertage und Schulferien | erledigt | 18.09.2026 | Skript schreibt direkt eine Migration; Feiertage werden gerechnet, wenn die Schnittstelle schweigt |
 | 6.3 Session-Erzeugung | erledigt | 18.09.2026 | `planSessions` mit 31 Tests; vierte Aktion `reschedule`; Auslöser auch bei Ausfall und Dauerzusage |
-| 6.4 – 6.7 Training | offen | | |
+| 6.4 Trainings verwalten | erledigt | 18.09.2026 | `resolveAssignment` als reine Funktion; Ausfälle als eigene Seite mit optionalem Training in der Route |
+| 6.5 – 6.7 Training | offen | | |
 | 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
@@ -788,6 +789,19 @@ Vom ausführenden Agenten gepflegt.
 36. **Automatische Zusagen schon in 6.3 statt erst in 6.7.** Der Plan sieht das so vor
     („Auto-Zusagen setzen beim Erzeugen `attendance`"); damit bleibt für 6.7 nur noch die
     Oberfläche. Eine von Hand gesetzte Rückmeldung wird dabei nie überschrieben.
+
+37. **Ausfälle als eigene Seite statt als Dialog (6.4).** Der Plan nennt
+    `CancellationsPage.tsx`, sagt aber nicht, wie sie erreichbar ist. Sie hängt jetzt unter
+    `/trainings/cancellations` und optional mit Training in der Route. Ein Hallenausfall
+    erscheint dabei auch in der Liste eines Trainings, das in dieser Halle stattfindet —
+    er trifft es ja.
+38. **Der Trainer sieht „Eine ganze Halle" gar nicht erst (6.4).** Die RLS verbietet ihm
+    den Hallenausfall ohnehin. Ein Feld anzubieten, das beim Speichern scheitert, wäre
+    eine Falle; die Auswahl erscheint deshalb nur für Administratoren.
+39. **`resolveAssignment` als reine Funktion (6.4).** „Mitglieder zuweisen" mischt
+    Mannschaften, Gruppen und Einzelne und kann mit „Bisherige überschreiben" eine ganze
+    Zuordnung wegwerfen. Die Mengenrechnung steht deshalb getestet neben der Oberfläche,
+    und der Dialog zeigt vor dem Speichern, wie viele es danach sind.
 
 **Blocker:** —
 

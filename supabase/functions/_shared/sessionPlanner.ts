@@ -1,7 +1,7 @@
 /**
  * Welche Trainingstermine es geben muss — als reine Funktion.
  *
- * Ein Training ist eine Regel („dienstags 19 Uhr, zweiwöchentlich ab dem 1. September"),
+ * Ein Training ist eine Regel („dienstags 19 Uhr, zweiwöchentlich ab dem 1. September“),
  * ein Termin ist eine Zeile. Der Weg von der einen zur anderen hat drei Eigenschaften,
  * die ihn heikel machen:
  *
@@ -10,8 +10,8 @@
  *   2. An einem Termin hängen Rückmeldungen. Ein gelöschter Termin nimmt sie mit —
  *      deshalb wird hier nie gelöscht, nur angelegt, abgesagt, wieder geöffnet oder
  *      verschoben.
- *   3. Er muss zwischen „abgesagt, weil ein Ausfall eingetragen ist" und „abgesagt, weil
- *      der Trainer es so wollte" unterscheiden. Nur das Erste darf der Job zurücknehmen.
+ *   3. Er muss zwischen „abgesagt, weil ein Ausfall eingetragen ist“ und „abgesagt, weil
+ *      der Trainer es so wollte“ unterscheiden. Nur das Erste darf der Job zurücknehmen.
  *
  * Deshalb steckt die ganze Entscheidung hier, ohne Uhr und ohne Datenbank, und die Edge
  * Function holt nur Daten und führt aus.
@@ -194,7 +194,7 @@ export function occurrences(training: PlannedTraining, from: string, to: string)
   const dates: string[] = [];
 
   if (training.rhythm === 'monthly') {
-    // „Monatlich" heißt: derselbe Wochentag an derselben Stelle des Monats, also etwa
+    // „Monatlich“ heißt: derselbe Wochentag an derselben Stelle des Monats, also etwa
     // jeder zweite Dienstag. Ein Monat ohne fünften Dienstag fällt aus.
     const ordinal = Math.ceil(dayOfMonth(anchor) / 7);
     let year = yearOf(from >= anchor ? from : anchor);
@@ -295,7 +295,7 @@ function timesFor(
 }
 
 /**
- * Ortszeit in einen Zeitpunkt. Eine Trainingszeit ist immer Ortszeit: „dienstags 19 Uhr"
+ * Ortszeit in einen Zeitpunkt. Eine Trainingszeit ist immer Ortszeit: „dienstags 19 Uhr“
  * bleibt 19 Uhr, auch wenn dazwischen die Uhr umgestellt wird.
  */
 function localToIso(date: string, time: string): string {
