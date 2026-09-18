@@ -1,9 +1,9 @@
 import { PageHeader, Tabs } from '../../components/ui';
-import Placeholder from '../../app/Placeholder';
 import { useSession } from '../auth/session';
 import ProfileTab from './ProfileTab';
 import AbsencesTab from './AbsencesTab';
 import NotificationsTab from './NotificationsTab';
+import AutoAttendanceTab from './AutoAttendanceTab';
 
 export default function ProfilePage() {
   const { profile } = useSession();
@@ -30,7 +30,7 @@ export default function ProfilePage() {
           {
             value: 'auto-attendance',
             label: 'Automatische Trainingszusagen',
-            content: <Placeholder title="Automatische Trainingszusagen" task="6.7" />,
+            content: <AutoAttendanceTab profileId={profile.id} />,
           },
         ]}
       />

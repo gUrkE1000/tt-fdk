@@ -174,6 +174,32 @@ export const EMPTY_CANCELLATION: CancellationValues = {
   notifyEmail: false,
 };
 
+// ------------------------------------------------------------------------ Dauerzusage
+
+export const autoAttendanceSchema = z.object({
+  trainingId: z.string().min(1, 'Bitte ein Training auswählen'),
+  untilDate: z.string().min(1, 'Bitte ein Datum angeben'),
+  late: z.boolean(),
+});
+
+export type AutoAttendanceValues = z.infer<typeof autoAttendanceSchema>;
+
+export const EMPTY_AUTO_ATTENDANCE: AutoAttendanceValues = {
+  trainingId: '',
+  untilDate: '',
+  late: false,
+};
+
+/** Wörtlich aus der Bestandsaufnahme (Abschnitt E). */
+export const AUTO_ATTENDANCE_HINT =
+  'Nach der automatischen Zusage zu einem Training, kannst du den Status jederzeit in ' +
+  'deiner Übersicht ändern und z.B. eine Absage hinterlegen.';
+
+/** „Läuft bis 31.12.2026" oder „abgelaufen" — der Status in der Tabelle. */
+export function autoAttendanceStatus(untilDate: string, today: string): 'active' | 'expired' {
+  return untilDate >= today ? 'active' : 'expired';
+}
+
 // ---------------------------------------------------------------------------- Zuweisung
 
 export interface AssignSource {

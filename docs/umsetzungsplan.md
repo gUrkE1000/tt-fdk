@@ -660,7 +660,7 @@ Vom ausführenden Agenten gepflegt.
 | 6.4 Trainings verwalten | erledigt | 18.09.2026 | `resolveAssignment` als reine Funktion; Ausfälle als eigene Seite mit optionalem Training in der Route |
 | 6.5 Trainingstermine und Teilnahme | erledigt | 18.09.2026 | „Offene Trainings“ als eigener Reiter; Schlüsselhinweis bis 9.1 als Platzhaltertext |
 | 6.6 Trainingserinnerungen und Ausfälle | erledigt | 18.09.2026 | Merkposten am Termin statt an der Person; Ausfall meldet den Zeitraum, nicht jeden Tag |
-| 6.7 Automatische Trainingszusagen | offen | | Logik steckt schon in 6.3; offen ist die Oberfläche |
+| 6.7 Automatische Trainingszusagen | erledigt | 18.09.2026 | Logik steckt in 6.3; hier nur die Oberfläche |
 | 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
@@ -829,6 +829,12 @@ Vom ausführenden Agenten gepflegt.
 45. **Kein Antwortlink ohne Anmeldung fürs Training (6.6).** Zielbild 3.6 zählt vier
     Aktionen für `action_tokens` auf; Training ist nicht darunter. Der Link in der
     Erinnerung führt deshalb in die Anwendung, nicht auf eine Antwortseite.
+
+46. **Die Dauerzusage wirkt erst ab dem nächsten neuen Termin (6.7).** Gesetzt wird sie
+    beim Erzeugen eines Termins; schon bestehende Termine bleiben unberührt. Nachträglich
+    über alle offenen Termine zu laufen wäre die freundlichere, aber auch die
+    überraschendere Lösung — sie würde Absagen überschreiben, die jemand bewusst gesetzt
+    hat. Der Dialog sagt stattdessen, was gilt.
 
 **Blocker:** —
 

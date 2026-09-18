@@ -260,6 +260,63 @@ export function useLeaveTraining() {
   });
 }
 
+// ---------------------------------------------------------------------- Dauerzusagen
+
+export type AutoAttendance = Tables<'training_auto_attendance'>;
+
+/**
+ * Die eigenen Dauerzusagen.
+ *
+ * Gesetzt werden sie nicht hier, sondern beim Erzeugen eines Termins (Aufgabe 6.3):
+ * Wer bis Ostern zusagt, bekommt die Zusage an jedem neuen Termin bis dahin — und kann
+ * sie an jedem einzelnen wieder ändern.
+ */
+export function useMyAutoAttendance(profileId: string) {
+  return useQuery({
+    queryKey: queryKeys.trainings.autoAttendance(profileId),
+    queryFn: async (): Promise<AutoAttendance[]> => {
+      const { data, error } = await supabase
+        .from('training_auto_attendance')
+        .select('*')
+        .eq('profile_id', profileId)
+        .order('until_date', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useSaveAutoAttendance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (values: InsertDto<'training_auto_attendance'>) => {
+      // Je Person und Training höchstens eine Zusage; eine zweite verlängert die erste.
+      const { error } = await supabase
+        .from('training_auto_attendance')
+        .upsert(values, { onConflict: 'profile_id,training_id' });
+      if (error) throw error;
+    },
+    onSuccess: () => invalidate(queryClient),
+  });
+}
+
+export function useDeleteAutoAttendance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ profileId, trainingId }: { profileId: string; trainingId: string }) => {
+      const { error } = await supabase
+        .from('training_auto_attendance')
+        .delete()
+        .eq('profile_id', profileId)
+        .eq('training_id', trainingId);
+      if (error) throw error;
+    },
+    onSuccess: () => invalidate(queryClient),
+  });
+}
+
 // ---------------------------------------------------------------------------- Ausfälle
 
 export function useTrainingCancellations() {

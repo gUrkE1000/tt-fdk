@@ -50,6 +50,7 @@ export const queryKeys = {
     cancellations: () => ['trainings', 'cancellations'] as const,
     sessions: () => ['trainings', 'sessions'] as const,
     attendance: () => ['trainings', 'attendance'] as const,
+    autoAttendance: (profileId: string) => ['trainings', 'auto-attendance', profileId] as const,
   },
 
   clubSettings: ['club-settings'] as const,
