@@ -69,6 +69,7 @@ export const queryKeys = {
   calendar: {
     all: ['calendar'] as const,
     items: () => ['calendar', 'items'] as const,
+    mine: (profileId: string | null) => ['calendar', 'mine', profileId] as const,
   },
 
   clubSettings: ['club-settings'] as const,

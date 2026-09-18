@@ -24,3 +24,9 @@ export const supabase = createClient<Database>(url, anonKey, {
 
 /** Basis für Links, die in Benachrichtigungen verschickt werden. */
 export const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
+
+/**
+ * Basis der Edge Functions, für Links, die kein Supabase-Client abruft — etwa das
+ * Kalender-Abo, das ein fremdes Programm öffnet.
+ */
+export const FUNCTIONS_URL = `${url.replace(/\/$/, '')}/functions/v1`;

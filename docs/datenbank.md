@@ -4,8 +4,8 @@ Referenz zum Schema. Verbindlich ist immer die Migration in `supabase/migrations
 dieses Dokument erklärt, warum etwas so aussieht.
 
 Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
-Beteiligung, Benachrichtigungen, Training, Vereinstermine, Umfragen und Kalender. Das
-ICS-Abo folgt in Aufgabe 7.4.
+Beteiligung, Benachrichtigungen, Training, Vereinstermine, Umfragen, Kalender und
+ICS-Abo. Es fehlen noch Push (8.3) und die Stufe-B-Tabellen (Phase 9).
 
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
 eigene Migration.
@@ -256,6 +256,13 @@ Die Terminumfrage zur Spielverlegung (Aufgabe 5.5) läuft bewusst **nicht** hier
 Dort geht es um „wann kannst du", nicht um „was willst du", und daran hängt eine
 Verlegung.
 
+### `calendar_tokens`
+
+Der Abo-Link je Mitglied. Er ist ein **Dauerausweis**: Wer ihn hat, liest die zugesagten
+Termine, denn ein Kalenderprogramm kann sich nicht anmelden. Die Tabelle hat deshalb
+**keine einzige Policy** — herausgegeben wird der Token nur an den Eigentümer, über
+`rpc_my_calendar_token()`. `rpc_reset_calendar_token()` macht den alten wertlos.
+
 ### `private.cron_config`
 
 Liegt im Schema `private`, das PostgREST nicht veröffentlicht. Ab Aufgabe 3.3 lesen die
@@ -312,6 +319,12 @@ Absicht: ein Zähler soll die volle Zahl nennen, nicht nur die Zahl der sichtbar
 Sonst stünde bei Inkognito „1 Teilnehmer" — nämlich man selbst. Wer die Zahl überhaupt sehen
 darf, entscheidet stattdessen die `WHERE`-Bedingung der View über
 `may_see_session_roster()`.
+
+### `v_my_upcoming`
+
+Eine Zeile je Termin, an dem ein Mitglied beteiligt ist, mit dem eigenen Status:
+Spiele, Trainings, Vereinstermine. Grundlage für „Meine Termine", den ICS-Feed und später
+das Dashboard — damit alle drei dieselbe Antwort bekommen und nicht jede für sich rechnet.
 
 ### `v_calendar_items`
 
@@ -374,6 +387,8 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `enqueue_event_reminder(uuid, uuid)` | Was der Erinnerungslauf je Termin und Zusagendem ausführt |
 | `is_poll_target(uuid)`, `may_see_poll_results(uuid)` | Ist der Angemeldete gemeint, und darf er die Auszählung sehen? |
 | `rpc_vote_poll(uuid[])`, `rpc_retract_poll_vote(uuid)` | Abstimmen und die eigene Stimme zurückziehen |
+| `is_playing_member()` | Aktives Mitglied, das kein Gast ist — die Grenze des Spielbetriebs |
+| `rpc_my_calendar_token()`, `rpc_reset_calendar_token()` | Den eigenen Abo-Link holen oder neu erzeugen |
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |
@@ -426,9 +441,9 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `member_rankings` | aktive Mitglieder | Admin |
 | `groups`, `group_members` | aktive Mitglieder | Admin |
 | `venues` | aktive Mitglieder | Admin |
-| `teams`, `team_leaders` | aktive Mitglieder | Admin |
+| `teams`, `team_leaders` | aktive Mitglieder **außer Gästen** | Admin |
 | `team_members` | aktive Mitglieder | Admin oder Mannschaftsführer der Mannschaft |
-| `matches` | aktive Mitglieder | Anlegen/Ändern: Admin oder Mannschaftsführer; Löschen: Admin |
+| `matches` | aktive Mitglieder **außer Gästen** | Anlegen/Ändern: Admin oder Mannschaftsführer; Löschen: Admin |
 | `match_participations` | aktive Mitglieder | **niemand direkt** — nur über die RPCs |
 | `match_volunteers` | aktive Mitglieder | eigene Zeile, Mannschaftsführer oder Admin |
 | `match_changes` | Admin und Mannschaftsführer | niemand direkt |
@@ -452,6 +467,7 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `event_participations` | aktive Mitglieder | **niemand direkt** — nur `rpc_set_event_participation` oder der Link |
 | `polls`, `poll_targets`, `poll_options` | wer gemeint ist, dazu Organisator und Admin | Organisator und Admin |
 | `poll_votes` | eigene Stimme immer; fremde nur bei offenen Ergebnissen | **niemand direkt** — nur `rpc_vote_poll` |
+| `calendar_tokens` | **niemand** | niemand — nur über die beiden RPCs |
 
 `service_role` (Edge Functions) umgeht RLS — das ist gewollt und der Grund, warum der
 `service_role`-Schlüssel niemals ins Frontend gehört.

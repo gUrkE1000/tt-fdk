@@ -20,6 +20,7 @@ import CancellationsPage from '../features/trainings/CancellationsPage';
 import EventsPage from '../features/events/EventsPage';
 import PollsPage from '../features/polls/PollsPage';
 import CalendarPage from '../features/calendar/CalendarPage';
+import MyDatesPage from '../features/calendar/MyDatesPage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -59,7 +60,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Placeholder title="Übersicht" task="8.1" /> },
           { path: 'my-games', element: <MyGamesPage /> },
-          { path: 'my-dates', element: <Placeholder title="Meine Termine" task="7.5" /> },
+          { path: 'my-dates', element: <MyDatesPage /> },
           { path: 'my-club', element: <MyClubPage /> },
           { path: 'calendar', element: <CalendarPage /> },
           { path: 'votes', element: <PollsPage /> },

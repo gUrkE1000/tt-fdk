@@ -1,7 +1,7 @@
 -- Mannschaften und Spieltermine: wer darf lesen, wer schreiben?
 
 BEGIN;
-SELECT plan(20);
+SELECT plan(21);
 
 -- Meik führt die 1. Herren, Mara die 2., Mike die 3.
 -- Spieler 01 ist ein einfaches Mitglied ohne Amt.
@@ -140,10 +140,18 @@ SELECT is(
 -- ============================================================ Gast
 DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000008'); END $$;
 
+-- Zielbild 5, Rechtetabelle: Ein Gast liest „nur eigene Trainings/Termine". Der
+-- Spielbetrieb gehört nicht dazu.
 SELECT is(
     (SELECT count(*) FROM public.teams)::int,
-    3,
-    'Ein Gast sieht die Mannschaften — die Spielpläne sind vereinsöffentlich'
+    0,
+    'Ein Gast sieht keine Mannschaften'
+);
+
+SELECT is(
+    (SELECT count(*) FROM public.matches)::int,
+    0,
+    'und keine Spieltermine'
 );
 
 -- ============================================================ Administrator

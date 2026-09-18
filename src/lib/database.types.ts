@@ -85,6 +85,32 @@ export interface Database {
           },
         ];
       };
+      calendar_tokens: {
+        Row: {
+          profile_id: string;
+          token: string;
+          created_at: string;
+        };
+        Insert: {
+          profile_id: string;
+          token?: string;
+          created_at?: string;
+        };
+        Update: {
+          profile_id?: string;
+          token?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "calendar_tokens_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       club_events: {
         Row: {
           id: string;
@@ -1907,6 +1933,20 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_my_upcoming: {
+        Row: {
+          profile_id: string | null;
+          kind: string | null;
+          id: string | null;
+          starts_at: string | null;
+          ends_at: string | null;
+          title: string | null;
+          location: string | null;
+          my_status: string | null;
+          active: boolean | null;
+        };
+        Relationships: [];
+      };
       v_open_participations: {
         Row: {
           profile_id: string | null;
@@ -2154,6 +2194,14 @@ export interface Database {
       };
       rpc_manage_player: {
         Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_my_calendar_token: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
+      rpc_reset_calendar_token: {
+        Args: Record<string, never>;
         Returns: unknown;
       };
       rpc_retract_poll_vote: {

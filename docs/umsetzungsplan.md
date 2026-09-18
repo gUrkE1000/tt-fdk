@@ -664,7 +664,8 @@ Vom ausführenden Agenten gepflegt.
 | 7.1 Vereinstermine | erledigt | 18.09.2026 | eigener Sanitizer statt WYSIWYG-Bibliothek; Antwortlink ohne Anmeldung ergänzt |
 | 7.2 Umfragen | erledigt | 18.09.2026 | Antworten einer laufenden Umfrage sind gesperrt; Balken messen am stärksten Balken |
 | 7.3 Kalender | erledigt | 18.09.2026 | Geburtstage als gerechneter Jahrestag; abgesagte Termine bleiben blass stehen |
-| 7.4 – 7.5 ICS-Abo, Meine Termine | offen | | |
+| 7.4 ICS-Abo pro Mitglied | erledigt | 18.09.2026 | `v_my_upcoming` als gemeinsame Grundlage; Token neu erzeugbar |
+| 7.5 Meine Termine | erledigt | 18.09.2026 | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
@@ -880,6 +881,23 @@ Vom ausführenden Agenten gepflegt.
 57. **„Ereignisse" als Kategorie fehlt (7.3).** Die Bestandsaufnahme nennt sie neben den
     vier anderen, aber ohne erkennbaren Inhalt — im geprüften Verein gab es keine. Sobald
     klar ist, was dort steht, ist es eine Zeile in `v_calendar_items`.
+
+58. **`v_my_upcoming` schon in 7.4 statt in 8.1 (Zielbild 3.7).** ICS-Feed, „Meine Termine"
+    und später das Dashboard beantworten dieselbe Frage. Eine View, an einer Stelle
+    gepflegt, statt dreier Abfragen, die auseinanderlaufen.
+59. **Der Abo-Feed enthält nur Zugesagtes.** Ein Kalendereintrag heißt „da bin ich", nicht
+    „das findet statt". „Komme später" zählt dabei als Zusage, „unsicher" nicht.
+60. **`calendar_tokens` hat keine einzige Policy.** Wer den Token abfragen könnte, könnte
+    fremde Kalender lesen — ein Kalenderprogramm kann sich nicht anmelden, also ist der
+    Token ein Dauerausweis. Herausgegeben wird er nur an den Eigentümer, über
+    `rpc_my_calendar_token()`, und `rpc_reset_calendar_token()` macht den alten wertlos.
+61. **Gäste sahen Mannschaften und Spieltermine (Fund in 7.3, behoben in 7.4).** Die
+    Policies aus 3.1 prüften `is_active_member()` — und ein Gast ist ein aktives Mitglied.
+    Zielbild 5 sagt dagegen klar: ein Gast liest „nur eigene Trainings/Termine". Aufgefallen
+    ist es erst, als der Kalender denselben Spielplan in einer Ansicht zeigte, die auch ein
+    Gast öffnen darf. `is_playing_member()` zieht die Grenze jetzt in den Policies; die
+    pgTAP-Zusicherung aus Phase 3, die das Gegenteil behauptete, war falsch und ist
+    korrigiert.
 
 **Blocker:** —
 

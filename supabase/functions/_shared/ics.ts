@@ -158,3 +158,101 @@ export function extractMatchday(description: string, summary: string): number | 
   }
   return null;
 }
+
+// ---------------------------------------------------------------------------- Erzeugen
+
+export interface IcsEntry {
+  /** Stabil über Läufe hinweg: dasselbe Objekt behält denselben Eintrag im Kalender. */
+  uid: string;
+  title: string;
+  /** ISO-Zeitpunkt. */
+  startsAt: string;
+  endsAt?: string | null;
+  location?: string | null;
+  description?: string | null;
+}
+
+/**
+ * Baut einen ICS-Kalender.
+ *
+ * Kein Baukasten, sondern genau das, was ein Abo braucht: Kopf, Zeitzone in UTC,
+ * je Termin ein VEVENT mit stabiler UID. Stabil ist die UID der entscheidende Punkt —
+ * ändert sie sich, legt jedes Kalenderprogramm den Termin ein zweites Mal an, statt
+ * den vorhandenen zu aktualisieren.
+ */
+export function buildIcs(
+  entries: readonly IcsEntry[],
+  options: { calendarName: string; now?: Date } = { calendarName: 'Verein' },
+): string {
+  const stamp = formatIcsDate(options.now ?? new Date());
+
+  const lines: string[] = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Vereinsplaner//DE',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    `X-WR-CALNAME:${escapeIcsText(options.calendarName)}`,
+    'X-PUBLISHED-TTL:PT1H',
+  ];
+
+  for (const entry of entries) {
+    const start = new Date(entry.startsAt);
+    if (Number.isNaN(start.getTime())) continue;
+
+    const end = entry.endsAt ? new Date(entry.endsAt) : null;
+    const until =
+      end && !Number.isNaN(end.getTime()) && end > start
+        ? end
+        : new Date(start.getTime() + 2 * 3600_000);
+
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:${entry.uid}`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART:${formatIcsDate(start)}`,
+      `DTEND:${formatIcsDate(until)}`,
+      `SUMMARY:${escapeIcsText(entry.title)}`,
+    );
+
+    if (entry.location) lines.push(`LOCATION:${escapeIcsText(entry.location)}`);
+    if (entry.description) lines.push(`DESCRIPTION:${escapeIcsText(entry.description)}`);
+
+    lines.push('END:VEVENT');
+  }
+
+  lines.push('END:VCALENDAR');
+
+  // ICS verlangt CRLF; manche Kalenderprogramme sind da streng.
+  return lines.flatMap(foldIcsLine).join('\r\n') + '\r\n';
+}
+
+/** `20261005T170000Z` */
+export function formatIcsDate(value: Date): string {
+  return value.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+}
+
+/** Komma, Semikolon, Backslash und Zeilenumbruch haben in ICS eine Bedeutung. */
+export function escapeIcsText(value: string): string {
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r?\n/g, '\\n');
+}
+
+/** Zeilen über 75 Oktett werden umgebrochen, die Fortsetzung beginnt mit einem Leerzeichen. */
+function foldIcsLine(line: string): string[] {
+  if (line.length <= 75) return [line];
+
+  const parts: string[] = [line.slice(0, 75)];
+  let rest = line.slice(75);
+
+  while (rest.length > 74) {
+    parts.push(` ${rest.slice(0, 74)}`);
+    rest = rest.slice(74);
+  }
+  if (rest.length > 0) parts.push(` ${rest}`);
+
+  return parts;
+}
