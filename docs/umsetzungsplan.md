@@ -668,7 +668,8 @@ Vom ausführenden Agenten gepflegt.
 | 7.5 Meine Termine | erledigt | 18.09.2026 | |
 | 8.1 Übersicht | erledigt | 18.09.2026 | `v_my_upcoming` kam schon in 7.4; neu nur `quicklinks_json` |
 | 8.2 PWA | erledigt | 18.09.2026 | `base` von `./` auf `/` (konfigurierbar); Anmeldung des Workers von Hand |
-| 8.3 – 8.4 Push, Admin | offen | | |
+| 8.3 Web Push und Glocke | erledigt | 18.09.2026 | Knopf-Kennungen und Farben wie im TT-Planer; tote Endpunkte werden gelöscht |
+| 8.4 Admin-Bereich | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
 
@@ -938,6 +939,23 @@ Vom ausführenden Agenten gepflegt.
 69. **`scripts/make-icons.ts` statt `.mjs` (8.2).** Dieselbe Begründung wie bei den
     Feiertagen: Node führt TypeScript direkt aus, und damit gilt für das Skript dieselbe
     Typprüfung wie für den Rest.
+
+70. **Push wird nicht mehr übersprungen (8.3).** `preflight` kannte bis hierher nur
+    „Push ist nicht eingerichtet". Jetzt entscheidet, ob das Mitglied ein Gerät angemeldet
+    hat; ohne Gerät gilt die Zeile weiter als übersprungen, damit das Postfach nicht mit
+    unerledigbaren Zeilen volläuft.
+71. **Ein zugestelltes Gerät genügt (8.3).** Wer Handy und Tablet angemeldet hat, soll
+    keine Fehlermeldung bekommen, weil das Tablet seit Wochen aus ist. `summarizePush`
+    wertet die Nachricht als zugestellt, sobald ein Endpunkt sie angenommen hat.
+72. **Tote Endpunkte werden gelöscht, nicht gezählt (8.3).** 404 und 410 heißen: Das Gerät
+    kommt nicht wieder. Die Zeile bleibt sonst stehen, und jeder Lauf wartet erneut auf sie.
+73. **Der rote Zustand der Glocke ist nicht klickbar (8.3).** Eine abgelehnte Erlaubnis
+    kann keine Website zurückholen — das geht nur in den Browsereinstellungen. Ein Knopf,
+    der nichts täte, wäre eine Lüge; stattdessen sagt ein Hinweis, wo es geht. Kennungen
+    und Farben der drei Zustände sind die der Bestandsaufnahme B.
+74. **Der Zustand „aktiv" verlangt eine Anmeldung, nicht nur die Erlaubnis (8.3).** Die
+    Erlaubnis überlebt gelöschte Website-Daten, die Anmeldung nicht. Ohne diese Prüfung
+    stünde die Glocke grün, und es käme nie etwas an.
 
 **Blocker:** —
 

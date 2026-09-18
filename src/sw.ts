@@ -61,3 +61,66 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 self.addEventListener('activate', () => {
   void self.clients.claim();
 });
+
+// ---------------------------------------------------------------------------- Push
+
+interface PushPayload {
+  title?: string;
+  body?: string;
+  tag?: string;
+  data?: { url?: string };
+}
+
+/**
+ * Eine Push-Nachricht anzeigen (Aufgabe 8.3).
+ *
+ * `waitUntil` ist Pflicht, nicht Geschmackssache: Ohne das Versprechen beendet der
+ * Browser den Service Worker, bevor die Meldung steht — und manche zeigen dann
+ * stattdessen „Diese Website wurde im Hintergrund aktualisiert".
+ */
+self.addEventListener('push', (event: PushEvent) => {
+  let payload: PushPayload = {};
+  try {
+    payload = (event.data?.json() as PushPayload) ?? {};
+  } catch {
+    payload = { body: event.data?.text() };
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title ?? 'Vereinsplaner', {
+      body: payload.body ?? '',
+      tag: payload.tag,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      data: payload.data ?? {},
+    }),
+  );
+});
+
+/**
+ * Antippen führt dorthin, worum es geht.
+ *
+ * Ist die App schon offen, wird das vorhandene Fenster benutzt und nur der Pfad
+ * gewechselt — sonst hätte man nach drei Erinnerungen drei Fenster.
+ */
+self.addEventListener('notificationclick', (event: NotificationEvent) => {
+  event.notification.close();
+
+  const target = (event.notification.data as { url?: string } | null)?.url || '/';
+
+  event.waitUntil(
+    (async () => {
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+
+      for (const client of clients) {
+        if ('focus' in client) {
+          await client.focus();
+          if ('navigate' in client) await client.navigate(target);
+          return;
+        }
+      }
+
+      await self.clients.openWindow(target);
+    })(),
+  );
+});

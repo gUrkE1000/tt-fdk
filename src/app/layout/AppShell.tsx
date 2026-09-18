@@ -9,6 +9,7 @@ import { useSession } from '../../features/auth/session';
 import ProfileMenu from '../../features/auth/ProfileMenu';
 import { usePublicClubInfo } from '../../features/auth/api';
 import UpdatePrompt from '../../features/notifications/UpdatePrompt';
+import BellButton from '../../features/notifications/BellButton';
 
 interface AppShellProps {
   /** Nur für Tests: überschreibt Rolle und Vereinsname statt der echten Sitzung. */
@@ -79,7 +80,14 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
         <Header
           title={labelForPath(location.pathname)}
           onOpenMenu={() => setDrawerOpen(true)}
-          actions={headerActions ?? <ProfileMenu />}
+          actions={
+            headerActions ?? (
+              <>
+                <BellButton />
+                <ProfileMenu />
+              </>
+            )
+          }
         />
 
         <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-4 sm:px-6 sm:py-6">

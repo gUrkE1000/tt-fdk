@@ -11,13 +11,28 @@ erkennt, dass es läuft.
 ```bash
 supabase secrets set APP_URL="https://verein.example.org"
 supabase secrets set RESEND_API_KEY="re_..."
+supabase secrets set VAPID_PUBLIC_KEY="B..."
+supabase secrets set VAPID_PRIVATE_KEY="..."
 ```
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` und `SUPABASE_SERVICE_ROLE_KEY` stellt Supabase selbst
 bereit. **Der `service_role`-Schlüssel gehört niemals ins Frontend** — er umgeht jede
 Row-Level-Security-Policy.
 
-`VAPID_PRIVATE_KEY` für Web Push kommt in Aufgabe 8.3 dazu.
+### VAPID-Schlüsselpaar für Web Push
+
+Das Paar wird **einmal** erzeugt und danach nie wieder geändert — ein neuer Schlüssel macht
+jede bestehende Push-Anmeldung wertlos, und alle Mitglieder müssten die Glocke erneut
+drücken.
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+Der **öffentliche** Schlüssel gehört zusätzlich in die Umgebung des Frontends
+(`VITE_VAPID_PUBLIC_KEY`), sonst kann sich kein Browser anmelden. Er ist öffentlich und darf
+im Bundle stehen. Der **private** Schlüssel gehört ausschließlich in die Secrets: Wer ihn
+hat, kann im Namen des Vereins Meldungen auf jedes angemeldete Gerät schicken.
 
 Die Absenderadresse steht **nicht** in den Secrets, sondern in den Vereinsdaten
 (`notification_sender_email`). Sie muss eine bei Resend verifizierte Domain sein, sonst
@@ -98,7 +113,9 @@ SELECT created_at, type, channel, attempts, error
 | `failed`, „Keine Absenderadresse" | `notification_sender_email` ist leer | In den Vereinsdaten eintragen |
 | `failed`, `HTTP 403` von Resend | Die Absenderdomain ist nicht verifiziert | Domain bei Resend verifizieren |
 | `skipped`, „keine E-Mail-Adresse" | Das Mitglied hat keine hinterlegt | Kein Fehler: Kinder haben oft keine |
-| `skipped`, „Push … noch nicht eingerichtet" | Erwartet bis Aufgabe 8.3 | Nichts |
+| `skipped`, „Kein Gerät für Push angemeldet" | Das Mitglied hat die Glocke nie gedrückt | Kein Fehler; die E-Mail geht trotzdem raus |
+| `failed`, „Alle Geräte abgemeldet" | Die Endpunkte waren tot und wurden gelöscht | Kein Fehler; das Mitglied meldet sich neu an |
+| Push kommt nirgends an | `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` fehlen oder passen nicht zu `VITE_VAPID_PUBLIC_KEY` | Secrets prüfen, Frontend neu bauen |
 | Viele `pending` mit steigendem `attempts` | Resend antwortet nicht | Status von Resend prüfen; nach drei Versuchen steht `failed` |
 
 Eine Zeile wird höchstens dreimal versucht, mit fünfzehn Minuten Abstand. Danach bleibt

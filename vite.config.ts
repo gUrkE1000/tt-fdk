@@ -69,6 +69,10 @@ export default defineConfig(({ command }) => ({
       VITE_SUPABASE_URL: 'http://localhost:54321',
       VITE_SUPABASE_ANON_KEY: 'test-anon-key',
       VITE_APP_URL: 'http://localhost:5173',
+      // Ein gültiger, aber bedeutungsloser VAPID-Schlüssel: Die Glocke prüft ihn auf
+      // Vorhandensein, und `urlBase64ToUint8Array` soll an echtem Base64 arbeiten.
+      VITE_VAPID_PUBLIC_KEY:
+        'BAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0-P0A',
     },
     coverage: {
       provider: 'v8',

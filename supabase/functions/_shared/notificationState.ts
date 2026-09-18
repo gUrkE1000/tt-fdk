@@ -16,6 +16,8 @@ export interface NotificationRow {
   recipient: string | null;
   /** Gelöschte Mitglieder bekommen nichts mehr. */
   recipientDeleted: boolean;
+  /** Wie viele Geräte dieses Mitglied für Push angemeldet hat (Aufgabe 8.3). */
+  pushEndpoints: number;
 }
 
 export type SendOutcome =
@@ -44,10 +46,10 @@ export function preflight(row: NotificationRow): StateChange | null {
   }
 
   if (row.channel === 'push') {
-    // Push kommt in Aufgabe 8.3. Bis dahin bleibt die Zeile nicht ewig „pending"
-    // liegen, sondern wird als übersprungen markiert — sonst wächst das Postfach
-    // mit Zeilen, die nie jemand abarbeitet.
-    return skip('Push-Benachrichtigungen sind noch nicht eingerichtet.');
+    // Wer die Glocke nie gedrückt hat, hat kein Gerät angemeldet. Die Zeile bleibt
+    // dann nicht ewig „pending" liegen, sondern gilt als übersprungen — sonst wächst
+    // das Postfach mit Zeilen, die nie jemand abarbeitet.
+    return row.pushEndpoints > 0 ? null : skip('Kein Gerät für Push angemeldet.');
   }
 
   if (!row.recipient) {

@@ -12,6 +12,13 @@ import {
   type SendOutcome,
 } from '../_shared/notificationState.ts';
 import { buildEmailHtml } from '../_shared/emailHtml.ts';
+import {
+  buildPushMessage,
+  classifyPushStatus,
+  summarizePush,
+  type EndpointOutcome,
+} from '../_shared/pushMessage.ts';
+import webpush from 'npm:web-push@3.6.7';
 
 const BATCH_SIZE = 50;
 
@@ -48,6 +55,8 @@ Deno.serve(async (request: Request): Promise<Response> => {
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
   const resendKey = Deno.env.get('RESEND_API_KEY');
+  const vapidPublic = Deno.env.get('VAPID_PUBLIC_KEY');
+  const vapidPrivate = Deno.env.get('VAPID_PRIVATE_KEY');
 
   if (!supabaseUrl || !serviceKey || !anonKey) return json({ error: 'not_configured' }, 500);
 
@@ -60,6 +69,17 @@ Deno.serve(async (request: Request): Promise<Response> => {
   }
 
   const settings = await loadSettings(admin);
+
+  // Ohne VAPID-Schlüsselpaar nimmt kein Push-Dienst etwas an. Fehlt es, bleibt der
+  // E-Mail-Weg unberührt; die Push-Zeilen werden übersprungen statt zu scheitern.
+  const pushReady = Boolean(vapidPublic && vapidPrivate);
+  if (pushReady) {
+    webpush.setVapidDetails(
+      settings.senderEmail ? `mailto:${settings.senderEmail}` : 'mailto:admin@example.org',
+      vapidPublic!,
+      vapidPrivate!,
+    );
+  }
 
   const { data: queue, error: queueError } = await admin
     .from('notifications')
@@ -74,10 +94,11 @@ Deno.serve(async (request: Request): Promise<Response> => {
   const rows = (queue ?? []) as QueueRow[];
   if (rows.length === 0) return json({ processed: 0, sent: 0, failed: 0, skipped: 0 });
 
-  const recipients = await loadRecipients(
-    admin,
-    rows.map((row) => row.profile_id),
-  );
+  const profileIds = rows.map((row) => row.profile_id);
+  const recipients = await loadRecipients(admin, profileIds);
+  const subscriptions = rows.some((row) => row.channel === 'push')
+    ? await loadSubscriptions(admin, profileIds)
+    : new Map<string, PushSubscriptionRow[]>();
 
   const counts = { processed: 0, sent: 0, failed: 0, skipped: 0, retried: 0 };
 
@@ -90,6 +111,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
       attempts: row.attempts,
       recipient: recipient?.email ?? null,
       recipientDeleted: recipient?.deleted ?? true,
+      pushEndpoints: pushReady ? (subscriptions.get(row.profile_id)?.length ?? 0) : 0,
     };
 
     const early = preflight(state);
@@ -100,9 +122,12 @@ Deno.serve(async (request: Request): Promise<Response> => {
       continue;
     }
 
-    const outcome = resendKey
-      ? await sendEmail(resendKey, row, state.recipient!, settings)
-      : ({ kind: 'error', message: 'RESEND_API_KEY ist nicht gesetzt.' } as SendOutcome);
+    const outcome =
+      row.channel === 'push'
+        ? await sendPush(admin, row, subscriptions.get(row.profile_id) ?? [], settings)
+        : resendKey
+          ? await sendEmail(resendKey, row, state.recipient!, settings)
+          : ({ kind: 'error', message: 'RESEND_API_KEY ist nicht gesetzt.' } as SendOutcome);
 
     const change = applyOutcome(state, outcome);
     await write(admin, row.id, change);
@@ -263,4 +288,91 @@ async function write(
   if (change.scheduledFor) update.scheduled_for = change.scheduledFor;
 
   await admin.from('notifications').update(update).eq('id', id);
+}
+
+// ---------------------------------------------------------------------------- Push
+
+interface PushSubscriptionRow {
+  id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}
+
+async function loadSubscriptions(
+  admin: SupabaseClient,
+  profileIds: string[],
+): Promise<Map<string, PushSubscriptionRow[]>> {
+  const { data } = await admin
+    .from('push_subscriptions')
+    .select('id, profile_id, endpoint, p256dh, auth')
+    .in('profile_id', [...new Set(profileIds)]);
+
+  const map = new Map<string, PushSubscriptionRow[]>();
+  for (const row of (data ?? []) as (PushSubscriptionRow & { profile_id: string })[]) {
+    const list = map.get(row.profile_id) ?? [];
+    list.push({ id: row.id, endpoint: row.endpoint, p256dh: row.p256dh, auth: row.auth });
+    map.set(row.profile_id, list);
+  }
+  return map;
+}
+
+/**
+ * Eine Nachricht an alle Geräte eines Mitglieds.
+ *
+ * Endpunkte, die der Push-Dienst nicht mehr kennt (404/410), werden dabei gelöscht:
+ * Sie kommen nie wieder, und jeder weitere Lauf würde auf sie warten.
+ */
+async function sendPush(
+  admin: SupabaseClient,
+  row: QueueRow,
+  subscriptions: PushSubscriptionRow[],
+  settings: Settings,
+): Promise<SendOutcome> {
+  if (subscriptions.length === 0) {
+    return { kind: 'permanent', message: 'Kein Gerät für Push angemeldet.' };
+  }
+
+  const message = buildPushMessage(row, settings.appUrl || '/');
+  const payload = JSON.stringify(message);
+
+  const outcomes: EndpointOutcome[] = [];
+  const gone: string[] = [];
+  const errors: string[] = [];
+
+  for (const subscription of subscriptions) {
+    try {
+      await webpush.sendNotification(
+        {
+          endpoint: subscription.endpoint,
+          keys: { p256dh: subscription.p256dh, auth: subscription.auth },
+        },
+        payload,
+        { TTL: 60 * 60 * 24 },
+      );
+      outcomes.push({ gone: false, delivered: true, retry: false });
+
+      await admin
+        .from('push_subscriptions')
+        .update({ failures: 0, last_success_at: new Date().toISOString() })
+        .eq('id', subscription.id);
+    } catch (error) {
+      const status = (error as { statusCode?: number }).statusCode ?? 0;
+      const outcome = classifyPushStatus(status);
+      outcomes.push(outcome);
+
+      if (outcome.gone) gone.push(subscription.id);
+      else errors.push(`HTTP ${status || '?'}`);
+    }
+  }
+
+  if (gone.length > 0) {
+    await admin.from('push_subscriptions').delete().in('id', gone);
+  }
+
+  const summary = summarizePush(outcomes);
+  if (summary.delivered) return { kind: 'ok' };
+
+  const detail = errors.length > 0 ? errors.join(', ') : 'Alle Geräte abgemeldet';
+  return summary.retry ? { kind: 'error', message: detail } : { kind: 'permanent', message: detail };
 }

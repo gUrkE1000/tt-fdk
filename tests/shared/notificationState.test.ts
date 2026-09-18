@@ -14,6 +14,7 @@ function row(overrides: Partial<NotificationRow> = {}): NotificationRow {
     attempts: 0,
     recipient: 'anna@example.com',
     recipientDeleted: false,
+    pushEndpoints: 0,
     ...overrides,
   };
 }
@@ -37,10 +38,19 @@ describe('preflight', () => {
     expect(result?.error).toMatch(/keine E-Mail-Adresse/);
   });
 
-  it('überspringt Push, solange es nicht eingerichtet ist', () => {
-    const result = preflight(row({ channel: 'push' }));
+  it('überspringt Push an Mitglieder ohne angemeldetes Gerät', () => {
+    const result = preflight(row({ channel: 'push', pushEndpoints: 0 }));
     expect(result?.status).toBe('skipped');
-    expect(result?.error).toMatch(/Push/);
+    expect(result?.error).toMatch(/Kein Gerät/);
+  });
+
+  it('lässt Push durch, sobald ein Gerät angemeldet ist', () => {
+    expect(preflight(row({ channel: 'push', pushEndpoints: 1 }))).toBeNull();
+  });
+
+  it('verlangt für Push keine E-Mail-Adresse', () => {
+    // Wer die App installiert hat, aber keine Adresse hinterlegt, bekommt trotzdem Push.
+    expect(preflight(row({ channel: 'push', pushEndpoints: 1, recipient: null }))).toBeNull();
   });
 
   it('prüft die Löschung vor allem anderen', () => {
