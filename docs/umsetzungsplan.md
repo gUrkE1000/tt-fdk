@@ -1127,6 +1127,21 @@ Vom ausführenden Agenten gepflegt.
      vom Auftragsverarbeiter gestellt und vom Verein abgeschlossen, nicht selbst
      geschrieben. `av-supabase.md` und `av-resend.md` halten fest, was abzuschließen und
      was dabei zu prüfen ist — einen Vertragstext zu erfinden wäre wertlos und irreführend.
+114. **Die Go-live-Aufgaben sind Dokumente, keine Migrationen (10.2–10.4).** 10.2 bis 10.4
+     bestehen aus Handlungen des Vereins — eine Excel-Datei herunterladen, vier Wochen
+     beobachten, kündigen. Was hier entstehen konnte, ist das, womit jemand diese
+     Handlungen ausführt: `migration.md`, `parallelbetrieb.md`, `abschluss.md`.
+115. **Der Upstream-Code ist neu geschrieben statt angefragt (10.4).** Der Plan ließ beides
+     offen („im Zweifel neu schreiben"). Eine Anfrage an den Autor kann nur der Verein
+     stellen, und sie hat kein Datum — auf eine Nachricht muss niemand antworten. Die 410
+     Zeilen in vier Dateien sind deshalb samt Tests ersetzt. Dabei fielen drei Fehler auf,
+     die vorher niemand gesehen hatte: nicht maskierte Semikolons in ICS, Zeilenfaltung
+     nach Zeichen statt nach Oktett, und ein unlesbares DTSTART, das zu „jetzt" wurde.
+116. **`react-router` auf 7 gehoben.** Der Open Redirect über einen Backslash in `<Link>`
+     (GHSA-wrjc-x8rr-h8h6) wird in 6.x nicht mehr behoben und wird ausgeliefert. Der
+     Umstieg kostete keine Codezeile: Die hier benutzten Bestandteile sind unverändert. Die
+     Regel, nach der solche Befunde bewertet werden, steht jetzt in `entwicklung.md` §6 —
+     einschließlich der Begründung, warum `uuid` unter `exceljs` bleibt, wie es ist.
 
 **Blocker:** —
 

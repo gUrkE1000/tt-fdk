@@ -188,3 +188,44 @@ selbst bereit.
 In der CI zeigen sie auf den `postgres:16`-Service-Container; lokal auf den Cluster der
 Distribution. Das Passwort `postgres` ist bewusst trivial — die Instanz ist ausschließlich
 lokal erreichbar und enthält nur Testdaten.
+
+## 6. Abhängigkeiten und `npm audit`
+
+`npm audit` gehört zu jeder Änderung an `package.json`. Der Befund ist aber nicht
+gleichbedeutend mit einem Problem — was zählt, ist, ob der gemeldete Code in dieser
+Anwendung überhaupt erreichbar ist.
+
+Die Regel hier:
+
+1. **Produktivabhängigkeit** (`npm audit --omit=dev`) → **beheben**, auch wenn der Umstieg
+   wehtut. Was ausgeliefert wird, läuft im Browser eines Mitglieds.
+2. **Entwicklungsabhängigkeit** → bewerten. Eine Lücke im Testrunner erreicht niemanden
+   außer den Entwickler. Bei nächster Gelegenheit mitziehen, nicht um Mitternacht.
+3. **Nicht erreichbar** → mit Begründung hier festhalten, nicht stillschweigend übergehen.
+   Ein unbegründet ignorierter Befund ist beim nächsten Mal nicht mehr von einem
+   übersehenen zu unterscheiden.
+
+### Entscheidungen, die dokumentiert bleiben
+
+**`xlsx` wird nicht benutzt** — GHSA-4r6h-8v6p-xvw6 (Prototype Pollution im
+Tabellenblatt-Parser) ist auf npm bis heute nicht behoben, und betroffen ist genau der
+Code, der eine hochgeladene Datei liest. Der Excel-Import (Aufgabe 9.5) nutzt deshalb
+`exceljs`.
+
+**`react-router-dom` läuft auf 7.x** — GHSA-wrjc-x8rr-h8h6 (Open Redirect über einen
+Backslash in `<Link>` und `useNavigate`) betraf 6.x und wird dort nicht mehr behoben. Der
+Umstieg von 6.30 auf 7.18 kostete nichts: Die hier benutzten Bestandteile (`Link`,
+`NavLink`, `Navigate`, `Outlet`, `Route`, `Routes`, `RouterProvider`,
+`createBrowserRouter`, `useLocation`, `useNavigate`, `useParams`, `useSearchParams`) sind
+unverändert, und die Zukunftsschalter, vor denen 6.x in der Konsole warnte, sind in 7.x
+die Voreinstellung.
+
+**`uuid` unter `exceljs` bleibt, wie es ist** — GHSA-w5hq-g745-h8pq beschreibt eine
+fehlende Bereichsprüfung in den Versionen 3, 5 und 6, **wenn ein `buf`-Argument übergeben
+wird**. `exceljs` ruft `uuidv4()` an zwei Stellen ohne jedes Argument auf
+(`lib/xlsx/xform/sheet/cf-ext/cf-rule-ext-xform.js`). Der Weg dorthin existiert nicht.
+`npm audit fix --force` würde `exceljs` auf 3.4.0 zurückstufen — eine Hauptversion
+zurück, um eine Lücke zu schließen, die nicht erreichbar ist.
+
+**Die Befunde zu `vitest` und `esbuild`** betreffen den Entwicklungsserver und werden mit
+dem nächsten Vitest-Sprung mitgenommen.
