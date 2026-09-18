@@ -260,6 +260,41 @@ INSERT INTO public.event_participations (event_id, profile_id, status, guests) V
     ('88888888-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000002', 'no',  0)
 ON CONFLICT DO NOTHING;
 
+-- ----------------------------------------------------------------- Umfragen
+-- Eine offene Umfrage für den ganzen Verein, eine auf eine Gruppe begrenzte mit
+-- verborgenen Ergebnissen, und eine vom Typ „Personen".
+INSERT INTO public.polls (id, title, details_html, type, max_answers, expires_at, hide_results, created_by) VALUES
+    ('99999999-0000-0000-0000-000000000001', 'Termin für die Weihnachtsfeier',
+     '<p>Bitte alle passenden Termine ankreuzen.</p>', 'vote', 2,
+     NOW() + INTERVAL '20 days', false, '22222222-0000-0000-0000-000000000002'),
+
+    ('99999999-0000-0000-0000-000000000002', 'Neue Trikotfarbe', '', 'vote', 1,
+     NULL, true, '22222222-0000-0000-0000-000000000002'),
+
+    ('99999999-0000-0000-0000-000000000003', 'Wer hilft beim Aufbau?', '', 'persons', 1,
+     NULL, false, '22222222-0000-0000-0000-000000000002')
+ON CONFLICT (id) DO NOTHING;
+
+-- Die Trikotumfrage geht nur an den Vorstand.
+INSERT INTO public.poll_targets (poll_id, group_id) VALUES
+    ('99999999-0000-0000-0000-000000000002', '33333333-0000-0000-0000-000000000003')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.poll_options (id, poll_id, text, position) VALUES
+    ('aaaaaaaa-0000-0000-0000-000000000001', '99999999-0000-0000-0000-000000000001', 'Freitag, 12.12.', 0),
+    ('aaaaaaaa-0000-0000-0000-000000000002', '99999999-0000-0000-0000-000000000001', 'Samstag, 13.12.', 1),
+    ('aaaaaaaa-0000-0000-0000-000000000003', '99999999-0000-0000-0000-000000000001', 'Freitag, 19.12.', 2),
+    ('aaaaaaaa-0000-0000-0000-000000000004', '99999999-0000-0000-0000-000000000002', 'Blau', 0),
+    ('aaaaaaaa-0000-0000-0000-000000000005', '99999999-0000-0000-0000-000000000002', 'Rot', 1),
+    ('aaaaaaaa-0000-0000-0000-000000000006', '99999999-0000-0000-0000-000000000003', 'Ich helfe beim Aufbau', 0)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.poll_votes (option_id, profile_id) VALUES
+    ('aaaaaaaa-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000001'),
+    ('aaaaaaaa-0000-0000-0000-000000000002', '22222222-1111-0000-0000-000000000001'),
+    ('aaaaaaaa-0000-0000-0000-000000000002', '22222222-1111-0000-0000-000000000002')
+ON CONFLICT DO NOTHING;
+
 -- ----------------------------------------------------------------- Auth-Benutzer
 -- Verknüpft die wichtigsten Profile mit einem Auth-Benutzer, damit tests.login_as
 -- und die Anwendung lokal etwas zum Anmelden haben. In Supabase legt diese Zeilen

@@ -662,7 +662,8 @@ Vom ausführenden Agenten gepflegt.
 | 6.6 Trainingserinnerungen und Ausfälle | erledigt | 18.09.2026 | Merkposten am Termin statt an der Person; Ausfall meldet den Zeitraum, nicht jeden Tag |
 | 6.7 Automatische Trainingszusagen | erledigt | 18.09.2026 | Logik steckt in 6.3; hier nur die Oberfläche |
 | 7.1 Vereinstermine | erledigt | 18.09.2026 | eigener Sanitizer statt WYSIWYG-Bibliothek; Antwortlink ohne Anmeldung ergänzt |
-| 7.2 – 7.5 Umfragen, Kalender, Meine Termine | offen | | |
+| 7.2 Umfragen | erledigt | 18.09.2026 | Antworten einer laufenden Umfrage sind gesperrt; Balken messen am stärksten Balken |
+| 7.3 – 7.5 Kalender, ICS-Abo, Meine Termine | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
@@ -852,6 +853,22 @@ Vom ausführenden Agenten gepflegt.
     bestehende Gästezahl bleibt erhalten.
 50. **Keine Dateianhänge am Termin (7.1).** Der Plan verschiebt sie ausdrücklich auf 9.4
     (Dateien); das Feld fehlt deshalb im Dialog.
+
+51. **Die Antworten einer laufenden Umfrage lassen sich nicht mehr ändern (7.2).** Die
+    Stimmen hängen an der Antwortzeile; sie zu ersetzen würde sie mitnehmen. Der Dialog
+    sperrt das Feld beim Bearbeiten und sagt auch, warum. Ziele, Titel und Ablaufdatum
+    bleiben änderbar.
+52. **Balken messen am stärksten Balken, nicht an der Summe (7.2).** Bei Mehrfachauswahl
+    übersteigt die Summe der Stimmen die Zahl der Abstimmenden; Prozente auf die Summe
+    zu rechnen ergäbe „130 %".
+53. **`rpc_retract_poll_vote` ergänzt (7.2).** Der Plan nennt nur `rpc_vote_poll`. Eine
+    leere Auswahl kann die Umfrage aber nicht identifizieren — ohne Option weiß die
+    Funktion nicht, aus welcher Umfrage sie löschen soll. Das Zurückziehen ist deshalb
+    ein eigener Aufruf.
+54. **`v_poll_results` ohne security_invoker (7.2).** Dieselbe Begründung wie beim
+    Trainingszähler: Eine Auszählung soll die volle Zahl nennen. Wer sie sehen darf,
+    entscheidet die WHERE-Bedingung über `may_see_poll_results()` — bei
+    „Antworten für Mitglieder nicht anzeigen" also nur Organisator und Admin.
 
 **Blocker:** —
 

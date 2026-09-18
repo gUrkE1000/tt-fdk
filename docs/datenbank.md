@@ -4,8 +4,8 @@ Referenz zum Schema. Verbindlich ist immer die Migration in `supabase/migrations
 dieses Dokument erklärt, warum etwas so aussieht.
 
 Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
-Beteiligung, Benachrichtigungen, Training und Vereinstermine. Umfragen folgen in
-Aufgabe 7.2.
+Beteiligung, Benachrichtigungen, Training, Vereinstermine und Umfragen. Kalender und
+ICS-Abo folgen in Aufgabe 7.3.
 
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
 eigene Migration.
@@ -237,6 +237,25 @@ ist vorbei" ist eine Antwort, die man dem Mitglied zeigen will, kein Fehler.
 (`src/lib/richText.ts`, Positivliste) — nicht nur beim Speichern: Was in der Datenbank
 steht, kann auch jemand direkt über die API geschrieben haben.
 
+### `polls`, `poll_targets`, `poll_options`, `poll_votes`
+
+Adressiert wird über Zielzeilen: **keine** Zeile in `poll_targets` heißt „ganzer Verein";
+Mannschaften und Gruppen lassen sich mischen. Eine Zeile je Stimme statt eines Felds je
+Person — bei `max_answers > 1` gibt jemand mehrere Stimmen ab, und Listen in Spalten
+lassen sich nicht auszählen.
+
+`hide_results` ist eine Rechtefrage, keine Anzeigeoption: Wer die Ergebnisse nicht sehen
+soll, kann sie auch nicht abfragen. Das entscheidet `may_see_poll_results()`.
+
+Geschrieben wird nur über `rpc_vote_poll`: Ob die Umfrage läuft, ob die Person gemeint
+ist und ob sie nicht mehr Kreuze macht als erlaubt — eine Policy sieht immer nur eine
+Zeile und könnte die dritte Frage gar nicht beantworten. Eine neue Stimme **ersetzt** die
+alte; wer umentscheidet, soll nicht erst abwählen müssen.
+
+Die Terminumfrage zur Spielverlegung (Aufgabe 5.5) läuft bewusst **nicht** hierüber:
+Dort geht es um „wann kannst du", nicht um „was willst du", und daran hängt eine
+Verlegung.
+
 ### `private.cron_config`
 
 Liegt im Schema `private`, das PostgREST nicht veröffentlicht. Ab Aufgabe 3.3 lesen die
@@ -342,6 +361,8 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `apply_event_answer(uuid, uuid, text, int, source)` | Zu- oder Absage; prüft Anmeldefrist, Teilnehmergrenze und Zeitpunkt |
 | `rpc_set_event_participation(uuid, status, int)` | Dasselbe für den Angemeldeten |
 | `enqueue_event_reminder(uuid, uuid)` | Was der Erinnerungslauf je Termin und Zusagendem ausführt |
+| `is_poll_target(uuid)`, `may_see_poll_results(uuid)` | Ist der Angemeldete gemeint, und darf er die Auszählung sehen? |
+| `rpc_vote_poll(uuid[])`, `rpc_retract_poll_vote(uuid)` | Abstimmen und die eigene Stimme zurückziehen |
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |
@@ -418,6 +439,8 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `training_auto_attendance`, `training_reminder_filter` | eigene Zeilen | eigene Zeilen |
 | `club_events` | aktive Mitglieder, auch Gäste | Organisator und Admin |
 | `event_participations` | aktive Mitglieder | **niemand direkt** — nur `rpc_set_event_participation` oder der Link |
+| `polls`, `poll_targets`, `poll_options` | wer gemeint ist, dazu Organisator und Admin | Organisator und Admin |
+| `poll_votes` | eigene Stimme immer; fremde nur bei offenen Ergebnissen | **niemand direkt** — nur `rpc_vote_poll` |
 
 `service_role` (Edge Functions) umgeht RLS — das ist gewollt und der Grund, warum der
 `service_role`-Schlüssel niemals ins Frontend gehört.

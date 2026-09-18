@@ -18,6 +18,7 @@ import MyGamesPage from '../features/matches/MyGamesPage';
 import TrainingsPage from '../features/trainings/TrainingsPage';
 import CancellationsPage from '../features/trainings/CancellationsPage';
 import EventsPage from '../features/events/EventsPage';
+import PollsPage from '../features/polls/PollsPage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -60,7 +61,7 @@ export const router = createBrowserRouter([
           { path: 'my-dates', element: <Placeholder title="Meine Termine" task="7.5" /> },
           { path: 'my-club', element: <MyClubPage /> },
           { path: 'calendar', element: <Placeholder title="Kalender" task="7.3" /> },
-          { path: 'votes', element: <Placeholder title="Umfragen" task="7.2" /> },
+          { path: 'votes', element: <PollsPage /> },
           { path: 'profile', element: <ProfilePage /> },
 
           {

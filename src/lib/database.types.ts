@@ -778,6 +778,155 @@ export interface Database {
           },
         ];
       };
+      poll_options: {
+        Row: {
+          id: string;
+          poll_id: string;
+          text: string;
+          position: number;
+        };
+        Insert: {
+          id?: string;
+          poll_id: string;
+          text: string;
+          position?: number;
+        };
+        Update: {
+          id?: string;
+          poll_id?: string;
+          text?: string;
+          position?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_poll_id_fkey";
+            columns: ["poll_id"];
+            isOneToOne: false;
+            referencedRelation: "polls";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      poll_targets: {
+        Row: {
+          poll_id: string;
+          team_id: string | null;
+          group_id: string | null;
+        };
+        Insert: {
+          poll_id: string;
+          team_id?: string | null;
+          group_id?: string | null;
+        };
+        Update: {
+          poll_id?: string;
+          team_id?: string | null;
+          group_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "poll_targets_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "groups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "poll_targets_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "poll_targets_poll_id_fkey";
+            columns: ["poll_id"];
+            isOneToOne: false;
+            referencedRelation: "polls";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      poll_votes: {
+        Row: {
+          option_id: string;
+          profile_id: string;
+          created_at: string;
+        };
+        Insert: {
+          option_id: string;
+          profile_id: string;
+          created_at?: string;
+        };
+        Update: {
+          option_id?: string;
+          profile_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "poll_votes_option_id_fkey";
+            columns: ["option_id"];
+            isOneToOne: false;
+            referencedRelation: "poll_options";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      polls: {
+        Row: {
+          id: string;
+          title: string;
+          details_html: string;
+          type: Database["public"]["Enums"]["poll_type"];
+          max_answers: number;
+          expires_at: string | null;
+          hide_results: boolean;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          details_html?: string;
+          type?: Database["public"]["Enums"]["poll_type"];
+          max_answers?: number;
+          expires_at?: string | null;
+          hide_results?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          details_html?: string;
+          type?: Database["public"]["Enums"]["poll_type"];
+          max_answers?: number;
+          expires_at?: string | null;
+          hide_results?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "polls_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           id: string;
@@ -1753,6 +1902,25 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_poll_results: {
+        Row: {
+          poll_id: string | null;
+          option_id: string | null;
+          text: string | null;
+          position: number | null;
+          votes: number | null;
+        };
+        Relationships: [];
+      };
+      v_poll_voters: {
+        Row: {
+          poll_id: string | null;
+          option_id: string | null;
+          profile_id: string | null;
+          full_name: string | null;
+        };
+        Relationships: [];
+      };
       v_reschedule_results: {
         Row: {
           poll_id: string | null;
@@ -1873,6 +2041,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: unknown;
       };
+      is_poll_target: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       kick_session_generation: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -1894,6 +2066,10 @@ export interface Database {
         Returns: unknown;
       };
       may_join_training: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      may_see_poll_results: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
@@ -1965,6 +2141,10 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      rpc_retract_poll_vote: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       rpc_set_event_participation: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -1998,6 +2178,10 @@ export interface Database {
         Returns: unknown;
       };
       rpc_validate_registration_code: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_vote_poll: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
@@ -2038,6 +2222,7 @@ export interface Database {
       participation_response: "none" | "yes" | "no" | "unclear";
       participation_source: "auto" | "self" | "leader" | "request" | "link";
       poll_status: "open" | "closed" | "applied";
+      poll_type: "vote" | "persons";
       ranking_type: "men" | "women" | "seniors_40" | "seniors_50" | "seniors_60" | "seniors_70" | "seniors_75" | "youth_19" | "youth_15" | "youth_13" | "youth_11" | "girls_19" | "girls_15" | "girls_13" | "girls_11";
       request_origin: "system" | "leader";
       statistics_visibility: "all" | "admins" | "groups";
