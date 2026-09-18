@@ -74,6 +74,21 @@ Kosmetik:
 | Kurzname | Erscheint in engen Ansichten und im Kalender |
 | Standardort | Vorbelegung für neue Termine und Trainings — erst nach Schritt 2 setzbar |
 
+> ⚠️ **Aliasse dürfen nicht auf fremde Vereine passen.**
+>
+> Verlockend ist, nur den Ortsnamen einzutragen — „Musterstadt" statt „TTC Musterstadt".
+> Das trifft dann aber auch den *TV Musterstadt* und den *SV Musterstadt-Ost*. Und genau
+> das ist der schlimmere Fehler: Passt der Alias auf **beide** Seiten eines Spieltitels,
+> kann die Anwendung nicht entscheiden — und nimmt dann ein **Heimspiel** an.
+>
+> Ergebnis: Ihr fahrt zu einem Auswärtsspiel nicht hin. Ein fehlender Alias ist ein
+> sichtbarer Fehler, ein zu weiter ein unsichtbarer.
+>
+> Faustregel: So spezifisch wie möglich. Lieber drei genaue Schreibweisen
+> („TSV Beispielhausen", „TSV Beispielhausen 1912", „TSV Beispielh.") als eine breite.
+> Prüfen lässt es sich nach dem ersten Abgleich in einem Zug: *Spieltermine* durchsehen und
+> nachzählen, ob die Zahl der Heimspiele zum Spielplan in click-TT passt.
+
 Zusätzlich hier, aber nicht dort: **Datenschutzhinweis** und **Impressum** unter *Verein →
 Betrieb → Einstellungen*. Beide Adressen gehören vor die erste Einladung eingetragen — die
 Registrierungsseite verlinkt sie, und ohne sie verschweigt sie, was mit den Daten passiert
@@ -346,7 +361,7 @@ Zum Abhaken. Datum und Kürzel, damit später nachvollziehbar ist, wer was gepr�
 |---|---|---|---|---|
 | 1 | Vereinsdaten eingetragen | ☐ | | |
 | 2 | **Bundesland** gesetzt (sonst fallen keine Trainings an Feiertagen aus) | ☐ | | |
-| 3 | **Weitere Schreibweisen** gepflegt (sonst stehen Heimspiele auf auswärts) | ☐ | | |
+| 3 | **Weitere Schreibweisen** gepflegt — spezifisch genug, dass kein fremder Verein darauf passt | ☐ | | |
 | 4 | Datenschutzhinweis und Impressum verlinkt | ☐ | | |
 | 5 | Orte angelegt, danach Standardort in den Vereinsdaten nachgetragen | ☐ | | |
 | 6 | Schlüssel und ihre aktuellen Inhaber erfasst | ☐ | | |
