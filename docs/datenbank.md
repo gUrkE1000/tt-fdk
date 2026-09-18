@@ -4,7 +4,8 @@ Referenz zum Schema. Verbindlich ist immer die Migration in `supabase/migrations
 dieses Dokument erklärt, warum etwas so aussieht.
 
 Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
-Beteiligung und Benachrichtigungen. Training folgt in Aufgabe 6.1, Vereinstermine in 7.1.
+Beteiligung, Benachrichtigungen und Training. Vereinstermine und Umfragen folgen in
+Aufgabe 7.1.
 
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
 eigene Migration.
@@ -259,6 +260,13 @@ inzwischen überholt ist.
 Je Terminvorschlag, wie viele können und wie viele nicht. Der Mannschaftsführer sieht
 damit auf einen Blick, welcher Termin trägt.
 
+### `v_open_participations` (erweitert)
+
+Seit Aufgabe 6.6 stehen dort auch Trainingstermine ohne Antwort — allerdings nur für
+**zugeordnete** Mitglieder. Ein offenes Training verpflichtet niemanden; wer dort nie
+zusagt, soll deswegen nicht jeden Abend eine E-Mail bekommen. Die Erinnerung *vor* dem
+Termin geht dagegen an alle, so steht es im Zielbild.
+
 ### `v_session_participants`, `v_session_counts`
 
 Wer kommt zu einem Trainingstermin? `v_session_participants` liefert die Namen und nutzt
@@ -311,6 +319,10 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `may_see_training_roster(uuid)`, `may_see_session_roster(uuid)` | Darf er sehen, wer dazugehört und wer kommt? Genau hier wirkt „Inkognito" |
 | `may_join_training(uuid)` | Darf er sich selbst eintragen? (offen und nicht `trainer_invites_only`) |
 | `rpc_set_training_attendance(uuid, status, int, uuid)` | Der einzige Weg in `training_attendance`; prüft Zuordnung, Grenze und Anmeldeschluss |
+| `training_payload(uuid)`, `training_audience(uuid)` | Werte für die Vorlage und der Empfängerkreis eines Trainings |
+| `enqueue_training_reminder(uuid, uuid)` | Was der Erinnerungslauf je Termin und Person ausführt |
+| `notify_training_cancelled(uuid, date, date, text, bool)` | Meldet einen Ausfall — einmal für den ganzen Zeitraum, nicht je Tag |
+| `check_trainers_cancelled()` | Trigger: sagen alle Trainer ab, sagt sich der Termin selbst ab |
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |

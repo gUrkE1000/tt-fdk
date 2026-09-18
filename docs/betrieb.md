@@ -106,24 +106,38 @@ sie als `failed` stehen — sichtbar, statt still verloren.
 
 ## 4. Erinnerungen
 
-Ein dritter Job, alle zehn Minuten, mit zwei Aufgaben:
+Ein dritter Job, alle zehn Minuten, mit drei Aufgaben:
 
 1. **Erinnerung an ein Spiel**, je Person mit ihrem eigenen Vorlauf aus dem Profil.
-2. **Täglicher Sammelhinweis** auf alles, wozu noch eine Antwort fehlt — einer statt
+2. **Erinnerung an einen Trainingstermin**, mit dem Vorlauf des *Trainings*
+   (`reminder_hours`, Standard fünf Stunden). Die Asymmetrie ist Absicht: Wer dienstags um
+   19 Uhr trainiert, entscheidet am Nachmittag, nicht einen Tag vorher.
+3. **Täglicher Sammelhinweis** auf alles, wozu noch eine Antwort fehlt — einer statt
    einer je Termin. Ab der in den Vereinsdaten eingestellten Uhrzeit
    (`open_reminder_time`), für Termine innerhalb von `open_reminder_days`.
 
-Zwei Merkposten verhindern Wiederholungen: `match_reminders` je Spiel, Person und
-Fassung, `open_reminder_log` je Person und Tag. Beide gehören dem Hintergrundlauf und
-sind für niemanden sonst sichtbar.
+Drei Merkposten verhindern Wiederholungen: `match_reminders` je Spiel, Person und
+Fassung, `training_sessions.reminder_sent_at` je Termin, `open_reminder_log` je Person
+und Tag. Alle drei gehören dem Hintergrundlauf und sind für niemanden sonst sichtbar.
+
+Bei einem **offenen Training** ist der Kreis der ganze Verein. Wem das zu viel ist,
+schränkt unter „Mein Profil → Benachrichtigungen“ auf einzelne Trainings ein
+(`training_reminder_filter`); keine Zeile dort heißt: alle.
 
 ```sql
 -- Wer wurde zuletzt erinnert?
 SELECT sent_at, match_id, profile_id FROM public.match_reminders
  ORDER BY sent_at DESC LIMIT 20;
 
--- Wer hat noch offene Rückmeldungen?
-SELECT profile_id, count(*) FROM public.v_open_participations GROUP BY profile_id;
+-- Wer hat noch offene Rückmeldungen? (Spiele und Trainings)
+SELECT kind, count(*) FROM public.v_open_participations GROUP BY kind;
+
+-- Zu welchen Trainingsterminen wurde schon erinnert?
+SELECT t.name, s.session_date, s.reminder_sent_at
+  FROM public.training_sessions s
+  JOIN public.trainings t ON t.id = s.training_id
+ WHERE s.reminder_sent_at IS NOT NULL
+ ORDER BY s.reminder_sent_at DESC LIMIT 20;
 ```
 
 Wird ein Spiel verlegt, steigt seine Fassung — und es gibt zur neuen Fassung wieder eine

@@ -4,9 +4,12 @@ import {
   formatOpenItems,
   planMatchReminders,
   planOpenReminders,
+  planTrainingReminders,
   type OpenItem,
   type ReminderCandidate,
   type ReminderMatch,
+  type ReminderSession,
+  type TrainingReminderInput,
 } from '../../supabase/functions/_shared/reminderPlanner';
 
 // Das Spiel beginnt Montag, 5.10.2026 um 19:00 Ortszeit (17:00 UTC).
@@ -285,5 +288,131 @@ describe('formatOpenItems', () => {
   it('trennt mehrere Termine durch Zeilenumbrüche', () => {
     const text = formatOpenItems([item(), item({ id: 'm-2' })]);
     expect(text.split('\n')).toHaveLength(2);
+  });
+});
+
+// ------------------------------------------------------------------ Training
+
+// Das Training beginnt am 6.10.2026 um 19:00 Ortszeit (17:00 UTC), Vorlauf fünf Stunden.
+const TRAINING_START = '2026-10-06T17:00:00Z';
+
+function session(overrides: Partial<ReminderSession> = {}): ReminderSession {
+  return {
+    id: 's-1',
+    trainingId: 'tr-1',
+    startsAt: TRAINING_START,
+    cancelled: false,
+    reminderSentAt: null,
+    reminderHours: 5,
+    ...overrides,
+  };
+}
+
+function trainingInput(overrides: Partial<TrainingReminderInput> = {}): TrainingReminderInput {
+  return {
+    now: at('2026-10-06T12:30:00Z'),
+    sessions: [session()],
+    assignments: [
+      { trainingId: 'tr-1', profileId: 'p-1' },
+      { trainingId: 'tr-1', profileId: 'p-2' },
+    ],
+    answered: [],
+    filters: [],
+    ...overrides,
+  };
+}
+
+describe('planTrainingReminders', () => {
+  it('fragt alle Zugeordneten, sobald der Vorlauf erreicht ist', () => {
+    const actions = planTrainingReminders(trainingInput());
+    expect(actions).toHaveLength(1);
+    expect(actions[0].sessionId).toBe('s-1');
+    expect(actions[0].profileIds.sort()).toEqual(['p-1', 'p-2']);
+  });
+
+  it('wartet, solange der Vorlauf nicht erreicht ist', () => {
+    expect(planTrainingReminders(trainingInput({ now: at('2026-10-06T10:00:00Z') }))).toEqual([]);
+  });
+
+  it('holt eine verpasste Erinnerung im Fangfenster nach', () => {
+    // Vorlauf 24 Stunden: fällig am 5.10. um 17:00, fünf Stunden später noch drin.
+    const input = trainingInput({
+      sessions: [session({ reminderHours: 24 })],
+      now: at('2026-10-05T22:00:00Z'),
+    });
+    expect(planTrainingReminders(input)).toHaveLength(1);
+
+    // Sieben Stunden später ist das Fangfenster zu.
+    expect(
+      planTrainingReminders({ ...input, now: at(`2026-10-06T00:00:00Z`) }),
+    ).toEqual([]);
+    expect(CATCH_UP_HOURS).toBe(6);
+  });
+
+  it('lässt eine viel zu späte Erinnerung liegen', () => {
+    // Nach dem Beginn ist die Frage gegenstandslos.
+    expect(planTrainingReminders(trainingInput({ now: at('2026-10-06T18:00:00Z') }))).toEqual([]);
+  });
+
+  it('fragt niemanden zu einem abgesagten Termin', () => {
+    expect(
+      planTrainingReminders(trainingInput({ sessions: [session({ cancelled: true })] })),
+    ).toEqual([]);
+  });
+
+  it('fragt keinen Termin zweimal', () => {
+    expect(
+      planTrainingReminders(
+        trainingInput({ sessions: [session({ reminderSentAt: '2026-10-06T12:00:00Z' })] }),
+      ),
+    ).toEqual([]);
+  });
+
+  it('schweigt, wenn das Training keine Erinnerung will', () => {
+    expect(
+      planTrainingReminders(trainingInput({ sessions: [session({ reminderHours: 0 })] })),
+    ).toEqual([]);
+  });
+
+  it('übergeht, wer schon geantwortet hat', () => {
+    const actions = planTrainingReminders(
+      trainingInput({ answered: [{ sessionId: 's-1', profileId: 'p-1' }] }),
+    );
+    expect(actions[0].profileIds).toEqual(['p-2']);
+  });
+
+  it('achtet auf die Erinnerungsauswahl des Mitglieds', () => {
+    const actions = planTrainingReminders(
+      trainingInput({ filters: [{ profileId: 'p-1', trainingId: 'tr-2' }] }),
+    );
+    // p-1 hat eine Auswahl getroffen, dieses Training gehört nicht dazu.
+    // p-2 hat keine — fehlende Einstellung heißt an.
+    expect(actions[0].profileIds).toEqual(['p-2']);
+  });
+
+  it('erinnert, wenn das Training in der Auswahl steht', () => {
+    const actions = planTrainingReminders(
+      trainingInput({ filters: [{ profileId: 'p-1', trainingId: 'tr-1' }] }),
+    );
+    expect(actions[0].profileIds.sort()).toEqual(['p-1', 'p-2']);
+  });
+
+  it('nennt jede Person nur einmal, auch bei doppelter Zuordnung', () => {
+    const actions = planTrainingReminders(
+      trainingInput({
+        assignments: [
+          { trainingId: 'tr-1', profileId: 'p-1' },
+          { trainingId: 'tr-1', profileId: 'p-1' },
+        ],
+      }),
+    );
+    expect(actions[0].profileIds).toEqual(['p-1']);
+  });
+
+  it('hakt einen Termin auch ohne Empfänger ab', () => {
+    // Sonst prüfte ihn jeder Lauf aufs Neue, bis das Fangfenster zu ist.
+    const actions = planTrainingReminders(trainingInput({ assignments: [] }));
+    expect(actions).toHaveLength(1);
+    expect(actions[0].profileIds).toEqual([]);
   });
 });

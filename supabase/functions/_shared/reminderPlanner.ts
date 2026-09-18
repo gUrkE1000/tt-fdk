@@ -92,6 +92,101 @@ export function planMatchReminders(input: MatchReminderInput): MatchReminderActi
 
 // --------------------------------------------------------------------------------
 
+export interface ReminderSession {
+  id: string;
+  trainingId: string;
+  /** ISO-Zeitpunkt des Trainingsbeginns. */
+  startsAt: string;
+  cancelled: boolean;
+  /** Gesetzt, sobald für diesen Termin erinnert wurde. */
+  reminderSentAt: string | null;
+  /** Vorlauf des Trainings in Stunden; 0 heißt „keine Erinnerung". */
+  reminderHours: number;
+}
+
+export interface TrainingReminderInput {
+  now: Date;
+  sessions: ReminderSession[];
+  /** Wer zu welchem Training gehört. Bei einem offenen Training: alle aktiven Mitglieder. */
+  assignments: { trainingId: string; profileId: string }[];
+  /** Wer zu einem Termin schon geantwortet hat. */
+  answered: { sessionId: string; profileId: string }[];
+  /**
+   * Die Erinnerungsauswahl je Mitglied. Wer hier keine Zeile hat, will zu **allen**
+   * Trainings erinnert werden — fehlende Einstellung heißt an, wie überall sonst auch.
+   */
+  filters: { profileId: string; trainingId: string }[];
+}
+
+export interface TrainingReminderAction {
+  sessionId: string;
+  profileIds: string[];
+}
+
+/**
+ * Die Erinnerung an einen Trainingstermin.
+ *
+ * Anders als beim Spiel hängt der Vorlauf am Training, nicht an der Person — das ist die
+ * Asymmetrie des TT-Planers, und sie ist richtig: Wer dienstags um 19 Uhr trainiert,
+ * entscheidet am Nachmittag, nicht einen Tag vorher.
+ *
+ * Gemerkt wird der Versand deshalb auch je Termin (`reminder_sent_at`) und nicht je
+ * Person: Ein zweiter Lauf soll niemanden ein zweites Mal fragen, auch dann nicht, wenn
+ * inzwischen jemand neu zugeordnet wurde.
+ */
+export function planTrainingReminders(input: TrainingReminderInput): TrainingReminderAction[] {
+  const answered = new Set(
+    input.answered.map((entry) => `${entry.sessionId}|${entry.profileId}`),
+  );
+
+  // Wer überhaupt eine Auswahl getroffen hat, bekommt nur die ausgewählten Trainings.
+  const chosen = new Map<string, Set<string>>();
+  for (const entry of input.filters) {
+    const set = chosen.get(entry.profileId) ?? new Set<string>();
+    set.add(entry.trainingId);
+    chosen.set(entry.profileId, set);
+  }
+
+  const byTraining = new Map<string, string[]>();
+  for (const entry of input.assignments) {
+    const list = byTraining.get(entry.trainingId) ?? [];
+    list.push(entry.profileId);
+    byTraining.set(entry.trainingId, list);
+  }
+
+  const actions: TrainingReminderAction[] = [];
+
+  for (const session of input.sessions) {
+    if (session.cancelled) continue;
+    if (session.reminderSentAt !== null) continue;
+    if (session.reminderHours <= 0) continue;
+
+    const starts = new Date(session.startsAt).getTime();
+    if (Number.isNaN(starts)) continue;
+    if (starts <= input.now.getTime()) continue;
+
+    const due = starts - session.reminderHours * 3600_000;
+    const now = input.now.getTime();
+
+    if (now < due) continue;
+    if (now - due > CATCH_UP_HOURS * 3600_000) continue;
+
+    const profileIds = (byTraining.get(session.trainingId) ?? []).filter((profileId) => {
+      if (answered.has(`${session.id}|${profileId}`)) return false;
+      const picked = chosen.get(profileId);
+      return picked === undefined || picked.has(session.trainingId);
+    });
+
+    // Auch ohne Empfänger gilt der Termin als erledigt: sonst prüfte ihn jeder Lauf
+    // aufs Neue, bis das Fangfenster zu ist.
+    actions.push({ sessionId: session.id, profileIds: [...new Set(profileIds)] });
+  }
+
+  return actions;
+}
+
+// --------------------------------------------------------------------------------
+
 export interface OpenItem {
   profileId: string;
   kind: 'match' | 'training' | 'event';

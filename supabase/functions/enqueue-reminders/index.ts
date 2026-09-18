@@ -1,8 +1,13 @@
 // Erinnerungen einreihen (Aufgabe 4.5).
 //
-// Läuft alle zehn Minuten. Zwei Aufgaben:
+// Läuft alle zehn Minuten. Drei Aufgaben:
 //   1. Erinnerung an ein Spiel, je Person mit ihrem eigenen Vorlauf.
-//   2. Ein täglicher Sammelhinweis auf alles, wozu noch eine Antwort fehlt.
+//   2. Erinnerung an einen Trainingstermin, mit dem Vorlauf des Trainings.
+//   3. Ein täglicher Sammelhinweis auf alles, wozu noch eine Antwort fehlt.
+//
+// Die Asymmetrie in 1 und 2 ist Absicht: Beim Spiel entscheidet die Person, wie früh sie
+// erinnert werden will, beim Training das Training. Wer dienstags um 19 Uhr trainiert,
+// entscheidet am Nachmittag — nicht einen Tag vorher.
 //
 // Wer was bekommt, entscheidet `_shared/reminderPlanner.ts` — dort ohne Uhr und ohne
 // Datenbank vollständig getestet. Hier bleibt das Holen und das Einreihen.
@@ -12,9 +17,11 @@ import {
   formatOpenItems,
   planMatchReminders,
   planOpenReminders,
+  planTrainingReminders,
   type OpenItem,
   type ReminderCandidate,
   type ReminderMatch,
+  type ReminderSession,
 } from '../_shared/reminderPlanner.ts';
 
 const CORS = {
@@ -53,9 +60,10 @@ Deno.serve(async (request: Request): Promise<Response> => {
   const settings = await loadSettings(admin);
 
   const matchReminders = await doMatchReminders(admin, now);
+  const trainingReminders = await doTrainingReminders(admin, now);
   const openReminders = await doOpenReminders(admin, now, settings);
 
-  return json({ matchReminders, openReminders });
+  return json({ matchReminders, trainingReminders, openReminders });
 });
 
 async function authorize(
@@ -217,6 +225,125 @@ async function doMatchReminders(admin: SupabaseClient, now: Date): Promise<numbe
   }
 
   return actions.length;
+}
+
+async function doTrainingReminders(admin: SupabaseClient, now: Date): Promise<number> {
+  // Weiter als zwei Wochen voraus erinnert kein Training; der längste Vorlauf ist 336 Stunden.
+  const horizon = new Date(now.getTime() + 15 * 24 * 3600_000).toISOString();
+
+  const { data: sessionRows } = await admin
+    .from('training_sessions')
+    .select('id, training_id, starts_at, cancelled, reminder_sent_at')
+    .eq('cancelled', false)
+    .is('reminder_sent_at', null)
+    .gt('starts_at', now.toISOString())
+    .lt('starts_at', horizon);
+
+  const rows = (sessionRows ?? []) as {
+    id: string;
+    training_id: string;
+    starts_at: string;
+    cancelled: boolean;
+    reminder_sent_at: string | null;
+  }[];
+
+  if (rows.length === 0) return 0;
+
+  const trainingIds = [...new Set(rows.map((row) => row.training_id))];
+  const sessionIds = rows.map((row) => row.id);
+
+  const [{ data: trainingRows }, { data: memberRows }, { data: answeredRows }, { data: filterRows }, { data: profileRows }] =
+    await Promise.all([
+      admin
+        .from('trainings')
+        .select('id, reminder_hours, is_open, active')
+        .in('id', trainingIds),
+      admin.from('training_members').select('training_id, profile_id').in('training_id', trainingIds),
+      admin.from('training_attendance').select('session_id, profile_id').in('session_id', sessionIds),
+      admin.from('training_reminder_filter').select('profile_id, training_id'),
+      admin.from('profiles').select('id, status, deleted_at'),
+    ]);
+
+  const trainings = new Map(
+    ((trainingRows ?? []) as {
+      id: string;
+      reminder_hours: number;
+      is_open: boolean;
+      active: boolean;
+    }[]).map((row) => [row.id, row]),
+  );
+
+  const activeProfiles = ((profileRows ?? []) as {
+    id: string;
+    status: string;
+    deleted_at: string | null;
+  }[])
+    .filter((row) => row.status === 'active' && !row.deleted_at)
+    .map((row) => row.id);
+
+  // Bei einem offenen Training ist der Kreis der ganze Verein (Zielbild 4.4). Wem das
+  // zu viel ist, schränkt über `training_reminder_filter` ein.
+  const assignments: { trainingId: string; profileId: string }[] = [];
+  for (const trainingId of trainingIds) {
+    const training = trainings.get(trainingId);
+    if (!training || !training.active) continue;
+
+    if (training.is_open) {
+      for (const profileId of activeProfiles) assignments.push({ trainingId, profileId });
+    }
+  }
+  for (const row of (memberRows ?? []) as { training_id: string; profile_id: string }[]) {
+    assignments.push({ trainingId: row.training_id, profileId: row.profile_id });
+  }
+
+  const sessions: ReminderSession[] = rows
+    .filter((row) => trainings.get(row.training_id)?.active)
+    .map((row) => ({
+      id: row.id,
+      trainingId: row.training_id,
+      startsAt: row.starts_at,
+      cancelled: row.cancelled,
+      reminderSentAt: row.reminder_sent_at,
+      reminderHours: trainings.get(row.training_id)?.reminder_hours ?? 0,
+    }));
+
+  const actions = planTrainingReminders({
+    now,
+    sessions,
+    assignments,
+    answered: ((answeredRows ?? []) as { session_id: string; profile_id: string }[]).map((row) => ({
+      sessionId: row.session_id,
+      profileId: row.profile_id,
+    })),
+    filters: ((filterRows ?? []) as { profile_id: string; training_id: string }[]).map((row) => ({
+      profileId: row.profile_id,
+      trainingId: row.training_id,
+    })),
+  });
+
+  let sent = 0;
+
+  for (const action of actions) {
+    // Erst merken, dann einreihen — wie beim Spiel. Der Merkposten hängt hier am Termin,
+    // nicht an der Person: Ein zweiter Lauf soll niemanden noch einmal fragen.
+    const { error } = await admin
+      .from('training_sessions')
+      .update({ reminder_sent_at: now.toISOString() })
+      .eq('id', action.sessionId)
+      .is('reminder_sent_at', null);
+
+    if (error) continue;
+
+    for (const profileId of action.profileIds) {
+      await admin.rpc('enqueue_training_reminder', {
+        p_session_id: action.sessionId,
+        p_profile_id: profileId,
+      });
+      sent += 1;
+    }
+  }
+
+  return sent;
 }
 
 async function doOpenReminders(

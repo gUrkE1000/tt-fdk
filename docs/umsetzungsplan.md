@@ -659,7 +659,8 @@ Vom ausführenden Agenten gepflegt.
 | 6.3 Session-Erzeugung | erledigt | 18.09.2026 | `planSessions` mit 31 Tests; vierte Aktion `reschedule`; Auslöser auch bei Ausfall und Dauerzusage |
 | 6.4 Trainings verwalten | erledigt | 18.09.2026 | `resolveAssignment` als reine Funktion; Ausfälle als eigene Seite mit optionalem Training in der Route |
 | 6.5 Trainingstermine und Teilnahme | erledigt | 18.09.2026 | „Offene Trainings“ als eigener Reiter; Schlüsselhinweis bis 9.1 als Platzhaltertext |
-| 6.6 – 6.7 Training | offen | | |
+| 6.6 Trainingserinnerungen und Ausfälle | erledigt | 18.09.2026 | Merkposten am Termin statt an der Person; Ausfall meldet den Zeitraum, nicht jeden Tag |
+| 6.7 Automatische Trainingszusagen | offen | | Logik steckt schon in 6.3; offen ist die Oberfläche |
 | 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
@@ -812,6 +813,22 @@ Vom ausführenden Agenten gepflegt.
     einen Hinweis, aber ohne Prüfung, ob ein Zusagender tatsächlich einen Schlüssel hat —
     Schlüssel gibt es erst ab Aufgabe 9.1. Der Hinweis sagt das, statt eine Sicherheit
     vorzutäuschen, die es noch nicht gibt.
+
+42. **Der Merkposten der Trainingserinnerung hängt am Termin, nicht an der Person (6.6).**
+    So steht es im Plan (`training_sessions.reminder_sent_at`), und es hat eine Folge, die
+    man kennen muss: Wer erst nach dem Versand zugeordnet wird, bekommt zu diesem einen
+    Termin keine Erinnerung mehr. Der Gegenvorschlag — je Person merken — hieße, dass jeder
+    Lauf jeden Termin erneut prüft; die Kosten stehen nicht dafür.
+43. **Ein Ausfall meldet den Zeitraum, nicht jeden Tag (6.6).** Zwei Wochen Hallensperrung
+    ergäben sonst je Mitglied vier E-Mails. Die Nachricht nennt „von … bis …“ und geht
+    einmal raus.
+44. **Der Sammelhinweis nennt offene Trainings nur Zugeordneten (6.6).** Ein offenes
+    Training verpflichtet niemanden; wer dort nie zusagt, soll nicht jeden Abend eine
+    E-Mail bekommen. Die Erinnerung *vor* dem Termin geht dagegen an alle — so steht es im
+    Zielbild, und `training_reminder_filter` ist der Ausweg.
+45. **Kein Antwortlink ohne Anmeldung fürs Training (6.6).** Zielbild 3.6 zählt vier
+    Aktionen für `action_tokens` auf; Training ist nicht darunter. Der Link in der
+    Erinnerung führt deshalb in die Anwendung, nicht auf eine Antwortseite.
 
 **Blocker:** —
 
