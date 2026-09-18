@@ -13,7 +13,8 @@
     "db:reset": "./scripts/local-db.sh reset",
     "db:test": "./scripts/local-db.sh test",
     "db:psql": "./scripts/local-db.sh psql",
-    "gen:types": "node scripts/gen-types.mjs > src/lib/database.types.ts"
+    "gen:types": "node scripts/gen-types.mjs > src/lib/database.types.ts",
+    "import:holidays": "node --experimental-strip-types scripts/import-holidays.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

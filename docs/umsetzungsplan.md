@@ -655,7 +655,8 @@ Vom ausführenden Agenten gepflegt.
 | 5.4 Ersatzkette in der Oberfläche | erledigt | 17.09.2026 | Schrittleiste im Dialog, Banner unter „Meine Spiele" |
 | 5.5 Spielverlegung | erledigt | 17.09.2026 | Ergebnisansicht `v_reschedule_results`; Umfrage schließt sich selbst, wenn alle abgestimmt haben |
 | 6.1 Schema Training | erledigt | 17.09.2026 | pgTAP als `080_…` (070 war vergeben); `v_session_counts` ergänzt; `training_reminder_filter` vorgezogen |
-| 6.2 – 6.7 Training | offen | | |
+| 6.2 Feiertage und Schulferien | erledigt | 18.09.2026 | Skript schreibt direkt eine Migration; Feiertage werden gerechnet, wenn die Schnittstelle schweigt |
+| 6.3 – 6.7 Training | offen | | |
 | 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
@@ -749,6 +750,27 @@ Vom ausführenden Agenten gepflegt.
 28. **Trainer dürfen die Anwesenheit nachtragen (6.1).** Der Anmeldeschluss ist laut Zielbild
     der Sessionbeginn. Für den Trainer gilt er nicht: sonst ließe sich nach dem Training nie
     korrigieren, wer tatsächlich da war — und genau daraus entsteht später die Statistik.
+
+29. **Keine `seed_holidays.sql` (6.2).** Der Plan wollte eine generierte Seed-Datei *und*
+    eine Migration mit demselben Inhalt. Seed-Daten laufen nur lokal; in der
+    Produktionsdatenbank stünden dann keine Feiertage, und der Verein plante Training an
+    Karfreitag. `scripts/import-holidays.ts` schreibt deshalb direkt eine Migration — ein
+    Artefakt statt zwei, und beide Umgebungen bekommen dieselben Daten.
+30. **Gesetzliche Feiertage werden gerechnet, wenn die Schnittstelle schweigt (6.2).** Sie
+    ergeben sich aus dem Osterdatum und aus Landesrecht, nicht aus einer Datenbank — für
+    einen Datensatz, der sich nie ändert, ist eine erreichbare API eine unnötige
+    Voraussetzung. `feiertage-api.de` bleibt die erste Wahl, die Rechnung greift bei
+    Ausfall (und auf Wunsch per `--offline`). Schulferien lassen sich nicht rechnen; fehlen
+    sie, steht das im Kopf der erzeugten Datei.
+31. **Die eingecheckte Migration enthält vorerst nur Feiertage (6.2).** Aus der
+    Entwicklungsumgebung heraus ist `ferien-api.de` nicht erreichbar. Die 522 gesetzlichen
+    Feiertage für 2026–2028 und alle sechzehn Länder stehen drin; die Schulferien sind mit
+    einem Lauf mit Netzzugang nachzuholen, bevor das erste Training
+    „Schulferien überspringen" nutzt.
+32. **Skripte als TypeScript statt `.mjs` (6.2).** Der Plan nennt
+    `scripts/import-holidays.mjs`. Node 22 führt TypeScript direkt aus; damit ist die reine
+    Logik in `scripts/holidays.ts` mit denselben Vitest-Tests und derselben Typprüfung
+    abgedeckt wie der Rest des Projekts, statt ungeprüft danebenzustehen.
 
 **Blocker:** —
 

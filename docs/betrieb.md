@@ -148,7 +148,41 @@ Läuft die Kette leer, bekommt die Mannschaftsführung eine Nachricht
 (`substitute_chain_exhausted`). Der TT-Planer hat das nicht — dort erfährt niemand, dass
 alle abgesagt haben.
 
-## 6. Ersten Administrator anlegen
+## 6. Feiertage und Schulferien nachladen
+
+**Einmal im Jahr, im Herbst.** Die Trainingsplanung überspringt Feiertage und Schulferien
+nur, solange sie welche kennt — sind die Jahre abgelaufen, plant sie stillschweigend
+Training an Karfreitag.
+
+```bash
+npm run import:holidays          # aktuelles Jahr und die zwei folgenden
+npm run import:holidays -- 2029 2031
+```
+
+Das Skript schreibt eine neue Datei nach `supabase/migrations/` und lädt dazu:
+
+- **gesetzliche Feiertage** von `https://feiertage-api.de/api/?jahr=YYYY`,
+- **Schulferien** von `https://ferien-api.de/api/v1/holidays/<BL>/<YYYY>`, für alle
+  sechzehn Bundesländer.
+
+Die erzeugte Datei einchecken und wie jede Migration ausrollen. `ON CONFLICT DO NOTHING`
+macht sie folgenlos wiederholbar; ein zweiter Lauf über dieselben Jahre legt nichts doppelt an.
+
+**Wenn eine der Schnittstellen nicht antwortet:** Die gesetzlichen Feiertage rechnet das
+Skript dann selbst — sie ergeben sich aus dem Osterdatum und aus Landesrecht, nicht aus
+einer Datenbank. `npm run import:holidays -- --offline` erzwingt das ohne jeden Netzzugriff.
+Schulferien lassen sich nicht rechnen; fehlen sie, steht das im Kopf der erzeugten Datei
+und der Lauf ist später mit Netzzugang zu wiederholen. Betroffen sind nur Trainings mit
+„Schulferien überspringen".
+
+Was in der Datenbank steht:
+
+```sql
+SELECT kind, min(start_date), max(start_date), count(*)
+  FROM public.holidays GROUP BY kind;
+```
+
+## 7. Ersten Administrator anlegen
 
 Die Anwendung legt niemanden automatisch an. Nach dem ersten Deployment:
 
@@ -160,7 +194,7 @@ VALUES ('Vorname', 'Nachname', 'admin@example.org', 'admin', 'unconfirmed');
 Danach meldet sich diese Adresse per E-Mail-Link an; `handle_new_user()` verknüpft das
 vorhandene Profil und setzt es auf `active`.
 
-## 7. Sicherung
+## 8. Sicherung
 
 Supabase sichert die Datenbank selbst. Zusätzlich empfiehlt sich ein wöchentlicher
 `pg_dump` in ein privates Artefakt (kommt in Aufgabe 10.x).

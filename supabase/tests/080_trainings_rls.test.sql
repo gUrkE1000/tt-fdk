@@ -4,7 +4,7 @@
 -- vergeben.
 
 BEGIN;
-SELECT plan(38);
+SELECT plan(39);
 
 -- Tina (…0003) leitet „Erwachsenentraining" und „Offenes Training",
 -- Theo (…0004) leitet das inkognito geführte „Jugendtraining".
@@ -295,16 +295,25 @@ SELECT throws_ok(
 -- ============================================================ Feiertage
 SELECT lives_ok(
     $$ INSERT INTO public.holidays (bundesland, kind, name, start_date, end_date)
-       VALUES ('NW', 'public', 'Tag der Deutschen Einheit', '2026-10-03', '2026-10-03') $$,
+       VALUES ('NW', 'public', 'Tag des Tischtennis', '2026-07-01', '2026-07-01') $$,
     'Feiertage pflegt der Administrator'
 );
 
 DO $$ BEGIN PERFORM tests.login_as('22222222-1111-0000-0000-000000000006'); END $$;
 
 SELECT is(
-    (SELECT count(*) FROM public.holidays)::int,
+    (SELECT count(*) FROM public.holidays WHERE name = 'Tag des Tischtennis')::int,
     1,
     'lesen dürfen sie alle'
+);
+
+-- Der Import aus Aufgabe 6.2 ist eine Migration und muss deshalb hier ankommen.
+SELECT is(
+    (SELECT start_date::text FROM public.holidays
+      WHERE bundesland = 'NW' AND kind = 'public' AND name = 'Karfreitag'
+        AND start_date BETWEEN '2026-01-01' AND '2026-12-31'),
+    '2026-04-03',
+    'Die eingespielten gesetzlichen Feiertage stehen in der Datenbank'
 );
 
 SELECT throws_ok(
