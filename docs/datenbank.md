@@ -5,8 +5,8 @@ dieses Dokument erklärt, warum etwas so aussieht.
 
 Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
 Beteiligung, Benachrichtigungen (E-Mail und Push), Training, Vereinstermine, Umfragen,
-Kalender, ICS-Abo, die Betriebssicht und die Schlüsselverwaltung. Es fehlen noch die
-übrigen Stufe-B-Tabellen (Phase 9).
+Kalender, ICS-Abo, die Betriebssicht, die Schlüsselverwaltung und die Ämter. Es fehlen
+noch die übrigen Stufe-B-Tabellen (Phase 9).
 
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
 eigene Migration.
@@ -156,6 +156,20 @@ kann mehrere haben — Handy, Tablet, Rechner.
 Der Versandlauf löscht einen Eintrag, sobald der Push-Dienst ihn mit 404 oder 410 abweist:
 Das Gerät kommt nicht wieder, und ein toter Endpunkt würde sonst bei jedem Lauf erneut
 versucht. Eine Nachricht gilt als zugestellt, sobald **ein** Gerät sie angenommen hat.
+
+### `club_roles`, `club_role_members`
+
+Ämter — Jugendwart, Kassier, Pressewart. **Nicht zu verwechseln mit `profiles.role`:**
+die Benutzerrolle steuert, was jemand darf, und ist fest vorgegeben; ein Amt ist ein frei
+benannter Posten und schaltet **keine einzige Berechtigung** frei.
+
+Im TT-Planer geben Ämter genau zwei Rechte (Inventar, Bekleidung). Beide Module sind hier
+gestrichen, also bleibt vom Amt das, was es eigentlich ist: eine Auskunft darüber, wen man
+bei welchem Anliegen anspricht.
+
+Ein Amt kann mehrere Inhaber haben und ein Mitglied mehrere Ämter — beides ist im Verein
+normal. `duties` ist ein Textfeld-Array, damit die Tätigkeiten einzeln bleiben und sich
+einzeln anzeigen lassen.
 
 ### `keys`, `key_handovers`
 
@@ -467,6 +481,7 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 |---|---|---|
 | `club_settings` | aktive Mitglieder, außer `secret_*` | Admin |
 | `v_cron_status` | nur Admin (View prüft selbst) | — (View) |
+| `club_roles`, `club_role_members` | aktive Mitglieder | Admin |
 | `keys` | aktive Mitglieder | Admin (Inhaber nur über `rpc_hand_over_key`) |
 | `key_handovers` | aktive Mitglieder | niemand direkt |
 | `profiles` | eigene Zeile immer; Admin alles, auch Gelöschte; sonst aktive Mitglieder. Ein Gast sieht nur Admins und Trainer | eigene Zeile oder Admin; Spaltenschutz per Trigger |

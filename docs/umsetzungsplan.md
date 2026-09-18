@@ -672,6 +672,7 @@ Vom ausführenden Agenten gepflegt.
 | 8.4 Admin-Bereich und Betriebsdokumentation | erledigt | 18.09.2026 | `v_cron_status` mit Leer-Fassung ohne pg_cron; `docs/einrichtung.md` neu |
 | 9.1 Schlüsselverwaltung | erledigt | 18.09.2026 | Schlüsselwarnung in 6.5 damit scharf; Zuordnungsspalten der Vereinsübersicht nachgezogen |
 | 9.5 Excel-Import/-Update | erledigt | 18.09.2026 | `exceljs` statt `xlsx` (Sicherheitslücke); eine Rangspalte statt fünfzehn |
+| 9.6 Ämter | erledigt | 18.09.2026 | ohne Rechtewirkung, weil Inventar und Bekleidung gestrichen sind |
 | 9.x übrige Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
 
@@ -1024,6 +1025,15 @@ Vom ausführenden Agenten gepflegt.
 90. **Der Import zeigt erst, was er tun würde (9.5).** Ein Import läuft einmal, mit echten
     Daten, und ein Fehler betrifft alle Mitglieder gleichzeitig. Deshalb erst der Bericht
     („12 neu, 30 aktualisieren, 2 unklar"), dann der Knopf.
+
+91. **Ämter geben gar keine Rechte mehr (9.6).** Im TT-Planer schalten sie genau zwei Dinge
+    frei: Inventar und Bekleidung. Beide Module sind gestrichen, also bleibt keine
+    Rechtewirkung übrig — und das ist gut so. Rechte an einem frei benannten Posten
+    festzumachen ist eine Einladung dazu, versehentlich jemandem zu viel zu geben.
+    `club_roles` steht deshalb bewusst neben `profiles.role`, nicht darin.
+92. **Die Kontaktdaten der Amtsinhaber kommen weiter aus `v_members_directory` (9.6).** Ein
+    Amt zu haben ist kein Grund, die private Handynummer zu veröffentlichen — die Maskierung
+    bleibt, wo sie war.
 
 **Blocker:** —
 

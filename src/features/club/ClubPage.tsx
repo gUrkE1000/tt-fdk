@@ -3,6 +3,7 @@ import Placeholder from '../../app/Placeholder';
 import ClubDataTab from './ClubDataTab';
 import ClubOverviewTab from './ClubOverviewTab';
 import AdminPage from '../admin/AdminPage';
+import ClubRolesTab from './ClubRolesTab';
 
 export default function ClubPage() {
   return (
@@ -12,20 +13,16 @@ export default function ClubPage() {
       <Tabs
         tabs={[
           { value: 'data', label: 'Daten', content: <ClubDataTab /> },
-          {
-            value: 'offices',
-            label: 'Ämter',
-            content: <Placeholder title="Ämter" task="9.6" />,
-          },
+          { value: 'offices', label: 'Ämter', content: <ClubRolesTab /> },
           {
             value: 'news',
             label: 'Neuigkeiten',
-            content: <Placeholder title="Vereinsneuigkeiten" task="9.4" />,
+            content: <Placeholder title="Vereinsneuigkeiten" task="9.3" />,
           },
           {
             value: 'files',
             label: 'Dateien',
-            content: <Placeholder title="Vereinsdateien" task="9.5" />,
+            content: <Placeholder title="Vereinsdateien" task="9.4" />,
           },
           { value: 'overview', label: 'Übersicht', content: <ClubOverviewTab /> },
           { value: 'operations', label: 'Betrieb', content: <AdminPage /> },

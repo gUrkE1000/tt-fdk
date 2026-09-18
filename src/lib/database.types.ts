@@ -173,6 +173,69 @@ export interface Database {
           },
         ];
       };
+      club_role_members: {
+        Row: {
+          role_id: string;
+          profile_id: string;
+          created_at: string;
+        };
+        Insert: {
+          role_id: string;
+          profile_id: string;
+          created_at?: string;
+        };
+        Update: {
+          role_id?: string;
+          profile_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "club_role_members_role_id_fkey";
+            columns: ["role_id"];
+            isOneToOne: false;
+            referencedRelation: "club_roles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "club_role_members_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      club_roles: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          duties: string[];
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string;
+          duties?: string[];
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string;
+          duties?: string[];
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       club_settings: {
         Row: {
           key: string;
@@ -2000,6 +2063,15 @@ export interface Database {
           venue_id: string | null;
           is_home: boolean | null;
           cancelled: boolean | null;
+        };
+        Relationships: [];
+      };
+      v_club_role_members: {
+        Row: {
+          role_id: string | null;
+          profile_id: string | null;
+          full_name: string | null;
+          user_role: Database["public"]["Enums"]["user_role"] | null;
         };
         Relationships: [];
       };

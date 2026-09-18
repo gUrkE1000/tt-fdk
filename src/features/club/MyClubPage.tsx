@@ -14,6 +14,7 @@ import {
 import Placeholder from '../../app/Placeholder';
 import { roleLabel } from '../../lib/labels';
 import { useClubSettings } from './api';
+import { useClubRoles } from './rolesApi';
 import ClubTeamsTab from './ClubTeamsTab';
 import ClubGamesTab from './ClubGamesTab';
 import SessionsTab from '../trainings/SessionsTab';
@@ -42,12 +43,12 @@ export default function MyClubPage() {
           {
             value: 'news',
             label: 'Neuigkeiten',
-            content: <Placeholder title="Vereinsneuigkeiten" task="9.4" />,
+            content: <Placeholder title="Vereinsneuigkeiten" task="9.3" />,
           },
           {
             value: 'files',
             label: 'Dateien',
-            content: <Placeholder title="Vereinsdateien" task="9.5" />,
+            content: <Placeholder title="Vereinsdateien" task="9.4" />,
           },
           {
             value: 'about',
@@ -141,11 +142,17 @@ function Contacts() {
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-gray-600">
-        Administratoren, Trainer und Mannschaftsführer. Die Ämter des Vereins kommen in
-        einem späteren Schritt dazu.
-      </p>
+    <div className="space-y-6">
+      <ClubRolesList />
+
+      <div className="space-y-3">
+        <div>
+          <h3 className="font-bold text-gray-900">Ansprechpartner in der Anwendung</h3>
+          <p className="text-sm text-gray-600">
+            Administratoren, Trainer und Mannschaftsführer — wer die Anwendung pflegt. Ein
+            Amt ist etwas anderes: es steht oben.
+          </p>
+        </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         {people.map((entry) => (
@@ -159,6 +166,40 @@ function Contacts() {
                   <ContactCell entry={entry} />
                 </div>
               </div>
+            </CardBody>
+          </Card>
+        ))}
+      </div>
+      </div>
+    </div>
+  );
+}
+
+/** Die Ämter des Vereins (Aufgabe 9.6) — wen man wofür anspricht. */
+function ClubRolesList() {
+  const roles = useClubRoles();
+  const entries = (roles.data ?? []).filter((role) => role.memberNames.length > 0);
+
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <h3 className="font-bold text-gray-900">Ämter</h3>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {entries.map((role) => (
+          <Card key={role.id}>
+            <CardBody className="space-y-1">
+              <p className="font-semibold text-gray-900">{role.name}</p>
+              <p className="text-sm text-gray-700">{role.memberNames.join(', ')}</p>
+              {role.description && <p className="text-sm text-gray-600">{role.description}</p>}
+              {role.duties.length > 0 && (
+                <ul className="list-inside list-disc text-sm text-gray-500">
+                  {role.duties.map((duty) => (
+                    <li key={duty}>{duty}</li>
+                  ))}
+                </ul>
+              )}
             </CardBody>
           </Card>
         ))}

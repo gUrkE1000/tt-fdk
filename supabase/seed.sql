@@ -336,3 +336,19 @@ INSERT INTO public.keys (id, name, venue_id, responsible_id, holder_id, no_forwa
      '22222222-0000-0000-0000-000000000001',
      NULL, true)
 ON CONFLICT (id) DO NOTHING;
+
+-- ----------------------------------------------------------------- Ämter (9.6)
+INSERT INTO public.club_roles (id, name, description, duties, sort_order) VALUES
+    ('cccccccc-0000-0000-0000-000000000001', 'Jugendwart',
+     'Kümmert sich um alles rund um die Jugendabteilung.',
+     ARRAY['Training organisieren', 'Ansprechpartner für Eltern', 'Turniere melden'], 1),
+
+    ('cccccccc-0000-0000-0000-000000000002', 'Kassier',
+     'Führt die Vereinskasse.',
+     ARRAY['Beiträge einziehen', 'Jahresabschluss'], 2)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.club_role_members (role_id, profile_id) VALUES
+    ('cccccccc-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000003'),
+    ('cccccccc-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000001')
+ON CONFLICT DO NOTHING;
