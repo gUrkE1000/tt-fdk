@@ -102,7 +102,7 @@ export default function SettingsPanel() {
 
             <FormField
               label="Absenderadresse"
-              hint="Muss zu einer bei Resend verifizierten Domain gehören."
+              hint="Muss zu einer bei Resend verifizierten Domain gehören. Braucht kein Postfach."
               error={form.formState.errors.notification_sender_email?.message}
             >
               {(p) => (
@@ -110,6 +110,14 @@ export default function SettingsPanel() {
               )}
             </FormField>
           </div>
+
+          <FormField
+            label="Antwortadresse"
+            hint="Hierhin geht, wer auf eine Benachrichtigung antwortet — und das tut jemand. Ein Postfach, das der Verein ohnehin hat. Leer: Antworten laufen ins Leere."
+            error={form.formState.errors.notification_reply_to?.message}
+          >
+            {(p) => <Input {...p} type="email" {...form.register('notification_reply_to')} />}
+          </FormField>
 
           <FormField
             label="Adresse der Anwendung"

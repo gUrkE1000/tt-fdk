@@ -457,7 +457,9 @@ Angemeldet als Administrator, unter **Verein → Daten**:
 
 Unter **Verein → Betrieb → Einstellungen**:
 
-- Absendername und -adresse (muss zur Resend-Domain passen)
+- Absendername und -adresse (muss zur Resend-Domain passen, braucht kein Postfach)
+- **Antwortadresse** — ein Postfach, das der Verein ohnehin hat. Bleibt sie leer, fällt
+  jede Antwort auf eine Benachrichtigung lautlos aus der Welt
 - **Adresse der Anwendung** — ohne sie führt kein Link aus einer Benachrichtigung irgendwohin
 - Vorlauf der Erinnerungen
 - Datenschutzhinweis und Impressum — siehe [Teil 5](#teil-5--rechtliches)

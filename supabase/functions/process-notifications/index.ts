@@ -184,6 +184,11 @@ interface Settings {
   clubName: string;
   senderName: string;
   senderEmail: string;
+  /**
+   * Wohin Antworten gehen. Leer heißt: an die Absenderadresse — und hinter der steht in
+   * aller Regel kein Postfach.
+   */
+  replyTo: string;
   appUrl: string;
 }
 
@@ -191,7 +196,13 @@ async function loadSettings(admin: SupabaseClient): Promise<Settings> {
   const { data } = await admin
     .from('club_settings')
     .select('key, value')
-    .in('key', ['club_name', 'notification_sender_name', 'notification_sender_email', 'app_url']);
+    .in('key', [
+      'club_name',
+      'notification_sender_name',
+      'notification_sender_email',
+      'notification_reply_to',
+      'app_url',
+    ]);
 
   const map = Object.fromEntries(
     ((data ?? []) as { key: string; value: string }[]).map((row) => [row.key, row.value]),
@@ -201,6 +212,7 @@ async function loadSettings(admin: SupabaseClient): Promise<Settings> {
     clubName: map.club_name || 'Vereinsplaner',
     senderName: map.notification_sender_name || map.club_name || 'Vereinsplaner',
     senderEmail: map.notification_sender_email || '',
+    replyTo: map.notification_reply_to || '',
     appUrl: map.app_url || '',
   };
 }
@@ -244,6 +256,10 @@ async function sendEmail(
         from: `${settings.senderName} <${settings.senderEmail}>`,
         to: [to],
         cc,
+        // Weggelassen, wenn nichts hinterlegt ist: Ein leeres Feld lehnt Resend ab, und
+        // ohne das Feld antwortet der Mailer an den Absender — dasselbe Verhalten wie
+        // bisher, nur ohne Fehlschlag.
+        reply_to: settings.replyTo || undefined,
         subject: row.subject,
         text: row.body_text,
         html: buildEmailHtml({

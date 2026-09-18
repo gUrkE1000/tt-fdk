@@ -37,6 +37,23 @@ export const operationsSchema = z.object({
     }),
 
   /**
+   * Wohin Antworten gehen.
+   *
+   * Getrennt von der Absenderadresse, weil die zwei verschiedene Aufgaben haben: Die
+   * Absenderadresse muss auf der beim Versanddienst verifizierten Domain liegen und
+   * braucht kein Postfach. Die Antwortadresse braucht genau umgekehrt ein echtes
+   * Postfach und darf irgendwo liegen.
+   *
+   * Ohne sie fällt jede Antwort auf eine Benachrichtigung lautlos aus der Welt.
+   */
+  notification_reply_to: z
+    .string()
+    .trim()
+    .refine((value) => value === '' || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value), {
+      message: 'Bitte eine gültige E-Mail-Adresse',
+    }),
+
+  /**
    * Basis für alle Links in Benachrichtigungen. Ohne sie zeigt jeder Antwortlink ins
    * Leere — deshalb ist die Adresse hier sichtbar und nicht in einer Umgebungsvariablen.
    */

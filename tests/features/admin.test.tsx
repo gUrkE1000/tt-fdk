@@ -114,6 +114,30 @@ describe('operationsSchema', () => {
     ).toBe(false);
   });
 
+  it('lässt eine leere Antwortadresse zu, eine falsche nicht', () => {
+    // Leer ist der Normalfall bis jemand sie einträgt — dann verhält es sich wie bisher
+    // und Antworten gehen an den Absender.
+    expect(operationsSchema.safeParse({ ...valid, notification_reply_to: '' }).success).toBe(true);
+    expect(
+      operationsSchema.safeParse({ ...valid, notification_reply_to: 'vorstand@verein.example.org' })
+        .success,
+    ).toBe(true);
+    expect(
+      operationsSchema.safeParse({ ...valid, notification_reply_to: 'kein-at-zeichen' }).success,
+    ).toBe(false);
+  });
+
+  it('trennt Absender- und Antwortadresse', () => {
+    // Zwei Felder, weil sie zwei verschiedene Anforderungen haben: Der Absender muss auf
+    // der verifizierten Domain liegen, die Antwortadresse braucht ein echtes Postfach.
+    const result = operationsSchema.safeParse({
+      ...valid,
+      notification_sender_email: 'planer@mail.verein.example.org',
+      notification_reply_to: 'vorstand@ganz-woanders.example.org',
+    });
+    expect(result.success).toBe(true);
+  });
+
   it('lehnt kaputtes JSON bei den Quicklinks ab', () => {
     expect(operationsSchema.safeParse({ ...valid, quicklinks_json: '{' }).success).toBe(false);
     expect(operationsSchema.safeParse({ ...valid, quicklinks_json: '{}' }).success).toBe(false);

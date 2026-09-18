@@ -203,17 +203,56 @@ Sofort ins Passwortdepot. Resend zeigt ihn genau einmal.
 
 ☐ Domain verified am: ________ ☐ API-Schlüssel abgelegt am: ________
 
-### 5.5 Die Absenderadresse
+### Was du beim Domainkauf **nicht** brauchst
 
-Ein Postfach dahinter braucht es nicht — aber richte trotzdem eine Weiterleitung ein. Es
-antwortet immer jemand.
+Registrare bieten im Bestellvorgang gern Pakete an. Für diese Anwendung gilt:
 
-```
-planer@mail.beispiel.de
-```
+| Angebot | Brauchst du? | Warum |
+|---|---|---|
+| **Domain allein** | ✅ **ja** | Mehr ist es nicht |
+| E-Mail-Paket / Postfächer | ❌ nein | Der Versand läuft über Resend. Ein Postfach macht die Zustellung **nicht** zuverlässiger — siehe unten. Für Antworten reicht die Antwortadresse (5.5) |
+| Webhosting | ❌ nein | Die Anwendung liegt auf GitHub Pages, kostenlos |
+| Website-Baukasten | ❌ nein | — |
+| SSL-Zertifikat | ❌ nein | GitHub Pages stellt es selbst aus, kostenlos |
 
-Dieser Wert kommt später in der Anwendung unter *Verein → Betrieb → Einstellungen →
-Absenderadresse*. Er **muss** auf der bei Resend verifizierten Domain liegen.
+**Der verbreitete Irrtum:** *„Mit einem richtigen Postfach wird die E-Mail zuverlässiger
+zugestellt."* Das stimmt nicht. Ob eine Nachricht im Posteingang oder im Spam landet,
+entscheiden **SPF, DKIM und DMARC** — also genau die DNS-Einträge aus Abschnitt 5.2 — plus
+der Ruf des versendenden Systems. Ein Postfach beim Registrar ändert an beidem nichts,
+weil die Anwendung gar nicht darüber versendet.
+
+Umgekehrt wäre der Versand über ein normales Registrar-Postfach **schlechter**: Solche
+Postfächer haben enge Sendelimits, Massenversand verstößt oft gegen deren Bedingungen, und
+es gibt keine Protokolle. Die Frage „ich habe nie eine Mail bekommen" wäre dann nicht mehr
+zu beantworten — mit Resend steht sie unter *Verein → Betrieb → Benachrichtigungen*.
+
+⚠️ **Auf den Verlängerungspreis achten.** Einstiegspreise gelten meist 12 Monate. Was
+danach fällig wird, steht klein daneben — bei Domains oft das Zehnfache, bei
+E-Mail-Paketen das Zweieinhalbfache.
+
+### 5.5 Absenderadresse und Antwortadresse
+
+Das sind **zwei verschiedene Dinge**, und wer sie verwechselt, kauft ein Postfach, das er
+nicht braucht.
+
+| | Absenderadresse | Antwortadresse |
+|---|---|---|
+| Beispiel | `planer@mail.beispiel.de` | `vorstand@verein.de` |
+| Muss auf der verifizierten Domain liegen | **ja** | nein |
+| Braucht ein echtes Postfach | **nein** | **ja** |
+| Wofür | Zustellbarkeit (SPF, DKIM, DMARC) | damit Antworten ankommen |
+| In der Anwendung | *Verein → Betrieb → Einstellungen → Absenderadresse* | *… → Antwortadresse* |
+
+Die Absenderadresse ist eine technische Kennung. Hinter ihr muss nichts stehen.
+
+Die Antwortadresse ist das, was zählt: **Auf jede Erinnerung, jede Ersatzanfrage und jede
+Aufstellung antwortet irgendwann jemand.** Trag hier ein Postfach ein, das der Verein
+**ohnehin hat** — die Adresse des Vorstands, des Abteilungsleiters, eines
+Mannschaftsführers. Dann brauchst du beim Domainkauf kein E-Mail-Paket dazuzubuchen.
+
+> Bleibt die Antwortadresse leer, geht die Antwort an die Absenderadresse — und fällt dort
+> lautlos aus der Welt. Der Schreibende hält seine Rückmeldung für zugestellt, der
+> Mannschaftsführer wartet auf eine, die längst geschrieben wurde.
 
 ---
 
