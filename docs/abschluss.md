@@ -123,11 +123,43 @@ Zur Auswahl, wenn der Verein das Projekt später weitergeben will:
 | **AGPL-3.0** | Wer die Anwendung betreibt, muss seinen Quelltext offenlegen. Sinnvoll, wenn kein Anbieter daraus ein bezahltes Produkt machen soll |
 | *keine* | Bleibt privat, niemand außer dem Verein darf etwas damit tun — auch kein anderer Verein |
 
-**Die Entscheidung über die Veröffentlichung.** Sie hängt jetzt nur noch am Verein, nicht
-mehr an einer fremden Rechtslage. Dafür spricht, dass andere Vereine vor demselben Problem
-stehen und 80 €/Jahr statt 180 € ein Argument sind. Dagegen spricht nichts Rechtliches
-mehr — wohl aber, dass ein öffentliches Repository Fragen von Fremden nach sich zieht, die
-jemand beantworten muss.
+### Die Git-Historie — der Punkt, den das Neuschreiben nicht löst
+
+Die Übernahme lief als `git merge --allow-unrelated-histories`. Das heißt: Der
+**vollständige ursprüngliche Quelltext liegt weiterhin in diesem Repository**, nämlich in
+den Commits davor.
+
+```
+169 Commits   Upstream, bis 17.09.2026
+ 33 Commits   eigene, seither
+```
+
+Ein `git checkout` auf einen alten Commit fördert `AdminDashboard.tsx`,
+`SportwartView.tsx` und die ganze alte Oberfläche wieder zutage. Dateien neu zu schreiben
+ändert daran nichts — Git vergisst nicht.
+
+**Solange das Repository privat ist, ist das kein Problem.** Es wird nichts verbreitet, und
+genau darum geht es beim Urheberrecht. Beim Umschalten auf öffentlich würden die 169
+Commits jedoch mitveröffentlicht — also genau das, was ohne Lizenz nicht erlaubt ist.
+
+Drei Wege, falls es je so weit kommt:
+
+| Weg | Was passiert | Preis |
+|---|---|---|
+| **Neue Wurzel ohne Vorgeschichte** (`git checkout --orphan`) | Ein einziger Commit mit dem heutigen Stand | Auch die eigenen 33 Commits sind weg — mit ihnen die Begründungen, die das Projekt in zwei Jahren wartbar machen |
+| **Die eigenen 33 Commits auf eine neue Wurzel setzen** | Vorgeschichte weg, eigene Entwicklung bleibt lesbar | Fummelig, aber einmalig. **Der empfohlene Weg** |
+| **Altes Repository privat als Archiv behalten**, neues öffentliches daneben | Nichts geht verloren | Zwei Repositories, von denen eines nie wieder angefasst wird |
+
+### Die Entscheidung über die Veröffentlichung
+
+Sie hängt jetzt nur noch am Verein, nicht mehr an einer fremden Rechtslage. Dafür spricht,
+dass andere Vereine vor demselben Problem stehen und 80 €/Jahr statt 180 € ein Argument
+sind. Dagegen spricht nichts Rechtliches mehr — wohl aber, dass ein öffentliches
+Repository Fragen von Fremden nach sich zieht, die jemand beantworten muss, und dass die
+Historie vorher zu bereinigen ist.
+
+**Für den Betrieb im eigenen Verein ist nichts davon nötig.** Das Repository kann privat
+bleiben, und dann ist die Sache mit dem Neuschreiben der vier Dateien erledigt.
 
 ### Checkliste
 
@@ -139,6 +171,7 @@ jemand beantworten muss.
 | 4 | Anfrage an den Autor gestellt | ☐ | |
 | 5 | Eigene Lizenz gewählt und als `LICENSE` abgelegt | ☐ | |
 | 6 | Entschieden, ob das Repository öffentlich wird | ☐ | |
+| 7 | *Nur bei „öffentlich":* Git-Historie bereinigt | ☐ | |
 
 ---
 

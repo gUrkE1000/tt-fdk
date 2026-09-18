@@ -6,8 +6,11 @@ Dieses Projekt begann als Fork von **[dgaida/tt_hsv_planner](https://github.com/
 dessen Repository keine Lizenz führt. **Seit dem 18.09.2026 ist kein Code aus dem Upstream mehr
 enthalten.** Die vier zuletzt verbliebenen Dateien wurden neu geschrieben, ihre Tests ebenso.
 
-Die Historie des Upstreams steckt weiterhin in diesem Git-Repository — als Vorgeschichte, nicht
-als Code. Was daraus folgt, steht unter [Was noch offen ist](#was-noch-offen-ist).
+**Die Historie ist davon unberührt.** In den 169 Commits vor dem 17.09.2026 liegt der
+vollständige ursprüngliche Quelltext weiterhin im Repository; Git vergisst nicht. Solange das
+Repository privat ist, wird damit nichts verbreitet und es ist kein Problem. Vor einer
+Veröffentlichung wäre es eines — die drei Wege stehen in
+[docs/abschluss.md](docs/abschluss.md#die-git-historie--der-punkt-den-das-neuschreiben-nicht-löst).
 
 ## Ursprung
 
