@@ -2,6 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Die Farbwerte des Design-Systems (Zielbild 6.3, Dark Mode aus Aufgabe 9.11).
+ *
+ * Als RGB-Tripel ohne Funktionsklammern, weil Tailwind sie in `rgb(… / <alpha-value>)`
+ * einsetzt — nur so funktionieren Transparenzen wie `bg-gray-900/40` weiter.
+ *
+ * Hell sind es exakt die Werte von vorher (Tailwind-Standardpalette). Dunkel ist die
+ * Skala gespiegelt: Was hell der hellste Hintergrund war, ist dunkel der dunkelste.
+ * Dadurch ergibt `text-gray-900 auf bg-white` in beiden Modi hellen Text auf dunklem
+ * beziehungsweise dunklen Text auf hellem Grund, ohne dass eine Komponente etwas davon
+ * weiß.
+ */
+/*
+ * Bewusst **außerhalb** von `@layer base`: Tailwind entfernt aus einer Layer alles,
+ * dessen Selektor es im Quelltext nicht findet — und `.dark` steht dort nur als
+ * `classList`-Aufruf, nicht als Klassenname. Die Palette verschwand dadurch spurlos
+ * aus dem Bauwerk, und Dark Mode tat einfach nichts.
+ */
+:root {
+  --surface: 255 255 255;
+
+  --gray-50: 249 250 251;
+  --gray-100: 243 244 246;
+  --gray-200: 229 231 235;
+  --gray-300: 209 213 219;
+  --gray-400: 156 163 175;
+  --gray-500: 107 114 128;
+  --gray-600: 75 85 99;
+  --gray-700: 55 65 81;
+  --gray-800: 31 41 55;
+  --gray-900: 17 24 39;
+
+  --primary: 13 148 136;        /* teal-600 */
+  --primary-hover: 15 118 110;  /* teal-700 */
+  --primary-soft: 240 253 250;  /* teal-50 */
+  --primary-border: 153 246 228; /* teal-200 */
+
+  --status-yes: 5 150 105;
+  --status-yes-soft: 236 253 245;
+  --status-late: 245 158 11;
+  --status-late-soft: 255 251 235;
+  --status-no: 225 29 72;
+  --status-no-soft: 255 241 242;
+  --status-absent: 100 116 139;
+  --status-absent-soft: 241 245 249;
+}
+
+.dark {
+  /* Nicht reines Schwarz: Auf OLED-Bildschirmen flimmert der Übergang zu echtem
+     Schwarz beim Scrollen, und Schatten verschwinden darin spurlos. */
+  --surface: 24 27 33;
+
+  --gray-50: 31 35 42;
+  --gray-100: 39 44 52;
+  --gray-200: 51 57 67;
+  --gray-300: 71 79 92;
+  --gray-400: 120 130 146;
+  --gray-500: 156 165 180;
+  --gray-600: 187 194 206;
+  --gray-700: 213 218 227;
+  --gray-800: 232 235 240;
+  --gray-900: 244 246 249;
+
+  /* Auf dunklem Grund braucht Teal mehr Helligkeit, sonst verschwindet es. */
+  --primary: 45 212 191;         /* teal-400 */
+  --primary-hover: 94 234 212;   /* teal-300 */
+  --primary-soft: 19 54 54;
+  --primary-border: 17 94 89;    /* teal-800 */
+
+  --status-yes: 52 211 153;
+  --status-yes-soft: 6 47 38;
+  --status-late: 251 191 36;
+  --status-late-soft: 56 40 10;
+  --status-no: 251 113 133;
+  --status-no-soft: 60 18 28;
+  --status-absent: 148 163 184;
+  --status-absent-soft: 35 42 53;
+}
+
+/* Eingabefelder und Datumsauswahl im Systemdunkel zeichnen. */
+.dark {
+  color-scheme: dark;
+}
+
+@layer base {
+  /* Der Seitenhintergrund selbst — sonst bliebe unter dem Inhalt ein heller Rand. */
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
 @layer components {
   /*
    * Fließtext aus dem Rich-Text-Editor (Vereinstermine, später Neuigkeiten).

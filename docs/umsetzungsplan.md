@@ -676,6 +676,7 @@ Vom ausführenden Agenten gepflegt.
 | 9.3 Vereinsneuigkeiten | erledigt | 18.09.2026 | vordatieren und anheften ergänzt; bewusst ohne Benachrichtigung |
 | 9.2 Nachrichten am Termin | erledigt | 18.09.2026 | Sichtbarkeit erbt vom Termin; Faden lädt erst beim Aufklappen |
 | 9.9 Trainingsstatistik | erledigt | 18.09.2026 | „nicht gemeldet" bleibt von „abgesagt" getrennt; Menüpunkt jetzt für alle |
+| 9.11 Dark Mode | erledigt | 18.09.2026 | über Farb-Variablen statt `dark:`-Varianten; im Browser geprüft |
 | 9.x übrige Stufe B | offen | | 9.8 Arbeitszeiten gestrichen; 9.4/9.7/9.10 warten auf das Supabase-Projekt |
 | 10.x Go-live | offen | | |
 
@@ -1078,6 +1079,25 @@ Vom ausführenden Agenten gepflegt.
      Seite mit Erklärung.
 103. **CSV mit Semikolon und BOM (9.9).** Ohne beides öffnet Excel in einer deutschen
      Installation die Datei in einer einzigen Spalte und zerlegt die Umlaute.
+
+104. **Dark Mode über CSS-Variablen statt `dark:`-Varianten (9.11).** Der Plan nennt
+     „`dark:`-Varianten der Tokens". Der Code verwendet `gray-*` und `bg-white` an gut
+     fünfhundert Stellen — neben jede ein `dark:`-Gegenstück zu schreiben hieße,
+     fünfhundert Gelegenheiten für ein vergessenes oder falsches Paar zu schaffen. Die
+     Token zeigen jetzt auf CSS-Variablen, `index.css` setzt sie unter `.dark` anders. Eine
+     Stelle statt fünfhundert, und der helle Modus behält exakt seine bisherigen Werte.
+105. **Die Palette steht außerhalb von `@layer base` (9.11).** Tailwind entfernt aus einer
+     Layer alles, dessen Selektor es im Quelltext nicht findet. `.dark` steht dort nur als
+     `classList`-Aufruf — der ganze dunkle Block fiel dadurch aus dem Bauwerk, und Dark
+     Mode tat schlicht nichts. Aufgefallen ist es beim Nachsehen im gebauten CSS.
+106. **Die Wahl liegt im Gerät, nicht im Profil (9.11).** Wer abends am Handy dunkel liest
+     und tagsüber am Rechner hell arbeitet, soll das nicht bei jedem Wechsel neu
+     einstellen. Ein Skript in `index.html` setzt die Klasse vor dem ersten Zeichnen —
+     als React-Effekt wäre die Seite für einen Wimpernschlag hell, und genau das blendet
+     nachts.
+107. **Statusfarben bleiben in beiden Modi kräftig (9.11).** Grün heißt Zusage, rot heißt
+     Absage; daran darf der Modus nichts ändern. Nur die blassen Hintergründe kippen, weil
+     ein Pastellton auf dunklem Grund leuchtet.
 
 **Blocker:** —
 

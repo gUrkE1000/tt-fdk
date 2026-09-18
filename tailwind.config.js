@@ -3,36 +3,66 @@
  *
  * Farben sind semantisch benannt, nicht nach ihrem Farbwert: `status-yes` statt `emerald-600`.
  * Dadurch bleibt eine spätere Umfärbung eine Änderung an einer Stelle, und der Code sagt,
- * was gemeint ist. Die Werte entsprechen der Tailwind-Standardpalette.
+ * was gemeint ist.
+ *
+ * **Dark Mode (Aufgabe 9.11) über Variablen, nicht über `dark:`-Varianten.** Der Code
+ * verwendet `gray-*` und `bg-white` an gut fünfhundert Stellen. Neben jede davon ein
+ * `dark:`-Gegenstück zu schreiben hieße, fünfhundert Gelegenheiten für ein vergessenes
+ * oder falsches Paar zu schaffen. Stattdessen zeigen die Token auf CSS-Variablen, und
+ * `src/index.css` setzt sie unter `.dark` anders — eine Stelle statt fünfhundert.
+ *
+ * `<alpha-value>` muss dabei stehen bleiben, sonst funktionieren `bg-gray-900/40` und
+ * ähnliche Transparenzen nicht mehr.
  */
+const token = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        // Flächen und Schrift. Dieselben Namen wie in Tailwind, damit der
+        // vorhandene Code unverändert bleibt — nur die Werte hängen jetzt am Modus.
+        white: token('surface'),
+        gray: {
+          50: token('gray-50'),
+          100: token('gray-100'),
+          200: token('gray-200'),
+          300: token('gray-300'),
+          400: token('gray-400'),
+          500: token('gray-500'),
+          600: token('gray-600'),
+          700: token('gray-700'),
+          800: token('gray-800'),
+          900: token('gray-900'),
+        },
         // Aktionen, aktive Navigation
         primary: {
-          DEFAULT: '#0d9488', // teal-600
-          hover: '#0f766e', // teal-700
-          soft: '#f0fdfa', // teal-50
-          border: '#99f6e4', // teal-200
+          DEFAULT: token('primary'),
+          hover: token('primary-hover'),
+          soft: token('primary-soft'),
+          border: token('primary-border'),
         },
         // Rückmeldungen und Teilnahmestatus
+        // Die kräftigen Statusfarben bleiben in beiden Modi gleich — grün heißt
+        // Zusage, rot heißt Absage, und daran darf der Modus nichts ändern. Nur die
+        // blassen Hintergründe kippen, weil ein Pastellton auf dunklem Grund leuchtet.
         status: {
-          yes: '#059669', // emerald-600
-          'yes-soft': '#ecfdf5', // emerald-50
-          late: '#f59e0b', // amber-500
-          'late-soft': '#fffbeb', // amber-50
-          unclear: '#f59e0b',
-          'unclear-soft': '#fffbeb',
-          no: '#e11d48', // rose-600
-          'no-soft': '#fff1f2', // rose-50
-          open: '#9ca3af', // gray-400
-          'open-soft': '#f3f4f6', // gray-100
-          absent: '#64748b', // slate-500
-          'absent-soft': '#f1f5f9', // slate-100
-          removed: '#374151', // gray-700
+          yes: token('status-yes'),
+          'yes-soft': token('status-yes-soft'),
+          late: token('status-late'),
+          'late-soft': token('status-late-soft'),
+          unclear: token('status-late'),
+          'unclear-soft': token('status-late-soft'),
+          no: token('status-no'),
+          'no-soft': token('status-no-soft'),
+          open: token('gray-400'),
+          'open-soft': token('gray-100'),
+          absent: token('status-absent'),
+          'absent-soft': token('status-absent-soft'),
+          removed: token('gray-700'),
         },
         // Kalenderkategorien (Zielbild 6.3)
         cal: {

@@ -25,6 +25,7 @@ import {
   type ProfileValues,
 } from './schemas';
 import { signOut } from '../auth/api';
+import ThemeToggle from './ThemeToggle';
 
 const GENDER_OPTIONS = Object.entries(GENDER_LABELS).map(([value, label]) => ({ value, label }));
 
@@ -155,6 +156,19 @@ export default function ProfileTab({ profile }: { profile: Profile }) {
               Speichern
             </Button>
           </form>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h3 className="font-bold text-gray-900">Darstellung</h3>
+        </CardHeader>
+        <CardBody className="space-y-2">
+          <ThemeToggle />
+          <p className="text-sm text-gray-500">
+            Die Einstellung gilt für dieses Gerät — abends am Handy dunkel und tagsüber am
+            Rechner hell ist damit kein Widerspruch.
+          </p>
         </CardBody>
       </Card>
 
