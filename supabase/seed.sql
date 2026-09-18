@@ -1,10 +1,37 @@
 -- Seed-Daten für die lokale Entwicklung.
 --
--- Läuft NIE gegen Produktion: `scripts/local-db.sh reset` spielt die Datei nach den
--- Migrationen ein, `supabase db push` fasst sie nicht an.
---
 -- Die Namen sind erkennbar fiktiv. Alle E-Mails auf example.com, damit selbst ein
 -- versehentlicher Versand niemanden erreicht.
+
+-- ----------------------------------------------------------------- Sperre
+--
+-- Diese Datei gehört ausschließlich in die lokale Testdatenbank.
+--
+-- `supabase db push` fasst sie nicht an — aber `supabase db reset --linked` **schon**,
+-- und das ist der Befehl, zu dem man beim Aufräumen einer verkorksten Produktionsdatenbank
+-- greift. Er spielt erst die Migrationen ein und danach kommentarlos diese Datei. Das
+-- Ergebnis sind erfundene Mitglieder, ein „TTC Musterstadt" in den Vereinsdaten und
+-- Testkonten in `auth.users` — in genau der Datenbank, die gerade sauber werden sollte.
+--
+-- Erkennungsmerkmal: `supabase_storage_admin` gibt es nur in einem gehosteten
+-- Supabase-Projekt. Die Kompatibilitätsschicht in `scripts/supabase-compat.sql` legt die
+-- Rolle nicht an, weil kein Test sie braucht. Existiert sie, sind wir nicht lokal.
+--
+-- Ein Hinweis im Kommentar hätte hier nicht gereicht: Wer den Befehl ausführt, liest
+-- vorher nicht die Seed-Datei.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_storage_admin') THEN
+        RAISE EXCEPTION 'seed.sql gehoert nicht in ein gehostetes Supabase-Projekt.'
+            USING
+                DETAIL = 'Die Rolle supabase_storage_admin existiert — das hier ist keine '
+                         'lokale Testdatenbank. Die Datei wuerde erfundene Mitglieder, '
+                         'Testspiele und Testkonten anlegen.',
+                HINT   = 'Gemeint war vermutlich: supabase db push. Soll wirklich '
+                         'zurueckgesetzt werden, seed.sql vorher umbenennen — '
+                         'siehe docs/einrichtung.md.';
+    END IF;
+END $$;
 
 -- ----------------------------------------------------------------- Verein
 UPDATE public.club_settings SET value = 'TTC Musterstadt'   WHERE key = 'club_name';

@@ -62,7 +62,28 @@ npx supabase db push
 so geschrieben, dass ein zweiter Lauf nichts kaputt macht.
 
 **Die Seed-Daten bleiben draußen.** `supabase/seed.sql` enthält erfundene Mitglieder für die
-Entwicklung; in der Produktionsdatenbank hätten sie nichts verloren.
+Entwicklung; in der Produktionsdatenbank hätten sie nichts verloren. `db push` fasst die
+Datei nicht an.
+
+> ⚠️ **`supabase db reset --linked` schon.**
+>
+> Der Befehl leert die verknüpfte Datenbank, spielt alle Migrationen ein — und danach
+> kommentarlos `seed.sql`. Man greift zu ihm, wenn eine Produktionsdatenbank aufgeräumt
+> werden soll, und bekommt als Ergebnis erfundene Mitglieder, einen „TTC Musterstadt" in
+> den Vereinsdaten und Testkonten in `auth.users`. Also genau dort Testdaten, wo gerade
+> aufgeräumt werden sollte.
+>
+> Seit dem 18.09.2026 bricht `seed.sql` in diesem Fall mit einer Fehlermeldung ab, statt
+> zu laufen — erkennbar an der Rolle `supabase_storage_admin`, die es nur in einem
+> gehosteten Projekt gibt. Der Reset selbst läuft trotzdem durch; nur die Testdaten
+> bleiben weg.
+>
+> Wer **absichtlich** zurücksetzen will:
+> ```bash
+> mv supabase/seed.sql supabase/seed.sql.aus
+> npx supabase db reset --linked
+> mv supabase/seed.sql.aus supabase/seed.sql
+> ```
 
 ## 4. Resend einrichten
 

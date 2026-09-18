@@ -380,6 +380,12 @@ nachsehen.
 
 > **`supabase/seed.sql` bleibt draußen.** Das sind erfundene Mitglieder für die
 > Entwicklung. `db push` spielt sie nicht ein; führ sie auch nicht von Hand aus.
+>
+> ⚠️ **`supabase db reset --linked` spielt sie sehr wohl ein** — erst die Migrationen,
+> dann kommentarlos den Seed. Die Datei wehrt sich seit dem 18.09.2026 dagegen und bricht
+> gegen ein gehostetes Projekt mit einer Fehlermeldung ab. Wer trotzdem zurücksetzen will
+> oder muss, benennt sie vorher um; der Weg steht in
+> [`einrichtung.md`](einrichtung.md#3-schema-einspielen).
 
 ☐ Erledigt am: ________
 
