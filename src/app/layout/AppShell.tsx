@@ -8,6 +8,7 @@ import { labelForPath, type Role } from '../nav';
 import { useSession } from '../../features/auth/session';
 import ProfileMenu from '../../features/auth/ProfileMenu';
 import { usePublicClubInfo } from '../../features/auth/api';
+import UpdatePrompt from '../../features/notifications/UpdatePrompt';
 
 interface AppShellProps {
   /** Nur für Tests: überschreibt Rolle und Vereinsname statt der echten Sitzung. */
@@ -87,6 +88,8 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
 
         <BottomBar role={effectiveRole} onOpenMenu={() => setDrawerOpen(true)} />
       </div>
+
+      <UpdatePrompt />
     </div>
   );
 }

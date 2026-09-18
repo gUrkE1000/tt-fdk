@@ -1,6 +1,6 @@
 import * as Popover from '@radix-ui/react-popover';
 import { Link } from 'react-router-dom';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, Smartphone, User } from 'lucide-react';
 import { Avatar } from '../../components/ui';
 import { roleLabel } from '../../lib/labels';
 import { useSession } from './session';
@@ -50,6 +50,14 @@ export default function ProfileMenu() {
           >
             <User className="h-4 w-4" aria-hidden="true" />
             Mein Profil
+          </Link>
+
+          <Link
+            to="/mobile-app"
+            className="flex min-h-touch items-center gap-2 rounded-lg px-3 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            <Smartphone className="h-4 w-4" aria-hidden="true" />
+            App aufs Handy
           </Link>
 
           <button

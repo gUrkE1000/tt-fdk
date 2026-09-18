@@ -667,7 +667,8 @@ Vom ausführenden Agenten gepflegt.
 | 7.4 ICS-Abo pro Mitglied | erledigt | 18.09.2026 | `v_my_upcoming` als gemeinsame Grundlage; Token neu erzeugbar |
 | 7.5 Meine Termine | erledigt | 18.09.2026 | |
 | 8.1 Übersicht | erledigt | 18.09.2026 | `v_my_upcoming` kam schon in 7.4; neu nur `quicklinks_json` |
-| 8.2 – 8.4 PWA, Push, Admin | offen | | |
+| 8.2 PWA | erledigt | 18.09.2026 | `base` von `./` auf `/` (konfigurierbar); Anmeldung des Workers von Hand |
+| 8.3 – 8.4 Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
 
@@ -916,6 +917,27 @@ Vom ausführenden Agenten gepflegt.
     aus den ohnehin geladenen Spielen. Eine View dafür wäre eine weitere Abfrage für eine
     Subtraktion — und Kalendertage („heute", „morgen") hängen an der Zeitzone des
     Betrachters, nicht an der des Servers.
+
+65. **`base` ist jetzt die Wurzel, nicht `./` (8.2).** Ein relativer Basis-Pfad kann keinen
+    Service Worker tragen: Dessen Gültigkeitsbereich muss feststehen. Nebenbei war `./`
+    schon vorher falsch — ein tiefer Link wie `/trainings/cancellations` hätte seine
+    Skripte unter `/trainings/assets/…` gesucht. Wer auf einem Unterpfad hostet, setzt
+    `VITE_BASE_PATH`.
+66. **Der Service Worker wird von Hand angemeldet (8.2).** `virtual:pwa-register` gibt es
+    nur, wenn `vite-plugin-pwa` läuft — und das tut es nur beim Bauen. Ein Import, den es
+    in der Entwicklung und in den Tests nicht gibt, fällt erst in der Produktion auf.
+    `src/lib/pwa.ts` meldet deshalb selbst an; `injectRegister` steht auf `false`.
+67. **Kein Zwischenspeicher für Vereinsdaten (8.2).** Der Plan nennt „App-Shell-Precache
+    und NetworkOnly für Supabase". Genau so ist es gebaut, und zwar aus einem Grund, der
+    im Plan nicht steht: Wer in der Umkleide zusagt, muss wissen, ob es angekommen ist.
+    Eine alte Teilnehmerliste aus dem Zwischenspeicher sähe aus wie die Wahrheit.
+68. **Hinweis auf eine neue Fassung statt stiller Aktualisierung (8.2).** `registerType`
+    steht auf `prompt`. Eine installierte App hält sich sonst wochenlang an den Stand vom
+    Tag der Installation — aber sie unter einem halb ausgefüllten Formular auszutauschen
+    ist auch keine Lösung. `UpdatePrompt` fragt.
+69. **`scripts/make-icons.ts` statt `.mjs` (8.2).** Dieselbe Begründung wie bei den
+    Feiertagen: Node führt TypeScript direkt aus, und damit gilt für das Skript dieselbe
+    Typprüfung wie für den Rest.
 
 **Blocker:** —
 

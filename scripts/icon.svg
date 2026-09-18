@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Quelle für alle App-Symbole. `npm run make:icons` rendert daraus die PNG-Größen.
+
+  Alles Wesentliche sitzt bewusst weit innen: Ein maskierbares Symbol wird auf Android in
+  beliebige Formen geschnitten (Kreis, Tropfen, Quadrat mit runden Ecken). Was außerhalb
+  der inneren 80 % liegt, kann dabei verschwinden.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#0d9488"/>
+
+  <g transform="rotate(-20 215 205)">
+    <!-- Griff -->
+    <rect x="197" y="290" width="36" height="140" rx="18" fill="#ffffff"/>
+    <!-- Holz -->
+    <circle cx="215" cy="205" r="112" fill="#ffffff"/>
+    <!-- Belag -->
+    <circle cx="215" cy="205" r="86" fill="#e11d48"/>
+  </g>
+
+  <!-- Ball -->
+  <circle cx="400" cy="150" r="34" fill="#ffffff"/>
+</svg>

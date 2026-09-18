@@ -14,6 +14,26 @@ npx tsc --noEmit # Typprüfung
 
 `.env.example` nach `.env.local` kopieren und ausfüllen.
 
+Die Anwendung wird unter der Wurzel ausgeliefert. Wer sie auf einem Unterpfad hostet
+(GitHub Pages liefert ein Projekt unter `/<repo>/` aus), setzt beim Bauen
+`VITE_BASE_PATH=/repo/` — Manifest, Service Worker und Symbole richten sich danach.
+
+### App-Symbole und PWA
+
+```bash
+npm run make:icons   # public/icons/* aus scripts/icon.svg erzeugen (braucht sharp)
+```
+
+Die Symbole sind eingecheckt; das Skript läuft nur, wenn jemand `scripts/icon.svg` ändert.
+
+`vite-plugin-pwa` läuft **nur bei `vite build`**. In der Entwicklung säße sonst ein Service
+Worker vor jedem Neuladen und lieferte hartnäckig den Stand von vorhin. Wer die installierte
+App prüfen will, nimmt `npm run build && npm run preview`.
+
+Der Service Worker (`src/sw.ts`) speichert ausschließlich die Anwendung selbst zwischen.
+Alles, was an Supabase geht, läuft ohne Zwischenspeicher direkt ins Netz — eine
+zwischengespeicherte Teilnehmerliste von gestern sähe aus wie die Wahrheit.
+
 ## 2. Datenbank
 
 Alles Datenbankseitige liegt in `supabase/`:

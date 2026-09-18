@@ -22,6 +22,7 @@ import PollsPage from '../features/polls/PollsPage';
 import CalendarPage from '../features/calendar/CalendarPage';
 import MyDatesPage from '../features/calendar/MyDatesPage';
 import DashboardPage from '../features/dashboard/DashboardPage';
+import MobileAppPage from '../features/notifications/MobileAppPage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -66,6 +67,7 @@ export const router = createBrowserRouter([
           { path: 'calendar', element: <CalendarPage /> },
           { path: 'votes', element: <PollsPage /> },
           { path: 'profile', element: <ProfilePage /> },
+          { path: 'mobile-app', element: <MobileAppPage /> },
 
           {
             element: <RequireRole roles={['admin', 'trainer', 'team_leader']} />,
