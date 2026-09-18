@@ -1886,6 +1886,19 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_cron_status: {
+        Row: {
+          jobid: number | null;
+          jobname: string | null;
+          schedule: string | null;
+          active: boolean | null;
+          last_start: string | null;
+          last_end: string | null;
+          last_status: string | null;
+          last_message: string | null;
+        };
+        Relationships: [];
+      };
       v_event_participants: {
         Row: {
           event_id: string | null;
@@ -2209,6 +2222,10 @@ export interface Database {
         Returns: unknown;
       };
       rpc_retract_poll_vote: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_retry_notification: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };

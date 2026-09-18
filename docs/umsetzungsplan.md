@@ -669,7 +669,7 @@ Vom ausführenden Agenten gepflegt.
 | 8.1 Übersicht | erledigt | 18.09.2026 | `v_my_upcoming` kam schon in 7.4; neu nur `quicklinks_json` |
 | 8.2 PWA | erledigt | 18.09.2026 | `base` von `./` auf `/` (konfigurierbar); Anmeldung des Workers von Hand |
 | 8.3 Web Push und Glocke | erledigt | 18.09.2026 | Knopf-Kennungen und Farben wie im TT-Planer; tote Endpunkte werden gelöscht |
-| 8.4 Admin-Bereich | offen | | |
+| 8.4 Admin-Bereich und Betriebsdokumentation | erledigt | 18.09.2026 | `v_cron_status` mit Leer-Fassung ohne pg_cron; `docs/einrichtung.md` neu |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
 
@@ -956,6 +956,29 @@ Vom ausführenden Agenten gepflegt.
 74. **Der Zustand „aktiv" verlangt eine Anmeldung, nicht nur die Erlaubnis (8.3).** Die
     Erlaubnis überlebt gelöschte Website-Daten, die Anmeldung nicht. Ohne diese Prüfung
     stünde die Glocke grün, und es käme nie etwas an.
+
+75. **`v_cron_status` gibt es zweimal (8.4).** Ohne pg_cron existieren `cron.job` und
+    `cron.job_run_details` nicht, und eine View darauf ließe die Migration scheitern. Die
+    Migration legt in dem Fall eine View mit denselben Spalten an, die nie eine Zeile
+    liefert — die Oberfläche braucht dadurch keine Fallunterscheidung und zeigt schlicht
+    keine Jobs. Dieselbe Datei läuft in Supabase, lokal und in der CI.
+76. **`v_cron_status` ist bewusst nicht `security_invoker` (8.4).** Auf `cron.*` hat eine
+    angemeldete Rolle keinen Zugriff und soll ihn auch nicht bekommen. Die View liest als
+    Eigentümerin und gibt über `WHERE public.is_admin()` nur heraus, was ein Administrator
+    sehen darf.
+77. **`rpc_retry_notification` setzt den Zähler zurück (8.4).** Der Plan nennt nur
+    „Retry-Button → `status=pending`". Das allein wäre wirkungslos: `attempts` stand schon
+    bei drei, und der nächste Lauf hätte die Zeile sofort wieder auf `failed` gesetzt.
+78. **Der Reiter „Betrieb" zeigt an, statt zu steuern (8.4).** Außer „Nochmal versuchen"
+    gibt es dort keine Aktion. Jobs von Hand anzustoßen oder Zeilen zu löschen wäre ein
+    Werkzeugkasten für Fälle, die es besser gar nicht erst geben sollte.
+79. **Wöchentliche Sicherung als GitHub Action (8.4).** Supabase sichert selbst — aber
+    innerhalb von Supabase. `backup.yml` legt sonntags einen `pg_dump` als privates Artefakt
+    ab. Der Job läuft nur, wenn die Variable `BACKUP_ENABLED` gesetzt ist: Ein Job, der
+    wöchentlich an einem fehlenden Secret scheitert, trainiert an, Fehler zu übersehen.
+80. **`docs/einrichtung.md` endet mit einem Probelauf (8.4).** Fünf Schritte, die nacheinander
+    zeigen, dass Einladung, Kalenderabgleich, Trainingserzeugung, Push und die nächtlichen
+    Jobs wirklich laufen. Eine Einrichtung, die niemand geprüft hat, ist eine Vermutung.
 
 **Blocker:** —
 

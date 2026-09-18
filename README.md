@@ -4,8 +4,10 @@ Vereinseigene Alternative zum [TT-Planer](https://www.tt-planer.de/) für Tischt
 Mitglieder, Mannschaften, Spieltermine aus click-TT, Rückmeldungen, Ersatzsuche, Training,
 Vereinstermine, Umfragen, Kalender und Benachrichtigungen.
 
-**Stand:** Phase 1 (Fundament) ist umgesetzt — Routing, Design-System, Datenbank-Baseline mit
-Rechten, Anmeldung per Magic Link. Die Fachseiten sind noch Platzhalter und nennen jeweils die
+**Stand:** Die Phasen 0–8 sind umgesetzt — Mitglieder, Mannschaften und Spielpläne aus
+click-TT, Rückmeldungen und Ersatzsuche, Training, Vereinstermine, Umfragen, Kalender mit
+ICS-Abo, Benachrichtigungen per E-Mail und Push, Übersicht, PWA und Betriebssicht. Offen ist
+Phase 9 (Komfortmodule) und Phase 10 (Go-live); die verbliebenen Platzhalterseiten nennen die
 Aufgabe aus dem [Umsetzungsplan](docs/umsetzungsplan.md), die sie füllt.
 
 ## Loslegen
@@ -27,13 +29,16 @@ npm run dev                    # http://localhost:5173
 | `npm run db:test` | pgTAP-Tests für RLS, Trigger und RPCs |
 | `npm run db:psql` | Datenbankkonsole |
 | `npm run gen:types` | `src/lib/database.types.ts` neu erzeugen |
+| `npm run make:icons` | App-Symbole aus `scripts/icon.svg` erzeugen |
+| `npm run import:holidays` | Feiertage und Schulferien als Migration erzeugen |
 
 Im Entwicklungsmodus zeigt `/_design` alle Komponenten des Design-Systems.
 
 ## Stack
 
 React 18 · TypeScript · Vite · Tailwind · react-router · TanStack Query · react-hook-form +
-zod · Radix UI · Vitest · Supabase (Postgres, Auth, RLS, Edge Functions) · pgTAP.
+zod · Radix UI · FullCalendar · tiptap · @dnd-kit · vite-plugin-pwa · Vitest · Supabase
+(Postgres, Auth, RLS, Edge Functions) · pgTAP.
 
 ## Ordnerstruktur
 
@@ -58,7 +63,8 @@ scripts/          Lokale Testdatenbank, Supabase-Kompatibilitätsschicht, Typgen
 | [docs/umsetzungsplan.md](docs/umsetzungsplan.md) | **Arbeitsanweisung**: Phasen 0–10 als Einzelaufgaben mit Endzustand, Vorgehen, Verifikation |
 | [docs/entwicklung.md](docs/entwicklung.md) | Entwicklungsumgebung, Testdatenbank, pgTAP-Konventionen |
 | [docs/datenbank.md](docs/datenbank.md) | Schema-Referenz und die Begründungen dahinter |
-| [docs/betrieb.md](docs/betrieb.md) | Einrichtung nach dem Anlegen des Supabase-Projekts, Cron, Fehlerbilder |
+| [docs/einrichtung.md](docs/einrichtung.md) | **Einrichtung von null**: Supabase, Resend, VAPID, Secrets, Cron, erster Administrator |
+| [docs/betrieb.md](docs/betrieb.md) | Laufender Betrieb: Reiter „Betrieb", Cron, Fehlerbilder, Sicherung |
 | [docs/tt-planer-bestandsaufnahme.md](docs/tt-planer-bestandsaufnahme.md) | Erhebung des TT-Planers auf Feldebene (Referenzprodukt) |
 | [docs/funktionsvergleich.md](docs/funktionsvergleich.md) | Vergleich TT-Planer gegen den übernommenen Basisstand (historisch) |
 | [docs/recherche-tt-planer.md](docs/recherche-tt-planer.md) | Marktrecherche, Datenwege aus click-TT, Kostenvergleich |

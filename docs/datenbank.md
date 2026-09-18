@@ -4,8 +4,8 @@ Referenz zum Schema. Verbindlich ist immer die Migration in `supabase/migrations
 dieses Dokument erklärt, warum etwas so aussieht.
 
 Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
-Beteiligung, Benachrichtigungen, Training, Vereinstermine, Umfragen, Kalender und
-ICS-Abo. Es fehlen noch Push (8.3) und die Stufe-B-Tabellen (Phase 9).
+Beteiligung, Benachrichtigungen (E-Mail und Push), Training, Vereinstermine, Umfragen,
+Kalender, ICS-Abo und die Betriebssicht. Es fehlen noch die Stufe-B-Tabellen (Phase 9).
 
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
 eigene Migration.
@@ -145,6 +145,16 @@ Eine fehlende Zeile in `notification_preferences` heißt „beide Kanäle an". D
 ein neues Mitglied keine fünfzehn Zeilen, und ein neuer Ereignistyp ist sofort für alle
 aktiv. Vorlagen mit `in_matrix = false` sind Direkt-E-Mails: sie gehen immer raus, weil
 sie eine Handlung mitteilen, die die Person betrifft.
+
+### `push_subscriptions`
+
+Ein Eintrag je Gerät, das die Glocke gedrückt hat: Endpunkt des Push-Dienstes und die
+beiden Schlüssel, mit denen die Nachricht für dieses Gerät verschlüsselt wird. Ein Mitglied
+kann mehrere haben — Handy, Tablet, Rechner.
+
+Der Versandlauf löscht einen Eintrag, sobald der Push-Dienst ihn mit 404 oder 410 abweist:
+Das Gerät kommt nicht wieder, und ein toter Endpunkt würde sonst bei jedem Lauf erneut
+versucht. Eine Nachricht gilt als zugestellt, sobald **ein** Gerät sie angenommen hat.
 
 ### `action_tokens`
 
@@ -437,6 +447,7 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | Tabelle | SELECT | INSERT / UPDATE / DELETE |
 |---|---|---|
 | `club_settings` | aktive Mitglieder, außer `secret_*` | Admin |
+| `v_cron_status` | nur Admin (View prüft selbst) | — (View) |
 | `profiles` | eigene Zeile immer; Admin alles, auch Gelöschte; sonst aktive Mitglieder. Ein Gast sieht nur Admins und Trainer | eigene Zeile oder Admin; Spaltenschutz per Trigger |
 | `absences` | eigene Zeilen; Admin, Trainer und Mannschaftsführer die Zeiträume aller | eigene Zeilen oder Admin |
 | `member_rankings` | aktive Mitglieder | Admin |

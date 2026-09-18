@@ -2,6 +2,7 @@ import { PageHeader, Tabs } from '../../components/ui';
 import Placeholder from '../../app/Placeholder';
 import ClubDataTab from './ClubDataTab';
 import ClubOverviewTab from './ClubOverviewTab';
+import AdminPage from '../admin/AdminPage';
 
 export default function ClubPage() {
   return (
@@ -27,6 +28,7 @@ export default function ClubPage() {
             content: <Placeholder title="Vereinsdateien" task="9.5" />,
           },
           { value: 'overview', label: 'Übersicht', content: <ClubOverviewTab /> },
+          { value: 'operations', label: 'Betrieb', content: <AdminPage /> },
         ]}
       />
     </div>

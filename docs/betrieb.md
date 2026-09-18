@@ -6,6 +6,23 @@ erkennt, dass es läuft.
 > Solange es kein Supabase-Projekt gibt, ist dieses Dokument eine Anleitung für später.
 > Die Entwicklung läuft gegen die lokale Testdatenbank (siehe `docs/entwicklung.md`).
 
+**Die erstmalige Einrichtung steht in [`einrichtung.md`](einrichtung.md).** Hier geht es um
+das, was danach kommt.
+
+## 0. Das Wichtigste zuerst: der Reiter „Betrieb"
+
+Für den Alltag braucht es kein psql. Unter **Verein → Betrieb** sieht ein Administrator:
+
+| Reiter | Beantwortet |
+|---|---|
+| **Einstellungen** | Absender, Adresse der Anwendung, Vorlauf der Erinnerungen, Quicklinks |
+| **Benachrichtigungen** | Was nicht rausging und warum — mit „Nochmal versuchen" |
+| **Kalenderabgleich** | Wann der Spielplan zuletzt abgeglichen wurde und was sich änderte |
+| **Jobs** | Ob die fünf pg_cron-Jobs laufen und wann sie es zuletzt taten |
+
+Die SQL-Abfragen weiter unten sind der Weg für den Fall, dass die Anwendung selbst nicht
+mehr läuft — oder dass etwas genauer gebraucht wird, als die Oberfläche zeigt.
+
 ## 1. Secrets der Edge Functions
 
 ```bash
@@ -253,7 +270,8 @@ SELECT kind, min(start_date), max(start_date), count(*)
 
 ## 8. Ersten Administrator anlegen
 
-Die Anwendung legt niemanden automatisch an. Nach dem ersten Deployment:
+Die Anwendung legt niemanden automatisch an. Falls der letzte Administrator ausfällt oder
+das Konto abhandenkommt, hilft nur der SQL-Editor:
 
 ```sql
 INSERT INTO public.profiles (first_name, last_name, email, role, status)
@@ -265,5 +283,29 @@ vorhandene Profil und setzt es auf `active`.
 
 ## 9. Sicherung
 
-Supabase sichert die Datenbank selbst. Zusätzlich empfiehlt sich ein wöchentlicher
-`pg_dump` in ein privates Artefakt (kommt in Aufgabe 10.x).
+Supabase sichert die Datenbank selbst — aber innerhalb von Supabase. Das hilft gegen einen
+versehentlich gelöschten Datensatz, nicht gegen ein gelöschtes oder gesperrtes Projekt.
+
+Deshalb zusätzlich `.github/workflows/backup.yml`: sonntags um 04:30 UTC ein `pg_dump` in
+ein privates Artefakt dieses Repositories, aufbewahrt für 90 Tage.
+
+Einzurichten:
+
+1. Repository-Secret **`SUPABASE_DB_URL`** setzen — die Verbindungszeichenfolge aus
+   *Project Settings → Database → Connection string* (Modus „Session", mit Passwort).
+2. Repository-Variable **`BACKUP_ENABLED`** auf `true` setzen. Ohne sie läuft der Job nicht;
+   ein Job, der jede Woche an einem fehlenden Secret scheitert, trainiert nur an, Fehler zu
+   übersehen.
+
+> Das Artefakt enthält **alle Mitgliederdaten**. Es ist damit genauso schützenswert wie die
+> Datenbank: Das Repository muss privat bleiben, und wer Zugriff darauf hat, hat Zugriff auf
+> den ganzen Verein.
+
+### Wiederherstellen
+
+```bash
+pg_restore --no-owner --no-privileges --dbname "$PGURL" vereinsplaner-JJJJ-MM-TT.dump
+```
+
+Eine Sicherung, die nie zurückgespielt wurde, ist eine Vermutung. Einmal im Jahr in eine
+leere Datenbank einspielen und nachsehen, ob die Mitgliederzahl stimmt.

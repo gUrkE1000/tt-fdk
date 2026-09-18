@@ -1,0 +1,51 @@
+name: Wöchentliche Datenbanksicherung
+
+# Supabase sichert die Datenbank selbst — aber innerhalb von Supabase. Diese Sicherung
+# liegt woanders und beantwortet eine andere Frage: Was, wenn das Projekt weg ist,
+# versehentlich gelöscht oder gesperrt?
+#
+# Das Ergebnis ist ein privates Artefakt dieses Repositories. Es enthält alle
+# Mitgliederdaten und ist damit genauso schützenswert wie die Datenbank selbst — das
+# Repository muss privat bleiben, und die Aufbewahrung ist bewusst begrenzt.
+
+on:
+  schedule:
+    # Sonntags um 04:30 UTC. Nach dem nächtlichen Kalenderabgleich (04:00),
+    # damit der letzte Stand mit drin ist.
+    - cron: '30 4 * * 0'
+  workflow_dispatch:
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    # Ohne das Secret läuft der Job ins Leere und meldete jede Woche einen Fehlschlag.
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.BACKUP_ENABLED == 'true' }}
+
+    steps:
+      - name: PostgreSQL-Client installieren
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-16
+
+      - name: Sicherung erstellen
+        env:
+          # Die Verbindungszeichenfolge aus Supabase (Project Settings → Database),
+          # als Repository-Secret SUPABASE_DB_URL hinterlegt.
+          PGURL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$PGURL" ]; then
+            echo "SUPABASE_DB_URL ist nicht gesetzt — keine Sicherung möglich." >&2
+            exit 1
+          fi
+          pg_dump --no-owner --no-privileges --format=custom \
+                  --file="vereinsplaner-$(date -u +%Y-%m-%d).dump" "$PGURL"
+
+      - name: Als Artefakt ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: datenbank-sicherung
+          path: '*.dump'
+          # Drei Monate. Länger aufzubewahren hieße, personenbezogene Daten
+          # aufzubewahren, ohne dass sie jemandem nützen.
+          retention-days: 90
+          if-no-files-found: error
