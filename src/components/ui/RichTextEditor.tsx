@@ -62,7 +62,11 @@ export default function RichTextEditor({
   // Wird der Dialog mit anderen Daten neu geöffnet, muss der Inhalt mitziehen.
   useEffect(() => {
     if (!editor) return;
-    if (value !== editor.getHTML()) editor.commands.setContent(value || '', false);
+    if (value !== editor.getHTML()) {
+      // `emitUpdate: false`, sonst löste das Setzen ein onUpdate aus und das Formular
+      // hielte sich selbst für geändert. In tiptap 2 hieß dieser Parameter schlicht `false`.
+      editor.commands.setContent(value || '', { emitUpdate: false });
+    }
     // Absichtlich nur an `value` gehängt: bei jedem Tastendruck neu zu setzen würde
     // den Cursor ans Ende springen lassen.
     // eslint-disable-next-line react-hooks/exhaustive-deps
