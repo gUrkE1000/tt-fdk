@@ -656,7 +656,8 @@ Vom ausführenden Agenten gepflegt.
 | 5.5 Spielverlegung | erledigt | 17.09.2026 | Ergebnisansicht `v_reschedule_results`; Umfrage schließt sich selbst, wenn alle abgestimmt haben |
 | 6.1 Schema Training | erledigt | 17.09.2026 | pgTAP als `080_…` (070 war vergeben); `v_session_counts` ergänzt; `training_reminder_filter` vorgezogen |
 | 6.2 Feiertage und Schulferien | erledigt | 18.09.2026 | Skript schreibt direkt eine Migration; Feiertage werden gerechnet, wenn die Schnittstelle schweigt |
-| 6.3 – 6.7 Training | offen | | |
+| 6.3 Session-Erzeugung | erledigt | 18.09.2026 | `planSessions` mit 31 Tests; vierte Aktion `reschedule`; Auslöser auch bei Ausfall und Dauerzusage |
+| 6.4 – 6.7 Training | offen | | |
 | 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
@@ -771,6 +772,22 @@ Vom ausführenden Agenten gepflegt.
     `scripts/import-holidays.mjs`. Node 22 führt TypeScript direkt aus; damit ist die reine
     Logik in `scripts/holidays.ts` mit denselben Vitest-Tests und derselben Typprüfung
     abgedeckt wie der Rest des Projekts, statt ungeprüft danebenzustehen.
+
+33. **`planSessions` liefert eine vierte Aktion `reschedule` (6.3).** Der Plan nennt nur
+    `create`, `cancel` und `uncancel`, das Zielbild verlangt aber, bestehende Termine zu
+    *aktualisieren*. Ändert ein Trainer die Uhrzeit von 19:00 auf 18:30, stünden alle
+    schon angelegten Termine sonst für immer auf 19:00.
+34. **Termine außerhalb der Regel werden abgesagt, nicht gelöscht (6.3).** Ändert sich der
+    Wochentag oder wird ein Training stillgelegt, passen bestehende Termine nicht mehr.
+    Löschen nähme die Rückmeldungen mit; sie werden deshalb mit einem Grund abgesagt.
+35. **Der Sofort-Anstoß hängt an drei Tabellen (6.3).** Der Plan nennt nur „nach Speichern
+    eines Trainings". Ein neuer Ausfall und eine neue Dauerzusage ändern den Terminplan
+    genauso — ohne Auslöser sähe man beides erst am nächsten Morgen. Am Training selbst
+    löst nur eine Änderung an den planungsrelevanten Feldern aus, nicht jeder Tippfehler
+    im Beschreibungstext.
+36. **Automatische Zusagen schon in 6.3 statt erst in 6.7.** Der Plan sieht das so vor
+    („Auto-Zusagen setzen beim Erzeugen `attendance`"); damit bleibt für 6.7 nur noch die
+    Oberfläche. Eine von Hand gesetzte Rückmeldung wird dabei nie überschrieben.
 
 **Blocker:** —
 

@@ -148,7 +148,43 @@ Läuft die Kette leer, bekommt die Mannschaftsführung eine Nachricht
 (`substitute_chain_exhausted`). Der TT-Planer hat das nicht — dort erfährt niemand, dass
 alle abgesagt haben.
 
-## 6. Feiertage und Schulferien nachladen
+## 6. Trainingstermine
+
+Ein fünfter Job, täglich um 03:00 UTC, schiebt das Fenster von acht Wochen weiter.
+Daneben stößt ein Trigger den Lauf sofort an, sobald sich etwas ändert, was den
+Terminplan betrifft: ein Training (Wochentag, Uhrzeit, Rhythmus, Ort, Aktiv-Schalter,
+Feiertagsschalter), ein Ausfall oder eine Dauerzusage. Ein geänderter Beschreibungstext
+löst bewusst nichts aus.
+
+**Gelöscht wird nie.** An einem Termin hängen Rückmeldungen; ein Termin, den es nicht
+mehr geben soll, wird abgesagt — mit Grund. Der Job nimmt nur die Absagen zurück, die er
+selbst aus einem Ausfall-Zeitraum gesetzt hat (erkennbar an `cancellation_id`). Was ein
+Trainer von Hand abgesagt hat, bleibt abgesagt.
+
+```sql
+-- Wie weit ist geplant?
+SELECT t.name, count(*) AS termine, max(s.session_date) AS bis
+  FROM public.training_sessions s
+  JOIN public.trainings t ON t.id = s.training_id
+ WHERE s.session_date >= CURRENT_DATE
+ GROUP BY t.name ORDER BY t.name;
+
+-- Was fällt demnächst aus und warum?
+SELECT t.name, s.session_date, s.cancel_reason
+  FROM public.training_sessions s
+  JOIN public.trainings t ON t.id = s.training_id
+ WHERE s.cancelled AND s.session_date >= CURRENT_DATE
+ ORDER BY s.session_date;
+```
+
+| Auffälligkeit | Bedeutung | Was zu tun ist |
+|---|---|---|
+| Keine Termine über den heutigen Tag hinaus | Der Job läuft nicht | `functions_base_url` und `cron_secret` prüfen (Abschnitt 2) |
+| Termine an Feiertagen | Die Jahre in `holidays` sind abgelaufen | Abschnitt 7 ausführen |
+| Termine in den Schulferien | Schulferien fehlen in `holidays`, oder das Training hat den Schalter nicht | Abschnitt 7; sonst Trainingsdialog |
+| Termine zur alten Uhrzeit nach einer Änderung | Der Sofort-Anstoß kam nicht durch | Einmal von Hand anstoßen: `SELECT private.trigger_generate_training_sessions();` |
+
+## 7. Feiertage und Schulferien nachladen
 
 **Einmal im Jahr, im Herbst.** Die Trainingsplanung überspringt Feiertage und Schulferien
 nur, solange sie welche kennt — sind die Jahre abgelaufen, plant sie stillschweigend
@@ -182,7 +218,7 @@ SELECT kind, min(start_date), max(start_date), count(*)
   FROM public.holidays GROUP BY kind;
 ```
 
-## 7. Ersten Administrator anlegen
+## 8. Ersten Administrator anlegen
 
 Die Anwendung legt niemanden automatisch an. Nach dem ersten Deployment:
 
@@ -194,7 +230,7 @@ VALUES ('Vorname', 'Nachname', 'admin@example.org', 'admin', 'unconfirmed');
 Danach meldet sich diese Adresse per E-Mail-Link an; `handle_new_user()` verknüpft das
 vorhandene Profil und setzt es auf `active`.
 
-## 8. Sicherung
+## 9. Sicherung
 
 Supabase sichert die Datenbank selbst. Zusätzlich empfiehlt sich ein wöchentlicher
 `pg_dump` in ein privates Artefakt (kommt in Aufgabe 10.x).
