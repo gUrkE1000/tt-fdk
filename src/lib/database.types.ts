@@ -2371,6 +2371,17 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_training_statistics: {
+        Row: {
+          training_id: string | null;
+          training_name: string | null;
+          profile_id: string | null;
+          full_name: string | null;
+          session_date: string | null;
+          status: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       apply_event_answer: {
@@ -2486,6 +2497,10 @@ export interface Database {
         Returns: unknown;
       };
       may_see_training_roster: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      may_see_training_statistics: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };

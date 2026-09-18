@@ -1,6 +1,5 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import AppShell from './layout/AppShell';
-import Placeholder from './Placeholder';
 import DesignPlayground from './DesignPlayground';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
@@ -23,6 +22,7 @@ import CalendarPage from '../features/calendar/CalendarPage';
 import MyDatesPage from '../features/calendar/MyDatesPage';
 import DashboardPage from '../features/dashboard/DashboardPage';
 import MobileAppPage from '../features/notifications/MobileAppPage';
+import StatisticsPage from '../features/statistics/StatisticsPage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -33,8 +33,7 @@ const devRoutes: RouteObject[] = import.meta.env.DEV
   : [];
 
 /**
- * Routen nach Zielbild 2. Jede noch nicht gebaute Seite zeigt einen Platzhalter mit der
- * Aufgabennummer, die sie füllt; die Struktur steht damit von Anfang an vollständig.
+ * Routen nach Zielbild 2.
  *
  * Die Rollenprüfung hier ist Bequemlichkeit, keine Sicherheit — die Grenze zieht RLS in
  * der Datenbank. Sie verhindert nur, dass jemand auf eine Seite gerät, auf der er nichts
@@ -69,12 +68,11 @@ export const router = createBrowserRouter([
           { path: 'profile', element: <ProfilePage /> },
           { path: 'mobile-app', element: <MobileAppPage /> },
 
-          {
-            element: <RequireRole roles={['admin', 'trainer', 'team_leader']} />,
-            children: [
-              { path: 'statistics', element: <Placeholder title="Statistiken" task="9.9" /> },
-            ],
-          },
+          // Ohne Rollenprüfung: Ob jemand eine Trainingsstatistik sieht, hängt am
+          // Training (`statistics_visibility`), nicht an seiner Rolle. Ein Mitglied
+          // einer freigegebenen Gruppe darf hierher — wer nichts sehen darf, bekommt
+          // eine leere Seite, und zwar von der Datenbank.
+          { path: 'statistics', element: <StatisticsPage /> },
           {
             element: <RequireRole roles={['admin', 'trainer']} />,
             children: [

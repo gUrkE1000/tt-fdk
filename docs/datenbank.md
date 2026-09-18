@@ -157,6 +157,19 @@ Der Versandlauf löscht einen Eintrag, sobald der Push-Dienst ihn mit 404 oder 4
 Das Gerät kommt nicht wieder, und ein toter Endpunkt würde sonst bei jedem Lauf erneut
 versucht. Eine Nachricht gilt als zugestellt, sobald **ein** Gerät sie angenommen hat.
 
+### `v_training_statistics`
+
+Wer war wie oft beim Training? Gezählt werden nur **vergangene, nicht abgesagte** Termine:
+Ein künftiger Termin sagt nichts über Anwesenheit, und bei einem ausgefallenen stünde sonst
+bei jedem eine Absage, die niemand zu verantworten hat.
+
+„Nicht gemeldet" (`none`) bleibt von „abgesagt" (`no`) getrennt. Beides zusammenzuwerfen
+wäre unfair gegenüber denen, die zuverlässig absagen, wenn sie nicht können.
+
+Wer die Zahlen sieht, entscheidet `statistics_visibility` am Training —
+`may_see_training_statistics()` prüft es, und die View filtert danach. Anwesenheit ist eine
+Aussage über eine Person; eine Oberfläche, die sie nur nicht anzeigt, wäre keine Grenze.
+
 ### `object_messages`
 
 Ein kurzer Faden an genau einem Spiel, Trainingstermin oder Vereinstermin. **Kein Chat:**

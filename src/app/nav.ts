@@ -56,10 +56,15 @@ export const NAV: NavSection[] = [
     items: [
       { to: '/my-club', label: 'Mein Verein', icon: Building2, roles: [] },
       {
+        // Für alle sichtbar, weil die Freigabe am Training hängt und nicht an der
+        // Rolle (`statistics_visibility`): Ein Mitglied einer freigegebenen Gruppe
+        // käme sonst nie auf die Seite. In der Voreinstellung („admins") sieht es
+        // dort eine leere Seite mit Erklärung — eine Menüzeile ist der kleinere
+        // Preis als ein Menüpunkt, den man nur über die Adresszeile erreicht.
         to: '/statistics',
         label: 'Statistiken',
         icon: BarChart3,
-        roles: ['admin', 'trainer', 'team_leader'],
+        roles: [],
       },
     ],
   },

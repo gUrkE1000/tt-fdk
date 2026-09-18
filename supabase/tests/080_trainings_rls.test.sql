@@ -20,9 +20,10 @@ SELECT is(
     'Ein Mitglied sieht alle Trainings, auch die ohne eigene Zuordnung'
 );
 
+-- Fünf künftige aus dem Seed plus die vier zurückliegenden für die Statistik (9.9).
 SELECT is(
     (SELECT count(*) FROM public.training_sessions)::int,
-    5,
+    9,
     'und alle Trainingstermine'
 );
 

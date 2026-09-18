@@ -368,3 +368,34 @@ INSERT INTO public.news (id, title, body_html, published_at, pinned, author_id) 
      '<p>Termin steht noch nicht fest.</p>',
      NOW() + INTERVAL '14 days', false, '22222222-0000-0000-0000-000000000002')
 ON CONFLICT (id) DO NOTHING;
+
+-- ------------------------------------------------- Vergangene Trainings (9.9)
+-- Ohne Vergangenheit gibt es keine Statistik. Vier zurückliegende Termine des
+-- Erwachsenentrainings mit unterschiedlicher Beteiligung — genug, um die Zahlen
+-- und die Rangliste zu sehen.
+INSERT INTO public.training_sessions (id, training_id, session_date, starts_at, ends_at)
+SELECT
+    ('7777777a-0000-0000-0000-00000000000' || n)::uuid,
+    '66666666-0000-0000-0000-000000000001',
+    (date_trunc('day', NOW()) - (n * 7 || ' days')::interval)::date,
+    date_trunc('day', NOW()) - (n * 7 || ' days')::interval + INTERVAL '19 hours',
+    date_trunc('day', NOW()) - (n * 7 || ' days')::interval + INTERVAL '21 hours'
+FROM generate_series(1, 4) AS n
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.training_attendance (session_id, profile_id, status, guests, source)
+VALUES
+    -- Spieler 01 ist fast immer da.
+    ('7777777a-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000001', 'yes',  0, 'self'),
+    ('7777777a-0000-0000-0000-000000000002', '22222222-1111-0000-0000-000000000001', 'yes',  0, 'self'),
+    ('7777777a-0000-0000-0000-000000000003', '22222222-1111-0000-0000-000000000001', 'late', 0, 'self'),
+    ('7777777a-0000-0000-0000-000000000004', '22222222-1111-0000-0000-000000000001', 'yes',  0, 'self'),
+
+    -- Spieler 02 sagt zuverlässig ab, wenn er nicht kann.
+    ('7777777a-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000002', 'yes', 0, 'self'),
+    ('7777777a-0000-0000-0000-000000000002', '22222222-1111-0000-0000-000000000002', 'no',  0, 'self'),
+    ('7777777a-0000-0000-0000-000000000003', '22222222-1111-0000-0000-000000000002', 'no',  0, 'self'),
+
+    -- Spieler 03 meldet sich gar nicht — das ist etwas anderes als eine Absage.
+    ('7777777a-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000003', 'yes', 0, 'self')
+ON CONFLICT (session_id, profile_id) DO NOTHING;

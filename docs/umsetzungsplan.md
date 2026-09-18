@@ -675,7 +675,8 @@ Vom ausführenden Agenten gepflegt.
 | 9.6 Ämter | erledigt | 18.09.2026 | ohne Rechtewirkung, weil Inventar und Bekleidung gestrichen sind |
 | 9.3 Vereinsneuigkeiten | erledigt | 18.09.2026 | vordatieren und anheften ergänzt; bewusst ohne Benachrichtigung |
 | 9.2 Nachrichten am Termin | erledigt | 18.09.2026 | Sichtbarkeit erbt vom Termin; Faden lädt erst beim Aufklappen |
-| 9.x übrige Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
+| 9.9 Trainingsstatistik | erledigt | 18.09.2026 | „nicht gemeldet" bleibt von „abgesagt" getrennt; Menüpunkt jetzt für alle |
+| 9.x übrige Stufe B | offen | | 9.8 Arbeitszeiten gestrichen; 9.4/9.7/9.10 warten auf das Supabase-Projekt |
 | 10.x Go-live | offen | | |
 
 ### Abweichungen vom Plan, die sich beim Bauen ergeben haben
@@ -1060,6 +1061,23 @@ Vom ausführenden Agenten gepflegt.
 98. **Benachrichtigt werden die Beteiligten, nicht alle Sichtberechtigten (9.2).** Wer im
     Kader steht, will wissen, dass jemand schreibt; der Rest des Vereins nicht. Der
     Verfasser bekommt nichts — er weiß es.
+
+99. **„Nicht gemeldet" ist keine Absage (9.9).** Der Plan nennt „Zusagen/Absagen/
+    Abwesenheiten". Die dritte Gruppe getrennt zu führen ist der Punkt: Wer zuverlässig
+    absagt, wenn er nicht kann, soll nicht neben dem stehen, der sich nie meldet.
+100. **Gezählt werden nur vergangene, nicht abgesagte Termine (9.9).** Ein künftiger Termin
+     sagt nichts über Anwesenheit; bei einem ausgefallenen stünde sonst bei jedem eine
+     Absage, die niemand zu verantworten hat.
+101. **Die Rangliste sortiert nach Anzahl, nicht nach Quote (9.9).** Wer an zwei von zwei
+     Terminen war, stünde sonst über dem, der fünfzig von sechzig geschafft hat — und die
+     Ehrung am Jahresende meint offensichtlich den zweiten.
+102. **Der Menüpunkt „Statistiken" ist jetzt für alle sichtbar (9.9).** Er war auf Admin,
+     Trainer und Mannschaftsführer beschränkt. Das passt nicht zu `statistics_visibility`:
+     Bei „all" oder „groups" darf auch ein einfaches Mitglied die Zahlen sehen und käme
+     sonst nie auf die Seite. In der Voreinstellung („admins") findet es dort eine leere
+     Seite mit Erklärung.
+103. **CSV mit Semikolon und BOM (9.9).** Ohne beides öffnet Excel in einer deutschen
+     Installation die Datei in einer einzigen Spalte und zerlegt die Umlaute.
 
 **Blocker:** —
 
