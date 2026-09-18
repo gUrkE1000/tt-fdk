@@ -187,6 +187,72 @@ export function planTrainingReminders(input: TrainingReminderInput): TrainingRem
 
 // --------------------------------------------------------------------------------
 
+export interface ReminderEvent {
+  id: string;
+  /** ISO-Zeitpunkt des Terminbeginns. */
+  startsAt: string;
+  /** Gesetzt, sobald für diesen Termin erinnert wurde. */
+  reminderSentAt: string | null;
+}
+
+export interface EventReminderInput {
+  now: Date;
+  events: ReminderEvent[];
+  /** Vorlauf in Stunden, vereinsweit (`event_reminder_hours`). */
+  hoursBefore: number;
+  /** Wer zugesagt hat. Wer abgesagt hat, braucht keine Erinnerung. */
+  attending: { eventId: string; profileId: string }[];
+}
+
+export interface EventReminderAction {
+  eventId: string;
+  profileIds: string[];
+}
+
+/**
+ * Die Erinnerung an einen Vereinstermin.
+ *
+ * Wie beim Training hängt der Merkposten am Termin, nicht an der Person. Anders als
+ * dort gilt der Vorlauf vereinsweit: Ein Sommerfest hat keine eigene Vorlaufzeit, und
+ * eine je Person wäre für einen Termin, zu dem man ohnehin zugesagt hat, zu viel
+ * Maschinerie.
+ */
+export function planEventReminders(input: EventReminderInput): EventReminderAction[] {
+  if (input.hoursBefore <= 0) return [];
+
+  const byEvent = new Map<string, string[]>();
+  for (const entry of input.attending) {
+    const list = byEvent.get(entry.eventId) ?? [];
+    list.push(entry.profileId);
+    byEvent.set(entry.eventId, list);
+  }
+
+  const actions: EventReminderAction[] = [];
+
+  for (const event of input.events) {
+    if (event.reminderSentAt !== null) continue;
+
+    const starts = new Date(event.startsAt).getTime();
+    if (Number.isNaN(starts)) continue;
+    if (starts <= input.now.getTime()) continue;
+
+    const due = starts - input.hoursBefore * 3600_000;
+    const now = input.now.getTime();
+
+    if (now < due) continue;
+    if (now - due > CATCH_UP_HOURS * 3600_000) continue;
+
+    actions.push({
+      eventId: event.id,
+      profileIds: [...new Set(byEvent.get(event.id) ?? [])],
+    });
+  }
+
+  return actions;
+}
+
+// --------------------------------------------------------------------------------
+
 export interface OpenItem {
   profileId: string;
   kind: 'match' | 'training' | 'event';

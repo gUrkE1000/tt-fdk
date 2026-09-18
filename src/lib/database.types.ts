@@ -85,6 +85,68 @@ export interface Database {
           },
         ];
       };
+      club_events: {
+        Row: {
+          id: string;
+          name: string;
+          full_day: boolean;
+          starts_at: string;
+          ends_at: string | null;
+          participate_until: string | null;
+          max_participants: number | null;
+          address: string;
+          description_html: string;
+          hide_in_my_club: boolean;
+          exclude_calendar: boolean;
+          created_by: string | null;
+          reminder_sent_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          full_day?: boolean;
+          starts_at: string;
+          ends_at?: string | null;
+          participate_until?: string | null;
+          max_participants?: number | null;
+          address?: string;
+          description_html?: string;
+          hide_in_my_club?: boolean;
+          exclude_calendar?: boolean;
+          created_by?: string | null;
+          reminder_sent_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          full_day?: boolean;
+          starts_at?: string;
+          ends_at?: string | null;
+          participate_until?: string | null;
+          max_participants?: number | null;
+          address?: string;
+          description_html?: string;
+          hide_in_my_club?: boolean;
+          exclude_calendar?: boolean;
+          created_by?: string | null;
+          reminder_sent_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "club_events_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       club_settings: {
         Row: {
           key: string;
@@ -105,6 +167,48 @@ export interface Database {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      event_participations: {
+        Row: {
+          event_id: string;
+          profile_id: string;
+          status: Database["public"]["Enums"]["event_status"];
+          guests: number;
+          source: Database["public"]["Enums"]["attendance_source"];
+          updated_at: string;
+        };
+        Insert: {
+          event_id: string;
+          profile_id: string;
+          status: Database["public"]["Enums"]["event_status"];
+          guests?: number;
+          source?: Database["public"]["Enums"]["attendance_source"];
+          updated_at?: string;
+        };
+        Update: {
+          event_id?: string;
+          profile_id?: string;
+          status?: Database["public"]["Enums"]["event_status"];
+          guests?: number;
+          source?: Database["public"]["Enums"]["attendance_source"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_participations_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_participations_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "club_events";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       group_members: {
         Row: {
@@ -1592,6 +1696,17 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_event_participants: {
+        Row: {
+          event_id: string | null;
+          profile_id: string | null;
+          full_name: string | null;
+          status: Database["public"]["Enums"]["event_status"] | null;
+          guests: number | null;
+          updated_at: string | null;
+        };
+        Relationships: [];
+      };
       v_match_lineup_status: {
         Row: {
           match_id: string | null;
@@ -1694,6 +1809,10 @@ export interface Database {
       };
     };
     Functions: {
+      apply_event_answer: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       apply_reschedule_vote: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -1714,6 +1833,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: unknown;
       };
+      enqueue_event_reminder: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       enqueue_match_reminder: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -1723,6 +1846,14 @@ export interface Database {
         Returns: unknown;
       };
       enqueue_substitute_request: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      enqueue_training_reminder: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      event_payload: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
@@ -1740,6 +1871,10 @@ export interface Database {
       };
       is_organizer_or_admin: {
         Args: Record<string, never>;
+        Returns: unknown;
+      };
+      kick_session_generation: {
+        Args: { [key: string]: unknown };
         Returns: unknown;
       };
       kick_substitute_engine: {
@@ -1775,6 +1910,10 @@ export interface Database {
         Returns: unknown;
       };
       notify_reschedule_confirmed: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      notify_training_cancelled: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
@@ -1826,6 +1965,10 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      rpc_set_event_participation: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       rpc_set_lineup: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -1862,6 +2005,14 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      training_audience: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      training_payload: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       trains: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -1876,6 +2027,7 @@ export interface Database {
       action_token_kind: "match_response" | "substitute_answer" | "event_response" | "poll_vote";
       attendance_source: "auto" | "self" | "trainer" | "link";
       attendance_status: "yes" | "late" | "no";
+      event_status: "yes" | "no";
       gender: "male" | "female" | "unspecified";
       holiday_kind: "public" | "school";
       lineup_mode: "fixed" | "open";

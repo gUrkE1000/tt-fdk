@@ -53,5 +53,11 @@ export const queryKeys = {
     autoAttendance: (profileId: string) => ['trainings', 'auto-attendance', profileId] as const,
   },
 
+  events: {
+    all: ['events'] as const,
+    list: () => ['events', 'list'] as const,
+    participants: () => ['events', 'participants'] as const,
+  },
+
   clubSettings: ['club-settings'] as const,
 } as const;

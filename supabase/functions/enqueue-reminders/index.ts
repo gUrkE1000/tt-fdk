@@ -1,9 +1,10 @@
 // Erinnerungen einreihen (Aufgabe 4.5).
 //
-// Läuft alle zehn Minuten. Drei Aufgaben:
+// Läuft alle zehn Minuten. Vier Aufgaben:
 //   1. Erinnerung an ein Spiel, je Person mit ihrem eigenen Vorlauf.
 //   2. Erinnerung an einen Trainingstermin, mit dem Vorlauf des Trainings.
-//   3. Ein täglicher Sammelhinweis auf alles, wozu noch eine Antwort fehlt.
+//   3. Erinnerung an einen Vereinstermin, mit dem vereinsweiten Vorlauf.
+//   4. Ein täglicher Sammelhinweis auf alles, wozu noch eine Antwort fehlt.
 //
 // Die Asymmetrie in 1 und 2 ist Absicht: Beim Spiel entscheidet die Person, wie früh sie
 // erinnert werden will, beim Training das Training. Wer dienstags um 19 Uhr trainiert,
@@ -15,6 +16,7 @@
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   formatOpenItems,
+  planEventReminders,
   planMatchReminders,
   planOpenReminders,
   planTrainingReminders,
@@ -61,9 +63,10 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
   const matchReminders = await doMatchReminders(admin, now);
   const trainingReminders = await doTrainingReminders(admin, now);
+  const eventReminders = await doEventReminders(admin, now, settings);
   const openReminders = await doOpenReminders(admin, now, settings);
 
-  return json({ matchReminders, trainingReminders, openReminders });
+  return json({ matchReminders, trainingReminders, eventReminders, openReminders });
 });
 
 async function authorize(
@@ -108,13 +111,14 @@ async function authorize(
 interface Settings {
   openReminderDays: number;
   openReminderTime: string;
+  eventReminderHours: number;
 }
 
 async function loadSettings(admin: SupabaseClient): Promise<Settings> {
   const { data } = await admin
     .from('club_settings')
     .select('key, value')
-    .in('key', ['open_reminder_days', 'open_reminder_time']);
+    .in('key', ['open_reminder_days', 'open_reminder_time', 'event_reminder_hours']);
 
   const map = Object.fromEntries(
     ((data ?? []) as { key: string; value: string }[]).map((row) => [row.key, row.value]),
@@ -123,6 +127,7 @@ async function loadSettings(admin: SupabaseClient): Promise<Settings> {
   return {
     openReminderDays: Number(map.open_reminder_days || '14'),
     openReminderTime: map.open_reminder_time || '18:00',
+    eventReminderHours: Number(map.event_reminder_hours || '24'),
   };
 }
 
@@ -337,6 +342,72 @@ async function doTrainingReminders(admin: SupabaseClient, now: Date): Promise<nu
     for (const profileId of action.profileIds) {
       await admin.rpc('enqueue_training_reminder', {
         p_session_id: action.sessionId,
+        p_profile_id: profileId,
+      });
+      sent += 1;
+    }
+  }
+
+  return sent;
+}
+
+async function doEventReminders(
+  admin: SupabaseClient,
+  now: Date,
+  settings: Settings,
+): Promise<number> {
+  const horizon = new Date(
+    now.getTime() + (settings.eventReminderHours + 24) * 3600_000,
+  ).toISOString();
+
+  const { data: eventRows } = await admin
+    .from('club_events')
+    .select('id, starts_at, reminder_sent_at')
+    .is('reminder_sent_at', null)
+    .gt('starts_at', now.toISOString())
+    .lt('starts_at', horizon);
+
+  const events = ((eventRows ?? []) as {
+    id: string;
+    starts_at: string;
+    reminder_sent_at: string | null;
+  }[]).map((row) => ({
+    id: row.id,
+    startsAt: row.starts_at,
+    reminderSentAt: row.reminder_sent_at,
+  }));
+
+  if (events.length === 0) return 0;
+
+  const { data: attendingRows } = await admin
+    .from('event_participations')
+    .select('event_id, profile_id, status')
+    .in('event_id', events.map((event) => event.id))
+    .eq('status', 'yes');
+
+  const actions = planEventReminders({
+    now,
+    events,
+    hoursBefore: settings.eventReminderHours,
+    attending: ((attendingRows ?? []) as { event_id: string; profile_id: string }[]).map(
+      (row) => ({ eventId: row.event_id, profileId: row.profile_id }),
+    ),
+  });
+
+  let sent = 0;
+
+  for (const action of actions) {
+    const { error } = await admin
+      .from('club_events')
+      .update({ reminder_sent_at: now.toISOString() })
+      .eq('id', action.eventId)
+      .is('reminder_sent_at', null);
+
+    if (error) continue;
+
+    for (const profileId of action.profileIds) {
+      await admin.rpc('enqueue_event_reminder', {
+        p_event_id: action.eventId,
         p_profile_id: profileId,
       });
       sent += 1;

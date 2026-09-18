@@ -81,3 +81,6 @@ export type { TableProps, TableColumn } from './Table';
 
 export { default as FilterBar } from './FilterBar';
 export type { FilterBarProps } from './FilterBar';
+
+export { default as RichTextEditor, RichText } from './RichTextEditor';
+export type { RichTextEditorProps, RichTextProps } from './RichTextEditor';

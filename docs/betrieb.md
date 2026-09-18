@@ -106,19 +106,21 @@ sie als `failed` stehen — sichtbar, statt still verloren.
 
 ## 4. Erinnerungen
 
-Ein dritter Job, alle zehn Minuten, mit drei Aufgaben:
+Ein dritter Job, alle zehn Minuten, mit vier Aufgaben:
 
 1. **Erinnerung an ein Spiel**, je Person mit ihrem eigenen Vorlauf aus dem Profil.
 2. **Erinnerung an einen Trainingstermin**, mit dem Vorlauf des *Trainings*
    (`reminder_hours`, Standard fünf Stunden). Die Asymmetrie ist Absicht: Wer dienstags um
    19 Uhr trainiert, entscheidet am Nachmittag, nicht einen Tag vorher.
-3. **Täglicher Sammelhinweis** auf alles, wozu noch eine Antwort fehlt — einer statt
+3. **Erinnerung an einen Vereinstermin**, mit dem vereinsweiten Vorlauf
+   (`event_reminder_hours`, Standard 24 Stunden), an die Zusagenden.
+4. **Täglicher Sammelhinweis** auf alles, wozu noch eine Antwort fehlt — einer statt
    einer je Termin. Ab der in den Vereinsdaten eingestellten Uhrzeit
    (`open_reminder_time`), für Termine innerhalb von `open_reminder_days`.
 
-Drei Merkposten verhindern Wiederholungen: `match_reminders` je Spiel, Person und
-Fassung, `training_sessions.reminder_sent_at` je Termin, `open_reminder_log` je Person
-und Tag. Alle drei gehören dem Hintergrundlauf und sind für niemanden sonst sichtbar.
+Vier Merkposten verhindern Wiederholungen: `match_reminders` je Spiel, Person und
+Fassung, `training_sessions.reminder_sent_at` und `club_events.reminder_sent_at` je
+Termin, `open_reminder_log` je Person und Tag. Alle gehören dem Hintergrundlauf und sind für niemanden sonst sichtbar.
 
 Bei einem **offenen Training** ist der Kreis der ganze Verein. Wem das zu viel ist,
 schränkt unter „Mein Profil → Benachrichtigungen“ auf einzelne Trainings ein

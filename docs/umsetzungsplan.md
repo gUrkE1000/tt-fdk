@@ -661,7 +661,8 @@ Vom ausführenden Agenten gepflegt.
 | 6.5 Trainingstermine und Teilnahme | erledigt | 18.09.2026 | „Offene Trainings“ als eigener Reiter; Schlüsselhinweis bis 9.1 als Platzhaltertext |
 | 6.6 Trainingserinnerungen und Ausfälle | erledigt | 18.09.2026 | Merkposten am Termin statt an der Person; Ausfall meldet den Zeitraum, nicht jeden Tag |
 | 6.7 Automatische Trainingszusagen | erledigt | 18.09.2026 | Logik steckt in 6.3; hier nur die Oberfläche |
-| 7.1 – 7.5 Termine, Umfragen, Kalender | offen | | |
+| 7.1 Vereinstermine | erledigt | 18.09.2026 | eigener Sanitizer statt WYSIWYG-Bibliothek; Antwortlink ohne Anmeldung ergänzt |
+| 7.2 – 7.5 Umfragen, Kalender, Meine Termine | offen | | |
 | 8.1 – 8.4 Dashboard, PWA, Push, Admin | offen | | |
 | 9.x Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
@@ -835,6 +836,22 @@ Vom ausführenden Agenten gepflegt.
     über alle offenen Termine zu laufen wäre die freundlichere, aber auch die
     überraschendere Lösung — sie würde Absagen überschreiben, die jemand bewusst gesetzt
     hat. Der Dialog sagt stattdessen, was gilt.
+
+47. **Eigener Sanitizer statt einer Bibliothek (7.1).** Der Editor erzeugt nur Markup aus
+    einer festen Liste — verlassen darf man sich darauf trotzdem nicht, denn was in der
+    Datenbank steht, kann auch jemand direkt über die API geschrieben haben.
+    `src/lib/richText.ts` filtert deshalb gegen eine Positivliste, bevor irgendetwas in
+    `dangerouslySetInnerHTML` landet. Sechzehn Tests, keine Abhängigkeit; DOMPurify hätte
+    für sieben erlaubte Tags ein ganzes DOM mitgebracht.
+48. **`.prose-sm` von Hand statt `@tailwindcss/typography` (7.1).** Gebraucht werden sieben
+    Elemente. Das Plugin brächte ein komplettes Typografiesystem mit eigenen Farben — die
+    stünden neben denen des Design-Systems, nicht darin.
+49. **Antwortlink ohne Anmeldung auch für Vereinstermine (7.1).** Zielbild 3.6 zählt
+    `event_response` unter den Aktionen auf, der Plan erwähnt es in 7.1 nicht. Ohne den
+    Link wäre die Einladung eine Sackgasse. Gäste lassen sich darüber nicht angeben; eine
+    bestehende Gästezahl bleibt erhalten.
+50. **Keine Dateianhänge am Termin (7.1).** Der Plan verschiebt sie ausdrücklich auf 9.4
+    (Dateien); das Feld fehlt deshalb im Dialog.
 
 **Blocker:** —
 

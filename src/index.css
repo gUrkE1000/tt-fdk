@@ -1,3 +1,52 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  /*
+   * Fließtext aus dem Rich-Text-Editor (Vereinstermine, später Neuigkeiten).
+   *
+   * Absichtlich hier statt über @tailwindcss/typography: Gebraucht werden sieben
+   * Elemente, das Plugin brächte ein ganzes Typografiesystem mit eigenen Farben — und
+   * die stünden neben denen des Design-Systems, nicht darin.
+   */
+  .prose-sm > * + * {
+    @apply mt-2;
+  }
+
+  .prose-sm p {
+    @apply text-sm leading-relaxed;
+  }
+
+  .prose-sm h2 {
+    @apply text-base font-semibold text-gray-900;
+  }
+
+  .prose-sm h3 {
+    @apply text-sm font-semibold text-gray-900;
+  }
+
+  .prose-sm ul {
+    @apply list-disc pl-5 text-sm;
+  }
+
+  .prose-sm ol {
+    @apply list-decimal pl-5 text-sm;
+  }
+
+  .prose-sm li + li {
+    @apply mt-0.5;
+  }
+
+  .prose-sm blockquote {
+    @apply border-l-2 border-gray-300 pl-3 text-sm italic text-gray-600;
+  }
+
+  .prose-sm a {
+    @apply text-primary underline;
+  }
+
+  .prose-sm strong {
+    @apply font-semibold;
+  }
+}

@@ -18,6 +18,7 @@ import ClubTeamsTab from './ClubTeamsTab';
 import ClubGamesTab from './ClubGamesTab';
 import SessionsTab from '../trainings/SessionsTab';
 import OpenTrainingsList from '../trainings/OpenTrainingsList';
+import ClubEventsTab from './ClubEventsTab';
 import { contactPeople, searchDirectory, useDirectory, type DirectoryEntry } from './directory';
 
 export default function MyClubPage() {
@@ -35,6 +36,7 @@ export default function MyClubPage() {
           { value: 'members', label: 'Mitglieder', content: <MembersDirectory /> },
           { value: 'contacts', label: 'Rollen & Kontaktdaten', content: <Contacts /> },
           { value: 'trainings', label: 'Trainings', content: <ClubTrainingsTab /> },
+          { value: 'events', label: 'Vereinstermine', content: <ClubEventsTab /> },
           { value: 'teams', label: 'Mannschaften', content: <ClubTeamsTab /> },
           { value: 'games', label: 'Spiele', content: <ClubGamesTab /> },
           {

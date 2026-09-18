@@ -4,8 +4,8 @@ Referenz zum Schema. Verbindlich ist immer die Migration in `supabase/migrations
 dieses Dokument erklärt, warum etwas so aussieht.
 
 Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
-Beteiligung, Benachrichtigungen und Training. Vereinstermine und Umfragen folgen in
-Aufgabe 7.1.
+Beteiligung, Benachrichtigungen, Training und Vereinstermine. Umfragen folgen in
+Aufgabe 7.2.
 
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
 eigene Migration.
@@ -222,6 +222,21 @@ Gesetzliche Feiertage und Schulferien je Bundesland, aus öffentlichen Quellen i
 (Aufgabe 6.2). Der eindeutige Index über `(bundesland, kind, name, start_date)` macht den
 jährlichen Import wiederholbar, ohne die Tabelle zu verdoppeln.
 
+### `club_events`, `event_participations`
+
+Clubmeisterschaft, Sommerfest, Jahreshauptversammlung. Zwei Dinge unterscheiden sie vom
+Spieltermin: eine **Anmeldefrist** (`participate_until`) und **Gäste**. Wer zum Sommerfest
+zwei Leute mitbringt, belegt drei Plätze — die Teilnehmergrenze zählt sie deshalb mit.
+
+`event_participations` hat wie die anderen Beteiligungstabellen **keine Schreib-Policy**.
+Jede Antwort geht durch `apply_event_answer`, das Frist, Grenze und Zeitpunkt zusammen
+prüft. Die Funktion wirft keine Ausnahme, sondern liefert einen Status: „Die Anmeldefrist
+ist vorbei" ist eine Antwort, die man dem Mitglied zeigen will, kein Fehler.
+
+`description_html` ist einfacher Rich-Text. Er wird **beim Anzeigen** bereinigt
+(`src/lib/richText.ts`, Positivliste) — nicht nur beim Speichern: Was in der Datenbank
+steht, kann auch jemand direkt über die API geschrieben haben.
+
 ### `private.cron_config`
 
 Liegt im Schema `private`, das PostgREST nicht veröffentlicht. Ab Aufgabe 3.3 lesen die
@@ -323,6 +338,10 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `enqueue_training_reminder(uuid, uuid)` | Was der Erinnerungslauf je Termin und Person ausführt |
 | `notify_training_cancelled(uuid, date, date, text, bool)` | Meldet einen Ausfall — einmal für den ganzen Zeitraum, nicht je Tag |
 | `check_trainers_cancelled()` | Trigger: sagen alle Trainer ab, sagt sich der Termin selbst ab |
+| `event_payload(uuid)` | Werte für die Vorlage eines Vereinstermins, samt Antwortlink |
+| `apply_event_answer(uuid, uuid, text, int, source)` | Zu- oder Absage; prüft Anmeldefrist, Teilnehmergrenze und Zeitpunkt |
+| `rpc_set_event_participation(uuid, status, int)` | Dasselbe für den Angemeldeten |
+| `enqueue_event_reminder(uuid, uuid)` | Was der Erinnerungslauf je Termin und Zusagendem ausführt |
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |
@@ -397,6 +416,8 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `training_attendance` | eigene Zeile; fremde nur, wenn nicht inkognito | **niemand direkt** — nur `rpc_set_training_attendance` |
 | `training_cancellations` | aktive Mitglieder | Admin; ein Trainer nur für sein eigenes Training, nie für eine ganze Halle |
 | `training_auto_attendance`, `training_reminder_filter` | eigene Zeilen | eigene Zeilen |
+| `club_events` | aktive Mitglieder, auch Gäste | Organisator und Admin |
+| `event_participations` | aktive Mitglieder | **niemand direkt** — nur `rpc_set_event_participation` oder der Link |
 
 `service_role` (Edge Functions) umgeht RLS — das ist gewollt und der Grund, warum der
 `service_role`-Schlüssel niemals ins Frontend gehört.

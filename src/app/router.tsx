@@ -17,6 +17,7 @@ import GamesPage from '../features/matches/GamesPage';
 import MyGamesPage from '../features/matches/MyGamesPage';
 import TrainingsPage from '../features/trainings/TrainingsPage';
 import CancellationsPage from '../features/trainings/CancellationsPage';
+import EventsPage from '../features/events/EventsPage';
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
@@ -86,7 +87,7 @@ export const router = createBrowserRouter([
           },
           {
             element: <RequireRole roles={['admin', 'organizer']} />,
-            children: [{ path: 'dates', element: <Placeholder title="Vereinstermine" task="7.1" /> }],
+            children: [{ path: 'dates', element: <EventsPage /> }],
           },
           {
             element: <RequireRole roles={['admin']} />,

@@ -226,6 +226,40 @@ INSERT INTO public.training_attendance (session_id, profile_id, status, guests, 
     ('77777777-0000-0000-0000-000000000004', '22222222-1111-0000-0000-000000000005', 'late', 0, 'self')
 ON CONFLICT DO NOTHING;
 
+-- ----------------------------------------------------------------- Vereinstermine
+-- Ein kommender Termin mit Anmeldefrist, ein ganztägiger und ein vergangener, damit
+-- sich beide Reiter füllen.
+INSERT INTO public.club_events
+    (id, name, full_day, starts_at, ends_at, participate_until, max_participants,
+     address, description_html, created_by)
+VALUES
+    ('88888888-0000-0000-0000-000000000001', 'Clubmeisterschaft', false,
+     date_trunc('day', NOW()) + INTERVAL '21 days 10 hours',
+     date_trunc('day', NOW()) + INTERVAL '21 days 18 hours',
+     (CURRENT_DATE + 14), 32,
+     'Turnstraße 5, 12345 Musterstadt',
+     '<p>Meldung an der Halle ab <strong>9:30 Uhr</strong>.</p>',
+     '22222222-0000-0000-0000-000000000002'),
+
+    ('88888888-0000-0000-0000-000000000002', 'Sommerfest', true,
+     date_trunc('day', NOW()) + INTERVAL '45 days',
+     date_trunc('day', NOW()) + INTERVAL '45 days 23 hours 59 minutes',
+     NULL, NULL,
+     'Vereinsheim',
+     '<p>Für Essen ist gesorgt.</p>',
+     '22222222-0000-0000-0000-000000000002'),
+
+    ('88888888-0000-0000-0000-000000000003', 'Jahreshauptversammlung', false,
+     date_trunc('day', NOW()) - INTERVAL '30 days' + INTERVAL '19 hours',
+     date_trunc('day', NOW()) - INTERVAL '30 days' + INTERVAL '21 hours',
+     NULL, NULL, 'Vereinsheim', '', '22222222-0000-0000-0000-000000000001')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.event_participations (event_id, profile_id, status, guests) VALUES
+    ('88888888-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000001', 'yes', 2),
+    ('88888888-0000-0000-0000-000000000001', '22222222-1111-0000-0000-000000000002', 'no',  0)
+ON CONFLICT DO NOTHING;
+
 -- ----------------------------------------------------------------- Auth-Benutzer
 -- Verknüpft die wichtigsten Profile mit einem Auth-Benutzer, damit tests.login_as
 -- und die Anwendung lokal etwas zum Anmelden haben. In Supabase legt diese Zeilen
