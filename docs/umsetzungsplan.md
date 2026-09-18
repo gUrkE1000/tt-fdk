@@ -673,6 +673,7 @@ Vom ausführenden Agenten gepflegt.
 | 9.1 Schlüsselverwaltung | erledigt | 18.09.2026 | Schlüsselwarnung in 6.5 damit scharf; Zuordnungsspalten der Vereinsübersicht nachgezogen |
 | 9.5 Excel-Import/-Update | erledigt | 18.09.2026 | `exceljs` statt `xlsx` (Sicherheitslücke); eine Rangspalte statt fünfzehn |
 | 9.6 Ämter | erledigt | 18.09.2026 | ohne Rechtewirkung, weil Inventar und Bekleidung gestrichen sind |
+| 9.3 Vereinsneuigkeiten | erledigt | 18.09.2026 | vordatieren und anheften ergänzt; bewusst ohne Benachrichtigung |
 | 9.x übrige Stufe B | offen | | 9.8 Arbeitszeiten gestrichen |
 | 10.x Go-live | offen | | |
 
@@ -1034,6 +1035,15 @@ Vom ausführenden Agenten gepflegt.
 92. **Die Kontaktdaten der Amtsinhaber kommen weiter aus `v_members_directory` (9.6).** Ein
     Amt zu haben ist kein Grund, die private Handynummer zu veröffentlichen — die Maskierung
     bleibt, wo sie war.
+
+93. **Neuigkeiten lassen sich vordatieren und anheften (9.3).** Der Plan nennt nur
+    „anlegen". Beides kostet je eine Spalte und löst einen echten Fall: die Einladung zur
+    Jahreshauptversammlung soll oben bleiben, und eine Vorankündigung schreibt man, wenn man
+    Zeit hat, nicht wenn sie erscheinen soll. Die SELECT-Policy hält Vordatiertes zurück —
+    sonst wäre es nicht vordatiert.
+94. **`author_id` kommt aus der Sitzung, nicht aus der Eingabe (9.3).** Sonst könnte
+    jemand eine Neuigkeit im Namen des Vorsitzenden einstellen. Ohne Sitzung (Datenübernahme)
+    bleibt ein mitgegebener Verfasser stehen.
 
 **Blocker:** —
 

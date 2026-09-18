@@ -5,8 +5,8 @@ dieses Dokument erklärt, warum etwas so aussieht.
 
 Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
 Beteiligung, Benachrichtigungen (E-Mail und Push), Training, Vereinstermine, Umfragen,
-Kalender, ICS-Abo, die Betriebssicht, die Schlüsselverwaltung und die Ämter. Es fehlen
-noch die übrigen Stufe-B-Tabellen (Phase 9).
+Kalender, ICS-Abo, die Betriebssicht, die Schlüsselverwaltung, die Ämter und die
+Neuigkeiten. Es fehlen noch die übrigen Stufe-B-Tabellen (Phase 9).
 
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
 eigene Migration.
@@ -156,6 +156,21 @@ kann mehrere haben — Handy, Tablet, Rechner.
 Der Versandlauf löscht einen Eintrag, sobald der Push-Dienst ihn mit 404 oder 410 abweist:
 Das Gerät kommt nicht wieder, und ein toter Endpunkt würde sonst bei jedem Lauf erneut
 versucht. Eine Nachricht gilt als zugestellt, sobald **ein** Gerät sie angenommen hat.
+
+### `news`
+
+Das schwarze Brett. `published_at` ist bewusst von `created_at` getrennt: Eine Neuigkeit
+lässt sich vordatieren oder nachträglich korrigieren, ohne an eine andere Stelle zu
+rutschen. Vor diesem Zeitpunkt sieht sie nur, wer sie anlegen darf — das erzwingt die
+SELECT-Policy, nicht die Oberfläche.
+
+`author_id` setzt ein Trigger aus `auth.uid()`, damit niemand im Namen eines anderen
+schreibt. Ist keine Sitzung da (Datenübernahme, Aufgabe 10.2), bleibt der mitgegebene
+Verfasser stehen, statt anonym zu werden.
+
+**Es geht keine Benachrichtigung raus** — wie im TT-Planer. Eine Neuigkeit ist eine
+Mitteilung an alle, keine Aufforderung an einen Einzelnen; alles, was den Posteingang
+erreicht, soll eine Handlung verlangen.
 
 ### `club_roles`, `club_role_members`
 
@@ -481,6 +496,7 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 |---|---|---|
 | `club_settings` | aktive Mitglieder, außer `secret_*` | Admin |
 | `v_cron_status` | nur Admin (View prüft selbst) | — (View) |
+| `news` | aktive Mitglieder ab `published_at` | Admin, Organisator |
 | `club_roles`, `club_role_members` | aktive Mitglieder | Admin |
 | `keys` | aktive Mitglieder | Admin (Inhaber nur über `rpc_hand_over_key`) |
 | `key_handovers` | aktive Mitglieder | niemand direkt |

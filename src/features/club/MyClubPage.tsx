@@ -15,6 +15,7 @@ import Placeholder from '../../app/Placeholder';
 import { roleLabel } from '../../lib/labels';
 import { useClubSettings } from './api';
 import { useClubRoles } from './rolesApi';
+import NewsTab from './NewsTab';
 import ClubTeamsTab from './ClubTeamsTab';
 import ClubGamesTab from './ClubGamesTab';
 import SessionsTab from '../trainings/SessionsTab';
@@ -40,11 +41,7 @@ export default function MyClubPage() {
           { value: 'events', label: 'Vereinstermine', content: <ClubEventsTab /> },
           { value: 'teams', label: 'Mannschaften', content: <ClubTeamsTab /> },
           { value: 'games', label: 'Spiele', content: <ClubGamesTab /> },
-          {
-            value: 'news',
-            label: 'Neuigkeiten',
-            content: <Placeholder title="Vereinsneuigkeiten" task="9.3" />,
-          },
+          { value: 'news', label: 'Neuigkeiten', content: <NewsTab /> },
           {
             value: 'files',
             label: 'Dateien',

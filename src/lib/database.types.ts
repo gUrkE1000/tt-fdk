@@ -836,6 +836,47 @@ export interface Database {
           },
         ];
       };
+      news: {
+        Row: {
+          id: string;
+          title: string;
+          body_html: string;
+          published_at: string;
+          pinned: boolean;
+          author_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          body_html?: string;
+          published_at?: string;
+          pinned?: boolean;
+          author_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          body_html?: string;
+          published_at?: string;
+          pinned?: boolean;
+          author_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "news_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       notification_preferences: {
         Row: {
           profile_id: string;
@@ -2162,6 +2203,20 @@ export interface Database {
           location: string | null;
           my_status: string | null;
           active: boolean | null;
+        };
+        Relationships: [];
+      };
+      v_news: {
+        Row: {
+          id: string | null;
+          title: string | null;
+          body_html: string | null;
+          published_at: string | null;
+          pinned: boolean | null;
+          author_id: string | null;
+          author_name: string | null;
+          created_at: string | null;
+          updated_at: string | null;
         };
         Relationships: [];
       };

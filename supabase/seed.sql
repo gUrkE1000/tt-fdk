@@ -352,3 +352,19 @@ INSERT INTO public.club_role_members (role_id, profile_id) VALUES
     ('cccccccc-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000003'),
     ('cccccccc-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000001')
 ON CONFLICT DO NOTHING;
+
+-- ----------------------------------------------------------------- Neuigkeiten (9.3)
+INSERT INTO public.news (id, title, body_html, published_at, pinned, author_id) VALUES
+    ('dddddddd-0000-0000-0000-000000000001', 'Jahreshauptversammlung am 14. März',
+     '<p>Alle Mitglieder sind herzlich eingeladen. Beginn ist um 19 Uhr im Vereinsheim.</p>',
+     NOW() - INTERVAL '3 days', true, '22222222-0000-0000-0000-000000000001'),
+
+    ('dddddddd-0000-0000-0000-000000000002', 'Neue Netze für Tisch 3 und 4',
+     '<p>Der Verein hat neue Netze angeschafft. Bitte nach dem Training abbauen.</p>',
+     NOW() - INTERVAL '10 days', false, '22222222-0000-0000-0000-000000000002'),
+
+    -- Vordatiert: darf nur der Organisator sehen, bis der Zeitpunkt da ist.
+    ('dddddddd-0000-0000-0000-000000000003', 'Sommerfest — Vorankündigung',
+     '<p>Termin steht noch nicht fest.</p>',
+     NOW() + INTERVAL '14 days', false, '22222222-0000-0000-0000-000000000002')
+ON CONFLICT (id) DO NOTHING;

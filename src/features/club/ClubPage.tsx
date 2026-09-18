@@ -4,6 +4,7 @@ import ClubDataTab from './ClubDataTab';
 import ClubOverviewTab from './ClubOverviewTab';
 import AdminPage from '../admin/AdminPage';
 import ClubRolesTab from './ClubRolesTab';
+import NewsTab from './NewsTab';
 
 export default function ClubPage() {
   return (
@@ -14,11 +15,7 @@ export default function ClubPage() {
         tabs={[
           { value: 'data', label: 'Daten', content: <ClubDataTab /> },
           { value: 'offices', label: 'Ämter', content: <ClubRolesTab /> },
-          {
-            value: 'news',
-            label: 'Neuigkeiten',
-            content: <Placeholder title="Vereinsneuigkeiten" task="9.3" />,
-          },
+          { value: 'news', label: 'Neuigkeiten', content: <NewsTab canEdit /> },
           {
             value: 'files',
             label: 'Dateien',
