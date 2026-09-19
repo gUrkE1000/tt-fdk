@@ -3,6 +3,14 @@ import { useEffect, useState } from 'react';
 export interface LoadingScreenProps {
   /** Nach wie vielen Millisekunden der Hinweis erscheint. */
   hintAfterMs?: number;
+  /**
+   * Woran es gerade hängt, in einem kurzen technischen Kürzel.
+   *
+   * Erscheint erst ganz zum Schluss und klein: Für ein Mitglied ist es bedeutungslos,
+   * für denjenigen, der den Fehler sucht, ist es alles. Ein Fehler, der nur auf fremden
+   * Geräten auftritt, lässt sich sonst nur über Screenshots und Vermutungen eingrenzen.
+   */
+  detail?: string;
 }
 
 /**
@@ -16,7 +24,7 @@ export interface LoadingScreenProps {
  * Die Zeiten sind bewusst großzügig: Wer auf dem Hallenparkplatz im Funkloch steht, soll
  * nicht nach zwei Sekunden lesen, es sei etwas kaputt.
  */
-export default function LoadingScreen({ hintAfterMs = 4000 }: LoadingScreenProps) {
+export default function LoadingScreen({ hintAfterMs = 4000, detail }: LoadingScreenProps) {
   const [stage, setStage] = useState<0 | 1 | 2>(0);
 
   useEffect(() => {
@@ -42,6 +50,10 @@ export default function LoadingScreen({ hintAfterMs = 4000 }: LoadingScreenProps
             ? 'Das dauert länger als gewöhnlich …'
             : 'Der Server antwortet nicht. Prüfe deine Internetverbindung — wenn sie steht, liegt es nicht an dir.'}
         </p>
+      )}
+
+      {stage === 2 && detail && (
+        <p className="max-w-xs text-center font-mono text-xs text-gray-400">{detail}</p>
       )}
     </div>
   );

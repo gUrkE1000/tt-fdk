@@ -12,10 +12,10 @@ import type { Role } from '../../app/nav';
  * sonst sähe es wie ein Fehler aus.
  */
 export function RequireAuth() {
-  const { session, profile, loading } = useSession();
+  const { session, profile, loading, loadingDetail } = useSession();
   const location = useLocation();
 
-  if (loading) return <LoadingScreen />;
+  if (loading) return <LoadingScreen detail={loadingDetail} />;
 
   if (!session) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
@@ -53,9 +53,9 @@ export function RequireAuth() {
 
 /** Schützt Routen, die nur bestimmte Rollen sehen dürfen. */
 export function RequireRole({ roles }: { roles: Role[] }) {
-  const { role, loading } = useSession();
+  const { role, loading, loadingDetail } = useSession();
 
-  if (loading) return <LoadingScreen />;
+  if (loading) return <LoadingScreen detail={loadingDetail} />;
   if (!role || !roles.includes(role)) return <Navigate to="/" replace />;
 
   return <Outlet />;

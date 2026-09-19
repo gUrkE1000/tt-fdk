@@ -13,6 +13,8 @@ export interface SessionState {
   loading: boolean;
   /** Zeitpunkt der vorletzten Anmeldung — Grundlage für „seit deinem letzten Login". */
   previousLoginAt: string | null;
+  /** Woran `loading` gerade hängt — für die Fehlersuche auf fremden Geräten. */
+  loadingDetail: string;
 }
 
 const SessionContext = createContext<SessionState | null>(null);
@@ -86,9 +88,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       profile,
       role: (profile?.role as Role | undefined) ?? null,
       loading: initialising || (userId !== null && profileQuery.isLoading),
+      loadingDetail: initialising
+        ? 'auth getSession'
+        : `profil ${profileQuery.status}/${profileQuery.fetchStatus}`,
       previousLoginAt,
     };
-  }, [session, profileQuery.data, profileQuery.isLoading, initialising, userId, previousLoginAt]);
+  }, [
+    session,
+    profileQuery.data,
+    profileQuery.isLoading,
+    profileQuery.status,
+    profileQuery.fetchStatus,
+    initialising,
+    userId,
+    previousLoginAt,
+  ]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

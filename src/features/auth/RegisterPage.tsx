@@ -58,7 +58,15 @@ export default function RegisterPage() {
     );
   }
 
-  if (codeCheck.isPending) return <LoadingScreen />;
+  /*
+    `fetchStatus` steht bewusst dabei: `pending` mit `paused` heißt, dass react-query die
+    Abfrage gar nicht erst losgeschickt hat, weil der Browser sich für offline hält. Das
+    sieht auf dem Bildschirm genauso aus wie eine Antwort, die ausbleibt — nur dass keine
+    Zeitgrenze greifen kann, weil nie etwas losgelaufen ist.
+  */
+  if (codeCheck.isPending) {
+    return <LoadingScreen detail={`code ${codeCheck.status}/${codeCheck.fetchStatus}`} />;
+  }
 
   /*
     Ein gescheiterter Aufruf ist etwas anderes als ein ungültiger Code, und wer beides
