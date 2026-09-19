@@ -2,9 +2,14 @@
 // Lädt gesetzliche Feiertage und Schulferien für alle sechzehn Bundesländer und
 // schreibt daraus eine Migration.
 //
-//   npm run import:holidays              aktuelles Jahr und die zwei folgenden
-//   npm run import:holidays -- 2027 2029 ein anderer Bereich
-//   npm run import:holidays -- --offline gesetzliche Feiertage rechnen, kein Netz
+//   npm run import:holidays                    aktuelles Jahr und die zwei folgenden
+//   npm run import:holidays -- 2027 2029       ein anderer Bereich
+//   npm run import:holidays -- --offline       gesetzliche Feiertage rechnen, kein Netz
+//   npm run import:holidays -- --bundesland BY nur ein Land (empfohlen)
+//
+// `--bundesland` ist für einen einzelnen Verein die richtige Wahl: Alle sechzehn Länder
+// sind 48 Abfragen an ferien-api.de, was dort zuverlässig in HTTP 429 endet. Ein Land
+// sind drei.
 //
 // Warum eine Migration und keine Seed-Datei: Seed-Daten laufen nur lokal. Feiertage
 // müssen aber auch in der Produktionsdatenbank stehen, sonst plant der Verein dort
@@ -36,7 +41,7 @@ const FERIEN_API = 'https://ferien-api.de/api/v1/holidays';
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const offline = args.includes('--offline');
-  const years = yearsFrom(args.filter((arg) => !arg.startsWith('--')));
+  const years = yearsFrom(positional(args));
 
   const rows: HolidayRow[] = [];
   const notes: string[] = [`Jahre ${years[0]}–${years[years.length - 1]}.`];
@@ -71,16 +76,34 @@ async function main(): Promise<void> {
   );
 
   // --- Schulferien ----------------------------------------------------------
+  //
+  // Ein Verein braucht genau ein Bundesland. Alle sechzehn zu holen sind 48 Abfragen —
+  // genug, damit ferien-api.de abriegelt. Mit `--bundesland BY` sind es drei.
   let school = 0;
   let schoolFailed = false;
+  let consecutiveFailures = 0;
+
   if (!offline) {
-    for (const state of BUNDESLAENDER) {
+    outer: for (const state of statesFrom(args)) {
       for (const year of years) {
         const payload = await fetchJson(`${FERIEN_API}/${state}/${year}`);
+
         if (payload === null) {
           schoolFailed = true;
+          consecutiveFailures += 1;
+
+          // Wenn drei Abfragen hintereinander scheitern, liegt es nicht an einer
+          // einzelnen: Die Schnittstelle ist dicht oder die eigene Adresse gesperrt.
+          // Die restlichen 45 Versuche kosten dann nur Zeit — beim Stand der Technik
+          // mit Wiederholungen über zehn Minuten.
+          if (consecutiveFailures >= 3) {
+            warn('Drei Abfragen hintereinander gescheitert — Schulferien übersprungen.');
+            break outer;
+          }
           continue;
         }
+
+        consecutiveFailures = 0;
         const parsed = parseSchoolHolidays(payload, state);
         rows.push(...parsed);
         school += parsed.length;
@@ -108,6 +131,30 @@ async function main(): Promise<void> {
   log(`Geschrieben: supabase/migrations/${name}`);
 }
 
+/**
+ * Die Jahreszahlen aus den Argumenten — alles, was weder eine Option ist noch der Wert
+ * einer Option.
+ *
+ * Ein einfaches `filter(arg => !arg.startsWith('--'))` reicht nicht: `--bundesland BY`
+ * hinterlässt sonst ein „BY", das als Jahreszahl gelesen wird und den Lauf abbricht.
+ */
+function positional(args: readonly string[]): string[] {
+  const withValue = new Set(['--bundesland']);
+  const result: string[] = [];
+
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--') continue;
+    if (arg.startsWith('--')) {
+      if (withValue.has(arg)) i += 1; // Wert überspringen
+      continue;
+    }
+    result.push(arg);
+  }
+
+  return result;
+}
+
 function yearsFrom(args: readonly string[]): number[] {
   const current = new Date().getUTCFullYear();
   const from = args.length > 0 ? Number(args[0]) : current;
@@ -120,6 +167,28 @@ function yearsFrom(args: readonly string[]): number[] {
   const years: number[] = [];
   for (let year = from; year <= to; year += 1) years.push(year);
   return years;
+}
+
+/**
+ * Welche Bundesländer geholt werden.
+ *
+ * Ohne `--bundesland` alle sechzehn — das ist die Fassung für jemanden, der die Datei
+ * für beliebige Vereine erzeugt. Ein einzelner Verein braucht genau eines und sollte es
+ * angeben; siehe den Kommentar am Dateikopf.
+ */
+function statesFrom(args: readonly string[]): readonly string[] {
+  const index = args.indexOf('--bundesland');
+  if (index === -1) return BUNDESLAENDER;
+
+  const wanted = (args[index + 1] ?? '').toUpperCase();
+  if (!BUNDESLAENDER.includes(wanted)) {
+    throw new Error(
+      `Unbekanntes Bundesland: „${args[index + 1] ?? ''}". ` +
+        `Erlaubt: ${BUNDESLAENDER.join(', ')}`,
+    );
+  }
+
+  return [wanted];
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
