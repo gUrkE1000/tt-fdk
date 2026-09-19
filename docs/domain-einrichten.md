@@ -116,16 +116,45 @@ noch nicht. Das ist erwartet.
 
 ### 4.3 Den DNS-Eintrag setzen
 
+**Welche Einträge du brauchst, hängt davon ab, ob du eine Subdomain oder die Hauptdomain
+nutzt.** Das ist der Punkt, an dem die meisten Anleitungen aneinander vorbeireden.
+
+### Fall A — Subdomain (`tt.beispiel.de`)
+
+Ein einziger Eintrag:
+
 | Typ | Name | Wert | TTL |
 |---|---|---|---|
 | `CNAME` | `tt` | `<dein-github-konto>.github.io` | Standard |
 
-> **Nur ein einziger Eintrag.** Die vier `A`-Einträge, die in vielen Anleitungen stehen,
-> braucht man nur für die **Hauptdomain** (`beispiel.de` ohne Subdomain). Für eine
-> Subdomain ist `CNAME` der richtige und einfachere Weg.
-
 Manche Oberflächen wollen den Wert mit Punkt am Ende (`konto.github.io.`). Beides ist
 richtig; wenn einer nicht angenommen wird, nimm den anderen.
+
+### Fall B — Hauptdomain (`beispiel.de`)
+
+Ein `CNAME` geht hier **nicht** — auf der Wurzel einer Domain verbietet der DNS-Standard
+das. Stattdessen vier `A`-Einträge, alle mit leerem Namen bzw. `@`:
+
+| Typ | Name | Wert |
+|---|---|---|
+| `A` | `@` | `185.199.108.153` |
+| `A` | `@` | `185.199.109.153` |
+| `A` | `@` | `185.199.110.153` |
+| `A` | `@` | `185.199.111.153` |
+
+Optional dieselben vier noch einmal als `AAAA` für IPv6:
+
+```
+2606:50c0:8000::153
+2606:50c0:8001::153
+2606:50c0:8002::153
+2606:50c0:8003::153
+```
+
+⚠️ **Vorhandene `A`-Einträge auf `@` vorher löschen.** Registrare legen ab Werk einen
+Eintrag an, der auf ihre eigene Platzhalterseite zeigt. Bleibt der stehen, landet etwa
+jeder fünfte Aufruf dort statt bei euch — ein Fehler, der sich anfühlt wie „manchmal geht's
+nicht".
 
 ### 4.4 Warten, dann HTTPS erzwingen
 
