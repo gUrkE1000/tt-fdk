@@ -12,19 +12,19 @@ Was zwischen „die Anwendung läuft" und „ich schicke einem Menschen die Adre
 
 | | Punkt | Ohne das passiert |
 |---|---|---|
-| 🔴 | [SMTP auf Resend umstellen](#1--smtp-auf-resend-umstellen) | Nach 2–4 Einladungen kommt keine mehr an |
-| 🔴 | [Vereinsdaten ausfüllen](#2--vereinsdaten) | „Mein Tischtennisverein" in jeder E-Mail; Heimspiele auf auswärts |
-| 🔴 | [Betriebseinstellungen](#3--betriebseinstellungen) | Links in Benachrichtigungen führen ins Leere |
-| 🔴 | [Datenschutzhinweis](#4--datenschutzhinweis-und-impressum) | Die Registrierung verschweigt, was mit den Daten passiert |
-| 🟠 | [Probelauf](#5--der-probelauf) | Fehler fallen erst bei den Mitgliedern auf |
-| 🟡 | [Orte, Mannschaften, Trainings](#6--inhalte-anlegen) | Der Eingeladene sieht eine leere Anwendung |
-| 🟡 | [Resend-Schlüssel verengen](#7--kleinigkeiten) | Ein verlorener Schlüssel kann mehr, als er müsste |
+| 🔴 | [SMTP auf Resend umstellen](#1-smtp-auf-resend-umstellen) | Nach 2–4 Einladungen kommt keine mehr an |
+| 🔴 | [Vereinsdaten ausfüllen](#2-vereinsdaten) | „Mein Tischtennisverein" in jeder E-Mail; Heimspiele auf auswärts |
+| 🔴 | [Betriebseinstellungen](#3-betriebseinstellungen) | Links in Benachrichtigungen führen ins Leere |
+| 🔴 | [Datenschutzhinweis](#4-datenschutzhinweis-und-impressum) | Die Registrierung verschweigt, was mit den Daten passiert |
+| 🟠 | [Probelauf](#5-der-probelauf) | Fehler fallen erst bei den Mitgliedern auf |
+| 🟡 | [Orte, Mannschaften, Trainings](#6-inhalte-anlegen) | Der Eingeladene sieht eine leere Anwendung |
+| 🟡 | [Resend-Schlüssel verengen](#7-kleinigkeiten) | Ein verlorener Schlüssel kann mehr, als er müsste |
 
 🔴 = vor der ersten Einladung · 🟠 = vor der zweiten · 🟡 = vor der dritten
 
 ---
 
-## 1 · 🔴 SMTP auf Resend umstellen
+## 1. SMTP auf Resend umstellen
 
 **Das ist der Punkt, der in keiner bisherigen Anleitung stand.**
 
@@ -80,7 +80,7 @@ Taucht sie nicht auf, geht sie weiterhin über Supabase.
 
 ---
 
-## 2 · 🔴 Vereinsdaten
+## 2. Vereinsdaten
 
 *Verein → Daten*. Steht nach der Einrichtung auf Vorgabewerten.
 
@@ -102,7 +102,7 @@ niemand fährt zum Auswärtsspiel. Lieber mehrere genaue Schreibweisen als eine 
 
 ---
 
-## 3 · 🔴 Betriebseinstellungen
+## 3. Betriebseinstellungen
 
 *Verein → Betrieb → Einstellungen*
 
@@ -120,7 +120,7 @@ Functions). Beide müssen übereinstimmen.
 
 ---
 
-## 4 · 🔴 Datenschutzhinweis und Impressum
+## 4. Datenschutzhinweis und Impressum
 
 *Verein → Betrieb → Einstellungen → Rechtliches*
 
@@ -151,7 +151,7 @@ nichts zu verlinken hat.
 
 ---
 
-## 5 · 🟠 Der Probelauf
+## 5. Der Probelauf
 
 Bis hierher ist **nichts davon je in echt gelaufen**. Vor der ersten Einladung reichen die
 Punkte 1 und 2; der Rest darf danach kommen, aber vor der zweiten Welle.
@@ -173,7 +173,7 @@ wirklich läuft.
 
 ---
 
-## 6 · 🟡 Inhalte anlegen
+## 6. Inhalte anlegen
 
 Wer als Erstes eingeladen wird, sieht sonst eine leere Anwendung und weiß nicht, wozu.
 
@@ -194,7 +194,7 @@ und überspringt stillschweigend, was er nicht findet. Vollständig in
 
 ---
 
-## 7 · 🟡 Kleinigkeiten
+## 7. Kleinigkeiten
 
 | | Was | Warum |
 |---|---|---|
