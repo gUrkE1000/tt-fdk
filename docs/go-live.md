@@ -445,8 +445,13 @@ Es müssen **sechs** Jobs dastehen:
 | `enqueue-reminders` | `*/10 * * * *` — Erinnerungen einreihen |
 | `substitute-engine` | `*/10 * * * *` — Ersatzkette |
 
-Stehen dort **null** Jobs: `pg_cron` ist nicht eingeschaltet → zurück zu
-[2.2](#22-erweiterungen-einschalten).
+> ⚠️ **"Success. No rows returned" heißt null Jobs**, nicht sechs. Die Abfrage lief
+> fehlerfrei — die Tabelle ist leer.
+
+Stehen dort null Jobs, ist `pg_cron` beim Einspielen der Migrationen nicht dagewesen.
+**Ein weiterer `db reset --linked` hilft nicht** — der entfernt `pg_cron` erneut, und es
+beginnt von vorn. Erweiterung einschalten, dann die Jobs von Hand eintragen; die fertige
+Anweisung steht in [`einrichtung.md` §2](einrichtung.md#2-erweiterungen-einschalten).
 
 ☐ Sechs Jobs bestätigt am: ________
 

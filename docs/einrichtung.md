@@ -49,7 +49,44 @@ Unter *Database → Extensions*:
 
 Ohne diese beiden läuft die Anwendung, aber nichts von selbst: keine Erinnerungen, kein
 Kalenderabgleich, keine Trainingstermine. Die Migrationen merken das und melden es, statt
-zu scheitern.
+zu scheitern — sie überspringen dann nur das Einplanen der Jobs. Das ist Absicht, damit
+dieselben Dateien auch gegen die Testdatenbank laufen, und es hat einen Preis: **Ein Lauf
+ohne `pg_cron` sieht erfolgreich aus und hinterlässt null Jobs.**
+
+> ⚠️ **`supabase db reset --linked` entfernt `pg_cron` wieder.**
+>
+> Der Reset baut die Datenbank neu auf — und Erweiterungen sind nichts, was Migrationen
+> anlegen, sondern etwas, das am Projekt hängt. Daraus wird leicht eine Schleife:
+>
+> ```
+> pg_cron einschalten  →  reset  →  pg_cron weg  →  Migrationen überspringen die Jobs
+> ```
+>
+> Zweimal dasselbe zu tun hilft nicht. **Nach einem Reset werden die Jobs von Hand
+> eingetragen**, statt noch einmal zurückzusetzen:
+>
+> ```sql
+> DO $$
+> BEGIN
+>     PERFORM cron.unschedule(jobname) FROM cron.job;
+>
+>     PERFORM cron.schedule('retention',                  '0 2 * * *',    $job$ SELECT public.run_retention(); $job$);
+>     PERFORM cron.schedule('generate-training-sessions', '0 3 * * *',    $job$ SELECT private.trigger_generate_training_sessions(); $job$);
+>     PERFORM cron.schedule('sync-calendars',             '0 4 * * *',    $job$ SELECT private.trigger_sync_calendars(); $job$);
+>     PERFORM cron.schedule('process-notifications',      '*/5 * * * *',  $job$ SELECT private.trigger_process_notifications(); $job$);
+>     PERFORM cron.schedule('enqueue-reminders',          '*/10 * * * *', $job$ SELECT private.trigger_enqueue_reminders(); $job$);
+>     PERFORM cron.schedule('substitute-engine',          '*/10 * * * *', $job$ SELECT private.trigger_substitute_engine(); $job$);
+> END $$;
+> ```
+>
+> Die Anweisung ist wiederholbar: Sie räumt vorhandene Jobs erst ab und legt sie dann neu
+> an. Die Definitionen stehen identisch in den Migrationen `20261005000000_cron_sync.sql`,
+> `…_cron_notifications.sql`, `…_reminder_tracking.sql`, `…_substitute_engine.sql`,
+> `…_cron_sessions.sql` und `…_retention.sql` — wer dort etwas ändert, ändert es hier mit.
+
+> **„Success. No rows returned" ist kein Erfolg.** Bei
+> `SELECT … FROM cron.job` heißt es: null Jobs. Sechs Zeilen sind das Ziel; die Meldung
+> „keine Zeilen" bedeutet, dass nichts eingeplant ist.
 
 ## 3. Schema einspielen
 
