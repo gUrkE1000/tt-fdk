@@ -12,22 +12,22 @@
   Sie ist bewusst eine einzelne HTML-Datei ohne Abhängigkeiten: Ein Rechtstext muss auch
   dann lesbar sein, wenn die Anwendung selbst nicht lädt.
 
-  VOR DER VERÖFFENTLICHUNG:
-    1. Jeden Platzhalter in eckigen Klammern ersetzen.
-    2. Den ENTWURF-Kasten unter <body> löschen.
-    3. Das Datum unten setzen.
-  Solange der Kasten steht, sieht jeder Leser, dass der Text nicht fertig ist — das ist
-  die Absicht. Ein halb ausgefüllter Datenschutzhinweis ist schlimmer als ein fehlender.
+  Der Text ist ausgefüllt. Wer ihn ändert, ändert eine rechtliche Zusage an die
+  Mitglieder — also nur gemeinsam mit dem Vorstand und mit
+  docs/datenschutz/verarbeitungsverzeichnis.md daneben, damit beides zusammenpasst.
+
+  Zu aktualisieren, sobald sich etwas an der Verarbeitung ändert: neue Dienstleister,
+  neue Datenarten, geänderte Fristen. Das Datum unten dann mitziehen.
 -->
 <style>
   :root {
     --bg: #ffffff; --fg: #1f2937; --muted: #6b7280;
-    --rule: #e5e7eb; --accent: #0d9488; --warn-bg: #fef3c7; --warn-fg: #92400e;
+    --rule: #e5e7eb; --accent: #0d9488;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #111827; --fg: #e5e7eb; --muted: #9ca3af;
-      --rule: #374151; --accent: #2dd4bf; --warn-bg: #451a03; --warn-fg: #fcd34d;
+      --rule: #374151; --accent: #2dd4bf;
     }
   }
   * { box-sizing: border-box; }
@@ -44,37 +44,23 @@
   ul { padding-left: 1.25rem; }
   a { color: var(--accent); }
   .lead { color: var(--muted); margin-bottom: 2rem; }
-  .entwurf {
-    background: var(--warn-bg); color: var(--warn-fg);
-    border-radius: .75rem; padding: 1rem 1.25rem; margin-bottom: 2rem;
-    font-weight: 600;
-  }
-  .entwurf ol { font-weight: 400; margin: .5rem 0 0; }
   footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .9rem; }
 </style>
 </head>
 <body>
 <main>
 
-  <!-- ↓↓↓ DIESEN KASTEN VOR DER VERÖFFENTLICHUNG LÖSCHEN ↓↓↓ -->
-  <div class="entwurf">
-    ⚠️ Entwurf — noch nicht veröffentlichen.
-    <ol>
-      <li>Alle [Platzhalter] ersetzen</li>
-      <li>Diesen Kasten löschen</li>
-      <li>Datum unten setzen</li>
-    </ol>
-  </div>
-  <!-- ↑↑↑ DIESEN KASTEN VOR DER VERÖFFENTLICHUNG LÖSCHEN ↑↑↑ -->
-
   <h1>Datenschutzhinweis</h1>
   <p class="lead">für die Nutzung des Vereinsplaners</p>
 
   <h2>Wer wir sind</h2>
   <p>
-    Diese Anwendung wird betrieben von <strong>[Name des Vereins]</strong>,
-    [Straße und Hausnummer], [PLZ und Ort], vertreten durch [Vorstand].
-    Bei Fragen zum Datenschutz: <a href="mailto:[E-Mail-Adresse]">[E-Mail-Adresse]</a>.
+    Diese Anwendung wird betrieben von
+    <strong>TSV Feldkirchen bei München von 1912 e.V.</strong>,
+    Olympiastraße 1, 85622 Feldkirchen, vertreten durch den Vorstand
+    Brigitte Pfaffinger (1. Vorstand) und Dr. Detlef Ebbinghaus (2. Vorstand).
+    Bei Fragen zum Datenschutz:
+    <a href="mailto:office@tsvfeldkirchen.de">office@tsvfeldkirchen.de</a>.
   </p>
   <p>
     Der Vereinsplaner ist <strong>kein fremder Dienst</strong>. Er läuft auf einer
@@ -168,13 +154,13 @@
   <ul>
     <li><strong>sehen und ändern</strong>, was über dich gespeichert ist — unter <em>Mein Profil</em>;</li>
     <li><strong>eine Kopie verlangen</strong>: Melde dich bei
-        <a href="mailto:[E-Mail-Adresse]">[E-Mail-Adresse]</a>, du bekommst sie als Datei;</li>
+        <a href="mailto:office@tsvfeldkirchen.de">office@tsvfeldkirchen.de</a>, du bekommst sie als Datei;</li>
     <li><strong>dein Konto löschen</strong> — unter <em>Mein Profil → Profil &amp; Zugang löschen</em>;</li>
     <li><strong>Einwilligungen zurückziehen</strong> — die Schalter im Profil, jederzeit und ohne Begründung;</li>
     <li><strong>entscheiden, worüber wir dich benachrichtigen</strong> — unter
         <em>Mein Profil → Benachrichtigungen</em>, je Ereignis und je Kanal;</li>
     <li><strong>dich beschweren</strong> bei der zuständigen Aufsichtsbehörde:
-        [Aufsichtsbehörde mit Anschrift].</li>
+        Bayerisches Landesamt für Datenschutzaufsicht (BayLDA), Postfach 1349, 91504 Ansbach, <a href="mailto:poststelle@lda.bayern.de">poststelle@lda.bayern.de</a>.</li>
   </ul>
   <p>Wenn du etwas davon nicht selbst findest oder es nicht klappt, schreib uns einfach.</p>
 
@@ -183,7 +169,7 @@
     Bei Mitgliedern unter 16 Jahren holen wir die Einwilligung für die freiwilligen Angaben
     (sichtbare Kontaktdaten, Geburtstag im Kalender) bei den Erziehungsberechtigten ein.
     Diese können sich zusätzlich als Kopie-Empfänger für alle Benachrichtigungen eintragen
-    lassen — melde dich dafür bei <a href="mailto:[E-Mail-Adresse]">[E-Mail-Adresse]</a>.
+    lassen — melde dich dafür bei <a href="mailto:office@tsvfeldkirchen.de">office@tsvfeldkirchen.de</a>.
   </p>
 
   <h2>Änderungen</h2>
@@ -193,7 +179,7 @@
   </p>
 
   <footer>
-    Stand: [Datum] · <a href="/">Zurück zum Vereinsplaner</a>
+    Stand: 19. September 2026 · <a href="/">Zurück zum Vereinsplaner</a>
   </footer>
 
 </main>
