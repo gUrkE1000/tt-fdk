@@ -12,6 +12,7 @@ Was zwischen „die Anwendung läuft" und „ich schicke einem Menschen die Adre
 
 | | Punkt | Ohne das passiert |
 |---|---|---|
+| 🔴 | [Site URL und Redirect URLs](#0-site-url-und-redirect-urls) | Jeder Einladungs- und Anmeldelink landet auf `localhost:3000` und lädt endlos |
 | 🔴 | [SMTP auf Resend umstellen](#1-smtp-auf-resend-umstellen) | Nach 2–4 Einladungen kommt keine mehr an |
 | 🔴 | [Vereinsdaten ausfüllen](#2-vereinsdaten) | „Mein Tischtennisverein" in jeder E-Mail; Heimspiele auf auswärts |
 | 🔴 | [Betriebseinstellungen](#3-betriebseinstellungen) | Links in Benachrichtigungen führen ins Leere |
@@ -21,6 +22,50 @@ Was zwischen „die Anwendung läuft" und „ich schicke einem Menschen die Adre
 | 🟡 | [Resend-Schlüssel verengen](#7-kleinigkeiten) | Ein verlorener Schlüssel kann mehr, als er müsste |
 
 🔴 = vor der ersten Einladung · 🟠 = vor der zweiten · 🟡 = vor der dritten
+
+---
+
+## 0. Site URL und Redirect URLs
+
+**Der Punkt, an dem eine sonst fertige Anwendung unbenutzbar aussieht.**
+
+Jeder Link, den Supabase Auth verschickt — Einladung, Magic Link, Passwort zurücksetzen —
+zeigt nicht auf die Anwendung, sondern auf Supabase. Erst dort wird der Token eingelöst und
+weitergeleitet. **Wohin**, entscheidet die *Site URL*.
+
+Steht die noch auf der Voreinstellung, ist das `http://localhost:3000`. Der Eingeladene
+klickt, landet auf seinem eigenen Rechner, auf dem nichts läuft — und der Browser dreht
+sich, bis er aufgibt. Keine Fehlermeldung, kein Hinweis, nur eine ewig ladende Seite.
+
+Dasselbe passiert, wenn die Adresse zwar als Site URL steht, aber nicht in den
+**Redirect URLs**: Supabase weist jedes Ziel ab, das dort nicht aufgeführt ist, und fällt
+auf die Site URL zurück.
+
+### Einstellen
+
+Supabase → *Authentication* → *URL Configuration*:
+
+| Feld | Wert |
+|---|---|
+| **Site URL** | `https://tt-tsvfeldkirchen.de` |
+| **Redirect URLs** | `https://tt-tsvfeldkirchen.de/**` und `http://localhost:5173/**` |
+
+Ohne abschließenden Schrägstrich. Der zweite Eintrag ist die Entwicklung; wer nie lokal
+entwickelt, lässt ihn weg.
+
+### Prüfen
+
+Der Test dauert eine halbe Minute und braucht niemanden sonst:
+
+1. Abmelden, auf der Anmeldeseite die **eigene** Adresse eintragen, Link anfordern.
+2. Die Mail öffnen und **mit der rechten Maustaste auf den Link → Adresse kopieren**.
+3. Irgendwo einfügen und lesen. Hinter `redirect_to=` muss deine Domain stehen.
+
+Steht dort `localhost:3000`, ist die Site URL nicht gesetzt — und zwar **für alle bereits
+verschickten Links**, die damit wertlos sind. Nach dem Umstellen neu einladen.
+
+**Wichtig:** Ändert sich die Domain später, ändert sich das hier mit. Die Liste steht in
+[docs/domain-einrichten.md](domain-einrichten.md) unter „Domainwechsel".
 
 ---
 
