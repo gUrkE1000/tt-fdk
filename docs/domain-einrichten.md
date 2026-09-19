@@ -154,7 +154,19 @@ Optional dieselben vier noch einmal als `AAAA` für IPv6:
 ⚠️ **Vorhandene `A`-Einträge auf `@` vorher löschen.** Registrare legen ab Werk einen
 Eintrag an, der auf ihre eigene Platzhalterseite zeigt. Bleibt der stehen, landet etwa
 jeder fünfte Aufruf dort statt bei euch — ein Fehler, der sich anfühlt wie „manchmal geht's
-nicht".
+nicht". Manche Oberflächen bieten an, die alten Einträge beim Anlegen des neuen selbst
+abzuschalten; das ist genau richtig und spart den Schritt.
+
+**Und `www` nicht vergessen.** GitHub prüft die `www`-Variante automatisch mit und meldet
+sie als *improperly configured*, solange sie noch beim Registrar hängt. Die Hauptadresse
+funktioniert davon unabhängig — aber Leute tippen `www.` aus Gewohnheit:
+
+| Typ | Name | Wert |
+|---|---|---|
+| `CNAME` | `www` | `<dein-github-konto>.github.io` |
+
+Den vorhandenen `A`-Eintrag auf `www` vorher löschen: Ein Name kann nicht gleichzeitig `A`
+und `CNAME` sein. Danach leitet GitHub `www` selbsttätig auf die Hauptadresse um.
 
 ### 4.4 Warten, dann HTTPS erzwingen
 
