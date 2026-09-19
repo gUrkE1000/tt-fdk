@@ -9,25 +9,37 @@
   Datenschutzhinweis, ausgeliefert unter /datenschutz.html.
 
   Diese Datei liegt in `public/` und wird beim Bauen unverändert nach `dist/` kopiert.
-  Sie ist bewusst eine einzelne HTML-Datei ohne Abhängigkeiten: Ein Rechtstext muss auch
-  dann lesbar sein, wenn die Anwendung selbst nicht lädt.
+  Bewusst eine einzelne HTML-Datei ohne Abhängigkeiten: Ein Rechtstext muss auch dann
+  lesbar sein, wenn die Anwendung selbst nicht lädt.
 
-  Der Text ist ausgefüllt. Wer ihn ändert, ändert eine rechtliche Zusage an die
-  Mitglieder — also nur gemeinsam mit dem Vorstand und mit
-  docs/datenschutz/verarbeitungsverzeichnis.md daneben, damit beides zusammenpasst.
+  ACHTUNG — dies ist die FASSUNG FÜR DIE ERPROBUNGSPHASE.
 
-  Zu aktualisieren, sobald sich etwas an der Verarbeitung ändert: neue Dienstleister,
-  neue Datenarten, geänderte Fristen. Das Datum unten dann mitziehen.
+  Verantwortlicher ist eine Privatperson, nicht der Verein. Das ist kein Provisorium,
+  sondern die zutreffende Aussage, solange Supabase-Projekt, Domain und Resend-Konto auf
+  eine Privatperson laufen und der Verein nichts beschlossen hat.
+
+  Daraus folgt inhaltlich mehr als ein anderer Name im ersten Absatz:
+    * Rechtsgrundlage ist die EINWILLIGUNG der Teilnehmenden (Art. 6 Abs. 1 lit. a),
+      nicht das Mitgliedschaftsverhältnis (lit. b) — zwischen den Teilnehmenden und einer
+      Privatperson besteht kein solches.
+    * Die Teilnahme ist freiwillig und jederzeit widerrufbar, mit sofortiger Löschung.
+    * Der Betreiber hat technischen Zugriff auf die Datenbank. Das steht hier, weil es
+      stimmt — und weil es der Unterschied zwischen Vertrauen und Behauptung ist.
+
+  SOBALD DER VEREIN ÜBERNIMMT, ist diese Datei zu ersetzen: Verantwortlicher wird der
+  Verein, Rechtsgrundlage wird das Mitgliedschaftsverhältnis, die Erprobungs-Abschnitte
+  fallen weg. Die Vorlage dafür steht in docs/datenschutz/datenschutzhinweis.md; die
+  Angaben des Vereins stehen in der Git-Historie dieser Datei (Commit d06d514).
 -->
 <style>
   :root {
     --bg: #ffffff; --fg: #1f2937; --muted: #6b7280;
-    --rule: #e5e7eb; --accent: #0d9488;
+    --rule: #e5e7eb; --accent: #0d9488; --note-bg: #f0fdfa; --note-rule: #99f6e4;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #111827; --fg: #e5e7eb; --muted: #9ca3af;
-      --rule: #374151; --accent: #2dd4bf;
+      --rule: #374151; --accent: #2dd4bf; --note-bg: #134e4a; --note-rule: #0f766e;
     }
   }
   * { box-sizing: border-box; }
@@ -44,6 +56,12 @@
   ul { padding-left: 1.25rem; }
   a { color: var(--accent); }
   .lead { color: var(--muted); margin-bottom: 2rem; }
+  .hinweis {
+    background: var(--note-bg); border: 1px solid var(--note-rule);
+    border-radius: .75rem; padding: 1rem 1.25rem; margin: 2rem 0;
+  }
+  .hinweis p:first-child { margin-top: 0; }
+  .hinweis p:last-child { margin-bottom: 0; }
   footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .9rem; }
 </style>
 </head>
@@ -51,76 +69,105 @@
 <main>
 
   <h1>Datenschutzhinweis</h1>
-  <p class="lead">für die Nutzung des Vereinsplaners</p>
+  <p class="lead">für die Erprobung des Vereinsplaners</p>
 
-  <h2>Wer wir sind</h2>
-  <p>
-    Diese Anwendung wird betrieben von
-    <strong>TSV Feldkirchen bei München von 1912 e.V.</strong>,
-    Olympiastraße 1, 85622 Feldkirchen, vertreten durch den Vorstand
-    Brigitte Pfaffinger (1. Vorstand) und Dr. Detlef Ebbinghaus (2. Vorstand).
-    Bei Fragen zum Datenschutz:
-    <a href="mailto:office@tsvfeldkirchen.de">office@tsvfeldkirchen.de</a>.
-  </p>
-  <p>
-    Der Vereinsplaner ist <strong>kein fremder Dienst</strong>. Er läuft auf einer
-    Datenbank, die dem Verein gehört, und wird vom Verein selbst betrieben.
-  </p>
+  <div class="hinweis">
+    <p>
+      <strong>Das hier ist ein Versuch, noch kein Vereinsangebot.</strong> Der Vereinsplaner
+      wird gerade erprobt. Verantwortlich dafür bin <strong>ich persönlich</strong> —
+      <em>nicht</em> der TSV Feldkirchen. Der Verein hat darüber nichts beschlossen und
+      trägt dafür keine Verantwortung.
+    </p>
+    <p>
+      Deine Teilnahme ist deshalb <strong>freiwillig</strong>, und du kannst sie jederzeit
+      beenden. Ein Satz genügt, dann sind deine Daten weg.
+    </p>
+  </div>
 
-  <h2>Welche Daten wir über dich speichern</h2>
+  <h2>Wer ich bin</h2>
   <p>
-    <strong>Weil du Mitglied bist:</strong> Vor- und Nachname, Geburtsdatum, Geschlecht,
-    Mitgliedsnummer, deine E-Mail-Adresse, Telefonnummern, deinen QTTR-Wert und deine
-    Ränge, deine Mannschaft und deine Trainings.
+    Verantwortlich im Sinne der Datenschutz-Grundverordnung:
+    <strong>Jan Pawlikowski</strong>,
+    <a href="mailto:jan08.p@gmail.com">jan08.p@gmail.com</a>.
   </p>
   <p>
-    <strong>Weil du die Anwendung benutzt:</strong> Deine Rückmeldungen zu Spielen,
-    Trainings und Vereinsterminen, ob du fahren kannst oder etwas mitbringst, deine
-    Abwesenheiten, deine Nachrichten an Terminen, deine Stimme bei Umfragen, wann du dich
-    zuletzt angemeldet hast.
-  </p>
-  <p>
-    <strong>Nur, wenn du es willst:</strong> Ob deine Kontaktdaten für andere Mitglieder
-    sichtbar sind, ob dein Geburtstag im Kalender steht, ob wir dir Mitteilungen aufs Handy
-    schicken dürfen. Du stellst das unter <em>Mein Profil</em> ein und kannst es jederzeit
-    ändern.
-  </p>
-  <p>
-    <strong>Was wir nicht tun:</strong> Wir verfolgen nicht, was du dir ansiehst. Es gibt
-    keine Analysedienste, keine Werbung, keine Weitergabe an Dritte zu Werbezwecken und
-    keine Cookies außer dem, der dich angemeldet hält.
+    Ich betreibe die Anwendung als Privatperson auf eigene Rechnung: Datenbank, Domain und
+    E-Mail-Versand laufen auf meine Konten. <strong>Es steht kein Verein und keine Firma
+    dahinter</strong>, und es wird damit kein Geld verdient.
   </p>
 
-  <h2>Warum wir das dürfen</h2>
+  <h2>Warum es das gibt</h2>
   <p>
-    Die meisten Daten brauchen wir, um den Spiel- und Trainingsbetrieb zu organisieren —
-    das ist der Zweck deiner Mitgliedschaft (Art. 6 Abs. 1 lit. b DSGVO). Alles, was
-    darüber hinausgeht, fragen wir dich (Art. 6 Abs. 1 lit. a): sichtbare Kontaktdaten,
-    der Geburtstag im Kalender, Mitteilungen aufs Handy.
+    Die Tischtennis-Abteilung nutzt bisher ein kostenpflichtiges Fremdprodukt. Ich probiere
+    aus, ob eine eigene Anwendung dasselbe kann. Wenn das gelingt und der Verein sie
+    übernehmen will, wird der Verein der Verantwortliche — dann erfährst du davon und
+    dieser Text wird ersetzt. Bis dahin ist es mein privates Vorhaben.
+  </p>
+
+  <h2>Welche Daten über dich gespeichert werden</h2>
+  <p>
+    <strong>Damit die Anwendung funktioniert:</strong> Vor- und Nachname, deine
+    E-Mail-Adresse. Je nachdem, was eingetragen wird, außerdem: Geburtsdatum, Geschlecht,
+    Mitgliedsnummer, Telefonnummern, QTTR-Wert und Ränge, Mannschaft und Trainings.
   </p>
   <p>
-    Die Statistik der Trainingsbeteiligung führen wir, weil Trainer sonst nicht planen
-    können (Art. 6 Abs. 1 lit. f). Wer sie sehen darf, entscheidet der Verein je Training;
-    in der Voreinstellung sind es nur Trainer und Administratoren.
+    <strong>Weil du sie benutzt:</strong> Deine Rückmeldungen zu Spielen, Trainings und
+    Terminen, ob du fahren kannst oder etwas mitbringst, deine Abwesenheiten, deine
+    Nachrichten an Terminen, deine Stimme bei Umfragen, wann du dich zuletzt angemeldet
+    hast.
+  </p>
+  <p>
+    <strong>Nur, wenn du es einschaltest:</strong> Ob deine Kontaktdaten für andere
+    Teilnehmende sichtbar sind, ob dein Geburtstag im Kalender steht, ob du Mitteilungen
+    aufs Handy bekommst. Das stellst du unter <em>Mein Profil</em> ein und kannst es
+    jederzeit ändern.
+  </p>
+  <p>
+    <strong>Was nicht passiert:</strong> Es wird nicht verfolgt, was du dir ansiehst. Keine
+    Analysedienste, keine Werbung, keine Weitergabe an Dritte, keine Cookies außer dem, der
+    dich angemeldet hält.
+  </p>
+
+  <h2>Auf welcher Grundlage</h2>
+  <p>
+    Auf deiner <strong>Einwilligung</strong> (Art. 6 Abs. 1 lit. a DSGVO). Du hast zugesagt,
+    die Anwendung auszuprobieren — mehr ist es nicht. Zwischen dir und mir besteht kein
+    Vertrag und kein Mitgliedschaftsverhältnis, das eine andere Grundlage tragen würde.
+  </p>
+  <p>
+    <strong>Du kannst die Einwilligung jederzeit widerrufen</strong>, ohne Begründung und
+    ohne Nachteil. Schreib mir, oder lösch dein Konto selbst unter
+    <em>Mein Profil → Profil &amp; Zugang löschen</em>.
   </p>
 
   <h2>Wer deine Daten sieht</h2>
   <p>
-    <strong>Andere Vereinsmitglieder</strong> sehen deinen Namen, deine Mannschaft, deine
-    Trainings und deine Rückmeldungen zu Terminen, an denen ihr gemeinsam beteiligt seid.
-    Deine Kontaktdaten und deinen Geburtstag sehen sie <strong>nur, wenn du das eingestellt
-    hast.</strong>
+    <strong>Die anderen Teilnehmenden</strong> sehen deinen Namen und deine Rückmeldungen zu
+    Terminen, an denen ihr gemeinsam beteiligt seid. Deine Kontaktdaten und deinen
+    Geburtstag sehen sie <strong>nur, wenn du das eingeschaltet hast.</strong>
   </p>
   <p>
-    Den Grund, den du bei einer Abwesenheit einträgst, sieht <strong>niemand außer
-    dir</strong> — auch kein Administrator. Mannschaftsführer und Trainer sehen nur, dass
+    Den Grund, den du bei einer Abwesenheit einträgst, zeigt die Anwendung
+    <strong>niemandem</strong> außer dir — auch keinem Administrator. Andere sehen nur, dass
     du in diesem Zeitraum nicht kannst.
   </p>
-  <p><strong>Zwei Dienstleister</strong> sind beteiligt, beide mit Auftragsverarbeitungsvertrag:</p>
+  <p>
+    <strong>Ich als Betreiber</strong> habe technisch Zugriff auf die Datenbank und könnte
+    dort alles lesen, auch den Abwesenheitsgrund. Das steht hier, weil es stimmt: Wer einen
+    Dienst betreibt, kommt an die Daten. Ich sehe sie mir nicht an — außer wenn ich einen
+    Fehler suchen muss, und dann nur so weit, wie es dafür nötig ist.
+  </p>
+  <p><strong>Zwei Dienstleister</strong> sind beteiligt:</p>
   <ul>
-    <li><strong>Supabase</strong> betreibt Datenbank und Anmeldung. Die Daten liegen in Frankfurt.</li>
-    <li><strong>Resend</strong> verschickt die E-Mails. Dorthin geht nur, was in der jeweiligen
-        E-Mail steht; die Verarbeitung findet in den USA statt.</li>
+    <li>
+      <strong>Supabase</strong> betreibt Datenbank und Anmeldung. Die Daten liegen in
+      Frankfurt am Main.
+    </li>
+    <li>
+      <strong>Resend</strong> verschickt die E-Mails. Dorthin geht nur, was in der
+      jeweiligen E-Mail steht — kein Zugriff auf die Datenbank. Die Verarbeitung findet in
+      den USA statt.
+    </li>
   </ul>
   <p>
     Wenn du Mitteilungen aufs Handy erlaubst, geht ein verschlüsselter Datenblock über den
@@ -128,24 +175,24 @@
     dieser Dienst nicht lesen.
   </p>
   <p>
-    <strong>An den Tischtennisverband geht nichts.</strong> Wir <em>lesen</em> den Spielplan
-    von dort, wir schicken nichts hin.
+    <strong>An den Tischtennisverband geht nichts.</strong> Der Spielplan wird von dort
+    <em>gelesen</em>, es wird nichts hingeschickt.
   </p>
 
-  <h2>Wie lange wir die Daten behalten</h2>
+  <h2>Wie lange</h2>
   <p>
-    Solange du Mitglied bist. Wenn du dein Konto löschst, ist es sofort für alle unsichtbar
-    und wird nach <strong>30 Tagen vollständig entfernt</strong> — automatisch, nicht auf
-    Zuruf. Die 30 Tage sind eine Frist für den Fall, dass du es dir anders überlegst oder
-    versehentlich gelöscht hast.
+    Solange du mitmachst. Wenn du aufhörst oder dein Konto löschst, ist es sofort für alle
+    unsichtbar und wird nach <strong>30 Tagen vollständig entfernt</strong> — automatisch.
+    Die 30 Tage sind eine Frist für den Fall, dass du es dir anders überlegst.
   </p>
   <p>
-    Verschickte Benachrichtigungen bewahren wir ein Jahr auf, damit wir die Frage „ich habe
-    nie eine Mail bekommen" beantworten können. Abwesenheiten verschwinden zwei Jahre nach
-    Ablauf.
+    Wenn die Erprobung endet, ohne dass der Verein übernimmt, <strong>lösche ich
+    alles</strong> — Datenbank, Sicherungen, Konten.
   </p>
   <p>
-    In unseren Sicherungskopien bleibst du bis zu 90 Tage länger enthalten. Das lässt sich
+    Verschickte Benachrichtigungen werden ein Jahr aufbewahrt, damit die Frage „ich habe nie
+    eine Mail bekommen" beantwortbar bleibt. Abwesenheiten verschwinden zwei Jahre nach
+    Ablauf. In Sicherungskopien bleibst du bis zu 90 Tage länger enthalten; das lässt sich
     nicht vermeiden, wenn man Sicherungen haben will.
   </p>
 
@@ -153,33 +200,35 @@
   <p>Du kannst jederzeit:</p>
   <ul>
     <li><strong>sehen und ändern</strong>, was über dich gespeichert ist — unter <em>Mein Profil</em>;</li>
-    <li><strong>eine Kopie verlangen</strong>: Melde dich bei
-        <a href="mailto:office@tsvfeldkirchen.de">office@tsvfeldkirchen.de</a>, du bekommst sie als Datei;</li>
-    <li><strong>dein Konto löschen</strong> — unter <em>Mein Profil → Profil &amp; Zugang löschen</em>;</li>
-    <li><strong>Einwilligungen zurückziehen</strong> — die Schalter im Profil, jederzeit und ohne Begründung;</li>
-    <li><strong>entscheiden, worüber wir dich benachrichtigen</strong> — unter
+    <li><strong>eine Kopie verlangen</strong> — schreib mir, du bekommst sie als Datei;</li>
+    <li><strong>alles löschen lassen</strong> — unter <em>Mein Profil → Profil &amp; Zugang löschen</em>
+        oder mit einer Nachricht an mich;</li>
+    <li><strong>deine Einwilligung widerrufen</strong> — jederzeit, ohne Begründung;</li>
+    <li><strong>entscheiden, worüber du benachrichtigt wirst</strong> — unter
         <em>Mein Profil → Benachrichtigungen</em>, je Ereignis und je Kanal;</li>
-    <li><strong>dich beschweren</strong> bei der zuständigen Aufsichtsbehörde:
-        Bayerisches Landesamt für Datenschutzaufsicht (BayLDA), Postfach 1349, 91504 Ansbach, <a href="mailto:poststelle@lda.bayern.de">poststelle@lda.bayern.de</a>.</li>
+    <li><strong>dich beschweren</strong> bei der zuständigen Aufsichtsbehörde: Bayerisches
+        Landesamt für Datenschutzaufsicht (BayLDA), Postfach 1349, 91504 Ansbach,
+        <a href="mailto:poststelle@lda.bayern.de">poststelle@lda.bayern.de</a>.</li>
   </ul>
-  <p>Wenn du etwas davon nicht selbst findest oder es nicht klappt, schreib uns einfach.</p>
+  <p>Wenn du etwas davon nicht findest oder es nicht klappt, schreib mir einfach.</p>
 
-  <h2>Kinder und Jugendliche</h2>
+  <h2>Jugendliche</h2>
   <p>
-    Bei Mitgliedern unter 16 Jahren holen wir die Einwilligung für die freiwilligen Angaben
-    (sichtbare Kontaktdaten, Geburtstag im Kalender) bei den Erziehungsberechtigten ein.
-    Diese können sich zusätzlich als Kopie-Empfänger für alle Benachrichtigungen eintragen
-    lassen — melde dich dafür bei <a href="mailto:office@tsvfeldkirchen.de">office@tsvfeldkirchen.de</a>.
+    Wer unter 16 ist, sollte hier nur mit Einverständnis der Eltern mitmachen. Wenn du
+    unsicher bist, frag lieber nach — und wenn Eltern wollen, dass die Daten ihres Kindes
+    verschwinden, genügt eine Nachricht an mich.
   </p>
 
   <h2>Änderungen</h2>
   <p>
-    Wenn sich an der Anwendung etwas ändert, das für diesen Hinweis wichtig ist,
-    aktualisieren wir ihn und weisen im Verein darauf hin.
+    Wenn sich an der Anwendung etwas ändert, das für diesen Hinweis wichtig ist, wird er
+    aktualisiert und die Teilnehmenden werden darauf hingewiesen. Insbesondere dann, wenn
+    der Verein die Anwendung übernimmt.
   </p>
 
   <footer>
-    Stand: 19. September 2026 · <a href="/">Zurück zum Vereinsplaner</a>
+    Stand: 19. September 2026 · Erprobungsfassung ·
+    <a href="/">Zurück zum Vereinsplaner</a>
   </footer>
 
 </main>
