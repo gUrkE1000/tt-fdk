@@ -29,7 +29,10 @@ export default function LoadingScreen({ hintAfterMs = 4000, detail }: LoadingScr
 
   useEffect(() => {
     const first = setTimeout(() => setStage(1), hintAfterMs);
-    const second = setTimeout(() => setStage(2), hintAfterMs * 3);
+    // Nicht hintAfterMs * 3: Das waere genau die Zeitgrenze der Abfragen (12s), und
+    // dann liesse sich am Bildschirm nicht unterscheiden, ob die Grenze gegriffen hat
+    // oder nur der Text erschienen ist.
+    const second = setTimeout(() => setStage(2), hintAfterMs * 2);
     return () => {
       clearTimeout(first);
       clearTimeout(second);

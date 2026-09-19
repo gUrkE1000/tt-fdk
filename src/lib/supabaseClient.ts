@@ -13,6 +13,13 @@ if (!url || !anonKey) {
   );
 }
 
+/**
+ * Adresse und öffentlicher Schlüssel, für die wenigen Aufrufe, die **vor** der Anmeldung
+ * laufen und deshalb bewusst am Supabase-Client vorbeigehen (siehe `publicRpc`).
+ */
+export const SUPABASE_URL = url.replace(/\/$/, '');
+export const SUPABASE_ANON_KEY = anonKey;
+
 export const supabase = createClient<Database>(url, anonKey, {
   auth: {
     persistSession: true,

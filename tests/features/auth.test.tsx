@@ -26,7 +26,28 @@ vi.mock('../../src/lib/supabaseClient', () => ({
     from: vi.fn(),
   },
   APP_URL: 'http://localhost:5173',
+  SUPABASE_URL: 'https://projekt.supabase.co',
+  SUPABASE_ANON_KEY: 'anon-schluessel',
 }));
+
+/**
+ * Die beiden Aufrufe vor der Anmeldung gehen ueber ein schlichtes `fetch`, nicht ueber
+ * den Supabase-Client (siehe `publicRpc`). Der Mock bildet deshalb die Antwort des
+ * Servers nach und nicht die des Clients.
+ */
+function answerRpc(handler: (name: string, body: unknown) => Response | Promise<Response>) {
+  globalThis.fetch = (async (url: string, init: RequestInit) => {
+    const name = String(url).split('/rpc/')[1] ?? '';
+    rpc(name, JSON.parse(String(init.body ?? '{}')));
+    return await handler(name, JSON.parse(String(init.body ?? '{}')));
+  }) as unknown as typeof fetch;
+}
+
+const json = (value: unknown, status = 200) =>
+  new Response(JSON.stringify(value), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
 
 vi.mock('../../src/features/auth/session', () => ({
   useSession: () => ({
@@ -64,7 +85,11 @@ function renderWithProviders(ui: React.ReactElement, path = '/') {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  rpc.mockResolvedValue({ data: [{ club_name: 'TTC Musterstadt', club_short_name: 'TTC' }], error: null });
+  answerRpc((name) =>
+    name === 'get_public_club_info'
+      ? json([{ club_name: 'TTC Musterstadt', club_short_name: 'TTC' }])
+      : json(true),
+  );
   signInWithOtp.mockResolvedValue({ error: null });
   signInWithPassword.mockResolvedValue({ error: null });
   resetPasswordForEmail.mockResolvedValue({ error: null });
@@ -141,10 +166,11 @@ describe('LoginPage', () => {
 
 describe('RegisterPage', () => {
   it('weist einen ungültigen Vereinscode ab', async () => {
-    rpc.mockImplementation((fn: string) => {
-      if (fn === 'rpc_validate_registration_code') return Promise.resolve({ data: false, error: null });
-      return Promise.resolve({ data: [{ club_name: 'TTC Musterstadt' }], error: null });
-    });
+    answerRpc((name) =>
+      name === 'rpc_validate_registration_code'
+        ? json(false)
+        : json([{ club_name: 'TTC Musterstadt' }]),
+    );
 
     renderWithProviders(<RegisterPage />, '/register/FALSCH');
 
@@ -152,10 +178,11 @@ describe('RegisterPage', () => {
   });
 
   it('zeigt das Formular bei gültigem Code', async () => {
-    rpc.mockImplementation((fn: string) => {
-      if (fn === 'rpc_validate_registration_code') return Promise.resolve({ data: true, error: null });
-      return Promise.resolve({ data: [{ club_name: 'TTC Musterstadt' }], error: null });
-    });
+    answerRpc((name) =>
+      name === 'rpc_validate_registration_code'
+        ? json(true)
+        : json([{ club_name: 'TTC Musterstadt' }]),
+    );
 
     renderWithProviders(<RegisterPage />, '/register/TESTCODE');
 
@@ -168,11 +195,9 @@ describe('RegisterPage', () => {
     Anzeige, aus der nicht hervorging, was zu tun ist — oder gar nicht.
   */
   it('nennt den Grund, statt den Code zu beschuldigen, wenn die Prüfung scheitert', async () => {
-    rpc.mockImplementation((fn: string) => {
-      if (fn === 'rpc_validate_registration_code') {
-        return Promise.resolve({ data: null, error: { message: 'Failed to fetch' } });
-      }
-      return Promise.resolve({ data: [{ club_name: 'TTC Musterstadt' }], error: null });
+    answerRpc((name) => {
+      if (name === 'rpc_validate_registration_code') throw new TypeError('Failed to fetch');
+      return json([{ club_name: 'TTC Musterstadt' }]);
     });
 
     renderWithProviders(<RegisterPage />, '/register/TESTCODE');
@@ -185,15 +210,11 @@ describe('RegisterPage', () => {
   });
 
   it('erklärt einen fehlenden Einrichtungsschritt, statt ihn dem Mitglied anzulasten', async () => {
-    rpc.mockImplementation((fn: string) => {
-      if (fn === 'rpc_validate_registration_code') {
-        return Promise.resolve({
-          data: null,
-          error: { message: 'Could not find the function', code: 'PGRST202' },
-        });
-      }
-      return Promise.resolve({ data: [{ club_name: 'TTC Musterstadt' }], error: null });
-    });
+    answerRpc((name) =>
+      name === 'rpc_validate_registration_code'
+        ? json({ message: 'Could not find the function', code: 'PGRST202' }, 404)
+        : json([{ club_name: 'TTC Musterstadt' }]),
+    );
 
     renderWithProviders(<RegisterPage />, '/register/TESTCODE');
 

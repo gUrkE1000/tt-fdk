@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase, APP_URL } from '../../lib/supabaseClient';
+import { supabase, APP_URL, SUPABASE_URL, SUPABASE_ANON_KEY } from '../../lib/supabaseClient';
 import type { Tables } from '../../lib/database.types';
 
 export type Profile = Tables<'profiles'>;
@@ -16,12 +16,54 @@ export type Profile = Tables<'profiles'>;
 const QUERY_TIMEOUT_MS = 12_000;
 
 /**
+ * Eine Datenbankfunktion aufrufen, ohne den Supabase-Client.
+ *
+ * Für die zwei Aufrufe, die **vor** jeder Anmeldung laufen: Vereinsname und Prüfung des
+ * Registrierungscodes. Beide sind `SECURITY DEFINER` und für `anon` freigegeben, brauchen
+ * also keinerlei Anmeldezustand — wohl aber reicht der Client jeden Aufruf durch seine
+ * Anmeldeschicht, und die stellt gleichzeitige Aufrufe hinter einem Schloss an
+ * (`_acquireLock`). Genau das war hier zu sehen: Die Anmeldeseite mit ihrem **einen**
+ * Aufruf lief, die Registrierungsseite mit **zweien** blieb hängen.
+ *
+ * Ein schlichtes `fetch` hat diese Schicht nicht. Und `AbortSignal.timeout` bricht hier
+ * wirklich die Anfrage ab, statt nur die Anzeige weiterlaufen zu lassen.
+ */
+async function publicRpc(name: string, params: Record<string, unknown>): Promise<unknown> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify(params),
+      signal: AbortSignal.timeout(QUERY_TIMEOUT_MS),
+    });
+  } catch (error) {
+    throw readableError({ message: error instanceof Error ? error.message : 'abort' });
+  }
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { message?: string; code?: string };
+    throw readableError({
+      message: body.message ?? `HTTP ${response.status}`,
+      code: body.code ?? (response.status === 404 ? 'PGRST202' : undefined),
+    });
+  }
+
+  return await response.json();
+}
+
+/**
  * Gibt auf, wenn nach `QUERY_TIMEOUT_MS` keine Antwort da ist.
  *
- * Bewusst als Wettlauf und nicht über `abortSignal()` des Clients: Das hier hängt an
- * keiner Aufrufkette, funktioniert damit überall gleich und lässt sich prüfen, ohne den
- * halben Client nachzubauen. Die Anfrage selbst läuft im Hintergrund zu Ende — das ist
- * hinnehmbar, denn worum es geht, ist die Anzeige: Sie muss zu einem Ende kommen.
+ * Für Aufrufe, die über den Supabase-Client laufen müssen (weil sie einen Anmeldezustand
+ * brauchen) und deshalb kein eigenes Abbruchsignal bekommen können. Die Anfrage selbst
+ * läuft im Hintergrund zu Ende — worum es geht, ist die Anzeige: Sie muss zu einem Ende
+ * kommen. Wo ein `fetch` direkt möglich ist, ist `publicRpc` das bessere Mittel.
  */
 export async function withTimeout<T>(work: PromiseLike<T>, what: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -159,12 +201,7 @@ export async function registerWithCode(input: RegisterInput): Promise<void> {
 }
 
 export async function validateRegistrationCode(code: string): Promise<boolean> {
-  const { data, error } = await withTimeout(
-    supabase.rpc('rpc_validate_registration_code', { p_code: code } as never),
-    'Prüfen des Registrierungslinks',
-  );
-  if (error) throw readableError(error);
-  return data === true;
+  return (await publicRpc('rpc_validate_registration_code', { p_code: code })) === true;
 }
 
 export interface PublicClubInfo {
@@ -181,8 +218,7 @@ export function usePublicClubInfo() {
     queryKey: ['public-club-info'],
     staleTime: 5 * 60_000,
     queryFn: async (): Promise<PublicClubInfo> => {
-      const { data, error } = await supabase.rpc('get_public_club_info' as never);
-      if (error) throw error;
+      const data = await publicRpc('get_public_club_info', {});
       const row = Array.isArray(data) ? data[0] : data;
       return (row as PublicClubInfo) ?? { club_name: 'Vereinsplaner', club_short_name: 'Verein' };
     },

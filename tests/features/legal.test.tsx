@@ -19,7 +19,17 @@ vi.mock('../../src/lib/supabaseClient', () => ({
     },
   },
   APP_URL: 'https://verein.example.org',
+  SUPABASE_URL: 'https://projekt.supabase.co',
+  SUPABASE_ANON_KEY: 'anon-schluessel',
 }));
+
+// `get_public_club_info` geht bewusst am Supabase-Client vorbei (siehe `publicRpc`),
+// deshalb wird hier die Antwort des Servers nachgebildet.
+globalThis.fetch = (async () =>
+  new Response(JSON.stringify([state.info]), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  })) as unknown as typeof fetch;
 
 import LegalFooter from '../../src/app/layout/LegalFooter';
 
