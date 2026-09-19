@@ -413,7 +413,10 @@ describe('GamesPage', () => {
       values: { webcal_url: 'https://www.mytischtennis.de/community/exportICSCalendar?teamIds=12345' },
     });
     expect(state.invocations[0]).toEqual({ name: 'sync-calendars', body: { teamId: 't-1' } });
-    expect(await screen.findByText(/3 neu · 1 verlegt/)).toBeInTheDocument();
+
+    // Nach einem sauberen Lauf stehen die Zahlen in der Meldung und der Dialog ist zu.
+    expect(await screen.findByText(/3 neu, 1 verlegt/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
   it('verlangt im Anlegen-Dialog eine Mannschaft und ein Datum', async () => {

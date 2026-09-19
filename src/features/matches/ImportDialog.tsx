@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button, Dialog, FormField, Input, Select, useToast } from '../../components/ui';
 import { supabase } from '../../lib/supabaseClient';
+import { queryKeys } from '../../lib/queryKeys';
 import { useUpdateTeam, type TeamWithRoster } from '../teams/api';
 import { validateCalendarUrl } from './schemas';
 
@@ -20,16 +22,45 @@ interface ImportResult {
   message?: string;
 }
 
+/** „2 neu, 1 verlegt" — leere Zahlen weggelassen, damit die Meldung lesbar bleibt. */
+export function summarizeImport(results: readonly ImportResult[]): string {
+  const total = results.reduce(
+    (sum, result) => ({
+      inserted: sum.inserted + result.inserted,
+      rescheduled: sum.rescheduled + result.rescheduled,
+      updated: sum.updated + result.updated,
+      deactivated: sum.deactivated + result.deactivated,
+    }),
+    { inserted: 0, rescheduled: 0, updated: 0, deactivated: 0 },
+  );
+
+  const parts = [
+    [total.inserted, 'neu'],
+    [total.rescheduled, 'verlegt'],
+    [total.updated, 'geändert'],
+    [total.deactivated, 'entfallen'],
+  ]
+    .filter(([count]) => (count as number) > 0)
+    .map(([count, label]) => `${count} ${label}`);
+
+  return parts.length > 0 ? parts.join(', ') : 'Spielplan war bereits auf Stand';
+}
+
 /**
  * Spielplan einer Mannschaft aus myTischtennis holen.
  *
  * Der Dialog speichert die Adresse an der Mannschaft und stößt den Abgleich sofort an.
  * Beides zusammen, weil das Erste ohne das Zweite nichts sichtbar bewirkt — und weil die
  * Adresse ab dann auch dem nächtlichen Lauf zur Verfügung steht.
+ *
+ * Nach einem sauberen Lauf schließt sich der Dialog und die Zahlen stehen in der Meldung.
+ * Bei Warnung oder Fehler bleibt er offen: Dort ist der Text die eigentliche Auskunft, und
+ * ein Dialog, der sich mit einer Fehlermeldung darin wegklappt, hat noch niemandem geholfen.
  */
 export default function ImportDialog({ open, onOpenChange, teams }: ImportDialogProps) {
   const { toast } = useToast();
   const updateTeam = useUpdateTeam();
+  const queryClient = useQueryClient();
 
   const [teamId, setTeamId] = useState('');
   const [url, setUrl] = useState('');
@@ -61,8 +92,29 @@ export default function ImportDialog({ open, onOpenChange, teams }: ImportDialog
       if (functionError) throw new Error(functionError.message);
 
       const payload = data as { teams?: ImportResult[] } | null;
-      setResults(payload?.teams ?? []);
-      toast('Spielplan abgeglichen', 'success');
+      const list = payload?.teams ?? [];
+
+      // Ohne das hier steht die Liste dahinter unverändert da und der Import sieht aus,
+      // als wäre nichts passiert — bis jemand die Seite neu lädt.
+      await queryClient.invalidateQueries({ queryKey: queryKeys.matches.all });
+
+      if (list.length === 0) {
+        setResults(list);
+        toast('Der Abgleich lief, hat aber nichts gefunden', 'error');
+        return;
+      }
+
+      const clean = list.every((result) => result.status === 'success');
+
+      if (clean) {
+        toast(`Spielplan abgeglichen — ${summarizeImport(list)}`, 'success');
+        setResults(null);
+        onOpenChange(false);
+        return;
+      }
+
+      setResults(list);
+      toast('Der Abgleich meldet ein Problem', 'error');
     } catch (caught) {
       toast(caught instanceof Error ? caught.message : 'Import fehlgeschlagen', 'error');
     } finally {

@@ -227,7 +227,7 @@ async function syncTeam(
   const { data: existingRows, error: existingError } = await admin
     .from('matches')
     .select(
-      'id, external_uid, dtstart, dtend, summary, description, location_text, is_home, matchday, active, version, dtstart_override',
+      'id, external_uid, dtstart, dtend, summary, description, location_text, opponent, is_home, matchday, active, version, dtstart_override',
     )
     .eq('team_id', team.id)
     .not('external_uid', 'is', null);
@@ -296,9 +296,13 @@ async function applyAction(
     await admin
       .from('matches')
       .update({
+        // Die UID wird mitgeschrieben: Feeds, die sie je Export neu vergeben, würden das
+        // Spiel sonst beim nächsten Lauf erneut als unbekannt sehen. Siehe `matchFingerprint`.
+        external_uid: action.match.external_uid,
         dtstart_external: action.match.dtstart,
         dtend_external: action.match.dtend,
         summary: action.match.summary,
+        opponent: action.match.opponent,
         description: action.match.description,
         location_text: action.match.location_text,
         is_home: action.match.is_home,
@@ -324,7 +328,9 @@ async function applyAction(
     await admin
       .from('matches')
       .update({
+        external_uid: action.match.external_uid,
         summary: action.match.summary,
+        opponent: action.match.opponent,
         description: action.match.description,
         location_text: action.match.location_text,
         is_home: action.match.is_home,
@@ -340,7 +346,12 @@ async function applyAction(
   if (action.kind === 'clear_override') {
     await admin
       .from('matches')
-      .update({ dtstart_override: null, dtend_override: null, last_synced_at: now })
+      .update({
+        external_uid: action.uid,
+        dtstart_override: null,
+        dtend_override: null,
+        last_synced_at: now,
+      })
       .eq('id', action.id);
 
     await admin.from('match_changes').insert({
@@ -373,8 +384,11 @@ async function applyAction(
     return;
   }
 
-  // touch
-  await admin.from('matches').update({ last_synced_at: now }).eq('id', action.id);
+  // touch — unverändert, aber die UID kann trotzdem eine neue sein.
+  await admin
+    .from('matches')
+    .update({ external_uid: action.uid, last_synced_at: now })
+    .eq('id', action.id);
 }
 
 async function finish(

@@ -71,6 +71,7 @@ scripts/          Lokale Testdatenbank, Supabase-Kompatibilitätsschicht, Typgen
 | [docs/domain-einrichten.md](docs/domain-einrichten.md) | DNS für Anwendung und Versand: GitHub Pages, Resend, Prüfbefehle, Domainwechsel |
 | [docs/einrichtung.md](docs/einrichtung.md) | **Einrichtung von null**: Supabase, Resend, VAPID, Secrets, Cron, erster Administrator |
 | [docs/betrieb.md](docs/betrieb.md) | Laufender Betrieb: Reiter „Betrieb", Cron, Fehlerbilder, Sicherung |
+| [docs/fehler.md](docs/fehler.md) | **Fehler aus dem Betrieb**: Bild, Ursache, Behebung — neueste zuerst |
 | [docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md) | **Check vor dem ersten Mitglied**: SMTP, Vereinsdaten, Rechtliches, Probelauf |
 | [docs/migration.md](docs/migration.md) | **Datenübernahme aus dem TT-Planer**: Reihenfolge, Spalten-Mapping, Checkliste |
 | [docs/parallelbetrieb.md](docs/parallelbetrieb.md) | **Abnahme**: vier Wochen beide Systeme, Nachweise zu Z1–Z11, Feedback der Mitglieder |

@@ -48,6 +48,7 @@ export default function GamesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [toDelete, setToDelete] = useState<MatchRow[] | null>(null);
+  const [cleanupOpen, setCleanupOpen] = useState(false);
   const [managing, setManaging] = useState<MatchRow | null>(null);
   const [sharing, setSharing] = useState<MatchRow | null>(null);
   const [rescheduling, setRescheduling] = useState<MatchRow | null>(null);
@@ -77,6 +78,28 @@ export default function GamesPage() {
 
   const open = visible.filter((match) => !isFinished(match));
   const finished = visible.filter((match) => isFinished(match));
+
+  // Alle abgesagten Termine, ungefiltert: Was aufgeräumt wird, richtet sich nicht danach,
+  // welcher Filter gerade eingestellt ist.
+  const cancelled = (matches.data ?? []).filter((match) => !match.active);
+
+  async function onCleanupConfirmed() {
+    try {
+      const ids = cancelled.map((match) => match.id);
+      await deleteMatches.mutateAsync(ids);
+      setSelected([]);
+      toast(
+        ids.length === 1
+          ? 'Ein entfallener Spieltermin gelöscht'
+          : `${ids.length} entfallene Spieltermine gelöscht`,
+        'success',
+      );
+    } catch (error) {
+      toast(error instanceof Error ? error.message : 'Aufräumen fehlgeschlagen', 'error');
+    } finally {
+      setCleanupOpen(false);
+    }
+  }
 
   async function onDeleteConfirmed() {
     if (!toDelete) return;
@@ -246,6 +269,24 @@ export default function GamesPage() {
         </div>
       )}
 
+      {cancelled.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl bg-status-late-soft p-3">
+          <span className="text-sm text-gray-900">
+            <strong>
+              {cancelled.length === 1
+                ? 'Ein Spieltermin ist'
+                : `${cancelled.length} Spieltermine sind`}{' '}
+              als „entfällt“ markiert.
+            </strong>{' '}
+            Sie stehen nicht mehr im Verbandskalender. Rückmeldungen dazu verschwinden mit.
+          </span>
+          <Button variant="danger" size="sm" onClick={() => setCleanupOpen(true)}>
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+            Entfallene aufräumen
+          </Button>
+        </div>
+      )}
+
       {selected.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl bg-primary-soft p-3">
           <span className="text-sm font-semibold text-gray-900">
@@ -319,6 +360,30 @@ export default function GamesPage() {
         onOpenChange={(next) => !next && setRescheduling(null)}
         match={rescheduling}
       />
+
+      <Dialog
+        open={cleanupOpen}
+        onOpenChange={setCleanupOpen}
+        title={
+          cancelled.length === 1
+            ? 'Entfallenen Spieltermin löschen?'
+            : `${cancelled.length} entfallene Spieltermine löschen?`
+        }
+        footer={
+          <>
+            <Button onClick={() => setCleanupOpen(false)}>Abbrechen</Button>
+            <Button variant="danger" onClick={() => void onCleanupConfirmed()}>
+              Aufräumen
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-gray-600">
+          Gelöscht wird alles, was als „entfällt“ markiert ist — samt der Rückmeldungen dazu.
+          Aktive Termine bleiben unangetastet. Steht ein Spiel wieder im Verbandskalender,
+          legt der nächste Abgleich es neu an.
+        </p>
+      </Dialog>
 
       <Dialog
         open={toDelete !== null}

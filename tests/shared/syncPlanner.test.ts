@@ -25,6 +25,7 @@ function existing(overrides: Partial<ExistingMatch> = {}): ExistingMatch {
     summary: 'TTC Musterstadt vs TV Beispiel',
     description: 'Spieltag: 1',
     location_text: 'Sporthalle, Musterstadt',
+    opponent: 'TV Beispiel',
     is_home: true,
     matchday: 1,
     active: true,
@@ -83,7 +84,7 @@ describe('planSync', () => {
       resolve,
     });
 
-    expect(plan.actions[0]).toMatchObject({ kind: 'touch', id: 'm1' });
+    expect(plan.actions[0]).toEqual({ kind: 'touch', id: 'm1', uid: 'uid-1' });
   });
 
   it('setzt ein Spiel inaktiv, das aus dem Kalender verschwunden ist', () => {
@@ -122,7 +123,7 @@ describe('planSync', () => {
       resolve,
     });
 
-    expect(plan.actions[0]).toEqual({ kind: 'clear_override', id: 'm1' });
+    expect(plan.actions[0]).toEqual({ kind: 'clear_override', id: 'm1', uid: 'uid-1' });
   });
 
   it('behandelt einen abweichenden Termin trotz Verlegung als neue Verlegung', () => {
@@ -143,5 +144,111 @@ describe('planSync', () => {
     });
 
     expect(plan.actions[0]).toMatchObject({ kind: 'update_details' });
+  });
+});
+
+/**
+ * Der Fall, der die Liste dreimal dasselbe Spiel zeigen ließ: myTischtennis vergibt die
+ * UID bei jedem Export neu. Über die UID allein wäre jeder Abruf ein Neuanfang.
+ */
+describe('planSync mit wechselnden UIDs', () => {
+  it('erkennt dasselbe Spiel trotz neuer UID wieder und legt nichts an', () => {
+    const plan = planSync({
+      existing: [existing()],
+      events: [event('uid-beim-zweiten-export-anders', '2026-10-12T16:00:00.000Z')],
+      resolve,
+    });
+
+    expect(plan.actions).toHaveLength(1);
+    expect(plan.actions[0]).toEqual({
+      kind: 'touch',
+      id: 'm1',
+      uid: 'uid-beim-zweiten-export-anders',
+    });
+  });
+
+  it('erkennt trotz neuer UID auch eine Verlegung als Verlegung', () => {
+    const plan = planSync({
+      existing: [existing()],
+      events: [event('andere-uid', '2026-10-13T17:00:00.000Z')],
+      resolve,
+    });
+
+    expect(plan.actions).toHaveLength(1);
+    expect(plan.actions[0]).toMatchObject({ kind: 'reschedule', id: 'm1', newVersion: 2 });
+  });
+
+  it('unterscheidet Hin- und Rückspiel gegen denselben Gegner', () => {
+    const heim = existing({ id: 'heim', external_uid: 'alt-heim', is_home: true });
+    const auswaerts = existing({ id: 'aus', external_uid: 'alt-aus', is_home: false });
+
+    const plan = planSync({
+      existing: [heim, auswaerts],
+      events: [event('neu-aus', '2026-10-12T16:00:00.000Z')],
+      resolve: () => ({ isHome: false, opponent: 'TV Beispiel', matchday: 1 }),
+    });
+
+    expect(plan.actions).toContainEqual({ kind: 'touch', id: 'aus', uid: 'neu-aus' });
+    expect(plan.actions).toContainEqual({ kind: 'deactivate', id: 'heim' });
+  });
+
+  it('greift im Scherbenhaufen eines Fehlimports das aktive Spiel', () => {
+    // Genau Jans Ausgangslage: ein aktives Spiel und zwei Leichen aus früheren Läufen.
+    const plan = planSync({
+      existing: [
+        existing({ id: 'tot-1', external_uid: 'uid-1', active: false }),
+        existing({ id: 'tot-2', external_uid: 'uid-2', active: false }),
+        existing({ id: 'lebt', external_uid: 'uid-3', active: true }),
+      ],
+      events: [event('uid-4', '2026-10-12T16:00:00.000Z')],
+      resolve,
+    });
+
+    expect(plan.actions).toEqual([{ kind: 'touch', id: 'lebt', uid: 'uid-4' }]);
+  });
+
+  it('legt lieber neu an, als bei mehreren aktiven Kandidaten zu raten', () => {
+    const plan = planSync({
+      existing: [
+        existing({ id: 'a', external_uid: 'uid-a' }),
+        existing({ id: 'b', external_uid: 'uid-b' }),
+      ],
+      events: [event('voellig-neue-uid', '2026-10-12T16:00:00.000Z')],
+      resolve,
+    });
+
+    expect(plan.actions[0]).toMatchObject({ kind: 'insert' });
+    expect(plan.actions).toContainEqual({ kind: 'deactivate', id: 'a' });
+    expect(plan.actions).toContainEqual({ kind: 'deactivate', id: 'b' });
+  });
+
+  it('verteilt zwei Feed-Termine nicht auf dieselbe Zeile', () => {
+    const plan = planSync({
+      existing: [existing()],
+      events: [
+        event('neu-1', '2026-10-12T16:00:00.000Z'),
+        event('neu-2', '2026-11-12T16:00:00.000Z'),
+      ],
+      resolve,
+    });
+
+    const betroffen = plan.actions.filter(
+      (action) => 'id' in action && action.id === 'm1',
+    );
+    expect(betroffen).toHaveLength(1);
+    expect(plan.actions.filter((action) => action.kind === 'insert')).toHaveLength(1);
+  });
+
+  it('bevorzugt den UID-Treffer vor dem Zweitschlüssel', () => {
+    const plan = planSync({
+      existing: [
+        existing({ id: 'm1', external_uid: 'uid-1' }),
+        existing({ id: 'm2', external_uid: 'uid-2', active: false }),
+      ],
+      events: [event('uid-1', '2026-10-12T16:00:00.000Z')],
+      resolve,
+    });
+
+    expect(plan.actions).toEqual([{ kind: 'touch', id: 'm1', uid: 'uid-1' }]);
   });
 });
