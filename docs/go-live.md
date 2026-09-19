@@ -646,6 +646,12 @@ verlinkt und ohne ihn verschweigt, was mit den Daten passiert.
 
 # Teil 6 — Menschen dazuholen
 
+> ⚠️ **Vorher: [`vor-der-ersten-einladung.md`](vor-der-ersten-einladung.md).** Dort steht
+> der vollständige Check, was zwischen „die Anwendung läuft" und „ich schicke jemandem die
+> Adresse" noch liegt — inklusive des Punktes, der hier lange fehlte: **Einladungen und
+> Anmeldelinks laufen über Supabase Auth, nicht über Resend.** Ohne eigenes SMTP kommt nach
+> wenigen Einladungen keine mehr an, und der Fehler taucht unter *Verein → Betrieb* nicht auf.
+
 ## 6.1 Einladen — in dieser Reihenfolge
 
 *Mitglieder → Mitglieder hinzufügen → Per E-Mail einladen*

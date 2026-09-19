@@ -4,11 +4,15 @@ Vereinseigene Alternative zum [TT-Planer](https://www.tt-planer.de/) für Tischt
 Mitglieder, Mannschaften, Spieltermine aus click-TT, Rückmeldungen, Ersatzsuche, Training,
 Vereinstermine, Umfragen, Kalender und Benachrichtigungen.
 
-**Stand:** Die Phasen 0–8 sind umgesetzt — Mitglieder, Mannschaften und Spielpläne aus
-click-TT, Rückmeldungen und Ersatzsuche, Training, Vereinstermine, Umfragen, Kalender mit
-ICS-Abo, Benachrichtigungen per E-Mail und Push, Übersicht, PWA und Betriebssicht. Offen ist
-Phase 9 (Komfortmodule) und Phase 10 (Go-live); die verbliebenen Platzhalterseiten nennen die
-Aufgabe aus dem [Umsetzungsplan](docs/umsetzungsplan.md), die sie füllt.
+**Stand (19.09.2026):** Die Anwendung ist gebaut und läuft gegen ein eingerichtetes
+Supabase-Projekt — Mitglieder, Mannschaften und Spielpläne aus click-TT, Rückmeldungen und
+Ersatzsuche, Training, Vereinstermine, Umfragen, Kalender mit ICS-Abo, Benachrichtigungen
+per E-Mail und Push, Übersicht, PWA und Betriebssicht. 935 Vitest-Tests, 403
+pgTAP-Assertions.
+
+Noch nicht eingeladen ist jemand: Was davor zu erledigen ist, steht in
+[docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md). Nicht gebaut sind
+9.4 (Dateien), 9.7 (NuScore-PDF) und 9.10 („Anmelden als"); keines davon blockiert.
 
 ## Loslegen
 
@@ -67,6 +71,7 @@ scripts/          Lokale Testdatenbank, Supabase-Kompatibilitätsschicht, Typgen
 | [docs/domain-einrichten.md](docs/domain-einrichten.md) | DNS für Anwendung und Versand: GitHub Pages, Resend, Prüfbefehle, Domainwechsel |
 | [docs/einrichtung.md](docs/einrichtung.md) | **Einrichtung von null**: Supabase, Resend, VAPID, Secrets, Cron, erster Administrator |
 | [docs/betrieb.md](docs/betrieb.md) | Laufender Betrieb: Reiter „Betrieb", Cron, Fehlerbilder, Sicherung |
+| [docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md) | **Check vor dem ersten Mitglied**: SMTP, Vereinsdaten, Rechtliches, Probelauf |
 | [docs/migration.md](docs/migration.md) | **Datenübernahme aus dem TT-Planer**: Reihenfolge, Spalten-Mapping, Checkliste |
 | [docs/parallelbetrieb.md](docs/parallelbetrieb.md) | **Abnahme**: vier Wochen beide Systeme, Nachweise zu Z1–Z11, Feedback der Mitglieder |
 | [docs/abschluss.md](docs/abschluss.md) | **Go-live**: retten, kündigen, Lizenzfrage, Release v1.0.0 |
@@ -84,10 +89,16 @@ weitere Schemaänderung ist eine neue Migrationsdatei — die Baseline wird nich
 
 ## Betrieb
 
-Es gibt noch kein Supabase-Projekt. Die Entwicklung läuft vollständig gegen die lokale
-Testdatenbank (`scripts/local-db.sh`). Die Workflows `Deploy to GitHub Pages` und
-`Supabase ausrollen` sind deshalb nur manuell startbar; sie bekommen ihren Auslöser zurück,
-sobald Projekt und Secrets eingerichtet sind (Aufgabe 0.3 im Umsetzungsplan).
+Das Supabase-Projekt ist eingerichtet (Region Frankfurt), die sieben Edge Functions sind
+ausgerollt, die sechs Cron-Jobs laufen. Die Entwicklung läuft weiterhin vollständig gegen
+die lokale Testdatenbank (`scripts/local-db.sh`) — dieselben Migrationen, dieselben Tests.
+
+Die Workflows `Deploy to GitHub Pages` und `Supabase ausrollen` sind noch manuell startbar;
+ihr `push`-Auslöser ist auskommentiert und kann jetzt aktiviert werden.
+
+⚠️ **Ein Reset entfernt Erweiterungen.** `supabase db reset --linked` nimmt `pg_cron` und
+`pg_net` mit — und die Migrationen überspringen das Einplanen der Jobs dann stillschweigend.
+Der Ausweg steht in [docs/einrichtung.md §2](docs/einrichtung.md#2-erweiterungen-einschalten).
 
 Die CI (`ci.yml`) läuft bei jedem Push auf `main` und bei Pull Requests: Typprüfung, Tests,
 Build sowie ein zweiter Job, der die Migrationen gegen einen Postgres-Dienst einspielt, die
