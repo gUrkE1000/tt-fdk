@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type { Session } from '@supabase/supabase-js';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
-import { fetchProfile, touchLastLogin, type Profile } from './api';
+import { fetchProfile, touchLastLogin, withTimeout, type Profile } from './api';
 import type { Role } from '../../app/nav';
 
 export interface SessionState {
@@ -26,11 +26,27 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (!active) return;
-      setSession(data.session ?? null);
-      setInitialising(false);
-    });
+    /*
+      `getSession()` liest die gespeicherte Sitzung und erneuert sie bei Bedarf über das
+      Netz. Bleibt diese Erneuerung hängen, wird die Zusage nie eingelöst — und weil
+      `initialising` daran hängt, zeigt `RequireAuth` bis in alle Ewigkeit einen
+      Ladekringel. Das ist die einzige Stelle der Anmeldung, die noch ohne zeitliche
+      Grenze auskam.
+
+      Nach Ablauf wird weitergemacht, nicht abgebrochen: Ohne Sitzung landet man auf der
+      Anmeldeseite, und die ist eine brauchbare Auskunft. Ein Kringel ist keine.
+    */
+    void withTimeout(supabase.auth.getSession(), 'Prüfen der Anmeldung')
+      .then(({ data }) => {
+        if (!active) return;
+        setSession(data.session ?? null);
+      })
+      .catch(() => {
+        /* Abgelaufen oder gescheitert — beides heißt: nicht angemeldet. */
+      })
+      .finally(() => {
+        if (active) setInitialising(false);
+      });
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
