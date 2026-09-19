@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { MailCheck, ShieldX } from 'lucide-react';
+import { MailCheck, ShieldX, WifiOff } from 'lucide-react';
 import { Button, EmptyState, FormField, Input, useToast } from '../../components/ui';
 import { registerWithCode, usePublicClubInfo, validateRegistrationCode } from './api';
 import { registerSchema, type RegisterValues } from './schemas';
@@ -24,6 +24,10 @@ export default function RegisterPage() {
     queryKey: ['registration-code', code],
     queryFn: () => validateRegistrationCode(code),
     retry: false,
+    // Ohne Code im Pfad gibt es nichts zu prüfen. Der Aufruf liefe sonst ins Leere und
+    // endete mit „gilt nicht mehr" — was einem Vereinscode die Schuld gäbe, den niemand
+    // angegeben hat. `enabled` hält die Abfrage an; den Fall zeigt die Seite selbst an.
+    enabled: code !== '',
   });
 
   const {
@@ -32,13 +36,67 @@ export default function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({ resolver: zodResolver(registerSchema) });
 
-  if (codeCheck.isLoading) {
+  /*
+    Muss vor jeder Abfrage der Query stehen: Eine abgeschaltete Query bleibt in
+    react-query dauerhaft `isPending`. Stünde die Spinner-Zeile zuerst, drehte sich
+    hier für immer ein Ladekringel.
+  */
+  if (code === '') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <EmptyState
+          icon={ShieldX}
+          title="Diesem Link fehlt der Vereinscode"
+          description="Die Registrierung geht nur über den vollständigen Link oder den QR-Code des Vereins. Frag im Verein danach."
+          action={
+            <Link to="/login">
+              <Button>Zur Anmeldung</Button>
+            </Link>
+          }
+        />
+      </div>
+    );
+  }
+
+  if (codeCheck.isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div
           role="status"
           aria-label="Lädt"
           className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-primary"
+        />
+      </div>
+    );
+  }
+
+  /*
+    Ein gescheiterter Aufruf ist etwas anderes als ein ungültiger Code, und wer beides
+    gleich behandelt, schickt jemanden mit einem völlig richtigen Link wegen einer
+    Netzstörung zum Vorstand. Deshalb eine eigene Anzeige — mit der Meldung im Klartext,
+    weil sie das Einzige ist, was man am Telefon vorlesen kann.
+  */
+  if (codeCheck.isError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <EmptyState
+          icon={WifiOff}
+          title="Der Link ließ sich gerade nicht prüfen"
+          description={
+            codeCheck.error instanceof Error
+              ? codeCheck.error.message
+              : 'Der Server hat nicht geantwortet.'
+          }
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button variant="primary" onClick={() => void codeCheck.refetch()}>
+                Erneut versuchen
+              </Button>
+              <Link to="/login">
+                <Button>Zur Anmeldung</Button>
+              </Link>
+            </div>
+          }
         />
       </div>
     );

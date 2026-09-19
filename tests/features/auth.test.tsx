@@ -41,6 +41,7 @@ vi.mock('../../src/features/auth/session', () => ({
 
 import LoginPage from '../../src/features/auth/LoginPage';
 import RegisterPage from '../../src/features/auth/RegisterPage';
+import { withTimeout } from '../../src/features/auth/api';
 import { ToastProvider } from '../../src/components/ui';
 
 function renderWithProviders(ui: React.ReactElement, path = '/') {
@@ -51,6 +52,7 @@ function renderWithProviders(ui: React.ReactElement, path = '/') {
         <MemoryRouter initialEntries={[path]}>
           <Routes>
             <Route path="/login" element={ui} />
+            <Route path="/register" element={ui} />
             <Route path="/register/:code" element={ui} />
             <Route path="*" element={ui} />
           </Routes>
@@ -159,5 +161,73 @@ describe('RegisterPage', () => {
 
     expect(await screen.findByRole('button', { name: 'Registrieren' })).toBeInTheDocument();
     expect(screen.getByLabelText(/Vorname/)).toBeInTheDocument();
+  });
+
+  /*
+    Der Ladekringel darf nie der Endzustand sein. Jeder Fall hier endete vorher in einer
+    Anzeige, aus der nicht hervorging, was zu tun ist — oder gar nicht.
+  */
+  it('nennt den Grund, statt den Code zu beschuldigen, wenn die Prüfung scheitert', async () => {
+    rpc.mockImplementation((fn: string) => {
+      if (fn === 'rpc_validate_registration_code') {
+        return Promise.resolve({ data: null, error: { message: 'Failed to fetch' } });
+      }
+      return Promise.resolve({ data: [{ club_name: 'TTC Musterstadt' }], error: null });
+    });
+
+    renderWithProviders(<RegisterPage />, '/register/TESTCODE');
+
+    expect(await screen.findByText(/ließ sich gerade nicht prüfen/)).toBeInTheDocument();
+    expect(screen.getByText(/Keine Verbindung zum Server/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Erneut versuchen' })).toBeInTheDocument();
+    // Gerade nicht: Der Code kann völlig richtig sein.
+    expect(screen.queryByText(/gilt nicht mehr/)).not.toBeInTheDocument();
+  });
+
+  it('erklärt einen fehlenden Einrichtungsschritt, statt ihn dem Mitglied anzulasten', async () => {
+    rpc.mockImplementation((fn: string) => {
+      if (fn === 'rpc_validate_registration_code') {
+        return Promise.resolve({
+          data: null,
+          error: { message: 'Could not find the function', code: 'PGRST202' },
+        });
+      }
+      return Promise.resolve({ data: [{ club_name: 'TTC Musterstadt' }], error: null });
+    });
+
+    renderWithProviders(<RegisterPage />, '/register/TESTCODE');
+
+    expect(await screen.findByText(/noch nicht fertig eingerichtet/)).toBeInTheDocument();
+  });
+
+  it('dreht sich nicht ewig, wenn der Link keinen Code enthält', async () => {
+    renderWithProviders(<RegisterPage />, '/register');
+
+    expect(await screen.findByText(/fehlt der Vereinscode/)).toBeInTheDocument();
+    expect(screen.queryByRole('status', { name: 'Lädt' })).not.toBeInTheDocument();
+    // Ohne Code darf gar nicht erst gefragt werden.
+    expect(
+      rpc.mock.calls.filter((call) => call[0] === 'rpc_validate_registration_code'),
+    ).toHaveLength(0);
+  });
+});
+
+describe('withTimeout', () => {
+  it('gibt das Ergebnis weiter, solange es rechtzeitig kommt', async () => {
+    await expect(withTimeout(Promise.resolve('da'), 'Prüfen')).resolves.toBe('da');
+  });
+
+  it('bricht ab, statt endlos zu warten', async () => {
+    vi.useFakeTimers();
+    try {
+      // Eine Anfrage, die nie beantwortet wird — genau der Fall, der die
+      // Registrierungsseite ewig laden ließ.
+      const pending = withTimeout(new Promise(() => {}), 'Prüfen des Registrierungslinks');
+      const caught = expect(pending).rejects.toThrow(/nicht geantwortet/);
+      await vi.advanceTimersByTimeAsync(13_000);
+      await caught;
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

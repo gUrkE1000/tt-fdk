@@ -8,6 +8,65 @@ Gemeldete, noch offene Fehler stehen unter [Offen](#offen).
 
 ---
 
+## F-5 · Registrierungsseite lädt endlos
+
+**Gemeldet** 19.09.2026, beim Öffnen von `/register/<code>` und beim QR-Code.
+**Schwere** hoch — niemand kann sich registrieren.
+**Behoben** 19.09.2026 (das Symptom; zur Ursache siehe unten).
+
+### Bild
+
+Der Ladekringel dreht sich, ohne je zu einem Ende zu kommen. Keine Fehlermeldung.
+
+### Ursache
+
+Die Seite hatte nur **zwei** Zustände: „lädt" und „Code ungültig". Alles, was dazwischen
+schiefgehen kann, fiel durch:
+
+```tsx
+if (codeCheck.isLoading) return <Spinner />;
+if (codeCheck.data !== true) return <„gilt nicht mehr" />;
+```
+
+Und der Aufruf dahinter hatte **keine zeitliche Begrenzung**. Antwortet der Server nicht —
+Projekt pausiert, Netz weg, DNS hängt —, wartet `fetch` so lange, wie das Betriebssystem
+es zulässt. Das sind Minuten, in denen die Seite nichts anderes anzuzeigen hat als den
+Kringel.
+
+Dazu kam die zweite Falle: Eine über `enabled: false` abgeschaltete react-query-Abfrage
+bleibt dauerhaft `isPending`. Wer den Spinner vor den Sonderfall stellt, baut sich damit
+einen unentrinnbaren Ladezustand.
+
+Geprüft und **ausgeschlossen** wurde: die RPC selbst (ein einzeiliges `EXISTS`, `anon` hat
+`EXECUTE`), der Service Worker (`index.html` liegt im Precache, Supabase läuft über
+`NetworkOnly`), der SPA-Fallback (`404.html` wird gebaut und war ausgerollt) und die
+Wiederholungen von react-query (`retry: 1`).
+
+### Behebung
+
+1. **Zeitliche Begrenzung** (`withTimeout`, 12 Sekunden) um das Prüfen des Codes **und**
+   um das Laden des Profils — die zweite Stelle, an der sich sonst derselbe Kringel
+   festfressen konnte, nämlich in `RequireAuth`. Bewusst als Wettlauf und nicht über
+   `abortSignal()` des Clients: hängt an keiner Aufrufkette und ist damit prüfbar.
+2. **Ein eigener Zustand für „ging schief"** mit der Meldung im Klartext und einem
+   Knopf *Erneut versuchen*. Ein Netzfehler schickt niemanden mehr mit einem völlig
+   richtigen Link zum Vorstand.
+3. **Klartext statt Fehlercode** (`readableError`): „Keine Verbindung zum Server",
+   „Der Server hat nicht geantwortet", und bei `PGRST202` der Hinweis, dass die
+   Einrichtung unvollständig ist — das kann kein Mitglied lösen.
+4. **Fehlender Code im Pfad** (Route `/register` ohne `:code`) bekommt eine eigene
+   Anzeige, vor jeder Abfrage der Query-Zustände.
+
+Fünf neue Tests in `tests/features/auth.test.tsx`, darunter der nie beantwortete Aufruf
+gegen die Uhr.
+
+### Was das nicht behebt
+
+**Warum** der Server nicht antwortete, sagt erst die neue Meldung. Der Fix macht aus einem
+stummen Kringel eine Aussage — die eigentliche Ursache steht danach auf dem Bildschirm.
+
+---
+
 ## F-4 · „Supabase ausrollen" scheitert an `required flag(s) "project-ref" not set`
 
 **Gemeldet** 19.09.2026, beim ersten Lauf des Workflows.
