@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MailCheck, ShieldX, WifiOff } from 'lucide-react';
 import { Button, EmptyState, FormField, Input, LoadingScreen, useToast } from '../../components/ui';
-import { registerWithCode, usePublicClubInfo, validateRegistrationCode } from './api';
+import { lastStep, registerWithCode, usePublicClubInfo, validateRegistrationCode } from './api';
 import { registerSchema, type RegisterValues } from './schemas';
 
 /**
@@ -16,9 +16,8 @@ import { registerSchema, type RegisterValues } from './schemas';
 export default function RegisterPage() {
   const { code = '' } = useParams();
   const { toast } = useToast();
-  const clubInfo = usePublicClubInfo();
-  const privacyUrl = clubInfo.data?.privacy_url?.trim() ?? '';
   const [done, setDone] = useState(false);
+  const [gaveUp, setGaveUp] = useState(false);
 
   const codeCheck = useQuery({
     queryKey: ['registration-code', code],
@@ -29,6 +28,34 @@ export default function RegisterPage() {
     // angegeben hat. `enabled` hält die Abfrage an; den Fall zeigt die Seite selbst an.
     enabled: code !== '',
   });
+
+  /*
+    Der Vereinsname wartet, bis der Code geprüft ist.
+
+    Die Anmeldeseite macht genau einen Aufruf vor der Anmeldung und lädt; diese Seite
+    machte zwei gleichzeitig und blieb hängen. Das ist der einzige Unterschied, der nach
+    allen anderen Gegenproben übrig geblieben ist. Nacheinander kostet nichts — der Name
+    steht erst im Formular, und das gibt es ohnehin nicht ohne gültigen Code.
+  */
+  const clubInfo = usePublicClubInfo(!codeCheck.isPending);
+  const privacyUrl = clubInfo.data?.privacy_url?.trim() ?? '';
+
+  /*
+    Letzter Riegel, und diesmal außerhalb der Abfrage.
+
+    Die Zeitgrenzen *innerhalb* des Aufrufs haben auf dem Gerät nachweislich nicht
+    gegriffen — die Seite stand nach dreizehn Sekunden weiter im Ladezustand. Dieser
+    Zeitmesser hängt an nichts davon: Er läuft im Bauteil selbst und beendet den
+    Ladezustand notfalls gegen den Willen der Abfrage.
+  */
+  useEffect(() => {
+    if (!codeCheck.isPending) {
+      setGaveUp(false);
+      return;
+    }
+    const timer = setTimeout(() => setGaveUp(true), 15_000);
+    return () => clearTimeout(timer);
+  }, [codeCheck.isPending]);
 
   const {
     register,
@@ -64,8 +91,30 @@ export default function RegisterPage() {
     sieht auf dem Bildschirm genauso aus wie eine Antwort, die ausbleibt — nur dass keine
     Zeitgrenze greifen kann, weil nie etwas losgelaufen ist.
   */
-  if (codeCheck.isPending) {
+  if (codeCheck.isPending && !gaveUp) {
     return <LoadingScreen detail={`code ${codeCheck.status}/${codeCheck.fetchStatus}`} />;
+  }
+
+  if (codeCheck.isPending && gaveUp) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <EmptyState
+          icon={WifiOff}
+          title="Der Link ließ sich gerade nicht prüfen"
+          description={`Die Prüfung kam nicht zurück. Letzter Schritt: ${lastStep()}`}
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button variant="primary" onClick={() => void codeCheck.refetch()}>
+                Erneut versuchen
+              </Button>
+              <Link to="/login">
+                <Button>Zur Anmeldung</Button>
+              </Link>
+            </div>
+          }
+        />
+      </div>
+    );
   }
 
   /*

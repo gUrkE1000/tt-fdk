@@ -19,7 +19,7 @@ describe('publicRpc', () => {
     globalThis.fetch = (() => new Promise(() => {})) as unknown as typeof fetch;
 
     const pending = validateRegistrationCode('ABC');
-    const caught = expect(pending).rejects.toThrow(/bei „fetch"/);
+    const caught = expect(pending).rejects.toThrow(/bei „validate_registration_code:fetch"/);
     await vi.advanceTimersByTimeAsync(14_000);
     await caught;
 
@@ -35,7 +35,7 @@ describe('publicRpc', () => {
     })) as unknown as typeof fetch;
 
     const pending = validateRegistrationCode('ABC');
-    const caught = expect(pending).rejects.toThrow(/bei „http-200"/);
+    const caught = expect(pending).rejects.toThrow(/bei „validate_registration_code:http-200"/);
     await vi.advanceTimersByTimeAsync(14_000);
     await caught;
 

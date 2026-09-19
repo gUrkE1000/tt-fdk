@@ -28,6 +28,18 @@ const QUERY_TIMEOUT_MS = 12_000;
  * Registrierungsseite genauso. Die Umstellung bleibt trotzdem — sie nimmt eine Schicht aus
  * dem Spiel, die hier nichts beizutragen hat, und erlaubt erst die Schrittanzeige unten.
  */
+/**
+ * Der zuletzt begonnene Schritt, über alle Aufrufe hinweg.
+ *
+ * Nicht schön, aber das einzige Mittel, um an einem fremden Gerät zu erkennen, wo ein
+ * Aufruf stehen geblieben ist — die Anzeige kann sonst nur „es lädt" sagen.
+ */
+let lastPublicRpcStep = 'noch nichts';
+
+export function lastStep(): string {
+  return lastPublicRpcStep;
+}
+
 async function publicRpc(name: string, params: Record<string, unknown>): Promise<unknown> {
   /*
     Wie weit der Aufruf gekommen ist. Das Abbruchsignal des `fetch` allein hat sich als
@@ -36,7 +48,15 @@ async function publicRpc(name: string, params: Record<string, unknown>): Promise
     Auskunft, an welchem Schritt es lag. Ein „hängt" ohne Ortsangabe kostet jedes Mal eine
     weitere Runde.
   */
-  const progress = { step: 'start' };
+  const progress = {
+    set step(value: string) {
+      lastPublicRpcStep = `${name.replace(/^rpc_/, '')}:${value}`;
+    },
+    get step(): string {
+      return lastPublicRpcStep;
+    },
+  };
+  progress.step = 'start';
 
   const work = (async (): Promise<unknown> => {
     progress.step = 'fetch';
@@ -257,9 +277,10 @@ export interface PublicClubInfo {
 }
 
 /** Vereinsname für Anmeldung und Registrierung — abrufbar, bevor jemand angemeldet ist. */
-export function usePublicClubInfo() {
+export function usePublicClubInfo(enabled = true) {
   return useQuery({
     queryKey: ['public-club-info'],
+    enabled,
     staleTime: 5 * 60_000,
     queryFn: async (): Promise<PublicClubInfo> => {
       const data = await publicRpc('get_public_club_info', {});
