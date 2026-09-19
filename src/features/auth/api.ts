@@ -19,42 +19,86 @@ const QUERY_TIMEOUT_MS = 12_000;
  * Eine Datenbankfunktion aufrufen, ohne den Supabase-Client.
  *
  * Für die zwei Aufrufe, die **vor** jeder Anmeldung laufen: Vereinsname und Prüfung des
- * Registrierungscodes. Beide sind `SECURITY DEFINER` und für `anon` freigegeben, brauchen
- * also keinerlei Anmeldezustand — wohl aber reicht der Client jeden Aufruf durch seine
- * Anmeldeschicht, und die stellt gleichzeitige Aufrufe hinter einem Schloss an
- * (`_acquireLock`). Genau das war hier zu sehen: Die Anmeldeseite mit ihrem **einen**
- * Aufruf lief, die Registrierungsseite mit **zweien** blieb hängen.
+ * Registrierungscodes. Beide sind `SECURITY DEFINER` und für `anon` freigegeben und
+ * brauchen deshalb keinen Anmeldezustand — ohne den Client ist der Weg dorthin kürzer und
+ * vor allem beobachtbar.
  *
- * Ein schlichtes `fetch` hat diese Schicht nicht. Und `AbortSignal.timeout` bricht hier
- * wirklich die Anfrage ab, statt nur die Anzeige weiterlaufen zu lassen.
+ * Der ursprüngliche Verdacht, der Client stelle gleichzeitige Aufrufe hinter einem Schloss
+ * an (`_acquireLock` in auth-js), hat sich **nicht** bestätigt: Mit diesem Weg hing die
+ * Registrierungsseite genauso. Die Umstellung bleibt trotzdem — sie nimmt eine Schicht aus
+ * dem Spiel, die hier nichts beizutragen hat, und erlaubt erst die Schrittanzeige unten.
  */
 async function publicRpc(name: string, params: Record<string, unknown>): Promise<unknown> {
-  let response: Response;
+  /*
+    Wie weit der Aufruf gekommen ist. Das Abbruchsignal des `fetch` allein hat sich als
+    unzuverlässig erwiesen — die Seite blieb im Ladezustand stehen, obwohl zwölf Sekunden
+    längst um waren. Deshalb hier ein zweiter, davon unabhängiger Riegel, und mit ihm die
+    Auskunft, an welchem Schritt es lag. Ein „hängt" ohne Ortsangabe kostet jedes Mal eine
+    weitere Runde.
+  */
+  const progress = { step: 'start' };
+
+  const work = (async (): Promise<unknown> => {
+    progress.step = 'fetch';
+    let response: Response;
+
+    try {
+      response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify(params),
+        signal: AbortSignal.timeout(QUERY_TIMEOUT_MS),
+      });
+    } catch (error) {
+      // Abgebrochen oder kein Netz — beides braucht einen Satz, den man vorlesen kann.
+      throw readableError({ message: error instanceof Error ? error.message : 'abort' });
+    }
+
+    progress.step = `http-${response.status}`;
+
+    if (!response.ok) {
+      const body = (await response.json().catch(() => ({}))) as { message?: string; code?: string };
+      throw readableError({
+        message: body.message ?? `HTTP ${response.status}`,
+        code: body.code ?? (response.status === 404 ? 'PGRST202' : undefined),
+      });
+    }
+
+    const parsed = await response.json();
+    progress.step = 'fertig';
+    return parsed;
+  })();
+
+  return await guard(work, () => progress.step);
+}
+
+/**
+ * Bricht ab, wenn nach `QUERY_TIMEOUT_MS` nichts da ist — und sagt, wobei.
+ *
+ * Der eigene Zeitmesser läuft neben der Arbeit her und ist von ihr unabhängig. Genau
+ * darauf kommt es an: Ein Abbruchsignal, das im Anfragepfad selbst steckt, nützt nichts,
+ * wenn der Pfad es nicht auswertet.
+ */
+async function guard<T>(work: Promise<T>, where: () => string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
 
   try {
-    response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify(params),
-      signal: AbortSignal.timeout(QUERY_TIMEOUT_MS),
-    });
-  } catch (error) {
-    throw readableError({ message: error instanceof Error ? error.message : 'abort' });
+    return await Promise.race([
+      work,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`Keine Antwort vom Server (bei „${where()}").`)),
+          QUERY_TIMEOUT_MS + 1000,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
   }
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => ({}))) as { message?: string; code?: string };
-    throw readableError({
-      message: body.message ?? `HTTP ${response.status}`,
-      code: body.code ?? (response.status === 404 ? 'PGRST202' : undefined),
-    });
-  }
-
-  return await response.json();
 }
 
 /**
