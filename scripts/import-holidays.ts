@@ -122,18 +122,59 @@ function yearsFrom(args: readonly string[]): number[] {
   return years;
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Wie lange zwischen zwei Abfragen gewartet wird.
+ *
+ * Die Schulferien brauchen 16 Bundesländer × 3 Jahre = 48 Abfragen. Ohne Pause laufen die
+ * innerhalb einer Sekunde los, und `ferien-api.de` antwortet ab der zweiten mit HTTP 429 —
+ * „zu viele Anfragen". Das Ergebnis ist eine Datei ohne eine einzige Ferienzeile, erzeugt
+ * ohne Fehlerabbruch.
+ *
+ * Eine halbe Sekunde Abstand macht aus einem gescheiterten Lauf einen, der eine halbe
+ * Minute dauert. Das ist einmal im Jahr.
+ */
+const REQUEST_DELAY_MS = 500;
+
+/** Wie oft eine gedrosselte Abfrage wiederholt wird, mit wachsender Wartezeit. */
+const MAX_RETRIES = 4;
+
+let lastRequestAt = 0;
+
 async function fetchJson(url: string): Promise<unknown> {
-  try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(20_000) });
-    if (!response.ok) {
-      warn(`${url}: HTTP ${response.status}`);
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    // Abstand zur vorherigen Abfrage einhalten, egal an welche Schnittstelle sie ging.
+    const waited = Date.now() - lastRequestAt;
+    if (waited < REQUEST_DELAY_MS) await sleep(REQUEST_DELAY_MS - waited);
+    lastRequestAt = Date.now();
+
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(20_000) });
+
+      // 429 ist kein Fehler der Anfrage, sondern eine Bitte um Geduld. Die Wartezeit
+      // verdoppelt sich mit jedem Versuch: 1s, 2s, 4s, 8s.
+      if (response.status === 429 && attempt < MAX_RETRIES) {
+        const pause = 1000 * 2 ** attempt;
+        warn(`${url}: HTTP 429 — warte ${pause / 1000}s (Versuch ${attempt + 1}/${MAX_RETRIES})`);
+        await sleep(pause);
+        continue;
+      }
+
+      if (!response.ok) {
+        warn(`${url}: HTTP ${response.status}`);
+        return null;
+      }
+
+      return await response.json();
+    } catch (error) {
+      warn(`${url}: ${error instanceof Error ? error.message : String(error)}`);
       return null;
     }
-    return await response.json();
-  } catch (error) {
-    warn(`${url}: ${error instanceof Error ? error.message : String(error)}`);
-    return null;
   }
+
+  warn(`${url}: nach ${MAX_RETRIES} Versuchen weiterhin gedrosselt — aufgegeben.`);
+  return null;
 }
 
 function log(message: string): void {
