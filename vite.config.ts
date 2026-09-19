@@ -13,8 +13,21 @@ import { VitePWA } from 'vite-plugin-pwa';
  */
 const base = process.env.VITE_BASE_PATH ?? '/';
 
+/**
+ * Welcher Stand ausgeliefert wird — im Bundle festgeschrieben.
+ *
+ * Ohne das ist bei einem Fehler, der nur auf fremden Geräten auftritt, nicht
+ * feststellbar, ob die Person gerade die gebaute Fassung sieht oder eine ältere aus
+ * einem Zwischenspeicher. Diese eine Unbekannte kostet sonst jede Fehlersuche mehrere
+ * Runden: Jede Gegenprobe ist wertlos, solange offen ist, welcher Code lief.
+ */
+const buildId = (process.env.GITHUB_SHA ?? '').slice(0, 7) || 'lokal';
+
 export default defineConfig(({ command }) => ({
   base,
+  define: {
+    __BUILD_ID__: JSON.stringify(buildId),
+  },
   plugins: [
     react(),
     // Nur beim Bauen: im Entwicklungsmodus säße sonst ein Service Worker vor dem

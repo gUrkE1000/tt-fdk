@@ -24,6 +24,18 @@ export interface LoadingScreenProps {
  * Die Zeiten sind bewusst großzügig: Wer auf dem Hallenparkplatz im Funkloch steht, soll
  * nicht nach zwei Sekunden lesen, es sei etwas kaputt.
  */
+/**
+ * Der ausgelieferte Stand. In Tests ist die Konstante nicht gesetzt, deshalb der Umweg
+ * über eine Funktion mit Fangnetz statt eines direkten Zugriffs.
+ */
+function buildId(): string {
+  try {
+    return __BUILD_ID__;
+  } catch {
+    return 'unbekannt';
+  }
+}
+
 export default function LoadingScreen({ hintAfterMs = 4000, detail }: LoadingScreenProps) {
   const [stage, setStage] = useState<0 | 1 | 2>(0);
 
@@ -55,8 +67,11 @@ export default function LoadingScreen({ hintAfterMs = 4000, detail }: LoadingScr
         </p>
       )}
 
-      {stage === 2 && detail && (
-        <p className="max-w-xs text-center font-mono text-xs text-gray-400">{detail}</p>
+      {stage === 2 && (
+        <p className="max-w-xs text-center font-mono text-xs text-gray-400">
+          {detail ? `${detail} · ` : ''}
+          {buildId()}
+        </p>
       )}
     </div>
   );
