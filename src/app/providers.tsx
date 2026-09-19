@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ToastProvider } from '../components/ui';
 import { SessionProvider } from '../features/auth/session';
 
@@ -27,7 +27,15 @@ interface ProvidersProps {
 }
 
 export default function Providers({ children, queryClient }: ProvidersProps) {
-  const client = queryClient ?? createQueryClient();
+  /*
+    `useState` mit Erzeugerfunktion, nicht `createQueryClient()` direkt im Rumpf: Sonst
+    entstünde bei jedem Render ein neuer Client, jede laufende Abfrage verlöre ihren
+    Platz, und Seiten, die auf ein Ergebnis warten, kämen nie aus dem Ladezustand
+    heraus. Heute rendert `App` genau einmal, der Fehler bliebe also unsichtbar — bis
+    jemand dort einen Zustand ergänzt.
+  */
+  const [created] = useState(createQueryClient);
+  const client = queryClient ?? created;
   return (
     <QueryClientProvider client={client}>
       <ToastProvider>

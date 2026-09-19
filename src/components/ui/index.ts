@@ -28,6 +28,9 @@ export type { CardProps } from './Card';
 export { default as PageHeader } from './PageHeader';
 export type { PageHeaderProps } from './PageHeader';
 
+export { default as LoadingScreen } from './LoadingScreen';
+export type { LoadingScreenProps } from './LoadingScreen';
+
 export { default as EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
 

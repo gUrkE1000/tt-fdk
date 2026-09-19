@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MailCheck, ShieldX, WifiOff } from 'lucide-react';
-import { Button, EmptyState, FormField, Input, useToast } from '../../components/ui';
+import { Button, EmptyState, FormField, Input, LoadingScreen, useToast } from '../../components/ui';
 import { registerWithCode, usePublicClubInfo, validateRegistrationCode } from './api';
 import { registerSchema, type RegisterValues } from './schemas';
 
@@ -58,17 +58,7 @@ export default function RegisterPage() {
     );
   }
 
-  if (codeCheck.isPending) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div
-          role="status"
-          aria-label="Lädt"
-          className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-primary"
-        />
-      </div>
-    );
-  }
+  if (codeCheck.isPending) return <LoadingScreen />;
 
   /*
     Ein gescheiterter Aufruf ist etwas anderes als ein ungültiger Code, und wer beides

@@ -1,21 +1,9 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 import { useSession } from './session';
-import { EmptyState, Button } from '../../components/ui';
+import { EmptyState, Button, LoadingScreen } from '../../components/ui';
 import { signOut } from './api';
 import type { Role } from '../../app/nav';
-
-function FullPageSpinner() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div
-        role="status"
-        aria-label="Lädt"
-        className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-primary"
-      />
-    </div>
-  );
-}
 
 /**
  * Lässt nur angemeldete, freigeschaltete Mitglieder durch.
@@ -27,7 +15,7 @@ export function RequireAuth() {
   const { session, profile, loading } = useSession();
   const location = useLocation();
 
-  if (loading) return <FullPageSpinner />;
+  if (loading) return <LoadingScreen />;
 
   if (!session) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
@@ -67,7 +55,7 @@ export function RequireAuth() {
 export function RequireRole({ roles }: { roles: Role[] }) {
   const { role, loading } = useSession();
 
-  if (loading) return <FullPageSpinner />;
+  if (loading) return <LoadingScreen />;
   if (!role || !roles.includes(role)) return <Navigate to="/" replace />;
 
   return <Outlet />;
