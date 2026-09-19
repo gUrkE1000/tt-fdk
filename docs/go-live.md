@@ -203,7 +203,7 @@ Das Repository existiert. Zu tun:
 | Secret | Woher |
 |---|---|
 | `SUPABASE_ACCESS_TOKEN` | Supabase → Account Settings → Access Tokens |
-| `SUPABASE_PROJECT_REF` | die Projekt-ID |
+| `SUPABASE_PROJECT_ID` | die Projekt-Kennung: `https://supabase.com/dashboard/project/`**`<das hier>`** |
 | `SUPABASE_DB_PASSWORD` | das Datenbank-Passwort aus 1.2 |
 | `VITE_SUPABASE_URL` | die Project URL |
 | `VITE_SUPABASE_ANON_KEY` | der anon-Schlüssel |

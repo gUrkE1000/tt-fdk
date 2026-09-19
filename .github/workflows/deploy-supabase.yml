@@ -35,8 +35,47 @@ jobs:
         with:
           version: latest
 
+      # Fehlt ein Secret, meldet die CLI nur „required flag(s) not set" und lässt offen,
+      # welches. Deshalb hier zuerst nachsehen und den Namen nennen.
+      #
+      # Die Projekt-Kennung wird unter zwei Namen akzeptiert: `SUPABASE_PROJECT_ID` und
+      # `SUPABASE_PROJECT_REF`. Beide standen schon in der Anleitung, und ein Workflow,
+      # der wegen eines Namensdrehers scheitert, hilft niemandem.
+      - name: Secrets prüfen
+        id: secrets
+        env:
+          PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          ref="${PROJECT_ID:-$PROJECT_REF}"
+          missing=0
+
+          if [ -z "$ref" ]; then
+            echo "  fehlt: SUPABASE_PROJECT_ID — die Projekt-Kennung aus der Dashboard-Adresse"
+            echo "         https://supabase.com/dashboard/project/<DAS HIER>"
+            missing=1
+          fi
+
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "  fehlt: SUPABASE_ACCESS_TOKEN — Supabase → Account Settings → Access Tokens"
+            missing=1
+          fi
+
+          if [ -z "$DB_PASSWORD" ]; then
+            echo "  fehlt: SUPABASE_DB_PASSWORD — das Datenbank-Passwort des Projekts"
+            missing=1
+          fi
+
+          if [ "$missing" -eq 1 ]; then
+            echo "::error::Secrets fehlen. Anlegen unter Settings → Secrets and variables → Actions; welche, steht im Protokoll dieses Schritts."
+            exit 1
+          fi
+
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+
       - name: Projekt verbinden
-        run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}" --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
+        run: supabase link --project-ref "${{ steps.secrets.outputs.ref }}" --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
 
       - name: Migrationen einspielen
         if: ${{ inputs.migrations }}
@@ -51,5 +90,5 @@ jobs:
             name=$(basename "$dir")
             [ "$name" = "_shared" ] && continue
             echo "→ $name"
-            supabase functions deploy "$name" --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
+            supabase functions deploy "$name" --project-ref "${{ steps.secrets.outputs.ref }}"
           done

@@ -8,6 +8,44 @@ Gemeldete, noch offene Fehler stehen unter [Offen](#offen).
 
 ---
 
+## F-4 · „Supabase ausrollen" scheitert an `required flag(s) "project-ref" not set`
+
+**Gemeldet** 19.09.2026, beim ersten Lauf des Workflows.
+**Schwere** mittel — kein Ausrollen von Migrationen und Edge Functions über GitHub.
+**Behoben** 19.09.2026.
+
+### Bild
+
+Der Workflow bricht nach zehn Sekunden ab. Im Protokoll:
+
+```
+supabase link --project-ref "" --password "***"
+required flag(s) "project-ref" not set
+```
+
+Das leere `--project-ref` bei gleichzeitig maskiertem `--password` ist der Hinweis: ein
+Secret war da, das andere nicht.
+
+### Ursache
+
+**Ein Namensdreher in der eigenen Anleitung.** `docs/go-live.md §1.4` verlangte
+`SUPABASE_PROJECT_REF`, der Workflow las `SUPABASE_PROJECT_ID`. Wer die Anleitung befolgt
+hat, hat das Secret unter dem Namen angelegt, den der Workflow nicht kennt.
+
+`${{ secrets.X }}` ist für ein nicht vorhandenes Secret einfach leer — kein Fehler, keine
+Warnung. Der leere Wert wanderte durch bis in den CLI-Aufruf.
+
+### Behebung
+
+1. Anleitung auf `SUPABASE_PROJECT_ID` korrigiert, mit der Fundstelle
+   (`https://supabase.com/dashboard/project/<das hier>`).
+2. Der Workflow akzeptiert **beide** Namen. Ein Ausrollen, das an einem Namensdreher
+   scheitert, hilft niemandem.
+3. Neuer erster Schritt **Secrets prüfen**: Fehlt etwas, nennt das Protokoll jeden
+   fehlenden Namen samt Fundstelle, statt die CLI raten zu lassen.
+
+---
+
 ## F-3 · Import legt bei jedem Klick dieselben Spiele neu an
 
 **Gemeldet** 19.09.2026, nach dem ersten Import für „Erwachsene IV".
