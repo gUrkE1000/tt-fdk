@@ -497,15 +497,38 @@ bisher aus war.
 
 ## 3.1 Ersten Administrator anlegen
 
-Es gibt keine Hintertür und keinen automatischen ersten Benutzer. Im SQL-Editor:
+Es gibt keine Hintertür und keinen automatischen ersten Benutzer. **Zwei Schritte, in
+dieser Reihenfolge** — ausführlich in
+[`einrichtung.md` §11](einrichtung.md#11-ersten-administrator-anlegen).
+
+**1. Profil** — SQL-Editor:
 
 ```sql
 INSERT INTO public.profiles (first_name, last_name, email, role, status)
 VALUES ('Vorname', 'Nachname', 'admin@verein.de', 'admin', 'unconfirmed');
 ```
 
-Dann auf der Anmeldeseite genau diese Adresse eingeben. Der Trigger `handle_new_user()`
-verknüpft beim ersten Login das vorhandene Profil und setzt es auf `active`.
+**2. Anmeldekonto** — *Authentication → Users → Add user → Create new user*, dieselbe
+Adresse, Passwort vergeben, **Auto Confirm User** anhaken.
+
+Der Trigger `handle_new_user()` verbindet beide beim Anlegen des Kontos.
+
+> ⚠️ **Das Profil allein genügt nicht.** Die Anmeldeseite fordert den Link mit
+> `shouldCreateUser: false` an — sie legt bewusst kein Konto an, sonst könnte sich jede
+> beliebige Adresse eines verschaffen. Ohne Schritt 2 meldet sie
+> **„Diese E-Mail-Adresse ist im Verein nicht bekannt"**, obwohl das Profil sichtbar in
+> der Tabelle steht. Supabase Auth kennt `public.profiles` nicht.
+>
+> Bei allen späteren Mitgliedern legt `invite-member` das Konto an. Nur der erste
+> Administrator hat niemanden, der ihn einlädt.
+
+**Prüfen:**
+
+```sql
+SELECT email, role, status, auth_linked_at FROM public.profiles;
+```
+
+`status` = `active`, `auth_linked_at` gesetzt.
 
 **Kommt keine Mail:** Das ist der erste echte Test der ganzen Kette. Siehe
 [Anhang B, Prompt 3](#prompt-3--keine-e-mail-kommt-an).

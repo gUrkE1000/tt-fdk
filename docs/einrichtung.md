@@ -257,15 +257,60 @@ Mitglieder kommen über eine Einladung oder den Vereinscode herein.
 ## 11. Ersten Administrator anlegen
 
 Die Anwendung legt niemanden automatisch an — es gibt keine Hintertür, und das ist Absicht.
-Im SQL-Editor:
+Der erste Administrator braucht deshalb **zwei** Einträge, in dieser Reihenfolge.
+
+### Warum zwei
+
+Ein Mitglied besteht aus zwei Hälften:
+
+| | |
+|---|---|
+| `auth.users` | das Anmeldekonto — gehört Supabase Auth |
+| `public.profiles` | Name, Rolle, Mannschaft — gehört der Anwendung |
+
+Verbunden werden sie vom Trigger `handle_new_user()`, der beim **Anlegen eines
+Anmeldekontos** feuert: Findet er ein Profil mit derselben E-Mail-Adresse, das noch nicht
+verknüpft ist, übernimmt er es und setzt es auf `active`.
+
+Bei allen späteren Mitgliedern erledigt das die Edge Function `invite-member`. **Beim
+ersten Administrator gibt es niemanden, der einlädt** — und die Anmeldeseite hilft nicht
+weiter: Sie fordert den Link mit `shouldCreateUser: false` an, legt also bewusst kein Konto
+an. Sonst könnte sich jede beliebige Adresse eines verschaffen.
+
+Wer nur das Profil anlegt und sich dann anmelden will, bekommt deshalb
+**„Diese E-Mail-Adresse ist im Verein nicht bekannt"** — obwohl das Profil sichtbar in der
+Tabelle steht. Die Meldung stimmt aus Sicht von Supabase Auth, das `public.profiles` gar
+nicht kennt.
+
+### 11.1 Profil anlegen — SQL-Editor
 
 ```sql
 INSERT INTO public.profiles (first_name, last_name, email, role, status)
 VALUES ('Vorname', 'Nachname', 'admin@verein.example.org', 'admin', 'unconfirmed');
 ```
 
-Danach auf der Anmeldeseite diese Adresse eingeben. Der Trigger `handle_new_user()`
-verknüpft beim ersten Login das vorhandene Profil und setzt es auf `active`.
+### 11.2 Anmeldekonto anlegen — Dashboard
+
+*Authentication → Users → **Add user** → Create new user*
+
+- **Email**: exakt dieselbe Adresse wie in 11.1
+- **Password**: eines vergeben
+- **Auto Confirm User**: **anhaken** — sonst wartet das Konto auf eine
+  Bestätigungsmail, die niemand angefordert hat
+
+⚠️ **Die Reihenfolge ist nicht beliebig.** Existiert beim Anlegen des Kontos noch kein
+passendes Profil, greift der zweite Zweig des Triggers: Selbstregistrierung, und die
+verlangt den Vereinscode. Ohne ihn bricht das Anlegen mit einer Fehlermeldung ab.
+
+### 11.3 Prüfen
+
+```sql
+SELECT email, role, status, auth_linked_at FROM public.profiles;
+```
+
+`status` muss auf **`active`** stehen und `auth_linked_at` einen Zeitstempel tragen. Dann
+hat der Trigger die beiden Hälften verbunden, und die Anmeldung funktioniert — mit dem
+vergebenen Passwort und ab jetzt auch mit dem E-Mail-Link.
 
 ## 12. Vereinsdaten ausfüllen
 
