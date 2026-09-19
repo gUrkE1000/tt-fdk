@@ -45,6 +45,7 @@ export const router = createBrowserRouter([
   // --------------------------------------------------- ohne Anmeldung
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
+  { path: '/register/:code', element: <RegisterPage /> },
   {
     // Antwort-Link aus einer Benachrichtigung: speichert ohne Anmeldung.
     path: '/r/:token',
