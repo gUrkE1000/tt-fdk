@@ -44,6 +44,19 @@ jobs:
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
         run: npm run build
 
+      # Ohne diese Datei liefert GitHub Pages bei jedem Pfad ausser der Wurzel seine
+      # eigene 404-Seite: Lesezeichen, Neuladen und jeder Link aus einer Benachrichtigung
+      # landen im Nichts. Der Aufruf der Startseite funktioniert trotzdem — deshalb faellt
+      # es beim Ausprobieren nicht auf, sondern erst bei den Mitgliedern.
+      - name: SPA-Fallback pruefen
+        run: |
+          if [ ! -f dist/404.html ]; then
+            echo "dist/404.html fehlt — scripts/spa-fallback.mjs lief nicht."
+            echo "Ohne die Datei ist jeder tiefe Link auf der Seite kaputt."
+            exit 1
+          fi
+          echo "dist/404.html vorhanden."
+
       # Guertel zum Hosentraeger. Die eigene Domain steht in den
       # Repository-Einstellungen (Settings -> Pages -> Custom domain); wird sie dort
       # versehentlich geleert, liefe die Seite wieder unter der github.io-Adresse — und
