@@ -1,0 +1,38 @@
+# Zeilenenden — einheitlich LF, überall.
+#
+# Ohne diese Datei wandelt Git for Windows beim Auschecken in CRLF um und beim Einchecken
+# zurück. Das geht so lange gut, bis eine Datei von einem Skript geschrieben wird: Dann
+# meldet Git „LF will be replaced by CRLF the next time Git touches it", und die frisch
+# erzeugte Datei gilt danach als geändert, obwohl inhaltlich nichts anders ist. Ein
+# `git pull --rebase` bricht daran ab, und niemand sieht, warum.
+#
+# Zwei Dateiarten vertragen CRLF überhaupt nicht:
+#   * `scripts/*.sh` laufen in der CI unter Linux — mit CRLF scheitert schon die erste
+#     Zeile, mit einer Fehlermeldung, die auf alles andere hindeutet als auf Zeilenenden.
+#   * SQL-Migrationen gehen durch die Supabase-CLI und sollen in jeder Umgebung
+#     byte-identisch sein.
+#
+# Deshalb LF im Repository *und* im Arbeitsverzeichnis. Alle Editoren, die hier zum
+# Einsatz kommen, können das.
+
+* text=auto eol=lf
+
+# Ausdrücklich, damit es beim Überfliegen nicht untergeht.
+*.sh   text eol=lf
+*.sql  text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.mjs  text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.md   text eol=lf
+
+# Binärdateien nicht anfassen.
+*.png   binary
+*.jpg   binary
+*.webp  binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.pdf   binary
+*.xlsx  binary
