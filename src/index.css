@@ -141,3 +141,36 @@
     @apply font-semibold;
   }
 }
+
+/*
+ * FullCalendar auf schmalen Bildschirmen.
+ *
+ * Die Bibliothek legt Titel und Schaltflächen nebeneinander in eine Zeile, ohne Umbruch.
+ * Auf einem Telefon schiebt sich die rechte Gruppe dann über den Titel — „September 2026"
+ * lag unter „Monat / Woche / Liste". Das ist kein Schönheitsfehler: Die Schaltflächen
+ * fangen die Berührung ab, die dem Titel gilt.
+ *
+ * Deshalb hier ein Umbruch und eine kleinere Schrift, statt an der Bibliothek zu drehen.
+ */
+@media (max-width: 639px) {
+  .fc .fc-toolbar {
+    @apply flex-wrap justify-center gap-2;
+  }
+
+  .fc .fc-toolbar-title {
+    @apply text-base;
+  }
+
+  .fc .fc-button {
+    @apply px-2 py-1 text-xs;
+  }
+
+  /* Die Kopfzeile des Rasters hat sonst genauso viel Platz wie ein ganzer Tag. */
+  .fc .fc-col-header-cell-cushion {
+    @apply px-0.5 text-xs;
+  }
+
+  .fc .fc-daygrid-day-number {
+    @apply px-1 text-xs;
+  }
+}

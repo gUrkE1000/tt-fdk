@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   applyTheme,
   isThemeChoice,
+  DEFAULT_THEME,
   readStoredTheme,
   resolveTheme,
   storeTheme,
@@ -34,8 +35,9 @@ describe('isThemeChoice', () => {
 });
 
 describe('readStoredTheme', () => {
-  it('liefert ohne Eintrag „system"', () => {
-    expect(readStoredTheme()).toBe('system');
+  it('liefert ohne Eintrag die Voreinstellung, und die ist hell', () => {
+    expect(DEFAULT_THEME).toBe('light');
+    expect(readStoredTheme()).toBe(DEFAULT_THEME);
   });
 
   it('liest eine gespeicherte Wahl', () => {
@@ -45,7 +47,7 @@ describe('readStoredTheme', () => {
 
   it('ignoriert Unsinn im Speicher', () => {
     window.localStorage.setItem(THEME_STORAGE_KEY, 'neon');
-    expect(readStoredTheme()).toBe('system');
+    expect(readStoredTheme()).toBe(DEFAULT_THEME);
   });
 
   it('übersteht einen gesperrten Speicher', () => {
@@ -54,7 +56,7 @@ describe('readStoredTheme', () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('blocked');
     });
-    expect(readStoredTheme()).toBe('system');
+    expect(readStoredTheme()).toBe(DEFAULT_THEME);
   });
 
   it('übersteht auch einen gesperrten Schreibversuch', () => {

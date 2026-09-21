@@ -8,6 +8,17 @@
 
 export type ThemeChoice = 'system' | 'light' | 'dark';
 
+/**
+ * Was gilt, solange niemand etwas gewählt hat.
+ *
+ * Bewusst `light` und nicht `system`: Ein Verein bekommt die Anwendung am Hallenabend auf
+ * einem fremden Telefon gezeigt, und auf vielen Geräten steht das System dauerhaft auf
+ * dunkel. Eine Aufstellung, ein Kalender und eine Tabelle sind hell entworfen und
+ * geprüft; hell ist der Zustand, den alle gemeinsam sehen. Wer es dunkel will, stellt es
+ * unter „Mein Profil" um — und das bleibt dann auch so.
+ */
+export const DEFAULT_THEME: ThemeChoice = 'light';
+
 export const THEME_STORAGE_KEY = 'vereinsplaner.theme';
 
 export const THEME_LABELS: Record<ThemeChoice, string> = {
@@ -36,9 +47,9 @@ export function isThemeChoice(value: unknown): value is ThemeChoice {
 export function readStoredTheme(): ThemeChoice {
   try {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    return isThemeChoice(stored) ? stored : 'system';
+    return isThemeChoice(stored) ? stored : DEFAULT_THEME;
   } catch {
-    return 'system';
+    return DEFAULT_THEME;
   }
 }
 

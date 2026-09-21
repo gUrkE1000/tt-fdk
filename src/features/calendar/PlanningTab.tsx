@@ -6,6 +6,7 @@ import listPlugin from '@fullcalendar/list';
 import deLocale from '@fullcalendar/core/locales/de';
 import { Checkbox } from '../../components/ui';
 import { cn } from '../../lib/cn';
+import { useIsCompact } from '../../lib/useIsCompact';
 import { useCalendarItems } from './api';
 import {
   CATEGORIES,
@@ -24,6 +25,7 @@ import {
  */
 export default function PlanningTab() {
   const items = useCalendarItems();
+  const compact = useIsCompact();
   const [filters, setFilters] = useState<CalendarFilters>(DEFAULT_CALENDAR_FILTERS);
 
   const events = useMemo(
@@ -68,25 +70,50 @@ export default function PlanningTab() {
       />
 
       <div className="rounded-2xl border border-gray-200 bg-white p-2">
+        {/*
+          Am Telefon ist der Kalender ein anderer, nicht nur ein schmalerer:
+
+          - Die **Liste** ist die Startansicht. Ein Monatsraster mit sieben Spalten zeigt
+            auf 360 Pixeln von jedem Termin einen Punkt und sonst nichts; die Liste zeigt
+            Datum, Uhrzeit und Titel.
+          - Die **Wochenansicht** entfällt. Sieben Spalten mal vierundzwanzig Stunden sind
+            dort nicht knapp, sondern unbrauchbar — auf dem Bildschirm stand am Ende
+            „00 Uhr" bis „03 Uhr" und sonst nichts.
+          - Die **Wochennummern** entfallen: eine ganze Spalte für eine Zahl, die niemand
+            am Telefon sucht.
+          - `today` entfällt aus der Leiste, weil sie sonst über den Titel läuft — genau
+            das war auf dem Bildschirm zu sehen. Der Weg zurück führt über die Pfeile.
+
+          `key` erzwingt einen Neuaufbau beim Wechsel der Breite: FullCalendar übernimmt
+          eine geänderte `initialView` sonst nicht.
+        */}
         <FullCalendar
+          key={compact ? 'schmal' : 'breit'}
           plugins={[dayGridPlugin, timeGridPlugin, listPlugin]}
           locale={deLocale}
-          initialView="dayGridMonth"
-          headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,listMonth',
-          }}
+          initialView={compact ? 'listMonth' : 'dayGridMonth'}
+          headerToolbar={
+            compact
+              ? { left: 'prev,next', center: 'title', right: 'listMonth,dayGridMonth' }
+              : {
+                  left: 'prev,next today',
+                  center: 'title',
+                  right: 'dayGridMonth,timeGridWeek,listMonth',
+                }
+          }
           buttonText={{
             today: 'Heute',
             month: 'Monat',
             week: 'Woche',
             list: 'Liste',
           }}
-          weekNumbers
+          weekNumbers={!compact}
           weekNumberFormat={{ week: 'numeric' }}
           firstDay={1}
           height="auto"
+          // Im Hochformat sonst überhohe Zeilen: das Raster war höher als der Bildschirm.
+          aspectRatio={compact ? 0.9 : 1.35}
+          dayMaxEvents={compact ? 2 : false}
           events={events}
           noEventsText="In diesem Zeitraum steht nichts an."
         />
