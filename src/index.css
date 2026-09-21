@@ -143,6 +143,57 @@
 }
 
 /*
+ * FullCalendar an die eigene Farbpalette binden.
+ *
+ * Die Bibliothek bringt eigene Variablen mit, die auf feste helle Werte gesetzt sind.
+ * Im dunklen Modus bleiben die Rahmen und die Kopfzeile deshalb weiß — auf dem Telefon
+ * stand „Mo Di Mi …" hellgrau auf Weiß und war schlicht nicht zu lesen. Die Palette hier
+ * durchzureichen ist die einzige Stelle, an der das zu regeln ist; die Komponente selbst
+ * weiß von Farben nichts.
+ */
+.fc {
+  --fc-border-color: rgb(var(--gray-200));
+  --fc-page-bg-color: rgb(var(--surface));
+  --fc-neutral-bg-color: rgb(var(--gray-50));
+  --fc-neutral-text-color: rgb(var(--gray-500));
+  --fc-today-bg-color: rgb(var(--primary-soft));
+  --fc-list-event-hover-bg-color: rgb(var(--gray-50));
+  --fc-highlight-color: rgb(var(--primary-soft));
+
+  --fc-button-bg-color: rgb(var(--gray-100));
+  --fc-button-border-color: rgb(var(--gray-300));
+  --fc-button-text-color: rgb(var(--gray-700));
+  --fc-button-hover-bg-color: rgb(var(--gray-200));
+  --fc-button-hover-border-color: rgb(var(--gray-400));
+  --fc-button-active-bg-color: rgb(var(--primary));
+  --fc-button-active-border-color: rgb(var(--primary));
+
+  @apply text-gray-900;
+}
+
+/* Kopfzeile, Tageszahlen und Zeitspalte erben die Textfarbe sonst nicht. */
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number,
+.fc .fc-list-day-text,
+.fc .fc-list-day-side-text {
+  @apply text-gray-700;
+}
+
+.fc .fc-timegrid-slot-label-cushion,
+.fc .fc-list-event-time {
+  @apply text-gray-500;
+}
+
+/* „Heute" ist im dunklen Modus sonst ein greller Block. */
+.fc .fc-day-today {
+  @apply bg-primary-soft;
+}
+
+.fc .fc-list-empty {
+  @apply bg-gray-50 text-gray-500;
+}
+
+/*
  * FullCalendar auf schmalen Bildschirmen.
  *
  * Die Bibliothek legt Titel und Schaltflächen nebeneinander in eine Zeile, ohne Umbruch.

@@ -4,6 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import listPlugin from '@fullcalendar/list';
 import deLocale from '@fullcalendar/core/locales/de';
 import { Plus, Trash2 } from 'lucide-react';
+import { useIsCompact } from '../../lib/useIsCompact';
 import {
   Button,
   Card,
@@ -41,6 +42,7 @@ const HINT =
  */
 export default function AbsencesTab({ canManage }: { canManage: boolean }) {
   const { toast } = useToast();
+  const compact = useIsCompact();
   const absences = useAllAbsences();
   const members = useMembers();
   const createAbsence = useCreateAbsence();
@@ -121,11 +123,20 @@ export default function AbsencesTab({ canManage }: { canManage: boolean }) {
         <FullCalendar
           plugins={[dayGridPlugin, listPlugin]}
           locale={deLocale}
-          initialView="dayGridMonth"
-          headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' }}
+          // Am Telefon dieselbe Entscheidung wie beim Vereinskalender: Liste statt
+          // Raster, und „Heute" raus aus der Leiste, weil es sonst über den Titel läuft.
+          key={compact ? 'schmal' : 'breit'}
+          initialView={compact ? 'listMonth' : 'dayGridMonth'}
+          headerToolbar={
+            compact
+              ? { left: 'prev,next', center: 'title', right: 'listMonth,dayGridMonth' }
+              : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' }
+          }
           buttonText={{ today: 'Heute', month: 'Monat', list: 'Liste' }}
           firstDay={1}
           height="auto"
+          aspectRatio={compact ? 0.9 : 1.35}
+          dayMaxEvents={compact ? 2 : false}
           events={events}
           noEventsText="In diesem Zeitraum ist niemand abwesend."
         />
