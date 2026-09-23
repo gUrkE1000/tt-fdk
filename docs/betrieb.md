@@ -286,35 +286,23 @@ Konten an.
 
 ## 9. Sicherung
 
-Supabase sichert die Datenbank selbst — aber innerhalb von Supabase. Das hilft gegen einen
-versehentlich gelöschten Datensatz, nicht gegen ein gelöschtes oder gesperrtes Projekt.
+Supabase sichert im Free-Tarif nichts, was sich zurückspielen ließe. Deshalb
+`.github/workflows/backup.yml`: sonntags um 04:30 UTC ein `pg_dump`, **verschlüsselt** mit
+[age](https://age-encryption.org), abgelegt als GitHub-Artefakt (90 Tage) und — wenn
+eingerichtet — zusätzlich in Google Drive.
 
-Deshalb zusätzlich `.github/workflows/backup.yml`: sonntags um 04:30 UTC ein `pg_dump`,
-**verschlüsselt** mit [age](https://age-encryption.org), als Artefakt dieses Repositories,
-aufbewahrt für 90 Tage.
+**Einrichtung Schritt für Schritt: [docs/sicherung.md](sicherung.md).** Kurzfassung der
+Einstellungen in GitHub (*Settings → Secrets and variables → Actions*):
 
-Einzurichten:
+| Art | Name | Inhalt |
+|---|---|---|
+| Variable | `BACKUP_AGE_RECIPIENT` | öffentlicher age-Schlüssel (`age1…`) — Pflicht |
+| Secret | `SUPABASE_DB_URL` | Verbindung „Session pooler" mit Passwort — Pflicht |
+| Variable | `BACKUP_ENABLED` | `true` — sonst läuft der Zeitplan nicht |
+| Secret | `GDRIVE_TOKEN` | Token von `rclone authorize` — optional, für Google Drive |
+| Variable | `BACKUP_DRIVE_FOLDER`, `BACKUP_DRIVE_KEEP_DAYS` | optional |
 
-1. Schlüsselpaar erzeugen — **auf dem eigenen Rechner, nicht in GitHub**:
-
-   ```bash
-   age-keygen -o vereinsplaner-sicherung.key
-   # Public key: age1…
-   ```
-
-   Die Datei `vereinsplaner-sicherung.key` ist der private Schlüssel. Sie gehört an zwei
-   sichere Orte beim Vorstand (Passwortmanager, ausgedruckt im Vereinsordner). Wer sie
-   verliert, kann keine Sicherung mehr öffnen.
-2. Repository-Variable **`BACKUP_AGE_RECIPIENT`** auf den öffentlichen Schlüssel
-   (`age1…`) setzen. Fehlt sie, bricht der Job ab, statt unverschlüsselt hochzuladen.
-3. Repository-Secret **`SUPABASE_DB_URL`** setzen — die Verbindungszeichenfolge aus
-   *Project Settings → Database → Connection string* (Modus „Session", mit Passwort).
-4. Repository-Variable **`BACKUP_ENABLED`** auf `true` setzen. Ohne sie läuft der Job nicht;
-   ein Job, der jede Woche an einem fehlenden Secret scheitert, trainiert nur an, Fehler zu
-   übersehen.
-
-> Das Artefakt kann jeder mit Lesezugriff auf das Repository herunterladen. Ohne den
-> privaten Schlüssel ist es wertlos — genau deshalb liegt er nicht in GitHub.
+Der private Schlüssel liegt nur beim Vorstand, nie in GitHub oder Google Drive.
 
 ### Wiederherstellen
 

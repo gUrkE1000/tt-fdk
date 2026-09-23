@@ -74,6 +74,7 @@ scripts/          Lokale Testdatenbank, Supabase-Kompatibilitätsschicht, Typgen
 | [docs/einrichtung.md](docs/einrichtung.md) | **Einrichtung von null**: Supabase, Resend, VAPID, Secrets, Cron, erster Administrator |
 | [docs/betrieb.md](docs/betrieb.md) | Laufender Betrieb: Reiter „Betrieb", Cron, Fehlerbilder, Sicherung |
 | [docs/code-review.md](docs/code-review.md) | **Code-Review** vom 23.09.2026: Befunde, Nachweise, Stand der Behebung |
+| [docs/sicherung.md](docs/sicherung.md) | **Datensicherung**: verschlüsselt nach GitHub und Google Drive, Schritt für Schritt |
 | [docs/fehler.md](docs/fehler.md) | **Fehler aus dem Betrieb**: Bild, Ursache, Behebung — neueste zuerst |
 | [docs/offene-entscheidungen.md](docs/offene-entscheidungen.md) | **Was der Verein entscheiden muss**, mit Möglichkeiten und Aufwand |
 | [docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md) | **Check vor dem ersten Mitglied**: SMTP, Vereinsdaten, Rechtliches, Probelauf |

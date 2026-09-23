@@ -22,10 +22,16 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || vars.BACKUP_ENABLED == 'true' }}
 
     steps:
+      # pg_dump muss mindestens so neu sein wie der Server — ein älteres bricht mit
+      # „server version mismatch" ab. Neue Supabase-Projekte laufen auf Postgres 17, das
+      # Ubuntu-Paket ist 16. Deshalb aus dem offiziellen PostgreSQL-Repository (PGDG);
+      # Version 17 sichert auch Server mit 15 und 16.
       - name: PostgreSQL-Client installieren
         run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client-16
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
 
       - name: Sicherung erstellen
         env:
@@ -37,7 +43,8 @@ jobs:
             echo "SUPABASE_DB_URL ist nicht gesetzt — keine Sicherung möglich." >&2
             exit 1
           fi
-          pg_dump --no-owner --no-privileges --format=custom \
+          # Ausdrücklich Version 17: Auf dem Runner ist zusätzlich eine ältere installiert.
+          /usr/lib/postgresql/17/bin/pg_dump --no-owner --no-privileges --format=custom \
                   --file="vereinsplaner-$(date -u +%Y-%m-%d).dump" "$PGURL"
 
       # Verschlüsselt, bevor die Datei GitHub verlässt. Das Artefakt kann jeder mit
@@ -69,3 +76,31 @@ jobs:
           # aufzubewahren, ohne dass sie jemandem nützen.
           retention-days: 90
           if-no-files-found: error
+
+      # Zweite Ablage außerhalb von GitHub: Google Drive, über rclone. Hochgeladen wird die
+      # bereits verschlüsselte Datei — Google sieht nur unlesbare Daten.
+      #
+      # Optional: Ohne das Secret GDRIVE_TOKEN wird der Schritt übersprungen. Der Token
+      # stammt von `rclone authorize` auf dem eigenen Rechner (docs/sicherung.md) und hat
+      # nur das Recht `drive.file`: rclone sieht ausschließlich Dateien, die es selbst
+      # angelegt hat, nicht den Rest des Drives.
+      - name: Nach Google Drive kopieren
+        env:
+          GDRIVE_TOKEN: ${{ secrets.GDRIVE_TOKEN }}
+          FOLDER: ${{ vars.BACKUP_DRIVE_FOLDER || 'Vereinsplaner-Sicherungen' }}
+          # Aufbewahrung in Tagen, wie beim Artefakt. Länger ist möglich (Variable
+          # BACKUP_DRIVE_KEEP_DAYS), dann aber im Löschkonzept festhalten.
+          KEEP_DAYS: ${{ vars.BACKUP_DRIVE_KEEP_DAYS || '90' }}
+          RCLONE_CONFIG_GDRIVE_TYPE: drive
+          RCLONE_CONFIG_GDRIVE_SCOPE: drive.file
+        run: |
+          if [ -z "$GDRIVE_TOKEN" ]; then
+            echo "Secret GDRIVE_TOKEN fehlt — keine Kopie nach Google Drive."
+            exit 0
+          fi
+          sudo apt-get install -y -qq rclone
+          export RCLONE_CONFIG_GDRIVE_TOKEN="$GDRIVE_TOKEN"
+          rclone copy ./ "gdrive:$FOLDER" --include '*.dump.age' --verbose
+          # Alte Sicherungen im Drive-Ordner entfernen.
+          rclone delete "gdrive:$FOLDER" --include '*.dump.age' --min-age "${KEEP_DAYS}d" --verbose
+          echo "Liegt in Google Drive unter: $FOLDER"
