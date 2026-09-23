@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -162,6 +162,19 @@ function renderPage() {
     </QueryClientProvider>,
   );
 }
+
+// Die Spieltermine oben sind feste Daten im Oktober/November 2026. Ohne feste Uhr
+// rutschten sie mit der Zeit in „Beendete", und die Tests dieser Datei würden ab dem
+// 06.10.2026 rot, ohne dass sich am Code etwas geändert hat. Nur `Date` ist
+// eingefroren: Timer laufen weiter, sonst hingen `waitFor` und react-query.
+beforeAll(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-09-20T12:00:00Z'));
+});
+
+afterAll(() => {
+  vi.useRealTimers();
+});
 
 beforeEach(() => {
   vi.clearAllMocks();

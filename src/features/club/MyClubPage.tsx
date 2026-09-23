@@ -11,6 +11,8 @@ import {
   PageHeader,
   Table,
   Tabs,
+  ErrorState,
+  LoadingState,
 } from '../../components/ui';
 import Placeholder from '../../app/Placeholder';
 import { roleLabel } from '../../lib/labels';
@@ -125,11 +127,17 @@ function MembersDirectory() {
           </Card>
         )}
         empty={
+          directory.isLoading ? (
+            <LoadingState />
+          ) : directory.isError ? (
+            <ErrorState onRetry={() => void directory.refetch()} />
+          ) : (
           <EmptyState
             icon={Users}
             title="Niemand gefunden"
             description="Andere Schreibweise probieren oder die Suche leeren."
           />
+          )
         }
       />
     </div>

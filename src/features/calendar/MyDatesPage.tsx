@@ -7,6 +7,8 @@ import {
   Card,
   CardBody,
   EmptyState,
+  ErrorState,
+  LoadingState,
   PageHeader,
   Tabs,
 } from '../../components/ui';
@@ -59,6 +61,8 @@ export default function MyDatesPage() {
   }, [dates.data]);
 
   function list(rows: MyDate[], empty: string, icon: typeof CalendarCheck) {
+    if (dates.isLoading) return <LoadingState />;
+    if (dates.isError) return <ErrorState onRetry={() => void dates.refetch()} />;
     if (rows.length === 0) {
       return <EmptyState icon={icon} title="Nichts eingetragen" description={empty} />;
     }

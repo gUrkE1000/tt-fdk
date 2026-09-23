@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
 import { fetchAll } from '../../lib/fetchAll';
 import { queryKeys } from '../../lib/queryKeys';
+import { applyOptimistic, dropOpenItem, optimisticUpdate } from '../../lib/optimistic';
 import type { Enums, InsertDto, Tables, UpdateDto } from '../../lib/database.types';
 
 export type Match = Tables<'matches'>;
@@ -13,29 +14,51 @@ export interface MatchRow extends Match {
   confirmedCount: number;
 }
 
-export function useMatches() {
+/**
+ * Welche Spiele eine Liste braucht.
+ *
+ * `recent` (Voreinstellung): ab {@link RECENT_MATCH_DAYS} Tagen zurück — alles, was
+ * Übersicht, „Meine Spiele", der Kalender der Mannschaft und die Aufstellung brauchen.
+ * `all`: die ganze Historie, nur für „Spieltermine → Beendete" und „Vergangene".
+ *
+ * Früher lud jede Seite alle Spiele und alle Rückmeldungen seit Beginn — Jahr für Jahr
+ * mehr, auf dem Handy im Mobilnetz spürbar. Gefiltert wird in der Datenbank, nicht
+ * erst hier.
+ */
+export type MatchScope = 'recent' | 'all';
+
+export const RECENT_MATCH_DAYS = 30;
+
+/** Beginn des Fensters für `recent`, als ISO-Zeitpunkt. */
+export function recentSince(now: Date = new Date()): string {
+  return new Date(now.getTime() - RECENT_MATCH_DAYS * 86_400_000).toISOString();
+}
+
+export function useMatches(scope: MatchScope = 'recent') {
   return useQuery({
-    queryKey: queryKeys.matches.list(),
+    queryKey: queryKeys.matches.list(scope),
     queryFn: async (): Promise<MatchRow[]> => {
+      const since = scope === 'recent' ? recentSince() : null;
+
       // Beide Listen wachsen mit jeder Saison; eine Saison hat schon über 1000
       // Beteiligungszeilen. Deshalb blättern statt einer Abfrage.
       const [matches, participations] = await Promise.all([
-        fetchAll((from, to) =>
-          supabase
-            .from('matches')
-            .select('*', { count: 'exact' })
-            .order('dtstart')
-            .order('id')
-            .range(from, to),
-        ),
-        fetchAll((from, to) =>
-          supabase
+        fetchAll((from, to) => {
+          let query = supabase.from('matches').select('*', { count: 'exact' });
+          if (since) query = query.gte('dtstart', since);
+          return query.order('dtstart').order('id').range(from, to);
+        }),
+        fetchAll((from, to) => {
+          // `matches!inner` filtert die Rückmeldungen über das Datum ihres Spiels —
+          // die Tabelle selbst kennt kein Datum.
+          let query = supabase
             .from('match_participations')
-            .select('match_id, profile_id, response, removed', { count: 'exact' })
-            .order('match_id')
-            .order('profile_id')
-            .range(from, to),
-        ),
+            .select('match_id, profile_id, response, removed, matches!inner(dtstart)', {
+              count: 'exact',
+            });
+          if (since) query = query.gte('matches.dtstart', since);
+          return query.order('match_id').order('profile_id').range(from, to);
+        }),
       ]);
 
       const confirmed = new Map<string, number>();
@@ -52,38 +75,46 @@ export function useMatches() {
   });
 }
 
+/** Entfernt das eingebettete Spiel, das nur zum Filtern mitkam. */
+function withoutEmbedded<T extends { matches?: unknown }>(rows: T[]): Omit<T, 'matches'>[] {
+  return rows.map(({ matches: _matches, ...rest }) => rest);
+}
+
 /**
- * Alle Beteiligungszeilen auf einmal. Für die Kartenansichten braucht es sie ohnehin zu
- * jedem sichtbaren Spiel; eine Abfrage je Karte wären zwanzig Abfragen für eine Seite.
+ * Alle Beteiligungszeilen im Fenster auf einmal. Für die Kartenansichten braucht es sie
+ * ohnehin zu jedem sichtbaren Spiel; eine Abfrage je Karte wären zwanzig Abfragen für
+ * eine Seite.
  */
-export function useAllParticipations() {
+export function useAllParticipations(scope: MatchScope = 'recent') {
   return useQuery({
-    queryKey: queryKeys.matches.participations('alle'),
+    queryKey: queryKeys.matches.participations(scope === 'all' ? 'alle' : 'aktuell'),
     queryFn: async (): Promise<Participation[]> => {
-      return fetchAll((from, to) =>
-        supabase
+      const since = scope === 'recent' ? recentSince() : null;
+      const rows = await fetchAll((from, to) => {
+        let query = supabase
           .from('match_participations')
-          .select('*', { count: 'exact' })
-          .order('match_id')
-          .order('profile_id')
-          .range(from, to),
-      );
+          .select('*, matches!inner(dtstart)', { count: 'exact' });
+        if (since) query = query.gte('matches.dtstart', since);
+        return query.order('match_id').order('profile_id').range(from, to);
+      });
+      return withoutEmbedded(rows) as Participation[];
     },
   });
 }
 
-export function useAllVolunteers() {
+export function useAllVolunteers(scope: MatchScope = 'recent') {
   return useQuery({
-    queryKey: ['match-volunteers', 'alle'],
+    queryKey: ['match-volunteers', scope === 'all' ? 'alle' : 'aktuell'],
     queryFn: async (): Promise<Volunteer[]> => {
-      return fetchAll((from, to) =>
-        supabase
+      const since = scope === 'recent' ? recentSince() : null;
+      const rows = await fetchAll((from, to) => {
+        let query = supabase
           .from('match_volunteers')
-          .select('*', { count: 'exact' })
-          .order('match_id')
-          .order('profile_id')
-          .range(from, to),
-      );
+          .select('*, matches!inner(dtstart)', { count: 'exact' });
+        if (since) query = query.gte('matches.dtstart', since);
+        return query.order('match_id').order('profile_id').range(from, to);
+      });
+      return withoutEmbedded(rows) as Volunteer[];
     },
   });
 }
@@ -157,6 +188,8 @@ export function useSetResponse() {
       matchId: string;
       response: Enums<'participation_response'>;
       comment?: string;
+      /** Wer antwortet — nur für die sofortige Anzeige; der Server nimmt die Sitzung. */
+      profileId?: string | null;
     }) => {
       const { error } = await supabase.rpc('rpc_set_match_response', {
         p_match_id: matchId,
@@ -165,7 +198,36 @@ export function useSetResponse() {
       });
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => invalidateMatches(queryClient),
+    onMutate: async ({ matchId, response, comment, profileId }) => {
+      // Die aktuelle Fassung des Spiels, damit die sofort gezeigte Antwort nicht als
+      // „veraltet" markiert wird.
+      const version =
+        queryClient
+          .getQueriesData<MatchRow[]>({ queryKey: [...queryKeys.matches.all, 'list'] })
+          .flatMap(([, rows]) => rows ?? [])
+          .find((match) => match.id === matchId)?.version ?? 1;
+
+      const rollback = await applyOptimistic(queryClient, [
+        optimisticUpdate<Participation[]>({
+          queryKey: [...queryKeys.matches.all, 'participations'],
+          update: (rows) =>
+            rows.map((row) =>
+              row.match_id === matchId && row.profile_id === profileId
+                ? {
+                    ...row,
+                    response,
+                    comment: comment ?? row.comment,
+                    version_responded: version,
+                  }
+                : row,
+            ),
+        }),
+        dropOpenItem('match', matchId),
+      ]);
+      return { rollback };
+    },
+    onError: (_error, _vars, context) => context?.rollback(),
+    onSettled: () => invalidateMatches(queryClient),
   });
 }
 

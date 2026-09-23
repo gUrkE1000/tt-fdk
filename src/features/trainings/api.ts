@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { todayInBerlin } from '../../lib/dates';
 import { fetchAll } from '../../lib/fetchAll';
 import { queryKeys } from '../../lib/queryKeys';
+import { applyOptimistic, dropOpenItem, optimisticUpdate } from '../../lib/optimistic';
 import type { Enums, InsertDto, Tables, UpdateDto, ViewRow } from '../../lib/database.types';
 
 export type Training = Tables<'trainings'>;
@@ -225,6 +226,8 @@ export function useSetAttendance() {
       profileId?: string;
       /** Ohne Angabe bleibt die bisherige Bemerkung stehen. */
       comment?: string;
+      /** Der Angemeldete — nur für die sofortige Anzeige, der Server nimmt die Sitzung. */
+      self?: string | null;
     }) => {
       const { error } = await supabase.rpc('rpc_set_training_attendance', {
         p_session_id: sessionId,
@@ -235,7 +238,43 @@ export function useSetAttendance() {
       });
       if (error) throw error;
     },
-    onSuccess: () => invalidate(queryClient),
+    onMutate: async ({ sessionId, status, guests, profileId, comment, self }) => {
+      const target = profileId ?? self ?? null;
+      if (!target) return { rollback: () => {} };
+
+      const rollback = await applyOptimistic(queryClient, [
+        optimisticUpdate<SessionParticipant[]>({
+          queryKey: queryKeys.trainings.attendance(),
+          exact: true,
+          update: (rows) => {
+            const exists = rows.some(
+              (row) => row.session_id === sessionId && row.profile_id === target,
+            );
+            if (!exists) {
+              return [
+                ...rows,
+                {
+                  session_id: sessionId,
+                  profile_id: target,
+                  status,
+                  guests: guests ?? 0,
+                  comment: comment ?? '',
+                } as SessionParticipant,
+              ];
+            }
+            return rows.map((row) =>
+              row.session_id === sessionId && row.profile_id === target
+                ? { ...row, status, guests: guests ?? 0, comment: comment ?? row.comment }
+                : row,
+            );
+          },
+        }),
+        ...(target === self ? [dropOpenItem('training', sessionId)] : []),
+      ]);
+      return { rollback };
+    },
+    onError: (_error, _vars, context) => context?.rollback(),
+    onSettled: () => invalidate(queryClient),
   });
 }
 

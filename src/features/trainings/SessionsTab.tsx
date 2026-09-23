@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { CalendarCheck } from 'lucide-react';
-import { EmptyState } from '../../components/ui';
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from '../../components/ui';
+import { queryStatus } from '../../lib/queryStatus';
 import { useSession } from '../auth/session';
 import { useMembers } from '../members/api';
 import { useVenues } from '../venues/api';
@@ -54,6 +59,10 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
     const mine = myTrainingIds(trainingList, profile.id);
     return rows.filter((session) => mine.has(session.training_id));
   }, [sessions.data, onlyMine, profile?.id, trainingList]);
+
+  const status = queryStatus(sessions, trainings);
+  if (status.loading) return <LoadingState />;
+  if (status.error) return <ErrorState onRetry={status.retry} />;
 
   if (visible.length === 0) {
     return (

@@ -1,5 +1,10 @@
 import { CalendarDays } from 'lucide-react';
-import { EmptyState } from '../../components/ui';
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from '../../components/ui';
+import { queryStatus } from '../../lib/queryStatus';
 import { useSession } from '../auth/session';
 import { useEventParticipants, useEvents } from '../events/api';
 import { isFinishedEvent } from '../events/schemas';
@@ -18,6 +23,10 @@ export default function ClubEventsTab() {
   const visible = (events.data ?? []).filter(
     (event) => !event.hide_in_my_club && !isFinishedEvent(event),
   );
+
+  const status = queryStatus(events, participants);
+  if (status.loading) return <LoadingState />;
+  if (status.error) return <ErrorState onRetry={status.retry} />;
 
   if (visible.length === 0) {
     return (

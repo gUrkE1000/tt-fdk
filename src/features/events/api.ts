@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
 import { queryKeys } from '../../lib/queryKeys';
+import { applyOptimistic, dropOpenItem, optimisticUpdate } from '../../lib/optimistic';
 import type { Enums, InsertDto, Tables, UpdateDto, ViewRow } from '../../lib/database.types';
 
 export type ClubEvent = Tables<'club_events'>;
@@ -86,6 +87,8 @@ export function useSetEventParticipation() {
       eventId: string;
       status: EventStatus;
       guests?: number;
+      /** Der Angemeldete — nur für die sofortige Anzeige. */
+      self?: string | null;
     }): Promise<{ status: string; taken?: number; max?: number }> => {
       const { data, error } = await supabase.rpc('rpc_set_event_participation', {
         p_event_id: eventId,
@@ -95,7 +98,39 @@ export function useSetEventParticipation() {
       if (error) throw error;
       return (data ?? { status: 'unknown' }) as { status: string };
     },
-    onSuccess: () => invalidate(queryClient),
+    onMutate: async ({ eventId, status, guests, self }) => {
+      if (!self) return { rollback: () => {} };
+
+      const rollback = await applyOptimistic(queryClient, [
+        optimisticUpdate<EventParticipant[]>({
+          queryKey: queryKeys.events.participants(),
+          exact: true,
+          update: (rows) => {
+            const exists = rows.some((row) => row.event_id === eventId && row.profile_id === self);
+            if (!exists) {
+              return [
+                ...rows,
+                { event_id: eventId, profile_id: self, status, guests: guests ?? 0 } as EventParticipant,
+              ];
+            }
+            return rows.map((row) =>
+              row.event_id === eventId && row.profile_id === self
+                ? { ...row, status, guests: guests ?? 0 }
+                : row,
+            );
+          },
+        }),
+        dropOpenItem('event', eventId),
+      ]);
+      return { rollback };
+    },
+    // Die Datenbank kann ablehnen, ohne einen Fehler zu werfen (Frist vorbei, voll) —
+    // dann gilt die sofort gezeigte Antwort ebenso wenig.
+    onSuccess: (result, _vars, context) => {
+      if (result.status !== 'ok') context?.rollback();
+    },
+    onError: (_error, _vars, context) => context?.rollback(),
+    onSettled: () => invalidate(queryClient),
   });
 }
 

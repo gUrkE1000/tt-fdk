@@ -174,18 +174,3 @@ function ToolButton({
     </button>
   );
 }
-
-export interface RichTextProps {
-  html: string;
-  className?: string;
-}
-
-/** Die Anzeigeseite. Bereinigt **immer** — auch, was aus der eigenen Datenbank kommt. */
-export function RichText({ html, className }: RichTextProps) {
-  return (
-    <div
-      className={cn('prose-sm max-w-none text-gray-800', className)}
-      dangerouslySetInnerHTML={{ __html: sanitizeRichText(html) }}
-    />
-  );
-}

@@ -40,7 +40,9 @@ function makeBuilder(table: string) {
     eq: () => chain,
     insert: (values: unknown) => {
       state.inserts.push({ table, values });
-      return Promise.resolve({ error: null });
+      return {
+        select: () => ({ single: () => Promise.resolve({ data: { id: 'n-new' }, error: null }) }),
+      };
     },
     update: () => ({ eq: () => Promise.resolve({ error: null }) }),
     delete: () => ({
@@ -55,10 +57,12 @@ function makeBuilder(table: string) {
   return chain;
 }
 
+const rpc = vi.hoisted(() => vi.fn());
+
 vi.mock('../../src/lib/supabaseClient', () => ({
   supabase: {
     from: (table: string) => makeBuilder(table),
-    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+    rpc,
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
       onAuthStateChange: vi.fn().mockReturnValue({ subscription: { unsubscribe: vi.fn() } }),
@@ -85,6 +89,8 @@ const soon = new Date(Date.now() + 7 * 86_400_000).toISOString();
 const past = new Date(Date.now() - 3 * 86_400_000).toISOString();
 
 beforeEach(() => {
+  rpc.mockReset();
+  rpc.mockResolvedValue({ data: 12, error: null });
   state.inserts = [];
   state.deletes = [];
   state.tables = {
@@ -134,10 +140,10 @@ describe('NewsTab', () => {
     expect(screen.queryByRole('button', { name: 'Löschen' })).toBeNull();
   });
 
-  it('sagt dem Organisator, dass keine Benachrichtigung rausgeht', async () => {
-    // Sonst rechnet er damit, dass alle es sofort erfahren.
+  it('sagt dem Organisator, dass er über die Benachrichtigung entscheidet', async () => {
+    // Sonst rechnet er damit, dass alle es sofort erfahren — oder dass niemand es tut.
     renderTab(true);
-    expect(await screen.findByText(/keine\s+Benachrichtigung raus/)).toBeInTheDocument();
+    expect(await screen.findByText(/ob alle Mitglieder einen Hinweis bekommen/)).toBeInTheDocument();
   });
 
   it('schreibt eine Neuigkeit — ohne Verfasser im Aufruf', async () => {
@@ -154,6 +160,23 @@ describe('NewsTab', () => {
     expect(values.title).toBe('Neue Trikots');
     // Den Verfasser setzt ein Trigger aus der Sitzung — die Oberfläche schickt ihn nicht mit.
     expect(values).not.toHaveProperty('author_id');
+    // Das Häkchen „Mitglieder benachrichtigen" ist beim Anlegen gesetzt.
+    await waitFor(() =>
+      expect(rpc).toHaveBeenCalledWith('rpc_announce_news', { p_news_id: 'n-new' }),
+    );
+  });
+
+  it('meldet nichts, wenn das Häkchen abgewählt ist', async () => {
+    renderTab(true);
+    await screen.findByText('Jahreshauptversammlung');
+
+    await userEvent.click(screen.getByRole('button', { name: /Neuigkeit schreiben/ }));
+    await userEvent.type(await screen.findByLabelText(/^Überschrift/), 'Alte Neuigkeit');
+    await userEvent.click(screen.getByRole('checkbox', { name: /Mitglieder benachrichtigen/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    await waitFor(() => expect(state.inserts).toHaveLength(1));
+    expect(rpc).not.toHaveBeenCalledWith('rpc_announce_news', expect.anything());
   });
 
   it('verlangt eine Überschrift', async () => {

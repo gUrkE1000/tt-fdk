@@ -10,6 +10,8 @@ export interface CountdownTileProps {
   teamName?: string;
   /** Ort des nächsten Spiels, falls bekannt. */
   location?: string;
+  /** Solange die Spiele laden, steht hier nichts Falsches wie „Kein Spiel angesetzt". */
+  loading?: boolean;
 }
 
 /** „heute", „morgen", „in 5 Tagen" — Zahlen liest niemand gern, wenn es ein Wort tut. */
@@ -26,7 +28,12 @@ export function countdownLabel(days: number | null): string {
  * Sie beantwortet die eine Frage, mit der die meisten die Startseite öffnen: wann muss ich
  * das nächste Mal in der Halle sein? Der Rest der Seite kommt danach.
  */
-export default function CountdownTile({ countdown, teamName, location }: CountdownTileProps) {
+export default function CountdownTile({
+  countdown,
+  teamName,
+  location,
+  loading = false,
+}: CountdownTileProps) {
   const { next, days, within30 } = countdown;
 
   return (
@@ -36,7 +43,9 @@ export default function CountdownTile({ countdown, teamName, location }: Countdo
         Mannschaftsspiele
       </div>
 
-      <p className="mt-2 text-2xl font-black text-gray-900">{countdownLabel(days)}</p>
+      <p className="mt-2 text-2xl font-black text-gray-900">
+        {loading ? <span className="text-gray-300">…</span> : countdownLabel(days)}
+      </p>
 
       {next ? (
         <div className="mt-1 space-y-0.5 text-sm text-gray-600">

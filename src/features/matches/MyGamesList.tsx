@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react';
 import { CalendarCheck } from 'lucide-react';
-import { EmptyState } from '../../components/ui';
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from '../../components/ui';
+import { queryStatus } from '../../lib/queryStatus';
 import { useSession } from '../auth/session';
 import { useMembers } from '../members/api';
 import { useTeams } from '../teams/api';
@@ -28,9 +33,11 @@ export interface MyGamesListProps {
  */
 export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesListProps) {
   const { profile } = useSession();
-  const matches = useMatches();
-  const participations = useAllParticipations();
-  const volunteers = useAllVolunteers();
+  // Vergangene Spiele reichen weiter zurück als das Standardfenster.
+  const range = scope === 'past' ? 'all' : 'recent';
+  const matches = useMatches(range);
+  const participations = useAllParticipations(range);
+  const volunteers = useAllVolunteers(range);
   const teams = useTeams();
   const venues = useVenues();
   const members = useMembers();
@@ -81,6 +88,10 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
       ),
     [teams.data, profileId],
   );
+
+  const status = queryStatus(matches, participations);
+  if (status.loading) return <LoadingState rows={limit ? Math.min(limit, 3) : 3} />;
+  if (status.error) return <ErrorState onRetry={status.retry} />;
 
   if (mine.length === 0) {
     return (

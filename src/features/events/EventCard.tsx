@@ -73,8 +73,10 @@ export default function EventCard({
   }
 
   async function choose(status: EventStatus, nextGuests = guests) {
+    if (setParticipation.isPending) return;
     try {
       const result = await setParticipation.mutateAsync({
+        self: profileId,
         eventId: event.id,
         status,
         guests: nextGuests,
@@ -177,7 +179,8 @@ export default function EventCard({
                   <button
                     key={choice.value}
                     type="button"
-                    disabled={!open || setParticipation.isPending}
+                    disabled={!open}
+                    aria-busy={setParticipation.isPending || undefined}
                     aria-pressed={isActive}
                     onClick={() => void choose(choice.value)}
                     className={cn(

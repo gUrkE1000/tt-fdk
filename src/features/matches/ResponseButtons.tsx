@@ -50,8 +50,16 @@ export default function ResponseButtons({
   const current = participation?.response ?? 'none';
 
   async function choose(value: Enums<'participation_response'>) {
+    // Während ein Tipp noch unterwegs ist, zählt der nächste nicht — die Anzeige ist
+    // schon umgesprungen, ein zweiter Aufruf könnte den ersten überholen.
+    if (setResponse.isPending) return;
     try {
-      await setResponse.mutateAsync({ matchId, response: value, comment });
+      await setResponse.mutateAsync({
+        matchId,
+        response: value,
+        comment,
+        profileId: participation?.profile_id ?? null,
+      });
       toast(
         value === 'yes' ? 'Zusage gespeichert' : value === 'no' ? 'Absage gespeichert' : 'Gespeichert',
         'success',
@@ -75,6 +83,7 @@ export default function ResponseButtons({
         matchId,
         response: current,
         comment,
+        profileId: participation?.profile_id ?? null,
       });
       setCommentOpen(false);
       toast('Bemerkung gespeichert', 'success');
@@ -92,7 +101,8 @@ export default function ResponseButtons({
             <button
               key={choice.value}
               type="button"
-              disabled={disabled || setResponse.isPending}
+              disabled={disabled}
+              aria-busy={setResponse.isPending || undefined}
               aria-pressed={isActive}
               onClick={() => void choose(choice.value)}
               className={cn(

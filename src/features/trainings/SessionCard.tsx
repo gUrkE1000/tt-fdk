@@ -118,8 +118,10 @@ export default function SessionCard({
   const past = new Date(session.starts_at) <= new Date();
 
   async function choose(status: AttendanceStatus) {
+    if (setAttendance.isPending) return;
     try {
       await setAttendance.mutateAsync({
+        self: profileId,
         sessionId: session.id,
         status,
         guests,
@@ -139,6 +141,7 @@ export default function SessionCard({
     if (!mine || mine.status === 'no' || value === (mine.guests ?? 0)) return;
     try {
       await setAttendance.mutateAsync({
+        self: profileId,
         sessionId: session.id,
         status: mine.status as AttendanceStatus,
         guests: value,
@@ -157,6 +160,7 @@ export default function SessionCard({
     }
     try {
       await setAttendance.mutateAsync({
+        self: profileId,
         sessionId: session.id,
         status: mine.status as AttendanceStatus,
         guests,
@@ -290,7 +294,8 @@ export default function SessionCard({
                       <button
                         key={choice.value}
                         type="button"
-                        disabled={past || setAttendance.isPending}
+                        disabled={past}
+                        aria-busy={setAttendance.isPending || undefined}
                         aria-pressed={isActive}
                         onClick={() => void choose(choice.value)}
                         className={cn(

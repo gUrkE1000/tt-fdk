@@ -1,6 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Bell, Mail, Smartphone } from 'lucide-react';
-import { Card, CardBody, EmptyState, PageHeader } from '../../components/ui';
+import {
+  Card,
+  CardBody,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  PageHeader,
+} from '../../components/ui';
 import { formatDateTime } from '../../lib/dates';
 import { notificationTarget } from '../../lib/notificationTarget';
 import { useSession } from '../auth/session';
@@ -33,7 +40,11 @@ export default function NotificationsPage() {
         }
       />
 
-      {entries.length === 0 && !history.isLoading ? (
+      {history.isLoading ? (
+        <LoadingState />
+      ) : history.isError ? (
+        <ErrorState onRetry={() => void history.refetch()} />
+      ) : entries.length === 0 ? (
         <EmptyState
           icon={Bell}
           title="Noch keine Mitteilungen"

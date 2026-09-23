@@ -1,28 +1,40 @@
+import { lazy } from 'react';
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import AppShell from './layout/AppShell';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import ActionPage from '../features/auth/ActionPage';
 import { RequireAuth, RequireRole } from '../features/auth/guards';
-import ProfilePage from '../features/profile/ProfilePage';
-import MembersPage from '../features/members/MembersPage';
-import ClubPage from '../features/club/ClubPage';
-import MyClubPage from '../features/club/MyClubPage';
-import VenuesPage from '../features/venues/VenuesPage';
-import TeamsPage from '../features/teams/TeamsPage';
-import PlayersManagementPage from '../features/teams/PlayersManagementPage';
-import GamesPage from '../features/matches/GamesPage';
-import MyGamesPage from '../features/matches/MyGamesPage';
-import TrainingsPage from '../features/trainings/TrainingsPage';
-import CancellationsPage from '../features/trainings/CancellationsPage';
-import EventsPage from '../features/events/EventsPage';
-import PollsPage from '../features/polls/PollsPage';
-import CalendarPage from '../features/calendar/CalendarPage';
-import MyDatesPage from '../features/calendar/MyDatesPage';
-import DashboardPage from '../features/dashboard/DashboardPage';
-import MobileAppPage from '../features/notifications/MobileAppPage';
-import NotificationsPage from '../features/notifications/NotificationsPage';
-import StatisticsPage from '../features/statistics/StatisticsPage';
+
+/**
+ * Seiten hinter der Anmeldung werden erst beim Aufruf geladen.
+ *
+ * Vorher steckte alles in einem Paket von 1,9 MB: Kalender, Texteditor, Drag-and-drop
+ * und sämtliche Verwaltungsseiten, auch für ein Mitglied, das nur zusagen will. Sofort
+ * da bleiben Anmeldung, Registrierung und die Antwort-Seite aus E-Mails — die öffnet
+ * man ohne Anmeldung und soll nicht auf den Rest warten. Die Wartezeit fängt das
+ * Suspense in der AppShell ab; offline hilft der Service Worker, der alle Teile beim
+ * Installieren vorab speichert.
+ */
+const ProfilePage = lazy(() => import('../features/profile/ProfilePage'));
+const MembersPage = lazy(() => import('../features/members/MembersPage'));
+const ClubPage = lazy(() => import('../features/club/ClubPage'));
+const MyClubPage = lazy(() => import('../features/club/MyClubPage'));
+const VenuesPage = lazy(() => import('../features/venues/VenuesPage'));
+const TeamsPage = lazy(() => import('../features/teams/TeamsPage'));
+const PlayersManagementPage = lazy(() => import('../features/teams/PlayersManagementPage'));
+const GamesPage = lazy(() => import('../features/matches/GamesPage'));
+const MyGamesPage = lazy(() => import('../features/matches/MyGamesPage'));
+const TrainingsPage = lazy(() => import('../features/trainings/TrainingsPage'));
+const CancellationsPage = lazy(() => import('../features/trainings/CancellationsPage'));
+const EventsPage = lazy(() => import('../features/events/EventsPage'));
+const PollsPage = lazy(() => import('../features/polls/PollsPage'));
+const CalendarPage = lazy(() => import('../features/calendar/CalendarPage'));
+const MyDatesPage = lazy(() => import('../features/calendar/MyDatesPage'));
+const DashboardPage = lazy(() => import('../features/dashboard/DashboardPage'));
+const MobileAppPage = lazy(() => import('../features/notifications/MobileAppPage'));
+const NotificationsPage = lazy(() => import('../features/notifications/NotificationsPage'));
+const StatisticsPage = lazy(() => import('../features/statistics/StatisticsPage'));
 
 /**
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im

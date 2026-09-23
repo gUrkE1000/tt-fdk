@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { Dumbbell, Inbox, MessageSquareWarning } from 'lucide-react';
-import { PageHeader, StatTile, Tabs } from '../../components/ui';
+import { LoadingState, PageHeader, StatTile, Tabs } from '../../components/ui';
 import { useSession } from '../auth/session';
 import { useClubSettings } from '../club/api';
 import { useAllParticipations, useMatches } from '../matches/api';
@@ -11,7 +11,6 @@ import { useTrainings, useTrainingSessions } from '../trainings/api';
 import { myTrainingIds, openTrainings } from '../trainings/schemas';
 import SessionsTab from '../trainings/SessionsTab';
 import OpenTrainingsList from '../trainings/OpenTrainingsList';
-import PlanningTab from '../calendar/PlanningTab';
 import MyKeysTab from '../keys/MyKeysTab';
 import SubstituteBanner from '../substitutes/SubstituteBanner';
 import CountdownTile, { countdownLabel } from './CountdownTile';
@@ -25,6 +24,10 @@ import {
   parseQuicklinks,
 } from './summary';
 import { formatDateTime } from '../../lib/dates';
+
+// Der Kalender bringt FullCalendar mit, das größte Paket der Übersicht. Er lädt erst,
+// wenn jemand den Reiter öffnet.
+const PlanningTab = lazy(() => import('../calendar/PlanningTab'));
 
 /**
  * Die Übersicht (Aufgabe 8.1).
@@ -130,11 +133,16 @@ export default function DashboardPage() {
       />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-2">
-        <CountdownTile countdown={countdown} teamName={nextTeam?.name} location={nextVenue?.name} />
+        <CountdownTile
+          countdown={countdown}
+          teamName={nextTeam?.name}
+          location={nextVenue?.name}
+          loading={matches.isLoading || participations.isLoading}
+        />
 
         <StatTile
           label="Offen für dich"
-          value={openCount}
+          value={openItems.isLoading ? '…' : openCount}
           hint={
             openCount === 0
               ? 'Überall geantwortet'
@@ -183,7 +191,15 @@ export default function DashboardPage() {
             label: `Spiele (${countdown.total})`,
             content: <MyGamesList />,
           },
-          { value: 'calendar', label: 'Kalender', content: <PlanningTab /> },
+          {
+            value: 'calendar',
+            label: 'Kalender',
+            content: (
+              <Suspense fallback={<LoadingState rows={1} />}>
+                <PlanningTab />
+              </Suspense>
+            ),
+          },
           {
             value: 'keys',
             label: 'Schlüssel',

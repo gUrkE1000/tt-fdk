@@ -1,6 +1,14 @@
 import { useMemo, useState } from 'react';
 import { CalendarDays } from 'lucide-react';
-import { Button, EmptyState, FilterBar, Select } from '../../components/ui';
+import {
+  Button,
+  EmptyState,
+  FilterBar,
+  Select,
+  ErrorState,
+  LoadingState,
+} from '../../components/ui';
+import { queryStatus } from '../../lib/queryStatus';
 import { useSession } from '../auth/session';
 import { useMembers } from '../members/api';
 import { useTeams } from '../teams/api';
@@ -77,6 +85,8 @@ export default function ClubGamesTab() {
     [teamList, profile?.id],
   );
 
+  const status = queryStatus(matches, participations);
+
   return (
     <div>
       <FilterBar
@@ -112,7 +122,11 @@ export default function ClubGamesTab() {
         />
       </FilterBar>
 
-      {shown.length === 0 ? (
+      {status.loading ? (
+        <LoadingState />
+      ) : status.error ? (
+        <ErrorState onRetry={status.retry} />
+      ) : shown.length === 0 ? (
         <EmptyState
           icon={CalendarDays}
           title="Keine kommenden Spiele"

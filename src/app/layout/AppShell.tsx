@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import Sidebar from './Sidebar';
@@ -12,6 +12,8 @@ import { usePublicClubInfo } from '../../features/auth/api';
 import UpdatePrompt from '../../features/notifications/UpdatePrompt';
 import BellButton from '../../features/notifications/BellButton';
 import { useOpenCount } from '../../features/dashboard/openItems';
+import ConnectionBanner from './ConnectionBanner';
+import { LoadingState } from '../../components/ui';
 
 interface AppShellProps {
   /** Nur für Tests: überschreibt Rolle und Vereinsname statt der echten Sitzung. */
@@ -98,8 +100,12 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
           }
         />
 
+        <ConnectionBanner />
+
         <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-4 sm:px-6 sm:py-6">
-          <Outlet />
+          <Suspense fallback={<LoadingState />}>
+            <Outlet />
+          </Suspense>
         </main>
 
         <LegalFooter className="border-t border-gray-200" />

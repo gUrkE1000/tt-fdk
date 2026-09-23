@@ -24,6 +24,7 @@ function makeBuilder(table: string) {
     range: () => chain,
     is: () => chain,
     not: () => chain,
+    gte: () => chain,
     in: () => Promise.resolve({ error: null }),
     eq: () => chain,
     insert: (values: unknown) => {
@@ -433,8 +434,9 @@ describe('ManagePlayersDialog', () => {
     renderDialog();
     await screen.findByText(/^Aufstellung \(2\)$/);
 
+    // Die sortierbare Liste der Aufstellung wird nachgeladen.
     await userEvent.click(
-      screen.getByRole('button', { name: 'Tina Trainerin vorerst entfernen' }),
+      await screen.findByRole('button', { name: 'Tina Trainerin vorerst entfernen' }),
     );
 
     await waitFor(() =>

@@ -76,7 +76,7 @@ export type { MultiSelectProps, MultiSelectOption } from './MultiSelect';
 export { default as PersonPicker } from './PersonPicker';
 export type { PersonPickerProps, Person } from './PersonPicker';
 
-export { default as SortableList } from './SortableList';
+export { default as SortableList } from './LazySortableList';
 export type { SortableListProps, SortableItem } from './SortableList';
 
 export { default as Table } from './Table';
@@ -85,5 +85,10 @@ export type { TableProps, TableColumn } from './Table';
 export { default as FilterBar } from './FilterBar';
 export type { FilterBarProps } from './FilterBar';
 
-export { default as RichTextEditor, RichText } from './RichTextEditor';
-export type { RichTextEditorProps, RichTextProps } from './RichTextEditor';
+export { default as RichTextEditor } from './LazyRichTextEditor';
+export { RichText } from './RichText';
+export type { RichTextEditorProps } from './RichTextEditor';
+export type { RichTextProps } from './RichText';
+
+export { LoadingState, ErrorState } from './QueryState';
+export type { LoadingStateProps, ErrorStateProps } from './QueryState';

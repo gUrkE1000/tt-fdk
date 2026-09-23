@@ -36,7 +36,8 @@ import RescheduleDialog from './RescheduleDialog';
 
 export default function GamesPage() {
   const { toast } = useToast();
-  const matches = useMatches();
+  // Mannschaftsführer brauchen unter „Beendete Termine" die ganze Saison.
+  const matches = useMatches('all');
   const teams = useTeams();
   const venues = useVenues();
   const deleteMatches = useDeleteMatches();
@@ -58,8 +59,8 @@ export default function GamesPage() {
   const teamList = useMemo(() => teams.data ?? [], [teams.data]);
   const venueList = venues.data ?? [];
   const members = useMembers();
-  const participations = useAllParticipations();
-  const volunteers = useAllVolunteers();
+  const participations = useAllParticipations('all');
+  const volunteers = useAllVolunteers('all');
 
   const nameOf = useMemo(() => {
     const names = new Map(

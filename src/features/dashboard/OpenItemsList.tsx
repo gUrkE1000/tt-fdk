@@ -5,6 +5,8 @@ import {
   Card,
   CardBody,
   EmptyState,
+  ErrorState,
+  LoadingState,
   buttonClasses,
   useToast,
 } from '../../components/ui';
@@ -57,9 +59,8 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
   const all = items.data ?? [];
   const shown = limit === undefined ? all : all.slice(0, limit);
 
-  if (items.isLoading) {
-    return <p className="text-sm text-gray-500">Einen Moment …</p>;
-  }
+  if (items.isLoading) return <LoadingState />;
+  if (items.isError) return <ErrorState onRetry={() => void items.refetch()} />;
 
   if (all.length === 0) {
     return (
@@ -182,11 +183,13 @@ const TRAINING_CHOICES: Choice<AttendanceStatus>[] = [
 
 function TrainingChoices({ sessionId }: { sessionId: string }) {
   const { toast } = useToast();
+  const { profile } = useSession();
   const setAttendance = useSetAttendance();
 
   async function choose(status: AttendanceStatus) {
+    if (setAttendance.isPending) return;
     try {
-      await setAttendance.mutateAsync({ sessionId, status });
+      await setAttendance.mutateAsync({ sessionId, status, self: profile?.id ?? null });
       toast(status === 'no' ? 'Absage gespeichert' : 'Zusage gespeichert', 'success');
     } catch (error) {
       toast(error instanceof Error ? error.message : 'Das hat nicht geklappt', 'error');
@@ -209,11 +212,17 @@ const EVENT_CHOICES: Choice<EventStatus>[] = [
 
 function EventChoices({ eventId }: { eventId: string }) {
   const { toast } = useToast();
+  const { profile } = useSession();
   const setParticipation = useSetEventParticipation();
 
   async function choose(status: EventStatus) {
+    if (setParticipation.isPending) return;
     try {
-      const result = await setParticipation.mutateAsync({ eventId, status });
+      const result = await setParticipation.mutateAsync({
+        eventId,
+        status,
+        self: profile?.id ?? null,
+      });
       if (result.status === 'ok') {
         toast(status === 'yes' ? 'Zusage gespeichert' : 'Absage gespeichert', 'success');
       } else {

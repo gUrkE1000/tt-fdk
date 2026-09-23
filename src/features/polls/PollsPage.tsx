@@ -7,7 +7,10 @@ import {
   PageHeader,
   Tabs,
   useToast,
+  ErrorState,
+  LoadingState,
 } from '../../components/ui';
+import { queryStatus } from '../../lib/queryStatus';
 import { useSession } from '../auth/session';
 import { useGroups } from '../members/api';
 import { useTeams } from '../teams/api';
@@ -55,7 +58,11 @@ export default function PollsPage() {
     }
   }
 
+  const status = queryStatus(polls, voters);
+
   function list(rows: PollWithDetails[], emptyText: string) {
+    if (status.loading) return <LoadingState />;
+    if (status.error) return <ErrorState onRetry={status.retry} />;
     if (rows.length === 0) {
       return <EmptyState icon={BarChart3} title="Keine Umfragen" description={emptyText} />;
     }

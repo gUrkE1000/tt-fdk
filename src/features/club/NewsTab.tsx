@@ -14,6 +14,8 @@ import {
   RichText,
   RichTextEditor,
   useToast,
+  ErrorState,
+  LoadingState,
 } from '../../components/ui';
 import { formatDateTime } from '../../lib/dates';
 import {
@@ -114,8 +116,8 @@ export default function NewsTab({ canEdit = false }: NewsTabProps) {
       {canEdit && (
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-gray-600">
-            Neuigkeiten stehen unter „Mein Verein“ für alle — es geht bewusst keine
-            Benachrichtigung raus.
+            Neuigkeiten stehen unter „Mein Verein“ für alle. Beim Schreiben entscheidest
+            du, ob alle Mitglieder einen Hinweis bekommen.
           </p>
           <Button
             onClick={() => {
@@ -129,7 +131,11 @@ export default function NewsTab({ canEdit = false }: NewsTabProps) {
         </div>
       )}
 
-      {items.length === 0 ? (
+      {news.isLoading ? (
+        <LoadingState />
+      ) : news.isError ? (
+        <ErrorState onRetry={() => void news.refetch()} />
+      ) : items.length === 0 ? (
         <EmptyState
           icon={Newspaper}
           title="Noch keine Neuigkeiten"
