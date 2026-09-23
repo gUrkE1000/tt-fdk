@@ -217,17 +217,21 @@ export function useSetAttendance() {
       status,
       guests,
       profileId,
+      comment,
     }: {
       sessionId: string;
       status: AttendanceStatus;
       guests?: number;
       profileId?: string;
+      /** Ohne Angabe bleibt die bisherige Bemerkung stehen. */
+      comment?: string;
     }) => {
       const { error } = await supabase.rpc('rpc_set_training_attendance', {
         p_session_id: sessionId,
         p_status: status,
         p_guests: guests ?? 0,
         p_profile_id: profileId ?? null,
+        ...(comment !== undefined ? { p_comment: comment } : {}),
       });
       if (error) throw error;
     },
@@ -390,4 +394,7 @@ async function replaceRows(
 
 function invalidate(queryClient: ReturnType<typeof useQueryClient>) {
   void queryClient.invalidateQueries({ queryKey: queryKeys.trainings.all });
+  // Eine Rückmeldung ändert auch „Meine Termine", den Kalender und „Offen für dich".
+  void queryClient.invalidateQueries({ queryKey: queryKeys.open.all });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.calendar.all });
 }

@@ -77,6 +77,16 @@ export default function NotificationsTab({ profile }: { profile: Profile }) {
             rows={rows}
             draft={draft}
             onChange={(type, next) => setDraft((current) => ({ ...current, [type]: next }))}
+            onChangeAll={(channel, value) =>
+              setDraft((current) =>
+                Object.fromEntries(
+                  rows.map((row) => {
+                    const state = current[row.type!] ?? { email: true, push: true };
+                    return [row.type!, { ...state, [channel]: value }];
+                  }),
+                ),
+              )
+            }
           />
         </CardBody>
       </Card>

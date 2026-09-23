@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -11,6 +12,8 @@ import { useCalendarItems } from './api';
 import {
   CATEGORIES,
   DEFAULT_CALENDAR_FILTERS,
+  detailPath,
+  type CalendarKind,
   toDisplayEvents,
   toggleKind,
   type CalendarFilters,
@@ -27,6 +30,7 @@ export default function PlanningTab() {
   const items = useCalendarItems();
   const compact = useIsCompact();
   const [filters, setFilters] = useState<CalendarFilters>(DEFAULT_CALENDAR_FILTERS);
+  const navigate = useNavigate();
 
   const events = useMemo(
     () => toDisplayEvents(items.data ?? [], filters),
@@ -130,9 +134,16 @@ export default function PlanningTab() {
           eventDisplay="block"
           displayEventTime={!compact}
           eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
-          eventClassNames={(arg) =>
-            arg.event.extendedProps.cancelled === true ? ['vp-event-cancelled'] : []
-          }
+          eventClassNames={(arg) => [
+            ...(arg.event.extendedProps.cancelled === true ? ['vp-event-cancelled'] : []),
+            ...(detailPath(arg.event.extendedProps.kind as CalendarKind) ? ['cursor-pointer'] : []),
+          ]}
+          eventClick={(arg) => {
+            const path = detailPath(arg.event.extendedProps.kind as CalendarKind);
+            if (!path) return;
+            arg.jsEvent.preventDefault();
+            navigate(path);
+          }}
           events={events}
           noEventsText="In diesem Zeitraum steht nichts an."
         />

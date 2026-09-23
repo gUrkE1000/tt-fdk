@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CalendarClock, Check, MapPin, Users, X } from 'lucide-react';
+import { CalendarClock, Check, MapPin, Navigation, Users, X } from 'lucide-react';
 import {
   Avatar,
   Badge,
@@ -12,6 +12,7 @@ import {
 import { cn } from '../../lib/cn';
 import MessagesPanel from '../messages/MessagesPanel';
 import { formatDate, formatDateTime } from '../../lib/dates';
+import { mapsUrl } from '../../lib/maps';
 import { hasRichText } from '../../lib/richText';
 import {
   useSetEventParticipation,
@@ -64,6 +65,12 @@ export default function EventCard({
   const coming = participants.filter((entry) => entry.status === 'yes');
   const taken = coming.reduce((sum, entry) => sum + 1 + (entry.guests ?? 0), 0);
   const open = isRegistrationOpen(event);
+  const route = mapsUrl(event.address);
+
+  // Beim Verlassen des Feldes speichern, nicht bei jedem Tastendruck.
+  function commitGuests() {
+    if (mine?.status === 'yes' && guests !== (mine.guests ?? 0)) void choose('yes', guests);
+  }
 
   async function choose(status: EventStatus, nextGuests = guests) {
     try {
@@ -121,7 +128,18 @@ export default function EventCard({
         {event.address && (
           <p className="flex items-start gap-1.5 text-sm text-gray-600">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
-            <span>{event.address}</span>
+            <span className="min-w-0 flex-1">{event.address}</span>
+            {route && (
+              <a
+                href={route}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-1 font-semibold text-primary underline-offset-2 hover:underline"
+              >
+                <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+                Route
+              </a>
+            )}
           </p>
         )}
 
@@ -187,10 +205,10 @@ export default function EventCard({
                   aria-label="Gäste"
                   value={guests}
                   disabled={!open}
-                  onChange={(event_) => {
-                    const value = Number(event_.target.value) || 0;
-                    setGuests(value);
-                    if (mine?.status === 'yes') void choose('yes', value);
+                  onChange={(event_) => setGuests(Number(event_.target.value) || 0)}
+                  onBlur={commitGuests}
+                  onKeyDown={(event_) => {
+                    if (event_.key === 'Enter') commitGuests();
                   }}
                 />
               </label>

@@ -21,6 +21,7 @@ import CalendarPage from '../features/calendar/CalendarPage';
 import MyDatesPage from '../features/calendar/MyDatesPage';
 import DashboardPage from '../features/dashboard/DashboardPage';
 import MobileAppPage from '../features/notifications/MobileAppPage';
+import NotificationsPage from '../features/notifications/NotificationsPage';
 import StatisticsPage from '../features/statistics/StatisticsPage';
 
 /**
@@ -75,6 +76,7 @@ export const router = createBrowserRouter([
           { path: 'votes', element: <PollsPage /> },
           { path: 'profile', element: <ProfilePage /> },
           { path: 'mobile-app', element: <MobileAppPage /> },
+          { path: 'notifications', element: <NotificationsPage /> },
 
           // Ohne Rollenprüfung: Ob jemand eine Trainingsstatistik sieht, hängt am
           // Training (`statistics_visibility`), nicht an seiner Rolle. Ein Mitglied

@@ -5,6 +5,8 @@ export interface NotificationMatrixProps {
   rows: PreferenceRow[];
   draft: Record<string, { email: boolean; push: boolean }>;
   onChange: (type: string, next: { email: boolean; push: boolean }) => void;
+  /** Eine ganze Spalte auf einmal an- oder abschalten. */
+  onChangeAll?: (channel: 'push' | 'email', value: boolean) => void;
 }
 
 /**
@@ -14,9 +16,39 @@ export interface NotificationMatrixProps {
  * unterhalb von 640 px eine Liste mit zwei Schaltern je Zeile. Dieselben Daten, andere
  * Form — nicht weniger Funktion.
  */
-export default function NotificationMatrix({ rows, draft, onChange }: NotificationMatrixProps) {
+export default function NotificationMatrix({
+  rows,
+  draft,
+  onChange,
+  onChangeAll,
+}: NotificationMatrixProps) {
+  const states = rows.map((row) => draft[row.type!] ?? { email: true, push: true });
+  const allPush = states.length > 0 && states.every((state) => state.push);
+  const allEmail = states.length > 0 && states.every((state) => state.email);
+
   return (
     <div>
+      {/* Siebzehn Zeilen einzeln anzuklicken ist niemandem zuzumuten, der nur „alles per
+          App, nichts per E-Mail" will. */}
+      {onChangeAll && (
+        <div className="mb-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => onChangeAll('push', !allPush)}
+            className="min-h-touch rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            {allPush ? 'Alle App-Hinweise aus' : 'Alle App-Hinweise an'}
+          </button>
+          <button
+            type="button"
+            onClick={() => onChangeAll('email', !allEmail)}
+            className="min-h-touch rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            {allEmail ? 'Alle E-Mails aus' : 'Alle E-Mails an'}
+          </button>
+        </div>
+      )}
+
       {/* Ab sm: echte Tabelle mit Spaltenköpfen. */}
       <table className="hidden w-full border-collapse text-sm sm:table">
         <thead>

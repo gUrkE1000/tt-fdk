@@ -10,12 +10,13 @@ const CHIPS: { value: MyGamesScope; label: string }[] = [
   { value: 'all', label: 'Alle' },
   { value: 'home', label: 'Heim' },
   { value: 'away', label: 'Auswärts' },
+  { value: 'past', label: 'Vergangene' },
 ];
 
 /**
  * „Meine Spiele": alle kommenden Termine, an denen ich beteiligt bin — im Kader oder weil
- * mich jemand dazugeholt hat. Vergangene Spiele stehen nicht hier; wer sie sucht, findet
- * sie unter Spieltermine.
+ * mich jemand dazugeholt hat. Die vergangenen stehen hinter dem Chip „Vergangene": Die
+ * Seite „Spieltermine" erreichen nur Mannschaftsführer und Administratoren.
  */
 export default function MyGamesPage() {
   const matches = useMatches();

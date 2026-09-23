@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { PageHeader, Tabs } from '../../components/ui';
 import { useSession } from '../auth/session';
 import ProfileTab from './ProfileTab';
@@ -7,6 +8,7 @@ import AutoAttendanceTab from './AutoAttendanceTab';
 
 export default function ProfilePage() {
   const { profile } = useSession();
+  const [search, setSearch] = useSearchParams();
 
   if (!profile) return null;
 
@@ -15,6 +17,8 @@ export default function ProfilePage() {
       <PageHeader title="Mein Profil" description={profile.full_name ?? undefined} />
 
       <Tabs
+        value={search.get('tab') ?? 'profile'}
+        onValueChange={(value) => setSearch({ tab: value }, { replace: true })}
         tabs={[
           { value: 'profile', label: 'Profil', content: <ProfileTab profile={profile} /> },
           {

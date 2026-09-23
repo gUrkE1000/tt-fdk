@@ -73,5 +73,20 @@ export const queryKeys = {
     mine: (profileId: string | null) => ['calendar', 'mine', profileId] as const,
   },
 
+  /**
+   * „Offen für dich": alles, wo die eigene Antwort fehlt. Jede Rückmeldung
+   * (Spiel, Training, Termin, Umfrage, Ersatzanfrage) macht diesen Schlüssel
+   * ungültig — sonst stünde das Beantwortete weiter in der Liste.
+   */
+  open: {
+    all: ['open'] as const,
+    mine: (profileId: string | null) => ['open', profileId] as const,
+  },
+
+  notifications: {
+    all: ['notifications'] as const,
+    mine: (profileId: string | null) => ['notifications', 'mine', profileId] as const,
+  },
+
   clubSettings: ['club-settings'] as const,
 } as const;

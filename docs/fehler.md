@@ -8,6 +8,39 @@ Gemeldete, noch offene Fehler stehen unter [Offen](#offen).
 
 ---
 
+## F-6 · Link der Terminumfrage meldet „wird noch nicht unterstützt"
+
+**Gefunden** 23.09.2026 bei der Durchsicht der Antwort-Links, nicht gemeldet.
+**Schwere** mittel — die Terminumfrage zur Spielverlegung ließ sich aus der E-Mail heraus
+nicht öffnen; in der App ging sie weiterhin.
+**Behoben** 23.09.2026 (Migration `20261101000001_member_features.sql`).
+
+### Bild
+
+Klick auf den Link in „Terminumfrage: … gegen …" → „Das hat nicht geklappt. Diese Art von
+Link wird noch nicht unterstützt."
+
+### Ursache
+
+`20261013000000_reschedule.sql` hatte `rpc_answer_action_token` um den Zweig `poll_vote`
+erweitert. `20261015000000_events.sql` hat die Funktion danach für die Vereinstermine
+**vollständig neu** geschrieben — auf Grundlage der Fassung davor. Der Zweig war damit weg,
+und `rpc_describe_action_token` hatte ihn nie. Kein Test hat den Link der Terminumfrage
+durchgespielt.
+
+### Behebung
+
+Die Beschreibung erkennt `poll_vote` wieder; die Link-Seite zeigt, worum es geht, und
+schickt in die App an die Spielkarte. Mit einem Knopf lässt sich eine Umfrage mit bis zu
+drei Vorschlägen ohnehin nicht beantworten. Abgesichert in
+`supabase/tests/140_member_features.test.sql`.
+
+**Lehre:** Wer eine `CREATE OR REPLACE FUNCTION` aus einer älteren Migration abschreibt,
+nimmt die **neueste** Fassung als Vorlage — `grep -l "FUNCTION public.<name>"
+supabase/migrations/*.sql | tail -1`.
+
+---
+
 ## F-5 · Registrierungsseite lädt endlos
 
 **Gemeldet** 19.09.2026, beim Öffnen von `/register/<code>` und beim QR-Code.

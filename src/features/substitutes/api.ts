@@ -104,4 +104,5 @@ export function chainFor(requests: SubstituteRequest[], matchId: string): Substi
 function invalidate(queryClient: ReturnType<typeof useQueryClient>) {
   void queryClient.invalidateQueries({ queryKey: ['substitute-requests'] });
   void queryClient.invalidateQueries({ queryKey: queryKeys.matches.all });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.open.all });
 }

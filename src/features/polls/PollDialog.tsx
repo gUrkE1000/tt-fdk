@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
@@ -50,6 +50,9 @@ export default function PollDialog({
   const { toast } = useToast();
   const { profile } = useSession();
   const savePoll = useSavePoll();
+  // Nicht im Formularschema: Es ist keine Eigenschaft der Umfrage, sondern eine
+  // Anweisung beim Anlegen.
+  const [announce, setAnnounce] = useState(true);
 
   const form = useForm<PollValues>({
     resolver: zodResolver(pollSchema),
@@ -57,7 +60,10 @@ export default function PollDialog({
   });
 
   useEffect(() => {
-    if (open) form.reset(poll ? toFormValues(poll) : EMPTY_POLL);
+    if (open) {
+      form.reset(poll ? toFormValues(poll) : EMPTY_POLL);
+      setAnnounce(true);
+    }
   }, [open, poll, form]);
 
   const options = form.watch('options');
@@ -83,6 +89,7 @@ export default function PollDialog({
           teamIds: values.teamIds,
           groupIds: values.groupIds,
           options: values.options,
+          announce: !poll && announce,
         },
       });
       toast(poll ? 'Umfrage gespeichert' : 'Umfrage angelegt', 'success');
@@ -240,6 +247,15 @@ export default function PollDialog({
           label="Antworten für Mitglieder nicht anzeigen"
           hint="Du selbst siehst die Ergebnisse weiterhin."
         />
+
+        {!poll && (
+          <Checkbox
+            checked={announce}
+            onCheckedChange={setAnnounce}
+            label="Mitglieder benachrichtigen"
+            hint="Die Zielgruppe bekommt einen Hinweis per App bzw. E-Mail, je nach ihren Einstellungen."
+          />
+        )}
       </form>
     </Dialog>
   );

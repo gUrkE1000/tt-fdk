@@ -846,6 +846,7 @@ export interface Database {
           author_id: string | null;
           created_at: string;
           updated_at: string;
+          announced_at: string | null;
         };
         Insert: {
           id?: string;
@@ -856,6 +857,7 @@ export interface Database {
           author_id?: string | null;
           created_at?: string;
           updated_at?: string;
+          announced_at?: string | null;
         };
         Update: {
           id?: string;
@@ -866,6 +868,7 @@ export interface Database {
           author_id?: string | null;
           created_at?: string;
           updated_at?: string;
+          announced_at?: string | null;
         };
         Relationships: [
           {
@@ -1180,6 +1183,7 @@ export interface Database {
           created_by: string | null;
           created_at: string;
           updated_at: string;
+          announced_at: string | null;
         };
         Insert: {
           id?: string;
@@ -1192,6 +1196,7 @@ export interface Database {
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
+          announced_at?: string | null;
         };
         Update: {
           id?: string;
@@ -1204,6 +1209,7 @@ export interface Database {
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
+          announced_at?: string | null;
         };
         Relationships: [
           {
@@ -1665,6 +1671,7 @@ export interface Database {
           source: Database["public"]["Enums"]["attendance_source"];
           updated_by: string | null;
           updated_at: string;
+          comment: string;
         };
         Insert: {
           session_id: string;
@@ -1674,6 +1681,7 @@ export interface Database {
           source?: Database["public"]["Enums"]["attendance_source"];
           updated_by?: string | null;
           updated_at?: string;
+          comment?: string;
         };
         Update: {
           session_id?: string;
@@ -1683,6 +1691,7 @@ export interface Database {
           source?: Database["public"]["Enums"]["attendance_source"];
           updated_by?: string | null;
           updated_at?: string;
+          comment?: string;
         };
         Relationships: [
           {
@@ -2241,6 +2250,16 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_my_open_polls: {
+        Row: {
+          id: string | null;
+          title: string | null;
+          type: Database["public"]["Enums"]["poll_type"] | null;
+          expires_at: string | null;
+          created_at: string | null;
+        };
+        Relationships: [];
+      };
       v_my_upcoming: {
         Row: {
           profile_id: string | null;
@@ -2362,6 +2381,7 @@ export interface Database {
           guests: number | null;
           source: Database["public"]["Enums"]["attendance_source"] | null;
           updated_at: string | null;
+          comment: string | null;
         };
         Relationships: [];
       };
@@ -2477,6 +2497,14 @@ export interface Database {
       };
       rpc_admin_members: {
         Args: Record<string, never>;
+        Returns: unknown;
+      };
+      rpc_announce_news: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_announce_poll: {
+        Args: { [key: string]: unknown };
         Returns: unknown;
       };
       rpc_answer_action_token: {
@@ -2602,7 +2630,7 @@ export interface Database {
     };
     CompositeTypes: Record<string, never>;
     Enums: {
-      action_token_kind: "match_response" | "substitute_answer" | "event_response" | "poll_vote";
+      action_token_kind: "match_response" | "substitute_answer" | "event_response" | "poll_vote" | "training_response";
       attendance_source: "auto" | "self" | "trainer" | "link";
       attendance_status: "yes" | "late" | "no";
       event_status: "yes" | "no";

@@ -159,4 +159,47 @@ describe('ActionPage', () => {
     renderAt('/r/abc');
     expect(await screen.findByRole('link', { name: 'Zur App' })).toBeInTheDocument();
   });
+
+  it('fragt beim Training nach „Komme später" statt „Unsicher"', async () => {
+    state.describe = {
+      status: 'ok',
+      action: 'training_response',
+      summary: 'Erwachsenentraining am 06.10.2026 um 19:00 Uhr',
+    };
+    state.answer = { status: 'ok', answer: 'late', summary: 'Erwachsenentraining am 06.10.2026' };
+    renderAt('/r/abc');
+
+    expect(await screen.findByText('Kommst du zum Training?')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Unsicher/ })).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: /Komme später/ }));
+
+    expect(await screen.findByText(/Deine Antwort „Komme später" ist gespeichert/)).toBeInTheDocument();
+    expect(state.calls).toContainEqual({
+      name: 'rpc_answer_action_token',
+      args: { p_token: 'abc', p_answer: 'late' },
+    });
+  });
+
+  it('schickt bei der Terminumfrage in die App, statt einen Fehler zu zeigen', async () => {
+    state.describe = {
+      status: 'ok',
+      action: 'poll_vote',
+      summary: '1. Herren gegen TTC Nachbarstadt am 05.10.2026 um 19:00 Uhr',
+    };
+    renderAt('/r/abc');
+
+    expect(await screen.findByText('Terminumfrage zur Spielverlegung')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Zur Terminumfrage' })).toHaveAttribute(
+      'href',
+      '/my-games',
+    );
+    expect(screen.queryByRole('button', { name: /Zusage/ })).toBeNull();
+  });
+
+  it('erklärt, warum ein Training nicht mehr geht', async () => {
+    state.describe = { status: 'cancelled' };
+    renderAt('/r/abc');
+    expect(await screen.findByText('Dieser Termin fällt aus.')).toBeInTheDocument();
+  });
 });

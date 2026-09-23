@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { MessageSquareWarning } from 'lucide-react';
+import { Dumbbell, Inbox, MessageSquareWarning } from 'lucide-react';
 import { PageHeader, StatTile, Tabs } from '../../components/ui';
 import { useSession } from '../auth/session';
 import { useClubSettings } from '../club/api';
@@ -13,9 +13,18 @@ import SessionsTab from '../trainings/SessionsTab';
 import OpenTrainingsList from '../trainings/OpenTrainingsList';
 import PlanningTab from '../calendar/PlanningTab';
 import MyKeysTab from '../keys/MyKeysTab';
-import CountdownTile from './CountdownTile';
+import SubstituteBanner from '../substitutes/SubstituteBanner';
+import CountdownTile, { countdownLabel } from './CountdownTile';
+import OpenItemsList from './OpenItemsList';
+import { useMyOpenItems } from './openItems';
 import QuickLinks from './QuickLinks';
-import { countOpenResponses, matchCountdown, parseQuicklinks } from './summary';
+import {
+  calendarDaysUntil,
+  countOpenResponses,
+  matchCountdown,
+  parseQuicklinks,
+} from './summary';
+import { formatDateTime } from '../../lib/dates';
 
 /**
  * Die Übersicht (Aufgabe 8.1).
@@ -83,6 +92,25 @@ export default function DashboardPage() {
 
   const openTrainingCount = openTrainings(trainingList).length;
 
+  // Das nächste eigene Training, das nicht ausfällt — die zweite Frage nach „wann
+  // spiele ich": wann bin ich das nächste Mal in der Halle?
+  const nextTraining = useMemo(() => {
+    const mine = myTrainingIds(trainingList, profileId);
+    const now = Date.now();
+    const session = (sessions.data ?? [])
+      .filter((entry) => mine.has(entry.training_id) && !entry.cancelled)
+      .filter((entry) => new Date(entry.starts_at).getTime() >= now)
+      .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0];
+    if (!session) return null;
+    return {
+      session,
+      name: trainingList.find((entry) => entry.id === session.training_id)?.name ?? 'Training',
+    };
+  }, [sessions.data, trainingList, profileId]);
+
+  const openItems = useMyOpenItems(profileId);
+  const openCount = openItems.data?.length ?? 0;
+
   const quicklinks = parseQuicklinks(settings.data?.quicklinks_json);
 
   return (
@@ -92,8 +120,38 @@ export default function DashboardPage() {
         description="Was als Nächstes ansteht — und wo du noch gefragt bist."
       />
 
+      <SubstituteBanner
+        describe={(request) => {
+          const forMatch = (matches.data ?? []).find((entry) => entry.id === request.match_id);
+          if (!forMatch) return 'Ein Spieltermin';
+          const team = (teams.data ?? []).find((entry) => entry.id === forMatch.team_id);
+          return `${team?.name ?? 'Mannschaft'} gegen ${forMatch.opponent || 'unbekannt'}`;
+        }}
+      />
+
       <div className="mb-4 grid gap-3 sm:grid-cols-2">
         <CountdownTile countdown={countdown} teamName={nextTeam?.name} location={nextVenue?.name} />
+
+        <StatTile
+          label="Offen für dich"
+          value={openCount}
+          hint={
+            openCount === 0
+              ? 'Überall geantwortet'
+              : `${openCount === 1 ? 'Termin oder Umfrage wartet' : 'Termine und Umfragen warten'} auf deine Antwort`
+          }
+          icon={Inbox}
+          tone={openCount > 0 ? 'warning' : 'success'}
+        />
+
+        {nextTraining && (
+          <StatTile
+            label="Nächstes Training"
+            value={countdownLabel(calendarDaysUntil(nextTraining.session.starts_at, new Date()))}
+            hint={`${nextTraining.name} · ${formatDateTime(nextTraining.session.starts_at)}`}
+            icon={Dumbbell}
+          />
+        )}
 
         {showOpenResponses && (
           <StatTile
@@ -110,6 +168,11 @@ export default function DashboardPage() {
 
       <Tabs
         tabs={[
+          {
+            value: 'open',
+            label: `Offen (${openCount})`,
+            content: <OpenItemsList limit={10} />,
+          },
           {
             value: 'trainings',
             label: `Trainings (${mySessionCount})`,

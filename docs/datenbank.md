@@ -360,6 +360,21 @@ Die Terminumfrage zur Spielverlegung (Aufgabe 5.5) läuft bewusst **nicht** hier
 Dort geht es um „wann kannst du", nicht um „was willst du", und daran hängt eine
 Verlegung.
 
+`polls.announced_at` und `news.announced_at` (Migration `20261101000001`) merken sich,
+dass eine Umfrage bzw. Neuigkeit schon gemeldet wurde. Gemeldet wird über
+`rpc_announce_poll` / `rpc_announce_news` — kein Trigger beim Einfügen, weil eine Umfrage
+in drei Schritten entsteht (erst danach steht die Zielgruppe fest) und weil beim
+Abschreiben alter Neuigkeiten niemand zwanzig E-Mails auslösen soll. Der Dialog hat
+dafür das Häkchen „Mitglieder benachrichtigen". Eine vordatierte Neuigkeit wird zum
+Veröffentlichungstermin gemeldet (`scheduled_for`).
+
+### `v_my_open_polls`
+
+Umfragen, die noch laufen, an den Angemeldeten gerichtet sind (`is_poll_target`) und in
+denen seine Stimme fehlt. `security_invoker`: Die Policy auf `poll_votes` gibt die eigene
+Stimme immer heraus, auch bei verborgenen Ergebnissen. Zusammen mit
+`v_open_participations` die Grundlage für „Offen für dich".
+
 ### `calendar_tokens`
 
 Der Abo-Link je Mitglied. Er ist ein **Dauerausweis**: Wer ihn hat, liest die zugesagten
@@ -414,7 +429,8 @@ Termin geht dagegen an alle, so steht es im Zielbild.
 
 ### `v_session_participants`, `v_session_counts`
 
-Wer kommt zu einem Trainingstermin? `v_session_participants` liefert die Namen und nutzt
+Wer kommt zu einem Trainingstermin? `v_session_participants` liefert die Namen (und seit
+`20261101000001` die Bemerkung aus `training_attendance.comment`) und nutzt
 `security_invoker = true`: die Policy auf `training_attendance` entscheidet, wer wen sieht —
 bei einem inkognito geführten Training also nur Trainer und Admin.
 
@@ -465,6 +481,9 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `seed_match_participations()` | Trigger: legt beim neuen Spiel für den ganzen Kader offene Zeilen an |
 | `recompute_lineup(uuid)` | Berechnet die Aufstellung neu (siehe unten) |
 | `rpc_set_match_response(uuid, response, text)` | Eigene Zu- oder Absage, prüft den Meldeschluss |
+| `rpc_set_training_attendance(uuid, status, int, uuid, text)` | Trainingsrückmeldung; die Bemerkung (letzter Parameter) bleibt bei `NULL` unverändert |
+| `apply_training_answer(uuid, uuid, text)` | Trainingsrückmeldung über den Antwort-Link (`training_response`); Statuswerte statt Fehler: `cancelled`, `started`, `not_assigned`, `full` |
+| `rpc_announce_poll(uuid)`, `rpc_announce_news(uuid)` | Neue Umfrage bzw. Neuigkeit melden (nur Veranstalter/Admin, je einmal) |
 | `rpc_manage_player(uuid, uuid, text)` | `add`, `remove`, `decline`, `reset` durch den Mannschaftsführer |
 | `rpc_set_lineup(uuid, jsonb)` | Aufstellung von Hand; sperrt die Automatik |
 | `rpc_unlock_lineup(uuid)` | Zurück zur Automatik |

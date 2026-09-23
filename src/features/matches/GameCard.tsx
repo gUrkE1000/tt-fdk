@@ -1,4 +1,4 @@
-import { AlertTriangle, CalendarClock, MapPin, Share2, Users } from 'lucide-react';
+import { AlertTriangle, CalendarClock, KeyRound, MapPin, Navigation, Share2, Users } from 'lucide-react';
 import {
   Avatar,
   Badge,
@@ -8,6 +8,8 @@ import {
   ProgressBar,
 } from '../../components/ui';
 import { formatDateTime } from '../../lib/dates';
+import { isFinished } from './filters';
+import { mapsUrl } from '../../lib/maps';
 import { formatVenueAddress } from '../venues/schemas';
 import type { Venue } from '../venues/api';
 import type { TeamWithRoster } from '../teams/api';
@@ -16,6 +18,7 @@ import ResponseButtons from './ResponseButtons';
 import VolunteerToggles from './VolunteerToggles';
 import RescheduleVotePanel from './RescheduleVotePanel';
 import MessagesPanel from '../messages/MessagesPanel';
+import { groupResponses } from './responseGroups';
 
 export interface GameCardProps {
   match: MatchRow;
@@ -61,8 +64,19 @@ export default function GameCard({
     mine.response !== 'none' &&
     (mine.version_responded ?? 0) < (match.version ?? 1);
 
+  const address = venue ? `${venue.name}, ${formatVenueAddress(venue)}` : match.location_text;
+  const route = mapsUrl(venue ? formatVenueAddress(venue) : match.location_text);
+
+  const groups = groupResponses(match, participations, nameOf);
+
+  // Code und PIN für den Spielbericht in nuScore: nur für die, die am Spiel beteiligt
+  // sind oder es führen — für alle anderen ist das bloß ein Zugangscode.
+  const showNuscore =
+    (mine !== null || canManage) && Boolean(match.nuscore_code || match.nuscore_pin);
+
   const blockedUntil = team?.block_participants_after ?? null;
   const blocked = blockedUntil !== null && new Date(blockedUntil) < new Date();
+  const finished = isFinished(match);
 
   return (
     <Card>
@@ -90,11 +104,39 @@ export default function GameCard({
           </div>
         </div>
 
-        {(venue || match.location_text) && (
-          <p className="flex items-start gap-1.5 text-sm text-gray-600">
+        {address && (
+          <p className="flex flex-wrap items-start gap-x-1.5 text-sm text-gray-600">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+            <span className="min-w-0 flex-1">{address}</span>
+            {route && (
+              <a
+                href={route}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-1 font-semibold text-primary underline-offset-2 hover:underline"
+              >
+                <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+                Route
+              </a>
+            )}
+          </p>
+        )}
+
+        {showNuscore && (
+          <p className="flex items-start gap-1.5 text-sm text-gray-600">
+            <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
             <span>
-              {venue ? `${venue.name}, ${formatVenueAddress(venue)}` : match.location_text}
+              nuScore
+              {match.nuscore_code && (
+                <>
+                  {' '}· Code <span className="font-mono font-semibold text-gray-900">{match.nuscore_code}</span>
+                </>
+              )}
+              {match.nuscore_pin && (
+                <>
+                  {' '}· PIN <span className="font-mono font-semibold text-gray-900">{match.nuscore_pin}</span>
+                </>
+              )}
             </span>
           </p>
         )}
@@ -112,6 +154,32 @@ export default function GameCard({
                 <Avatar key={entry.profile_id} size="sm" name={nameOf(entry.profile_id)} />
               ))}
             </div>
+          )}
+
+          {participations.length > 0 && (
+            <details className="mt-2 text-sm">
+              <summary className="cursor-pointer select-none text-gray-600 hover:text-gray-900">
+                Rückmeldungen: {groups.yes.length} zu · {groups.unclear.length} unsicher ·{' '}
+                {groups.no.length} ab · {groups.open.length} offen
+              </summary>
+              <dl className="mt-1.5 space-y-1">
+                {(
+                  [
+                    ['Zusage', groups.yes, 'text-status-yes'],
+                    ['Unsicher', groups.unclear, 'text-status-unclear'],
+                    ['Absage', groups.no, 'text-status-no'],
+                    ['Noch offen', groups.open, 'text-gray-500'],
+                  ] as const
+                )
+                  .filter(([, names]) => names.length > 0)
+                  .map(([label, names, tone]) => (
+                    <div key={label} className="flex flex-wrap gap-x-1.5">
+                      <dt className={`font-semibold ${tone}`}>{label}:</dt>
+                      <dd className="text-gray-700">{names.join(', ')}</dd>
+                    </div>
+                  ))}
+              </dl>
+            </details>
           )}
         </div>
 
@@ -131,18 +199,20 @@ export default function GameCard({
           <ResponseButtons
             matchId={match.id}
             participation={mine}
-            disabled={blocked || !match.active}
+            disabled={blocked || !match.active || finished}
             disabledReason={
               !match.active
                 ? 'Dieses Spiel entfällt.'
-                : blocked
+                : finished
+                  ? 'Dieses Spiel ist vorbei.'
+                  : blocked
                   ? 'Die Rückmeldung ist für diese Mannschaft geschlossen. Wende dich an deinen Mannschaftsführer.'
                   : undefined
             }
           />
         )}
 
-        {profileId && (
+        {profileId && !finished && (
           <VolunteerToggles
             matchId={match.id}
             profileId={profileId}

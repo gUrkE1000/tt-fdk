@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CalendarCheck, CalendarX, MapPin, Rss } from 'lucide-react';
 import {
   Badge,
@@ -13,6 +14,8 @@ import { formatDateTime } from '../../lib/dates';
 import { useSession } from '../auth/session';
 import { useMyUpcoming, type MyDate } from './api';
 import SubscribeDialog from './SubscribeDialog';
+import OpenItemsList from '../dashboard/OpenItemsList';
+import { useMyOpenItems } from '../dashboard/openItems';
 
 const KIND_LABELS: Record<string, string> = {
   match: 'Spiel',
@@ -38,9 +41,16 @@ export default function MyDatesPage() {
   const { profile } = useSession();
   const dates = useMyUpcoming(profile?.id ?? null);
   const [subscribeOpen, setSubscribeOpen] = useState(false);
+  const open = useMyOpenItems(profile?.id ?? null);
+  const [search, setSearch] = useSearchParams();
 
   const { attending, declined } = useMemo(() => {
-    const rows = (dates.data ?? []).filter((row) => row.active !== false);
+    // Die Sicht liefert auch Vergangenes (der Kalender-Feed braucht es). Hier geht es
+    // um das, was ansteht: Ein Termin bleibt stehen, bis er vorbei ist.
+    const now = Date.now();
+    const rows = (dates.data ?? [])
+      .filter((row) => row.active !== false)
+      .filter((row) => new Date(row.ends_at ?? row.starts_at ?? 0).getTime() >= now);
 
     return {
       attending: rows.filter((row) => row.my_status === 'yes' || row.my_status === 'late'),
@@ -85,7 +95,7 @@ export default function MyDatesPage() {
     <div>
       <PageHeader
         title="Meine Termine"
-        description="Spiele, Trainings und Vereinstermine, zu denen du dich gemeldet hast."
+        description="Spiele, Trainings und Vereinstermine — wo du noch antworten solltest und wozu du dich gemeldet hast."
         actions={
           <Button variant="primary" onClick={() => setSubscribeOpen(true)}>
             <Rss className="h-4 w-4" aria-hidden="true" />
@@ -95,7 +105,14 @@ export default function MyDatesPage() {
       />
 
       <Tabs
+        value={search.get('tab') ?? 'open'}
+        onValueChange={(value) => setSearch({ tab: value }, { replace: true })}
         tabs={[
+          {
+            value: 'open',
+            label: `Offen (${open.data?.length ?? 0})`,
+            content: <OpenItemsList />,
+          },
           {
             value: 'attending',
             label: `Zugesagte Termine (${attending.length})`,

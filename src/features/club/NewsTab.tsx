@@ -58,6 +58,7 @@ export default function NewsTab({ canEdit = false }: NewsTabProps) {
   const [body, setBody] = useState('');
   const [publishedAt, setPublishedAt] = useState(toLocalInput(null));
   const [pinned, setPinned] = useState(false);
+  const [announce, setAnnounce] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function NewsTab({ canEdit = false }: NewsTabProps) {
     setBody(editing?.body_html ?? '');
     setPublishedAt(toLocalInput(editing?.published_at));
     setPinned(editing?.pinned ?? false);
+    setAnnounce(true);
     setError(null);
   }, [open, editing]);
 
@@ -83,6 +85,7 @@ export default function NewsTab({ canEdit = false }: NewsTabProps) {
           body_html: body,
           published_at: new Date(publishedAt).toISOString(),
           pinned,
+          announce: !editing && announce,
         },
       });
       toast(editing ? 'Neuigkeit gespeichert' : 'Neuigkeit veröffentlicht', 'success');
@@ -227,6 +230,15 @@ export default function NewsTab({ canEdit = false }: NewsTabProps) {
             label="Oben anheften"
             hint="Bleibt über den anderen stehen, unabhängig vom Datum."
           />
+
+          {!editing && (
+            <Checkbox
+              checked={announce}
+              onCheckedChange={setAnnounce}
+              label="Mitglieder benachrichtigen"
+              hint="Alle aktiven Mitglieder bekommen einen Hinweis per App bzw. E-Mail. Beim Abschreiben alter Neuigkeiten abwählen."
+            />
+          )}
         </div>
       </Dialog>
     </div>

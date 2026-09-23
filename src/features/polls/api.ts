@@ -70,6 +70,12 @@ export interface PollInput {
   groupIds: string[];
   /** Antworttexte in der gewünschten Reihenfolge. */
   options: string[];
+  /**
+   * Die Zielgruppe per App/E-Mail auf die neue Umfrage hinweisen. Gilt nur beim
+   * Anlegen, und erst nach dem Speichern von Zielen und Antworten — vorher stünde
+   * nicht fest, wer gemeint ist.
+   */
+  announce?: boolean;
 }
 
 export function useSavePoll() {
@@ -123,6 +129,11 @@ export function useSavePoll() {
           const { error } = await supabase.from('poll_options').insert(rows);
           if (error) throw error;
         }
+
+        if (input.announce) {
+          const { error } = await supabase.rpc('rpc_announce_poll', { p_poll_id: pollId! });
+          if (error) throw error;
+        }
       }
 
       return pollId!;
@@ -171,4 +182,5 @@ export function useRetractPollVote() {
 
 function invalidate(queryClient: ReturnType<typeof useQueryClient>) {
   void queryClient.invalidateQueries({ queryKey: queryKeys.polls.all });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.open.all });
 }

@@ -1,16 +1,30 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, CalendarOff, Check, Clock, KeyRound, MapPin, X } from 'lucide-react';
+import * as Popover from '@radix-ui/react-popover';
+import {
+  AlertTriangle,
+  CalendarOff,
+  Check,
+  Clock,
+  KeyRound,
+  MapPin,
+  MessageSquare,
+  Navigation,
+  X,
+} from 'lucide-react';
 import {
   Avatar,
   Badge,
+  Button,
   Card,
   CardBody,
   Input,
+  Textarea,
   useToast,
 } from '../../components/ui';
 import { cn } from '../../lib/cn';
 import MessagesPanel from '../messages/MessagesPanel';
 import { formatDateTime, formatTime } from '../../lib/dates';
+import { mapsUrl } from '../../lib/maps';
 import { formatVenueAddress } from '../venues/schemas';
 import type { Venue } from '../venues/api';
 import {
@@ -85,10 +99,16 @@ export default function SessionCard({
 
   const mine = participants.find((entry) => entry.profile_id === profileId) ?? null;
   const [guests, setGuests] = useState(mine?.guests ?? 0);
+  const [comment, setComment] = useState(mine?.comment ?? '');
+  const [commentOpen, setCommentOpen] = useState(false);
 
   useEffect(() => {
     setGuests(mine?.guests ?? 0);
   }, [mine?.guests]);
+
+  useEffect(() => {
+    setComment(mine?.comment ?? '');
+  }, [mine?.comment]);
 
   const coming = participants.filter(
     (entry) => entry.status === 'yes' || entry.status === 'late',
@@ -99,17 +119,24 @@ export default function SessionCard({
 
   async function choose(status: AttendanceStatus) {
     try {
-      await setAttendance.mutateAsync({ sessionId: session.id, status, guests });
+      await setAttendance.mutateAsync({
+        sessionId: session.id,
+        status,
+        guests,
+        // Eine Bemerkung, die vor der ersten Antwort eingetippt wurde, geht mit.
+        ...(!mine && comment.trim() !== '' ? { comment } : {}),
+      });
       toast(status === 'no' ? 'Absage gespeichert' : 'Zusage gespeichert', 'success');
     } catch (error) {
       toast(error instanceof Error ? error.message : 'Das hat nicht geklappt', 'error');
     }
   }
 
+  // Gespeichert wird beim Verlassen des Feldes, nicht bei jedem Tastendruck: Wer „12"
+  // tippt, soll nicht erst mit einem und dann mit zwölf Gästen gespeichert werden.
   async function saveGuests(value: number) {
-    setGuests(value);
     // Ohne eigene Rückmeldung ergibt eine Gästezahl nichts: erst kommt man selbst.
-    if (!mine || mine.status === 'no') return;
+    if (!mine || mine.status === 'no' || value === (mine.guests ?? 0)) return;
     try {
       await setAttendance.mutateAsync({
         sessionId: session.id,
@@ -117,9 +144,35 @@ export default function SessionCard({
         guests: value,
       });
     } catch (error) {
+      setGuests(mine.guests ?? 0);
       toast(error instanceof Error ? error.message : 'Das hat nicht geklappt', 'error');
     }
   }
+
+  async function saveComment() {
+    // Ohne Rückmeldung wartet die Bemerkung auf den nächsten Knopfdruck.
+    if (!mine) {
+      setCommentOpen(false);
+      return;
+    }
+    try {
+      await setAttendance.mutateAsync({
+        sessionId: session.id,
+        status: mine.status as AttendanceStatus,
+        guests,
+        comment,
+      });
+      setCommentOpen(false);
+      toast('Bemerkung gespeichert', 'success');
+    } catch (error) {
+      toast(error instanceof Error ? error.message : 'Das hat nicht geklappt', 'error');
+    }
+  }
+
+  const route = venue ? mapsUrl(formatVenueAddress(venue)) : null;
+  const comments = coming.filter(
+    (entry) => entry.profile_id !== profileId && (entry.comment ?? '').trim() !== '',
+  );
 
   return (
     <Card className={cn(session.cancelled && 'opacity-60')}>
@@ -141,7 +194,20 @@ export default function SessionCard({
         {(venue || training?.venue_id) && (
           <p className="flex items-start gap-1.5 text-sm text-gray-600">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
-            <span>{venue ? `${venue.name}, ${formatVenueAddress(venue)}` : 'Ort offen'}</span>
+            <span className="min-w-0 flex-1">
+              {venue ? `${venue.name}, ${formatVenueAddress(venue)}` : 'Ort offen'}
+            </span>
+            {route && (
+              <a
+                href={route}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-1 font-semibold text-primary underline-offset-2 hover:underline"
+              >
+                <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+                Route
+              </a>
+            )}
           </p>
         )}
 
@@ -176,6 +242,18 @@ export default function SessionCard({
                       />
                     ))}
                   </div>
+                )}
+                {comments.length > 0 && (
+                  <ul className="mt-1.5 space-y-0.5 text-xs text-gray-600">
+                    {comments.map((entry) => (
+                      <li key={entry.profile_id}>
+                        <span className="font-semibold">
+                          {entry.full_name ?? nameOf(entry.profile_id ?? '')}:
+                        </span>{' '}
+                        {entry.comment}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             ) : (
@@ -240,10 +318,59 @@ export default function SessionCard({
                       aria-label="Gäste"
                       value={guests}
                       disabled={past}
-                      onChange={(event) => void saveGuests(Number(event.target.value) || 0)}
+                      onChange={(event) => setGuests(Number(event.target.value) || 0)}
+                      onBlur={() => void saveGuests(guests)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') void saveGuests(guests);
+                      }}
                     />
                   </label>
+
+                  <Popover.Root open={commentOpen} onOpenChange={setCommentOpen}>
+                    <Popover.Trigger
+                      disabled={past}
+                      aria-label="Bemerkung zur Rückmeldung"
+                      className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      <MessageSquare className="h-[18px] w-[18px]" aria-hidden="true" />
+                    </Popover.Trigger>
+                    <Popover.Portal>
+                      <Popover.Content
+                        align="start"
+                        sideOffset={6}
+                        className="z-50 w-72 rounded-2xl border border-gray-200 bg-white p-3 shadow-lg"
+                      >
+                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-600">
+                          Bemerkung
+                        </label>
+                        <Textarea
+                          rows={3}
+                          maxLength={500}
+                          value={comment}
+                          onChange={(event) => setComment(event.target.value)}
+                          placeholder="Komme erst gegen 19:30"
+                        />
+                        {!mine && (
+                          <p className="mt-1.5 text-xs text-gray-500">
+                            Wähle danach, ob du dabei bist — die Bemerkung wird mitgespeichert.
+                          </p>
+                        )}
+                        <div className="mt-2 flex justify-end gap-2">
+                          <Button size="sm" onClick={() => setCommentOpen(false)}>
+                            Abbrechen
+                          </Button>
+                          <Button size="sm" variant="primary" onClick={() => void saveComment()}>
+                            {mine ? 'Speichern' : 'Übernehmen'}
+                          </Button>
+                        </div>
+                      </Popover.Content>
+                    </Popover.Portal>
+                  </Popover.Root>
                 </div>
+
+                {mine?.comment && (
+                  <p className="text-xs text-gray-500">Deine Bemerkung: {mine.comment}</p>
+                )}
 
                 {past && (
                   <p className="text-xs text-gray-500">

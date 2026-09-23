@@ -101,4 +101,7 @@ export function useSetEventParticipation() {
 
 function invalidate(queryClient: ReturnType<typeof useQueryClient>) {
   void queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
+  // Eine Rückmeldung ändert auch „Meine Termine", den Kalender und „Offen für dich".
+  void queryClient.invalidateQueries({ queryKey: queryKeys.open.all });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.calendar.all });
 }

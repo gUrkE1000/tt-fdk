@@ -62,10 +62,18 @@ export default function ResponseButtons({
   }
 
   async function saveComment() {
+    // Ohne Antwort gibt es nichts, woran die Bemerkung hängen könnte. Früher wurde
+    // daraus stillschweigend „Unsicher" — jetzt wartet sie auf den nächsten Knopfdruck,
+    // der sie mitschickt.
+    if (current === 'none') {
+      setCommentOpen(false);
+      return;
+    }
+
     try {
       await setResponse.mutateAsync({
         matchId,
-        response: current === 'none' ? 'unclear' : current,
+        response: current,
         comment,
       });
       setCommentOpen(false);
@@ -123,12 +131,17 @@ export default function ResponseButtons({
                 onChange={(event) => setComment(event.target.value)}
                 placeholder="Komme etwas später"
               />
+              {current === 'none' && (
+                <p className="mt-1.5 text-xs text-gray-500">
+                  Wähle danach Zusage, Unsicher oder Absage — die Bemerkung wird mitgespeichert.
+                </p>
+              )}
               <div className="mt-2 flex justify-end gap-2">
                 <Button size="sm" onClick={() => setCommentOpen(false)}>
                   Abbrechen
                 </Button>
                 <Button size="sm" variant="primary" onClick={() => void saveComment()}>
-                  Speichern
+                  {current === 'none' ? 'Übernehmen' : 'Speichern'}
                 </Button>
               </div>
             </Popover.Content>

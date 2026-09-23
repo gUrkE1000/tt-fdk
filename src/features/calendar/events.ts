@@ -26,6 +26,23 @@ export const CATEGORIES: readonly CategoryDefinition[] = [
 
 export const ALL_KINDS: CalendarKind[] = CATEGORIES.map((category) => category.kind);
 
+/**
+ * Wohin ein Klick auf einen Eintrag führt: zu der Karte, an der man antworten kann.
+ * Geburtstage und Hallensperren haben keine — dort passiert beim Klick nichts.
+ */
+export function detailPath(kind: CalendarKind): string | null {
+  switch (kind) {
+    case 'match':
+      return '/my-club?tab=games';
+    case 'training':
+      return '/my-club?tab=trainings';
+    case 'event':
+      return '/my-club?tab=events';
+    default:
+      return null;
+  }
+}
+
 export interface CalendarFilters {
   kinds: CalendarKind[];
   /** „Nur Heimspiele anzeigen" — betrifft ausschließlich Spiele. */

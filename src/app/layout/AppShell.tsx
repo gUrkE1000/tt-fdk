@@ -11,6 +11,7 @@ import ProfileMenu from '../../features/auth/ProfileMenu';
 import { usePublicClubInfo } from '../../features/auth/api';
 import UpdatePrompt from '../../features/notifications/UpdatePrompt';
 import BellButton from '../../features/notifications/BellButton';
+import { useOpenCount } from '../../features/dashboard/openItems';
 
 interface AppShellProps {
   /** Nur für Tests: überschreibt Rolle und Vereinsname statt der echten Sitzung. */
@@ -32,6 +33,11 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
   const effectiveRole = role !== undefined ? role : session.role;
   const effectiveClubName = clubName ?? clubInfo.data?.club_name ?? 'Vereinsplaner';
 
+  // Die Zahl an „Übersicht": Wo fehlt noch meine Antwort? Sie steht dort und nicht
+  // an „Meine Termine", damit man sie auf dem Telefon in der Bottom-Bar sieht.
+  const openCount = useOpenCount(session.profile?.id ?? null);
+  const badges = { '/': openCount };
+
   // Beim Seitenwechsel schließt der Drawer, sonst bliebe er nach einem Klick offen.
   useEffect(() => {
     setDrawerOpen(false);
@@ -49,7 +55,7 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
   return (
     <div className="flex min-h-screen bg-gray-50">
       <div className="hidden xl:block">
-        <Sidebar role={effectiveRole} clubName={effectiveClubName} />
+        <Sidebar role={effectiveRole} clubName={effectiveClubName} badges={badges} />
       </div>
 
       {drawerOpen && (
@@ -63,6 +69,7 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
             <Sidebar
               role={effectiveRole}
               clubName={effectiveClubName}
+              badges={badges}
               onNavigate={() => setDrawerOpen(false)}
             />
             <button
@@ -97,7 +104,11 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
 
         <LegalFooter className="border-t border-gray-200" />
 
-        <BottomBar role={effectiveRole} onOpenMenu={() => setDrawerOpen(true)} />
+        <BottomBar
+          role={effectiveRole}
+          badges={badges}
+          onOpenMenu={() => setDrawerOpen(true)}
+        />
       </div>
 
       <UpdatePrompt />

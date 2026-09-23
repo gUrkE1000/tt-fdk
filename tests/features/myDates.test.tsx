@@ -58,12 +58,13 @@ import { ToastProvider } from '../../src/components/ui';
 
 const soon = new Date(Date.now() + 5 * 86_400_000).toISOString();
 
-function renderPage() {
+// Ohne Angabe der Reiter „Zugesagte Termine" — die meisten Fälle hier prüfen den.
+function renderPage(path = '/my-dates?tab=attending') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <ToastProvider>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={[path]}>
           <MyDatesPage />
         </MemoryRouter>
       </ToastProvider>
@@ -132,7 +133,22 @@ beforeEach(() => {
         my_status: 'none',
         active: true,
       },
+      {
+        profile_id: 'p-01',
+        kind: 'training',
+        id: 's-old',
+        starts_at: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+        ends_at: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+        title: 'Training von letzter Woche',
+        location: null,
+        my_status: 'yes',
+        active: true,
+      },
     ],
+    v_open_participations: [
+      { profile_id: 'p-01', kind: 'match', id: 'm-3', starts_at: soon, title: 'Noch offen' },
+    ],
+    v_my_open_polls: [{ id: 'poll-1', title: 'Termin für die Weihnachtsfeier', expires_at: null }],
   };
 });
 
@@ -162,6 +178,25 @@ describe('MyDatesPage', () => {
     renderPage();
     await screen.findByText('1. Herren gegen TTC Nachbarstadt');
     expect(screen.queryByText('Noch offen')).toBeNull();
+  });
+
+  it('lässt Vergangenes draußen', async () => {
+    renderPage();
+    await screen.findByText('1. Herren gegen TTC Nachbarstadt');
+    expect(screen.queryByText('Training von letzter Woche')).toBeNull();
+  });
+
+  it('beginnt mit dem, was noch offen ist', async () => {
+    renderPage('/my-dates');
+
+    expect(await screen.findByRole('tab', { name: 'Offen (2)' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(await screen.findByText('Noch offen')).toBeInTheDocument();
+    expect(screen.getByText('Termin für die Weihnachtsfeier')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Zusage/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Zur Abstimmung/ })).toHaveAttribute('href', '/votes');
   });
 
   it('lässt abgesagte Spiele draußen', async () => {

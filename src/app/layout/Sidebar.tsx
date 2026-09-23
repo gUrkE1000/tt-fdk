@@ -1,14 +1,17 @@
 import { NavLink } from 'react-router-dom';
 import { visibleNav, type Role } from '../nav';
+import NavBadge from './NavBadge';
 
 interface SidebarProps {
   role: Role | null;
   clubName: string;
   /** Wird auf dem Smartphone nach jedem Klick aufgerufen, um den Drawer zu schließen. */
   onNavigate?: () => void;
+  /** Zähler je Ziel, z. B. offene Rückmeldungen an „Übersicht". */
+  badges?: Record<string, number>;
 }
 
-export default function Sidebar({ role, clubName, onNavigate }: SidebarProps) {
+export default function Sidebar({ role, clubName, onNavigate, badges }: SidebarProps) {
   const sections = visibleNav(role);
 
   return (
@@ -46,6 +49,7 @@ export default function Sidebar({ role, clubName, onNavigate }: SidebarProps) {
                   >
                     <item.icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
                     <span className="truncate">{item.label}</span>
+                    <NavBadge count={badges?.[item.to]} className="ml-auto" />
                   </NavLink>
                 </li>
               ))}

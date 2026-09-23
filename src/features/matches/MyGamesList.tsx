@@ -10,7 +10,7 @@ import { isFinished } from './filters';
 import GameCard from './GameCard';
 import RescheduleDialog from './RescheduleDialog';
 
-export type MyGamesScope = 'all' | 'home' | 'away';
+export type MyGamesScope = 'all' | 'home' | 'away' | 'past';
 
 export interface MyGamesListProps {
   scope?: MyGamesScope;
@@ -53,6 +53,15 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
         .map((entry) => entry.match_id),
     );
 
+    // Vergangene Spiele: die letzten zuerst — wer sie sucht, will meist das von
+    // letzter Woche, nicht das vom Saisonbeginn.
+    if (scope === 'past') {
+      const past = (matches.data ?? [])
+        .filter((match) => myMatchIds.has(match.id) && match.active && isFinished(match))
+        .sort((a, b) => (b.dtstart ?? '').localeCompare(a.dtstart ?? ''));
+      return limit === undefined ? past : past.slice(0, limit);
+    }
+
     const rows = (matches.data ?? [])
       .filter((match) => myMatchIds.has(match.id))
       .filter((match) => match.active && !isFinished(match))
@@ -77,10 +86,12 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
     return (
       <EmptyState
         icon={CalendarCheck}
-        title={empty?.title ?? 'Keine offenen Spiele'}
+        title={empty?.title ?? (scope === 'past' ? 'Noch keine vergangenen Spiele' : 'Keine offenen Spiele')}
         description={
           empty?.description ??
-          'Sobald du einer Mannschaft zugeordnet bist und Termine anstehen, erscheinen sie hier.'
+          (scope === 'past'
+            ? 'Hier stehen die Spiele, an denen du beteiligt warst, sobald sie vorbei sind.'
+            : 'Sobald du einer Mannschaft zugeordnet bist und Termine anstehen, erscheinen sie hier.')
         }
       />
     );

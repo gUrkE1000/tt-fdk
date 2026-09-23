@@ -1,17 +1,19 @@
 import { NavLink } from 'react-router-dom';
 import { MoreHorizontal } from 'lucide-react';
 import { primaryNav, type Role } from '../nav';
+import NavBadge from './NavBadge';
 
 interface BottomBarProps {
   role: Role | null;
   onOpenMenu: () => void;
+  badges?: Record<string, number>;
 }
 
 /**
  * Bottom-Bar für das Smartphone: die drei bis vier häufigsten Ziele plus „Mehr",
  * das den Drawer mit der vollständigen Navigation öffnet.
  */
-export default function BottomBar({ role, onOpenMenu }: BottomBarProps) {
+export default function BottomBar({ role, onOpenMenu, badges }: BottomBarProps) {
   const items = primaryNav(role).slice(0, 4);
 
   return (
@@ -31,7 +33,10 @@ export default function BottomBar({ role, onOpenMenu }: BottomBarProps) {
             ].join(' ')
           }
         >
-          <item.icon className="h-5 w-5" aria-hidden="true" />
+          <span className="relative">
+            <item.icon className="h-5 w-5" aria-hidden="true" />
+            <NavBadge count={badges?.[item.to]} className="absolute -right-2.5 -top-1.5" />
+          </span>
           <span className="truncate px-1">{item.label}</span>
         </NavLink>
       ))}

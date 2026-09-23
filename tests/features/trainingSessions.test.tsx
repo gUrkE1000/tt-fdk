@@ -294,11 +294,14 @@ describe('SessionsTab', () => {
 
     const guests = screen.getAllByLabelText('Gäste')[0];
     await userEvent.clear(guests);
-    await userEvent.type(guests, '3');
+    await userEvent.type(guests, '12');
+    // Gespeichert wird erst beim Verlassen des Feldes — nicht „1" und dann „12".
+    expect(state.rpcCalls.some((call) => (call.args as { p_guests?: number }).p_guests === 1)).toBe(false);
+    await userEvent.tab();
 
     await waitFor(() => {
       const last = state.rpcCalls.at(-1);
-      expect((last?.args as { p_guests: number })?.p_guests).toBe(3);
+      expect((last?.args as { p_guests: number })?.p_guests).toBe(12);
     });
   });
 

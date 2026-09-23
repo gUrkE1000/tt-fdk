@@ -14,6 +14,7 @@ import {
   UserCog,
   Settings,
   MapPin,
+  Inbox,
 } from 'lucide-react';
 
 /**
@@ -49,6 +50,7 @@ export const NAV: NavSection[] = [
       { to: '/', label: 'Übersicht', icon: LayoutDashboard, roles: [], primary: true },
       { to: '/my-games', label: 'Meine Spiele', icon: Swords, roles: [], primary: true },
       { to: '/my-dates', label: 'Meine Termine', icon: CalendarCheck, roles: [] },
+      { to: '/notifications', label: 'Mitteilungen', icon: Inbox, roles: [] },
     ],
   },
   {

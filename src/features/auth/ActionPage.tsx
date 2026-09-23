@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { Check, HelpCircle, X } from 'lucide-react';
+import { Check, Clock, HelpCircle, X } from 'lucide-react';
 import { Button, buttonClasses, Card, CardBody } from '../../components/ui';
 import { supabase } from '../../lib/supabaseClient';
 
-type Answer = 'yes' | 'no' | 'unclear';
+type Answer = 'yes' | 'no' | 'unclear' | 'late';
 
 interface TokenInfo {
   status: string;
@@ -22,6 +22,15 @@ const ANSWER_LABEL: Record<Answer, string> = {
   yes: 'Zusage',
   no: 'Absage',
   unclear: 'Unsicher',
+  late: 'Komme später',
+};
+
+/** „Deine Zusage ist gespeichert." — „Deine Komme später" wäre kein Deutsch. */
+const OUTCOME_TEXT: Record<Answer, string> = {
+  yes: 'Deine Zusage ist gespeichert.',
+  no: 'Deine Absage ist gespeichert.',
+  unclear: 'Deine Antwort „Unsicher" ist gespeichert.',
+  late: 'Deine Antwort „Komme später" ist gespeichert.',
 };
 
 /**
@@ -32,6 +41,7 @@ const PROMPTS: Record<string, { title: string; answers: Answer[] }> = {
   match_response: { title: 'Kannst du spielen?', answers: ['yes', 'unclear', 'no'] },
   substitute_answer: { title: 'Kannst du als Ersatz einspringen?', answers: ['yes', 'no'] },
   event_response: { title: 'Bist du dabei?', answers: ['yes', 'no'] },
+  training_response: { title: 'Kommst du zum Training?', answers: ['yes', 'late', 'no'] },
 };
 
 const DEFAULT_PROMPT = PROMPTS.match_response;
@@ -52,7 +62,10 @@ export default function ActionPage() {
   const { token } = useParams<{ token: string }>();
   const [search] = useSearchParams();
   const presetRaw = search.get('a');
-  const preset = presetRaw === 'yes' || presetRaw === 'no' || presetRaw === 'unclear' ? presetRaw : null;
+  const preset =
+    presetRaw === 'yes' || presetRaw === 'no' || presetRaw === 'unclear' || presetRaw === 'late'
+      ? presetRaw
+      : null;
 
   const [info, setInfo] = useState<TokenInfo | null>(null);
   const [result, setResult] = useState<AnswerResult | null>(null);
@@ -98,6 +111,8 @@ export default function ActionPage() {
             <Outcome result={result} />
           ) : info === null ? (
             <p className="text-gray-600">Einen Moment …</p>
+          ) : info.status === 'ok' && info.action === 'poll_vote' ? (
+            <RescheduleHint summary={info.summary} />
           ) : info.status === 'ok' ? (
             <Question
               prompt={PROMPTS[info.action ?? ''] ?? DEFAULT_PROMPT}
@@ -119,7 +134,7 @@ export default function ActionPage() {
   );
 }
 
-const ANSWER_ICON = { yes: Check, unclear: HelpCircle, no: X } as const;
+const ANSWER_ICON = { yes: Check, unclear: HelpCircle, no: X, late: Clock } as const;
 
 function Question({
   prompt,
@@ -177,7 +192,7 @@ function Outcome({ result }: { result: AnswerResult }) {
     <>
       <h1 className="text-lg font-bold text-gray-900">Danke!</h1>
       <p className="text-gray-700">
-        Deine {ANSWER_LABEL[answer]} ist gespeichert.
+        {OUTCOME_TEXT[answer] ?? OUTCOME_TEXT.yes}
         {result.summary && (
           <>
             <br />
@@ -198,6 +213,9 @@ function Problem({ status }: { status: string }) {
     unknown: 'Dieser Link ist ungültig. Vielleicht wurde er beim Kopieren abgeschnitten.',
     invalid_answer: 'Diese Antwort kennen wir nicht.',
     full: 'Leider sind schon alle Plätze vergeben.',
+    cancelled: 'Dieser Termin fällt aus.',
+    started: 'Der Termin hat schon begonnen — melde dich bitte direkt beim Trainer.',
+    not_assigned: 'Du bist diesem Training nicht zugeordnet. Frag bitte beim Trainer nach.',
     not_supported: 'Diese Art von Link wird noch nicht unterstützt.',
   };
 
@@ -207,6 +225,26 @@ function Problem({ status }: { status: string }) {
       <p className="text-gray-700">
         {messages[status] ?? 'Da ist etwas schiefgegangen. Bitte melde dich in der App an.'}
       </p>
+    </>
+  );
+}
+
+/**
+ * Die Terminumfrage zur Spielverlegung hat bis zu drei Vorschläge — das passt nicht in
+ * einen Knopf. Die Seite sagt, worum es geht, und schickt in die App, wo die Umfrage an
+ * der Spielkarte steht.
+ */
+function RescheduleHint({ summary }: { summary?: string }) {
+  return (
+    <>
+      <h1 className="text-lg font-bold text-gray-900">Terminumfrage zur Spielverlegung</h1>
+      {summary && <p className="text-gray-700">{summary}</p>}
+      <p className="text-sm text-gray-600">
+        Für welche Vorschläge du kannst, trägst du in der App an der Spielkarte ein.
+      </p>
+      <Link to="/my-games" className={buttonClasses({ variant: 'primary' })}>
+        Zur Terminumfrage
+      </Link>
     </>
   );
 }

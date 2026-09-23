@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Mail, Phone, Users } from 'lucide-react';
 import {
   Avatar,
@@ -25,6 +26,9 @@ import { contactPeople, searchDirectory, useDirectory, type DirectoryEntry } fro
 
 export default function MyClubPage() {
   const settings = useClubSettings();
+  // Der Reiter steht in der Adresse, damit Links aus Benachrichtigungen und aus
+  // „Offen für dich" direkt dort landen (z. B. /my-club?tab=news).
+  const [search, setSearch] = useSearchParams();
 
   return (
     <div>
@@ -34,6 +38,8 @@ export default function MyClubPage() {
       />
 
       <Tabs
+        value={search.get('tab') ?? 'members'}
+        onValueChange={(value) => setSearch({ tab: value }, { replace: true })}
         tabs={[
           { value: 'members', label: 'Mitglieder', content: <MembersDirectory /> },
           { value: 'contacts', label: 'Rollen & Kontaktdaten', content: <Contacts /> },

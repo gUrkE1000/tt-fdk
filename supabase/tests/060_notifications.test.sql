@@ -193,8 +193,8 @@ SELECT throws_ok(
 
 SELECT is(
     (SELECT count(*) FROM public.v_my_notification_preferences)::int,
-    15,
-    'Die Matrix zeigt genau die fünfzehn abwählbaren Typen'
+    17,
+    'Die Matrix zeigt genau die siebzehn abwählbaren Typen'
 );
 
 SELECT is(

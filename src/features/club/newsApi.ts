@@ -39,6 +39,11 @@ export interface NewsInput {
   body_html: string;
   published_at: string;
   pinned: boolean;
+  /**
+   * Alle aktiven Mitglieder auf die neue Neuigkeit hinweisen. Nur beim Anlegen; eine
+   * vordatierte Neuigkeit wird zum Veröffentlichungstermin gemeldet.
+   */
+  announce?: boolean;
 }
 
 export function useSaveNews() {
@@ -55,11 +60,19 @@ export function useSaveNews() {
 
       // `author_id` steht bewusst nicht dabei: Den setzt ein Trigger aus der Sitzung,
       // damit niemand im Namen eines anderen schreibt.
-      const { error } = id
-        ? await supabase.from('news').update(row).eq('id', id)
-        : await supabase.from('news').insert(row);
+      if (id) {
+        const { error } = await supabase.from('news').update(row).eq('id', id);
+        if (error) throw error;
+        return;
+      }
 
+      const { data, error } = await supabase.from('news').insert(row).select('id').single();
       if (error) throw error;
+
+      if (values.announce) {
+        const announced = await supabase.rpc('rpc_announce_news', { p_news_id: data.id });
+        if (announced.error) throw announced.error;
+      }
     },
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: newsKeys.all }),
   });
