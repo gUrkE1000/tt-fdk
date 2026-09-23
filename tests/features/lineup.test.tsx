@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 interface Row {
@@ -25,6 +25,8 @@ function makeBuilder(table: string) {
     is: () => chain,
     not: () => chain,
     gte: () => chain,
+    // Die Spielseite fragt ein einzelnes Spiel ab; `eq` filtert hier nicht, also die erste Zeile.
+    maybeSingle: () => Promise.resolve({ data: (state.tables[table] ?? [])[0] ?? null, error: null }),
     in: () => Promise.resolve({ error: null }),
     eq: () => chain,
     insert: (values: unknown) => {
@@ -87,6 +89,7 @@ vi.mock('../../src/features/auth/session', () => ({
 
 import MyGamesPage from '../../src/features/matches/MyGamesPage';
 import OpenItemsList from '../../src/features/dashboard/OpenItemsList';
+import MatchPage from '../../src/features/matches/MatchPage';
 import ManagePlayersDialog from '../../src/features/matches/ManagePlayersDialog';
 import ShareLineupDialog from '../../src/features/matches/ShareLineupDialog';
 import { ToastProvider } from '../../src/components/ui';
@@ -664,5 +667,56 @@ describe('OpenItemsList', () => {
     await screen.findByText('1. Herren gegen TTC Nachbarstadt');
 
     expect(screen.queryByRole('button', { name: /Spieler verwalten/ })).toBeNull();
+  });
+});
+
+// ------------------------------------------------------------------ Seite eines Spiels
+
+describe('MatchPage', () => {
+  function renderMatch(path = '/match/m-1') {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    return render(
+      <QueryClientProvider client={client}>
+        <ToastProvider>
+          <MemoryRouter initialEntries={[path]}>
+            <Routes>
+              <Route path="/match/:matchId" element={<MatchPage />} />
+            </Routes>
+          </MemoryRouter>
+        </ToastProvider>
+      </QueryClientProvider>,
+    );
+  }
+
+  it('zeigt genau dieses Spiel mit Rückmeldung', async () => {
+    renderMatch();
+    expect(
+      await screen.findByRole('heading', { name: /1\. Herren gegen TTC Nachbarstadt/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Zusage' })).toBeInTheDocument();
+  });
+
+  it('bietet dem Mannschaftsführer die Aufstellung an', async () => {
+    renderMatch();
+    await userEvent.click(await screen.findByRole('button', { name: /Spieler verwalten/ }));
+    expect(await screen.findByRole('dialog', { name: 'Spieler verwalten' })).toBeInTheDocument();
+  });
+
+  it('sagt es, wenn es das Spiel nicht gibt', async () => {
+    state.tables.matches = [];
+    renderMatch('/match/weg');
+    expect(await screen.findByText('Dieses Spiel gibt es nicht (mehr)')).toBeInTheDocument();
+  });
+
+  it('wird von „Offen für dich" direkt verlinkt', async () => {
+    state.tables.v_open_participations = [
+      { profile_id: 'p-me', kind: 'match', id: 'm-1', starts_at: '2026-10-08T17:30:00Z', title: 'Spiel am 8.10.' },
+    ];
+    state.tables.v_my_open_polls = [];
+    renderWith(<OpenItemsList />);
+    expect(await screen.findByRole('link', { name: 'Spiel am 8.10.' })).toHaveAttribute(
+      'href',
+      '/match/m-1',
+    );
   });
 });

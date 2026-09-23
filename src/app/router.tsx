@@ -25,6 +25,7 @@ const TeamsPage = lazy(() => import('../features/teams/TeamsPage'));
 const PlayersManagementPage = lazy(() => import('../features/teams/PlayersManagementPage'));
 const GamesPage = lazy(() => import('../features/matches/GamesPage'));
 const MyGamesPage = lazy(() => import('../features/matches/MyGamesPage'));
+const MatchPage = lazy(() => import('../features/matches/MatchPage'));
 const TrainingsPage = lazy(() => import('../features/trainings/TrainingsPage'));
 const CancellationsPage = lazy(() => import('../features/trainings/CancellationsPage'));
 const EventsPage = lazy(() => import('../features/events/EventsPage'));
@@ -82,6 +83,8 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'my-games', element: <MyGamesPage /> },
+          // Ein einzelnes Spiel — für alle, die es sehen dürfen; das entscheidet die RLS.
+          { path: 'match/:matchId', element: <MatchPage /> },
           { path: 'my-dates', element: <MyDatesPage /> },
           { path: 'my-club', element: <MyClubPage /> },
           { path: 'calendar', element: <CalendarPage /> },

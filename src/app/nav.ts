@@ -129,6 +129,7 @@ export function primaryNav(role: Role | null | undefined): NavItem[] {
 
 /** Beschriftung einer Route für die Kopfzeile. */
 export function labelForPath(pathname: string): string {
+  if (pathname.startsWith('/match/')) return 'Spiel';
   const exact = NAV.flatMap((s) => s.items).find((item) => item.to === pathname);
   if (exact) return exact.label;
 

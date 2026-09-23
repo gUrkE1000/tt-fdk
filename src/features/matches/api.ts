@@ -119,6 +119,27 @@ export function useAllVolunteers(scope: MatchScope = 'recent') {
   });
 }
 
+/**
+ * Ein einzelnes Spiel — für die Spielseite, auf die Kalender und „Offen für dich"
+ * verlinken. Unabhängig vom Zeitfenster der Listen: Auch ein Spiel von vor drei Monaten
+ * lässt sich so öffnen. `null` heißt: gibt es nicht, oder die RLS gibt es nicht heraus.
+ */
+export function useMatch(matchId: string | null) {
+  return useQuery({
+    queryKey: queryKeys.matches.detail(matchId ?? ''),
+    enabled: matchId !== null,
+    queryFn: async (): Promise<Match | null> => {
+      const { data, error } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('id', matchId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useParticipations(matchId: string | null) {
   return useQuery({
     queryKey: queryKeys.matches.participations(matchId ?? ''),

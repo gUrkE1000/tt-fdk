@@ -1,4 +1,5 @@
 import type { ViewRow } from '../../lib/database.types';
+import { matchPath } from '../matches/paths';
 
 export type CalendarItem = ViewRow<'v_calendar_items'>;
 
@@ -27,13 +28,14 @@ export const CATEGORIES: readonly CategoryDefinition[] = [
 export const ALL_KINDS: CalendarKind[] = CATEGORIES.map((category) => category.kind);
 
 /**
- * Wohin ein Klick auf einen Eintrag führt: zu der Karte, an der man antworten kann.
- * Geburtstage und Hallensperren haben keine — dort passiert beim Klick nichts.
+ * Wohin ein Klick auf einen Eintrag führt: zu der Karte, an der man antworten kann —
+ * bei einem Spiel auf die Seite genau dieses Spiels. Geburtstage und Hallensperren
+ * haben keine; dort passiert beim Klick nichts.
  */
-export function detailPath(kind: CalendarKind): string | null {
+export function detailPath(kind: CalendarKind, id?: string): string | null {
   switch (kind) {
     case 'match':
-      return '/my-club?tab=games';
+      return id ? matchPath(id) : '/my-club?tab=games';
     case 'training':
       return '/my-club?tab=trainings';
     case 'event':
@@ -62,7 +64,8 @@ export interface DisplayEvent {
   allDay: boolean;
   backgroundColor: string;
   borderColor: string;
-  extendedProps: { kind: CalendarKind; cancelled: boolean };
+  /** `targetId`: die ID des Spiels, Trainingstermins oder Vereinstermins — für den Link. */
+  extendedProps: { kind: CalendarKind; cancelled: boolean; targetId: string };
 }
 
 /**
@@ -99,7 +102,7 @@ export function toDisplayEvents(
         allDay: item.all_day === true,
         backgroundColor: item.cancelled ? '#9CA3AF' : color,
         borderColor: item.cancelled ? '#9CA3AF' : color,
-        extendedProps: { kind, cancelled: item.cancelled === true },
+        extendedProps: { kind, cancelled: item.cancelled === true, targetId: item.id ?? '' },
       };
     });
 }

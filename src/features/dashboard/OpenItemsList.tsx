@@ -23,6 +23,7 @@ import {
   type Participation,
 } from '../matches/api';
 import { useCanManageMatch } from '../matches/canManage';
+import { matchPath } from '../matches/paths';
 import MatchDialogs, { type OpenMatchDialog } from '../matches/MatchDialogs';
 import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
@@ -114,7 +115,7 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
               )}
             </div>
             <Link
-              to={DETAIL_LINKS[item.kind]}
+              to={item.kind === 'match' ? matchPath(item.id) : DETAIL_LINKS[item.kind]}
               className="block font-semibold text-gray-900 underline-offset-2 hover:text-primary hover:underline"
             >
               {item.title}

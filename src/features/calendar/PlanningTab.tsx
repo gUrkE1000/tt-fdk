@@ -139,7 +139,10 @@ export default function PlanningTab() {
             ...(detailPath(arg.event.extendedProps.kind as CalendarKind) ? ['cursor-pointer'] : []),
           ]}
           eventClick={(arg) => {
-            const path = detailPath(arg.event.extendedProps.kind as CalendarKind);
+            const path = detailPath(
+              arg.event.extendedProps.kind as CalendarKind,
+              arg.event.extendedProps.targetId as string,
+            );
             if (!path) return;
             arg.jsEvent.preventDefault();
             navigate(path);

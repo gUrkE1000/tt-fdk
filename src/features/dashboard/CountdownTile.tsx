@@ -3,6 +3,7 @@ import { CalendarClock, MapPin } from 'lucide-react';
 import { Badge } from '../../components/ui';
 import { formatDateTime } from '../../lib/dates';
 import type { MatchCountdown } from './summary';
+import { matchPath } from '../matches/paths';
 
 export interface CountdownTileProps {
   countdown: MatchCountdown;
@@ -58,10 +59,13 @@ export default function CountdownTile({
         <p className="mt-1 text-sm text-status-no">Die Spiele ließen sich gerade nicht laden.</p>
       ) : next ? (
         <div className="mt-1 space-y-0.5 text-sm text-gray-600">
-          <p className="font-semibold text-gray-800">
+          <Link
+            to={matchPath(next.id)}
+            className="block font-semibold text-gray-800 underline-offset-2 hover:text-primary hover:underline"
+          >
             {teamName ? `${teamName} gegen ` : ''}
             {next.opponent || 'unbekannt'}
-          </p>
+          </Link>
           <p>{next.dtstart ? formatDateTime(next.dtstart) : '—'}</p>
           {location && (
             <p className="flex items-start gap-1.5">

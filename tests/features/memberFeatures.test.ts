@@ -90,6 +90,10 @@ describe('mergeHistory', () => {
 });
 
 describe('detailPath', () => {
+  it('führt ein Spiel auf die Seite genau dieses Spiels', () => {
+    expect(detailPath('match', 'm-8')).toBe('/match/m-8');
+  });
+
   it('führt Spiele, Trainings und Vereinstermine zu ihrer Karte', () => {
     expect(detailPath('match')).toBe('/my-club?tab=games');
     expect(detailPath('training')).toBe('/my-club?tab=trainings');
