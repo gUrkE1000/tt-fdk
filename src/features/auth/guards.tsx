@@ -12,13 +12,27 @@ import type { Role } from '../../app/nav';
  * sonst sähe es wie ein Fehler aus.
  */
 export function RequireAuth() {
-  const { session, profile, loading, loadingDetail } = useSession();
+  const { session, profile, loading, loadingDetail, profileMissing } = useSession();
   const location = useLocation();
 
   if (loading) return <LoadingScreen detail={loadingDetail} />;
 
   if (!session) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  // Angemeldet, aber ohne Profil: Das Konto gehört zu keinem Mitglied (mehr). Ohne diese
+  // Abfrage sähe man eine leere Anwendung, in der jede Seite still nichts zeigt.
+  if (profileMissing) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <EmptyState
+          title="Zu diesem Zugang gibt es kein Mitgliedsprofil"
+          description="Vielleicht wurde das Konto gelöscht. Wenn das ein Versehen war, melde dich bitte beim Administrator des Vereins."
+          action={<Button onClick={() => void signOut()}>Abmelden</Button>}
+        />
+      </div>
+    );
   }
 
   if (profile && profile.status === 'pending_approval') {

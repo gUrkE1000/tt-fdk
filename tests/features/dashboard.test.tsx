@@ -240,6 +240,7 @@ function makeBuilder(table: string) {
   const chain = {
     select: () => chain,
     order: () => chain,
+    range: () => chain,
     eq: () => chain,
     is: () => chain,
     gte: () => chain,

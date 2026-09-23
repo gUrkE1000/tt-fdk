@@ -8,7 +8,7 @@
 -- Der Test läuft als Superuser, damit die Vorbereitung nicht an RLS scheitert.
 
 BEGIN;
-SELECT plan(13);
+SELECT plan(15);
 
 -- Uwe ist im Seed als 'unconfirmed' angelegt und noch nicht verknüpft.
 -- Rang und Gruppenmitgliedschaft hängen an seiner alten ID: beides muss die
@@ -25,13 +25,32 @@ SELECT is(
     'Vor der ersten Anmeldung ist das Profil nicht verknüpft'
 );
 
+-- ============================================================ a) Ohne Nachweis
+-- Wer die Adresse eines angelegten Mitglieds kennt, darf dessen Profil nicht per
+-- Registrierung übernehmen — auch nicht mit gültigem Vereinscode. Sonst bände er das
+-- Profil an ein Konto, dessen Passwort er kennt (Code-Review K-2).
+SELECT throws_ok(
+    $$ SELECT tests.signup('uwe.unconfirmed@example.com',
+                           '{"registration_code":"TESTCODE"}'::jsonb) $$,
+    '42501',
+    NULL,
+    'Eine vorhandene Adresse wird ohne Einladung nicht übernommen'
+);
+
+SELECT is(
+    (SELECT auth_linked_at FROM public.profiles WHERE id = '22222222-0000-0000-0000-00000000000a'),
+    NULL,
+    'Das Profil bleibt nach dem Versuch unverknüpft'
+);
+
 -- ============================================================ a) Eingeladen
 DO $$
 BEGIN
     PERFORM tests.signup(
         'uwe.unconfirmed@example.com',
         '{"first_name":"Uwe","last_name":"Uneingeladen"}'::jsonb,
-        '99999999-0000-0000-0000-000000000001'
+        '99999999-0000-0000-0000-000000000001',
+        p_invited := true
     );
 END $$;
 

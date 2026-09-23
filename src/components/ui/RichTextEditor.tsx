@@ -69,7 +69,6 @@ export default function RichTextEditor({
     }
     // Absichtlich nur an `value` gehängt: bei jedem Tastendruck neu zu setzen würde
     // den Cursor ans Ende springen lassen.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, editor]);
 
   if (!editor) return null;

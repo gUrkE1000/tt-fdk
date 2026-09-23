@@ -19,10 +19,11 @@ import {
   SortableList,
   useToast,
 } from '../../components/ui';
-import { formatDateTime } from '../../lib/dates';
+import { formatDateTime, todayInBerlin } from '../../lib/dates';
 import { supabase } from '../../lib/supabaseClient';
+import { fetchAll } from '../../lib/fetchAll';
 import { useQuery } from '@tanstack/react-query';
-import type { Member } from '../members/api';
+import type { MemberSummary as Member } from '../members/api';
 import type { TeamWithRoster } from '../teams/api';
 import {
   useAllParticipations,
@@ -58,9 +59,16 @@ function useAbsenceWindows() {
   return useQuery({
     queryKey: ['absences', 'alle'],
     queryFn: async (): Promise<AbsenceWindow[]> => {
-      const { data, error } = await supabase.from('v_absences').select('profile_id, start_date, end_date');
-      if (error) throw error;
-      return (data ?? []).map((row) => ({
+      // Nur, was nicht schon vorbei ist — die alten Zeiträume wachsen jedes Jahr.
+      const data = await fetchAll((from, to) =>
+        supabase
+          .from('v_absences')
+          .select('id, profile_id, start_date, end_date', { count: 'exact' })
+          .gte('end_date', todayInBerlin())
+          .order('id')
+          .range(from, to),
+      );
+      return data.map((row) => ({
         profileId: row.profile_id!,
         startDate: row.start_date!,
         endDate: row.end_date!,

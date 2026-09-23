@@ -8,7 +8,7 @@ import {
   Tabs,
   useToast,
 } from '../../components/ui';
-import { useGroups, useMembers, useRankings } from './api';
+import { useAdminMembers, useGroups, useRankings } from './api';
 import { useTrainings } from '../trainings/api';
 import { formatRanking } from '../../lib/labels';
 import {
@@ -40,7 +40,7 @@ export interface ExcelDialogProps {
  */
 export default function ExcelDialog({ open, onOpenChange }: ExcelDialogProps) {
   const { toast } = useToast();
-  const members = useMembers();
+  const members = useAdminMembers();
   const rankings = useRankings();
   const groups = useGroups();
   const trainings = useTrainings();

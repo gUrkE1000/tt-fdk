@@ -72,7 +72,9 @@ export default function DashboardPage() {
     [matches.data, participations.data, role, leaderTeamIds],
   );
 
-  const trainingList = trainings.data ?? [];
+  // Ohne useMemo wäre `?? []` bei jedem Rendern ein neues Array — und jedes useMemo,
+  // das davon abhängt, rechnete jedes Mal neu.
+  const trainingList = useMemo(() => trainings.data ?? [], [trainings.data]);
 
   const mySessionCount = useMemo(() => {
     const mine = myTrainingIds(trainingList, profileId);

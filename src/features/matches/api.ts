@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
+import { fetchAll } from '../../lib/fetchAll';
 import { queryKeys } from '../../lib/queryKeys';
 import type { Enums, InsertDto, Tables, UpdateDto } from '../../lib/database.types';
 
@@ -16,20 +17,34 @@ export function useMatches() {
   return useQuery({
     queryKey: queryKeys.matches.list(),
     queryFn: async (): Promise<MatchRow[]> => {
+      // Beide Listen wachsen mit jeder Saison; eine Saison hat schon über 1000
+      // Beteiligungszeilen. Deshalb blättern statt einer Abfrage.
       const [matches, participations] = await Promise.all([
-        supabase.from('matches').select('*').order('dtstart'),
-        supabase.from('match_participations').select('match_id, response, removed'),
+        fetchAll((from, to) =>
+          supabase
+            .from('matches')
+            .select('*', { count: 'exact' })
+            .order('dtstart')
+            .order('id')
+            .range(from, to),
+        ),
+        fetchAll((from, to) =>
+          supabase
+            .from('match_participations')
+            .select('match_id, profile_id, response, removed', { count: 'exact' })
+            .order('match_id')
+            .order('profile_id')
+            .range(from, to),
+        ),
       ]);
-      if (matches.error) throw matches.error;
-      if (participations.error) throw participations.error;
 
       const confirmed = new Map<string, number>();
-      for (const row of participations.data ?? []) {
+      for (const row of participations) {
         if (row.response !== 'yes' || row.removed) continue;
         confirmed.set(row.match_id, (confirmed.get(row.match_id) ?? 0) + 1);
       }
 
-      return (matches.data ?? []).map((match) => ({
+      return matches.map((match) => ({
         ...match,
         confirmedCount: confirmed.get(match.id) ?? 0,
       }));
@@ -45,9 +60,14 @@ export function useAllParticipations() {
   return useQuery({
     queryKey: queryKeys.matches.participations('alle'),
     queryFn: async (): Promise<Participation[]> => {
-      const { data, error } = await supabase.from('match_participations').select('*');
-      if (error) throw error;
-      return data ?? [];
+      return fetchAll((from, to) =>
+        supabase
+          .from('match_participations')
+          .select('*', { count: 'exact' })
+          .order('match_id')
+          .order('profile_id')
+          .range(from, to),
+      );
     },
   });
 }
@@ -56,9 +76,14 @@ export function useAllVolunteers() {
   return useQuery({
     queryKey: ['match-volunteers', 'alle'],
     queryFn: async (): Promise<Volunteer[]> => {
-      const { data, error } = await supabase.from('match_volunteers').select('*');
-      if (error) throw error;
-      return data ?? [];
+      return fetchAll((from, to) =>
+        supabase
+          .from('match_volunteers')
+          .select('*', { count: 'exact' })
+          .order('match_id')
+          .order('profile_id')
+          .range(from, to),
+      );
     },
   });
 }

@@ -38,7 +38,9 @@ export default function StatisticsPage() {
   const statistics = useTrainingStatistics();
   const [period, setPeriod] = useState(EMPTY_PERIOD);
 
-  const rows = statistics.data ?? [];
+  // Ohne useMemo wäre `?? []` bei jedem Rendern ein neues Array — und jedes useMemo,
+  // das davon abhängt, rechnete jedes Mal neu.
+  const rows = useMemo(() => statistics.data ?? [], [statistics.data]);
 
   const trainings = useMemo(() => tallyByTraining(rows, period), [rows, period]);
   const top = useMemo(() => topAttendance(rows, lastTwelveMonths()), [rows]);

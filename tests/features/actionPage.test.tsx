@@ -79,9 +79,16 @@ describe('ActionPage', () => {
     );
   });
 
-  it('speichert sofort, wenn die Antwort schon im Link steht', async () => {
+  it('speichert eine Antwort aus dem Link erst nach der Bestätigung', async () => {
+    // Link-Scanner der Mailprogramme öffnen Links mit JavaScript. Sofort zu speichern hieße,
+    // im Namen des Empfängers zu antworten und den Einmal-Link zu verbrauchen.
     state.answer = { status: 'ok', answer: 'yes' };
     renderAt('/r/abc?a=yes');
+
+    expect(await screen.findByText(/bitte bestätigen/)).toBeInTheDocument();
+    expect(state.calls.map((call) => call.name)).toEqual(['rpc_describe_action_token']);
+
+    await userEvent.click(screen.getByRole('button', { name: /Zusage/ }));
 
     await waitFor(() =>
       expect(state.calls).toContainEqual({
@@ -89,16 +96,32 @@ describe('ActionPage', () => {
         args: { p_token: 'abc', p_answer: 'yes' },
       }),
     );
-
     expect(await screen.findByText('Danke!')).toBeInTheDocument();
     expect(screen.getByText(/Deine Zusage ist gespeichert/)).toBeInTheDocument();
   });
 
   it('nennt die Antwort beim Namen', async () => {
     state.answer = { status: 'ok', answer: 'no' };
-    renderAt('/r/abc?a=no');
+    renderAt('/r/abc');
+    await screen.findByText('Kannst du spielen?');
+    await userEvent.click(screen.getByRole('button', { name: /Absage/ }));
 
     expect(await screen.findByText(/Deine Absage ist gespeichert/)).toBeInTheDocument();
+  });
+
+  it('fragt bei einem Vereinstermin passend und ohne „unsicher"', async () => {
+    state.describe = { status: 'ok', action: 'event_response', summary: 'Sommerfest am 01.08.2026' };
+    renderAt('/r/abc');
+
+    expect(await screen.findByText('Bist du dabei?')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Unsicher/ })).toBeNull();
+  });
+
+  it('fragt bei einer Ersatzanfrage nach dem Einspringen', async () => {
+    state.describe = { status: 'ok', action: 'substitute_answer', summary: '2. Herren am 03.10.2026' };
+    renderAt('/r/abc');
+
+    expect(await screen.findByText('Kannst du als Ersatz einspringen?')).toBeInTheDocument();
   });
 
   it('erklärt einen bereits benutzten Link', async () => {
@@ -127,6 +150,7 @@ describe('ActionPage', () => {
     state.describe = { status: 'ok', action: 'match_response', summary: 'Ein Spiel' };
     state.answer = { status: 'closed' };
     renderAt('/r/abc?a=yes');
+    await userEvent.click(await screen.findByRole('button', { name: /Zusage/ }));
 
     expect(await screen.findByText(/geschlossen/)).toBeInTheDocument();
   });

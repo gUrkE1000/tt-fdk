@@ -1,6 +1,5 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import AppShell from './layout/AppShell';
-import DesignPlayground from './DesignPlayground';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import ActionPage from '../features/auth/ActionPage';
@@ -28,8 +27,16 @@ import StatisticsPage from '../features/statistics/StatisticsPage';
  * Sichtprüfung des Design-Systems. Nur im Entwicklungsmodus, damit sie nicht im
  * ausgelieferten Bundle landet.
  */
+//
+// Dynamisch importiert: Ein statischer Import hinge davon ab, dass Rollup die Seite als
+// frei von Nebenwirkungen erkennt. So entsteht sie im Produktionsbuild gar nicht erst.
 const devRoutes: RouteObject[] = import.meta.env.DEV
-  ? [{ path: '/_design', element: <DesignPlayground /> }]
+  ? [
+      {
+        path: '/_design',
+        lazy: async () => ({ Component: (await import('./DesignPlayground')).default }),
+      },
+    ]
   : [];
 
 /**

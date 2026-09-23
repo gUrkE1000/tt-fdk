@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import { FormField, IconButton, PersonPicker, SortableList } from '../../components/ui';
-import type { Member } from '../members/api';
+import type { MemberSummary as Member } from '../members/api';
 
 export interface TeamRosterEditorProps {
   members: Member[];

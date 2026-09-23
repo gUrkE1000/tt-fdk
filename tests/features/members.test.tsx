@@ -28,6 +28,7 @@ function makeBuilder(table: string) {
   const chain = {
     select: () => chain,
     order: () => chain,
+    range: () => chain,
     is: () => chain,
     eq: () => chain,
     maybeSingle: () => Promise.resolve({ data: (state.tables[table] ?? [])[0] ?? null, error: null }),
@@ -67,6 +68,11 @@ vi.mock('../../src/lib/supabaseClient', () => ({
     from: (table: string) => makeBuilder(table),
     rpc: (name: string, args: unknown) => {
       state.rpcCalls.push({ name, args });
+      // Die Verwaltung liest die vollständigen Profile über die Datenbankfunktion,
+      // nicht über die Tabelle (dort sind Kontaktdaten per Spaltenrecht gesperrt).
+      if (name === 'rpc_admin_members') {
+        return Promise.resolve({ data: state.tables.profiles ?? [], error: null });
+      }
       return Promise.resolve({ data: 2, error: null });
     },
     auth: {

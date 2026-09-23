@@ -201,5 +201,5 @@ export function toCsv(tally: TrainingTally): string {
     ),
   ];
 
-  return `﻿${lines.join('\r\n')}\r\n`;
+  return `\uFEFF${lines.join('\r\n')}\r\n`;
 }

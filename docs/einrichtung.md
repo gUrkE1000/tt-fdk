@@ -167,18 +167,16 @@ npx supabase functions deploy
 Sieben Funktionen: `invite-member`, `sync-calendars`, `process-notifications`,
 `enqueue-reminders`, `substitute-engine`, `generate-training-sessions`, `calendar-feed`.
 
-`calendar-feed` muss **ohne Anmeldung** erreichbar sein — ein Kalenderprogramm kann sich
-nicht anmelden, es hat nur den Abo-Token in der Adresse. Trag das dauerhaft in
-`supabase/config.toml` ein, die `supabase link` beim ersten Mal anlegt:
+`calendar-feed` und die fünf Cron-Functions müssen **ohne Supabase-JWT** erreichbar sein:
+Ein Kalenderprogramm hat nur den Abo-Token in der Adresse, und `pg_cron` ruft über `pg_net`
+nur mit dem Cron-Secret. Das steht fest in **`supabase/config.toml`** (im Repository,
+`verify_jwt = false` je Function); `supabase functions deploy` liest die Datei bei jedem
+Ausrollen. Nichts davon muss mehr im Dashboard geklickt werden — und ein Klick dort würde
+beim nächsten Ausrollen ohnehin zurückgesetzt.
 
-```toml
-[functions.calendar-feed]
-verify_jwt = false
-```
-
-Ohne diesen Eintrag ist es ein Klick im Dashboard (*Edge Functions → calendar-feed → Verify
-JWT: aus*), der nach jedem Ausrollen wieder fällig wird — und wenn er fehlt, scheitert das
-Kalenderabo mit einer Meldung, die auf nichts hindeutet.
+Offen sind die Functions damit nicht: Jede prüft den Aufrufer selbst
+(`supabase/functions/_shared/http.ts`) — das Cron-Secret über die Datenbankfunktion
+`verify_cron_secret()` oder das JWT eines Benutzers samt Rolle und Status.
 
 ## 8. Cron-Konfiguration eintragen
 
@@ -195,8 +193,23 @@ UPDATE private.cron_config
 ```
 
 Das Secret liegt bewusst in der Datenbank statt in der Umgebung: Der Job schickt es beim
-Aufruf mit, die Function liest es zum Vergleich. Beide kommen an dieselbe Tabelle,
-niemand sonst — das Schema `private` veröffentlicht PostgREST nicht.
+Aufruf mit, die Function prüft es über `verify_cron_secret()` — eine Funktion, die nur
+`service_role` aufrufen darf und nur wahr oder falsch zurückgibt. Das Schema `private`
+selbst veröffentlicht PostgREST nicht.
+
+Optional lässt sich derselbe Wert zusätzlich als Function-Secret setzen
+(`npx supabase secrets set CRON_SECRET=<derselbe Wert>`). Dann vergleichen die Functions
+direkt, ohne Datenbankanfrage. Zwei Stellen heißt aber auch: Beim Wechsel beide ändern.
+
+Ob die Aufrufe ankommen, zeigt nach ein paar Minuten:
+
+```sql
+SELECT status_code, left(content::text, 120), created
+  FROM net._http_response ORDER BY created DESC LIMIT 10;
+```
+
+Stehen dort `401`, stimmt das Secret nicht oder `supabase/config.toml` wurde nicht mit
+ausgerollt.
 
 Prüfen:
 
@@ -254,6 +267,22 @@ Unter *Authentication → Providers* genügt **Email**. Die Anwendung meldet mit
 und setzt dabei `shouldCreateUser: false`: Wer kein Profil hat, bekommt keinen Link. Neue
 Mitglieder kommen über eine Einladung oder den Vereinscode herein.
 
+Unter *Authentication → Providers → Email* **müssen** eingeschaltet sein:
+
+- **Confirm email** — sonst wäre jede Registrierung sofort ein angemeldetes Konto, ohne
+  Nachweis, dass die Adresse dem gehört, der sie eingibt.
+- **Secure email change** — eine neue Adresse muss von der alten *und* der neuen bestätigt
+  werden. `profiles.email` zieht nach der Bestätigung automatisch nach.
+
+Empfohlen unter *Authentication → Attack Protection*: **Captcha** (hCaptcha oder Turnstile)
+für die Registrierung. Der Vereinscode hat zwar zwölf zufällige Zeichen und ist nicht zu
+erraten, aber wer ihn kennt, kann beliebig viele Anträge stellen.
+
+Ein vorhandenes Mitgliedsprofil übernimmt ein neues Konto **nur**, wenn es per Einladung
+entstanden ist oder die Adresse bestätigt ist. Wer sich mit der Adresse eines angelegten
+Mitglieds selbst registriert, wird abgewiesen — sonst könnte jemand das Profil an ein Konto
+binden, dessen Passwort er kennt.
+
 ## 11. Ersten Administrator anlegen
 
 Die Anwendung legt niemanden automatisch an — es gibt keine Hintertür, und das ist Absicht.
@@ -295,8 +324,12 @@ VALUES ('Vorname', 'Nachname', 'admin@verein.example.org', 'admin', 'unconfirmed
 
 - **Email**: exakt dieselbe Adresse wie in 11.1
 - **Password**: eines vergeben
-- **Auto Confirm User**: **anhaken** — sonst wartet das Konto auf eine
-  Bestätigungsmail, die niemand angefordert hat
+- **Auto Confirm User**: **anhaken** — Pflicht. `handle_new_user()` übernimmt ein
+  vorhandenes Profil nur für ein bestätigtes oder eingeladenes Konto. Ohne Haken bricht
+  das Anlegen mit „Für diese E-Mail-Adresse gibt es bereits ein Mitgliedsprofil" ab.
+
+  Alternativ *Add user → **Send invitation***: Dann setzt Supabase `invited_at`, und das
+  Profil wird genauso übernommen.
 
 ⚠️ **Die Reihenfolge ist nicht beliebig.** Existiert beim Anlegen des Kontos noch kein
 passendes Profil, greift der zweite Zweig des Triggers: Selbstregistrierung, und die

@@ -18,6 +18,7 @@ function makeBuilder(table: string) {
   const chain = {
     select: () => chain,
     order: () => chain,
+    range: () => chain,
     is: () => chain,
     eq: () => chain,
     insert: (values: unknown) => {
@@ -199,7 +200,7 @@ describe('RegistrationLinkDialog', () => {
     await waitFor(() => expect(state.upserts).toHaveLength(1));
     const rows = state.upserts[0] as { key: string; value: string }[];
     expect(rows[0].key).toBe('registration_code');
-    expect(rows[0].value).toHaveLength(8);
+    expect(rows[0].value).toHaveLength(12);
   });
 
   it('zeigt den fertigen Link samt Code', async () => {
@@ -216,11 +217,11 @@ describe('RegistrationLinkDialog', () => {
 });
 
 describe('generateRegistrationCode', () => {
-  it('erzeugt acht Zeichen ohne leicht verwechselbare', () => {
+  it('erzeugt zwölf Zeichen ohne leicht verwechselbare', () => {
     for (let i = 0; i < 50; i += 1) {
       const code = generateRegistrationCode();
-      expect(code).toHaveLength(8);
-      expect(code).toMatch(/^[A-HJ-NP-Z2-9]{8}$/);
+      expect(code).toHaveLength(12);
+      expect(code).toMatch(/^[A-HJ-NP-Z2-9]{12}$/);
     }
   });
 

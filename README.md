@@ -7,7 +7,7 @@ Vereinstermine, Umfragen, Kalender und Benachrichtigungen.
 **Stand (19.09.2026):** Die Anwendung ist gebaut und läuft gegen ein eingerichtetes
 Supabase-Projekt — Mitglieder, Mannschaften und Spielpläne aus click-TT, Rückmeldungen und
 Ersatzsuche, Training, Vereinstermine, Umfragen, Kalender mit ICS-Abo, Benachrichtigungen
-per E-Mail und Push, Übersicht, PWA und Betriebssicht. 935 Vitest-Tests, 403
+per E-Mail und Push, Übersicht, PWA und Betriebssicht. 971 Vitest-Tests, 437
 pgTAP-Assertions.
 
 Noch nicht eingeladen ist jemand: Was davor zu erledigen ist, steht in
@@ -28,6 +28,8 @@ npm run dev                    # http://localhost:5173
 | `npm run dev` | Entwicklungsserver |
 | `npm test` | Vitest |
 | `npx tsc --noEmit` | Typprüfung |
+| `npm run lint` | ESLint (vor allem Regeln der React-Hooks) |
+| `cd supabase/functions && deno check --node-modules-dir=none */index.ts` | Typprüfung der Edge Functions |
 | `npm run build` | Produktionsbuild |
 | `npm run db:reset` | Testdatenbank neu aufbauen (Migrationen + Seed) |
 | `npm run db:test` | pgTAP-Tests für RLS, Trigger und RPCs |
@@ -71,6 +73,7 @@ scripts/          Lokale Testdatenbank, Supabase-Kompatibilitätsschicht, Typgen
 | [docs/domain-einrichten.md](docs/domain-einrichten.md) | DNS für Anwendung und Versand: GitHub Pages, Resend, Prüfbefehle, Domainwechsel |
 | [docs/einrichtung.md](docs/einrichtung.md) | **Einrichtung von null**: Supabase, Resend, VAPID, Secrets, Cron, erster Administrator |
 | [docs/betrieb.md](docs/betrieb.md) | Laufender Betrieb: Reiter „Betrieb", Cron, Fehlerbilder, Sicherung |
+| [docs/code-review.md](docs/code-review.md) | **Code-Review** vom 23.09.2026: Befunde, Nachweise, Stand der Behebung |
 | [docs/fehler.md](docs/fehler.md) | **Fehler aus dem Betrieb**: Bild, Ursache, Behebung — neueste zuerst |
 | [docs/offene-entscheidungen.md](docs/offene-entscheidungen.md) | **Was der Verein entscheiden muss**, mit Möglichkeiten und Aufwand |
 | [docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md) | **Check vor dem ersten Mitglied**: SMTP, Vereinsdaten, Rechtliches, Probelauf |

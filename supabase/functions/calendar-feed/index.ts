@@ -9,7 +9,8 @@
 // ist deshalb ein Zufallswert, für niemanden über die API lesbar und jederzeit neu
 // erzeugbar. Mehr als die eigenen Termine gibt er nicht her.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from '../_shared/supabase.ts';
+import { fetchAllPages } from '../_shared/guards.ts';
 import { buildIcs, type IcsEntry } from '../_shared/ics.ts';
 
 const CORS = {
@@ -35,6 +36,10 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
   const token = new URL(request.url).searchParams.get('token');
   if (!token) return new Response('missing_token', { status: 400, headers: CORS });
+  // Ein Token ist eine UUID. Alles andere braucht keine Datenbankanfrage.
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token)) {
+    return new Response('not_found', { status: 404, headers: CORS });
+  }
 
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -65,14 +70,25 @@ Deno.serve(async (request: Request): Promise<Response> => {
   // Ein Jahr zurück, damit der Kalender auch die jüngste Vergangenheit zeigt.
   const from = new Date(Date.now() - 365 * 86_400_000).toISOString();
 
-  const { data: rows } = await admin
-    .from('v_my_upcoming')
-    .select('kind, id, starts_at, ends_at, title, location, my_status, active')
-    .eq('profile_id', profileId)
-    .gte('starts_at', from)
-    .order('starts_at');
+  // Blättern: Ein Jahr Training, Spiele und Termine kommt leicht über 1000 Zeilen.
+  let rows: unknown[];
+  try {
+    rows = await fetchAllPages((start, end) =>
+      admin
+        .from('v_my_upcoming')
+        .select('kind, id, starts_at, ends_at, title, location, my_status, active')
+        .eq('profile_id', profileId)
+        .gte('starts_at', from)
+        .order('starts_at')
+        .order('id')
+        .range(start, end),
+    );
+  } catch (error) {
+    console.error('v_my_upcoming:', error instanceof Error ? error.message : error);
+    return new Response('unavailable', { status: 503, headers: CORS });
+  }
 
-  const entries: IcsEntry[] = ((rows ?? []) as {
+  const entries: IcsEntry[] = (rows as {
     kind: string;
     id: string;
     starts_at: string;
@@ -107,7 +123,8 @@ Deno.serve(async (request: Request): Promise<Response> => {
       'Content-Type': 'text/calendar; charset=utf-8',
       'Content-Disposition': 'inline; filename="vereinsplaner.ics"',
       // Kalenderprogramme fragen von sich aus etwa stündlich; öfter wäre nur Last.
-      'Cache-Control': 'public, max-age=3600',
+      // `private`: Die Antwort gehört einer Person und hat in geteilten Caches nichts zu suchen.
+      'Cache-Control': 'private, max-age=3600',
     },
   });
 });

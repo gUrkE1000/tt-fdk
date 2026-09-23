@@ -53,6 +53,77 @@ dem Code, ließen sich ohne echtes Supabase-Projekt aber nicht vorführen.
 Zeilen SQL erledigt), danach H-1 bis H-4. K-1 gehört als pgTAP-Test abgesichert, damit
 jede künftige Funktion automatisch mitgeprüft wird (V-4).
 
+## Stand der Behebung
+
+**Stand 23.09.2026, gleicher Branch:** Alle Befunde sind im Code behoben, bis auf die
+unten ausdrücklich genannten Reste. Geprüft mit `tsc` (Frontend) und `deno check`
+(Edge Functions), ESLint ohne Befund, 971 Vitest-Tests, 437 pgTAP-Assertions (davon 34
+neu für diese Korrekturen), `npm audit` ohne Befund, und die gebaute App im Browser unter
+der neuen Content-Security-Policy ohne Verstoß.
+
+| ID | Behoben durch |
+|---|---|
+| K-1 | Migration `20261030000009_function_privileges.sql` (Rechte neu, Default-Privilegien abgestellt, anon ohne Tabellenrecht); Test `005_privileges.test.sql` |
+| K-2 | `handle_new_user()` in `20261030000000_account_privacy.sql` (nur mit `invited_at`/`email_confirmed_at`); Tests in `020_registration.test.sql` |
+| H-1 | Spaltenrechte auf `profiles`, `rpc_my_profile()`, `rpc_admin_members()`, Verzeichnis/Geburtstage/Kalender als Sichten des Eigentümers; Frontend: `useMembers` ohne Kontaktdaten, `useAdminMembers` für die Verwaltung |
+| H-2 | `20261030000001_absence_comment_privacy.sql` (Spaltenrecht, `v_absences` als Sicht des Eigentümers) |
+| H-3 | `verify_cron_secret()` in `20261030000004_background_jobs.sql`, gemeinsame Prüfung in `supabase/functions/_shared/http.ts`, `supabase/config.toml` mit `verify_jwt` |
+| H-4 | Blättern mit `fetchAll` (Frontend) bzw. `fetchAllPages` (Functions) für alle wachsenden Listen; Datumsfilter für Sammelerinnerung und Abwesenheiten |
+| M-1 | `claim_notifications()` mit `FOR UPDATE SKIP LOCKED` und Zustand `sending`; Erinnerungen prüfen die beanspruchten Zeilen; Zeitlimit für Resend und Push |
+| M-2 | Code mit 12 Zeichen, Mindestlänge 10 im Formular |
+| M-3 | CHECK auf `push_subscriptions.endpoint` und `profiles.emails_copies`; `sanitizeCc` im Versand; Prüfung im Profilformular |
+| M-4 | `run_retention()` löscht `auth.users` mit; `RequireAuth` zeigt bei fehlendem Profil einen Hinweis |
+| M-5 | `src/lib/notificationTarget.ts` im Service Worker |
+| M-6 | `FOR UPDATE` in Trainings-/Terminanmeldung und Aktions-Token (`20261030000002_integrity.sql`) |
+| M-7 | Verschlüsselung mit age in `backup.yml`; Anleitung in `docs/betrieb.md` |
+| M-8 | supabase-js einmal gepinnt in `_shared/supabase.ts` (`npm:`), CLI-Version fest, alle Actions auf Commit-SHA, Dependabot |
+| N-1 | `berlin_today()` in SQL, `todayInBerlin()` im Frontend, `berlinToday()` in den Functions |
+| N-2 | Spaltenschutz für `email`, `auth_linked_at`, `created_at`; `profiles.email` folgt `auth.users.email` |
+| N-3 | Trigger `protect_match_columns()` |
+| N-4 | Policy `object_messages_update` prüft das Zielobjekt |
+| N-5 | `Cache-Control: private`, Token-Format geprüft, Blättern |
+| N-6 | `isSafeFeedUrl`, Zeitlimit, 5-MB-Grenze, Schreibfehler werden gezählt |
+| N-7 | Antwortseite speichert erst nach Klick, Überschrift und Knöpfe je Art |
+| N-8 | CSP per Vite-Plugin (nur im Build), Farbschema-Skript als Datei |
+| N-9 | Umfrage, „letzter Login", Terminerzeugung (`upsert`), `current_member_role()`, Letzter-Admin-Bremse |
+| V-1 | ESLint 10 mit flacher Konfiguration, in der CI |
+| V-2 | `_shared/http.ts`, `_shared/guards.ts`, `_shared/supabase.ts` |
+| V-3 | Fehler von Schreibzugriffen und RPCs werden geprüft, gezählt und protokolliert |
+| V-4 | Rechte-Tests (`005`), Korrektur-Tests (`130`), `deno check` in der CI |
+| V-5 | `supabase/config.toml`, `supabase/.temp/` ignoriert |
+| V-6 | `overrides.uuid`, Design-Spielplatz nur dynamisch geladen |
+| V-8 | Symbole relativ zu `BASE_URL` bzw. Service-Worker-Scope |
+| V-9 | Keine Fehlerdetails aus `invite-member`, `settingsUrl` maskiert, VAPID ohne Platzhalter |
+
+**Bewusst nicht umgesetzt:**
+
+- V-7 (gesammelte statt zeilenweise Schreibzugriffe in den Hintergrundläufen): nur bei der
+  Terminerzeugung. Sonst ist das bei Vereinsgröße eine Frage der Laufzeit, kein Fehler.
+- Interne Funktionen in ein eigenes Schema verschieben (K-1, Punkt 2): Die Rechte-Migration
+  und der Test in `005_privileges.test.sql` schließen die Lücke; ein Umzug hätte jede
+  Aufrufstelle berührt.
+- Laufende Sitzungen beim Löschen beenden (M-4): Ein gelöschtes Konto sieht wegen RLS
+  nichts mehr und bekommt den Hinweis „Konto gelöscht"; das Refresh-Token läuft regulär
+  ab.
+- K-2, Weg b): Die Selbstregistrierung legt das Profil weiterhin vor der Bestätigung der
+  Adresse an. Es wartet auf Freischaltung durch einen Admin; mit **Confirm email** (unten)
+  kann sich niemand damit anmelden.
+- `nuscore_pin` bleibt für spielende Mitglieder lesbar (N-3, Nebenbemerkung) — das ist eine
+  fachliche Entscheidung des Vereins.
+
+**Nach dem Ausrollen von Hand zu erledigen:**
+
+1. Migrationen und Functions ausrollen (Workflow „Supabase ausrollen" — liest jetzt
+   `supabase/config.toml`).
+2. Supabase → *Authentication → Providers → Email*: **Confirm email** und **Secure email
+   change** einschalten; optional Captcha (`docs/einrichtung.md`, Abschnitt 10).
+3. Nach ein paar Minuten `SELECT status_code, created FROM net._http_response ORDER BY
+   created DESC LIMIT 10;` — dort sollten `200` stehen, keine `401`.
+4. Für die Sicherung die Repository-Variable `BACKUP_AGE_RECIPIENT` setzen
+   (`docs/betrieb.md`, Abschnitt 9). Ohne sie bricht der Backup-Job bewusst ab.
+5. Ist der hinterlegte Registrierungscode kürzer als zehn Zeichen, lässt sich das
+   Vereinsdaten-Formular erst wieder speichern, wenn der Code ersetzt ist („Vorschlagen").
+
 ---
 
 ## Kritisch

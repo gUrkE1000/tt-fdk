@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -18,6 +18,7 @@ function makeBuilder(table: string) {
   const chain = {
     select: () => chain,
     order: () => chain,
+    range: () => chain,
     eq: () => chain,
     is: () => chain,
     then: (resolve: (value: { data: Row[]; error: null }) => unknown) =>

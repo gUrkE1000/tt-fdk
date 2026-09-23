@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
@@ -23,13 +23,56 @@ const base = process.env.VITE_BASE_PATH ?? '/';
  */
 const buildId = (process.env.GITHUB_SHA ?? '').slice(0, 7) || 'lokal';
 
-export default defineConfig(({ command }) => ({
+/**
+ * Content-Security-Policy als Meta-Tag — nur im Produktionsbuild.
+ *
+ * GitHub Pages setzt keine Sicherheits-Header. Die Policy erlaubt Skripte nur vom eigenen
+ * Ursprung (kein Inline-Skript) und Verbindungen nur zu Supabase: Ein eingeschleustes
+ * Skript könnte weder etwas nachladen noch Daten wegschicken. `style-src 'unsafe-inline'`
+ * brauchen FullCalendar und der Editor. `frame-ancestors` wirkt per Meta-Tag nicht.
+ *
+ * Nicht im Entwicklungsmodus: Dort braucht Vite ein Inline-Skript (React Refresh) und
+ * eine WebSocket-Verbindung für das Neuladen.
+ */
+function contentSecurityPolicy(supabaseUrl: string): Plugin {
+  const connect = ["'self'", supabaseUrl].filter(Boolean).join(' ');
+  const policy = [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    `connect-src ${connect}`,
+    "worker-src 'self'",
+    "manifest-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ');
+
+  return {
+    name: 'content-security-policy',
+    apply: 'build',
+    transformIndexHtml: () => [
+      {
+        tag: 'meta',
+        attrs: { 'http-equiv': 'Content-Security-Policy', content: policy },
+        injectTo: 'head-prepend',
+      },
+    ],
+  };
+}
+
+export default defineConfig(({ command, mode }) => ({
   base,
   define: {
     __BUILD_ID__: JSON.stringify(buildId),
   },
   plugins: [
     react(),
+    contentSecurityPolicy(
+      (loadEnv(mode, process.cwd(), 'VITE_').VITE_SUPABASE_URL ?? '').replace(/\/$/, ''),
+    ),
     // Nur beim Bauen: im Entwicklungsmodus säße sonst ein Service Worker vor dem
     // Neuladen und lieferte hartnäckig den Stand von vorhin.
     ...(command === 'build'

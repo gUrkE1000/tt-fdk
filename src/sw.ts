@@ -6,6 +6,7 @@ import {
 } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { NetworkOnly } from 'workbox-strategies';
+import { notificationTarget } from './lib/notificationTarget';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -79,19 +80,22 @@ interface PushPayload {
  * stattdessen „Diese Website wurde im Hintergrund aktualisiert".
  */
 self.addEventListener('push', (event: PushEvent) => {
-  let payload: PushPayload = {};
+  let payload: PushPayload;
   try {
     payload = (event.data?.json() as PushPayload) ?? {};
   } catch {
     payload = { body: event.data?.text() };
   }
 
+  // Relativ zum Gültigkeitsbereich: Mit VITE_BASE_PATH liegt die App nicht an der Wurzel.
+  const icon = new URL('icons/icon-192.png', self.registration.scope).href;
+
   event.waitUntil(
     self.registration.showNotification(payload.title ?? 'Vereinsplaner', {
       body: payload.body ?? '',
       tag: payload.tag,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
+      icon,
+      badge: icon,
       data: payload.data ?? {},
     }),
   );
@@ -106,7 +110,13 @@ self.addEventListener('push', (event: PushEvent) => {
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close();
 
-  const target = (event.notification.data as { url?: string } | null)?.url || '/';
+  // Nur Ziele innerhalb der App. Eine fremde Adresse im Payload führt zur Startseite.
+  const scope = new URL(self.registration.scope);
+  const target = notificationTarget(
+    (event.notification.data as { url?: string } | null)?.url,
+    self.location.origin,
+    scope.pathname,
+  );
 
   event.waitUntil(
     (async () => {

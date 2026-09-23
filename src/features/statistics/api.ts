@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
+import { fetchAll } from '../../lib/fetchAll';
 import type { ViewRow } from '../../lib/database.types';
 
 /**
@@ -16,12 +17,17 @@ export function useTrainingStatistics() {
   return useQuery({
     queryKey: ['statistics', 'trainings'],
     queryFn: async (): Promise<StatisticsRow[]> => {
-      const { data, error } = await supabase
-        .from('v_training_statistics')
-        .select('*')
-        .order('session_date');
-      if (error) throw error;
-      return data ?? [];
+      // Eine Zeile je Person und vergangenem Termin: Ein Jahr sind schnell über 1000.
+      // Ohne Blättern fehlten ausgerechnet die neuesten Termine.
+      return fetchAll((from, to) =>
+        supabase
+          .from('v_training_statistics')
+          .select('*', { count: 'exact' })
+          .order('session_date')
+          .order('training_id')
+          .order('profile_id')
+          .range(from, to),
+      );
     },
   });
 }

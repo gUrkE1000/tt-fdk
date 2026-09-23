@@ -16,15 +16,19 @@ SELECT plan(22);
 -- ============================================================ anonym
 DO $$ BEGIN PERFORM tests.logout(); END $$;
 
-SELECT is(
-    (SELECT count(*) FROM public.profiles)::int,
-    0,
+-- anon hat seit der Rechte-Migration gar kein Tabellenrecht mehr — nicht nur
+-- keine Zeilen, sondern keinen Zugriff.
+SELECT throws_ok(
+    $$ SELECT count(*) FROM public.profiles $$,
+    '42501',
+    NULL,
     'Anonym ist kein einziges Profil sichtbar'
 );
 
-SELECT is(
-    (SELECT count(*) FROM public.venues)::int,
-    0,
+SELECT throws_ok(
+    $$ SELECT count(*) FROM public.venues $$,
+    '42501',
+    NULL,
     'Anonym ist kein Ort sichtbar'
 );
 

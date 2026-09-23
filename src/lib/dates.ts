@@ -16,6 +16,16 @@ export function toBerlin(value: string | Date): Date {
   return toZonedTime(typeof value === 'string' ? new Date(value) : value, TIME_ZONE);
 }
 
+/**
+ * „Heute" als ISO-Datum in deutscher Zeit.
+ *
+ * `new Date().toISOString().slice(0, 10)` ist das UTC-Datum — zwischen Mitternacht und
+ * ein bzw. zwei Uhr noch „gestern". Anmeldefristen und Zeitfenster rechnen damit falsch.
+ */
+export function todayInBerlin(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(now);
+}
+
 /** Ortszeit (wie im Formular eingegeben) in einen UTC-Zeitpunkt umrechnen. */
 export function fromBerlin(value: string | Date): Date {
   return fromZonedTime(value, TIME_ZONE);

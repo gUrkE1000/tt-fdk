@@ -46,7 +46,7 @@ export function buildEmailHtml(input: EmailHtmlInput): string {
   const footer = input.settingsUrl
     ? `<p style="margin:0;color:#6B7280;font-size:12px">
          Welche Nachrichten du bekommst, stellst du unter
-         <a href="${input.settingsUrl}" style="color:#6B7280">Mein Profil</a> ein.
+         <a href="${escapeHtml(input.settingsUrl)}" style="color:#6B7280">Mein Profil</a> ein.
        </p>`
     : '';
 

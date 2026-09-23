@@ -25,19 +25,34 @@ const ANSWER_LABEL: Record<Answer, string> = {
 };
 
 /**
+ * Was die Seite je Art des Links fragt und anbietet. Ein Vereinstermin und eine
+ * Ersatzanfrage kennen kein „unsicher" — die Datenbank lehnt es dort ab.
+ */
+const PROMPTS: Record<string, { title: string; answers: Answer[] }> = {
+  match_response: { title: 'Kannst du spielen?', answers: ['yes', 'unclear', 'no'] },
+  substitute_answer: { title: 'Kannst du als Ersatz einspringen?', answers: ['yes', 'no'] },
+  event_response: { title: 'Bist du dabei?', answers: ['yes', 'no'] },
+};
+
+const DEFAULT_PROMPT = PROMPTS.match_response;
+
+/**
  * Die Seite hinter dem Link aus einer Benachrichtigung.
  *
  * Sie funktioniert ohne Anmeldung — das ist der Unterschied zwischen einer
  * Rückmeldequote von fünfzig und von neunzig Prozent. Was der Token erlaubt, ist eng
  * gefasst: eine Antwort, zu einem Termin, einmal.
  *
- * Kommt die Antwort schon in der Adresse mit (`?a=yes`, so stehen es die Knöpfe in der
- * E-Mail), wird sie sofort gespeichert. Sonst fragt die Seite nach.
+ * Gespeichert wird erst nach einem Klick. Eine Antwort in der Adresse (`?a=yes`) wählt
+ * den Knopf nur vor: Mailprogramme lassen Links von Sicherheitsscannern öffnen, oft mit
+ * JavaScript — ein sofortiges Speichern hätte im Namen des Empfängers geantwortet und
+ * den Einmal-Link verbraucht, bevor er ihn überhaupt gesehen hat.
  */
 export default function ActionPage() {
   const { token } = useParams<{ token: string }>();
   const [search] = useSearchParams();
-  const preset = search.get('a') as Answer | null;
+  const presetRaw = search.get('a');
+  const preset = presetRaw === 'yes' || presetRaw === 'no' || presetRaw === 'unclear' ? presetRaw : null;
 
   const [info, setInfo] = useState<TokenInfo | null>(null);
   const [result, setResult] = useState<AnswerResult | null>(null);
@@ -53,27 +68,12 @@ export default function ActionPage() {
       });
 
       if (!active) return;
-      if (error) {
-        setInfo({ status: 'error' });
-        return;
-      }
-
-      const described = (data ?? { status: 'unknown' }) as TokenInfo;
-      setInfo(described);
-
-      // Die Antwort aus der Adresse gilt sofort — der Klick in der E-Mail war die
-      // Entscheidung, eine zweite Bestätigung wäre nur eine Hürde.
-      if (described.status === 'ok' && preset && ['yes', 'no', 'unclear'].includes(preset)) {
-        await submit(preset);
-      }
+      setInfo(error ? { status: 'error' } : ((data ?? { status: 'unknown' }) as TokenInfo));
     })();
 
     return () => {
       active = false;
     };
-    // Absichtlich nur am Token hängend: ein Wechsel von `preset` soll nicht erneut
-    // speichern.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   async function submit(answer: Answer) {
@@ -99,24 +99,13 @@ export default function ActionPage() {
           ) : info === null ? (
             <p className="text-gray-600">Einen Moment …</p>
           ) : info.status === 'ok' ? (
-            <>
-              <h1 className="text-lg font-bold text-gray-900">Kannst du spielen?</h1>
-              <p className="text-gray-700">{info.summary}</p>
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button variant="primary" disabled={busy} onClick={() => void submit('yes')}>
-                  <Check className="h-4 w-4" aria-hidden="true" />
-                  Zusage
-                </Button>
-                <Button disabled={busy} onClick={() => void submit('unclear')}>
-                  <HelpCircle className="h-4 w-4" aria-hidden="true" />
-                  Unsicher
-                </Button>
-                <Button variant="danger" disabled={busy} onClick={() => void submit('no')}>
-                  <X className="h-4 w-4" aria-hidden="true" />
-                  Absage
-                </Button>
-              </div>
-            </>
+            <Question
+              prompt={PROMPTS[info.action ?? ''] ?? DEFAULT_PROMPT}
+              summary={info.summary}
+              preset={preset}
+              busy={busy}
+              onAnswer={(answer) => void submit(answer)}
+            />
           ) : (
             <Problem status={info.status} />
           )}
@@ -127,6 +116,53 @@ export default function ActionPage() {
         </CardBody>
       </Card>
     </div>
+  );
+}
+
+const ANSWER_ICON = { yes: Check, unclear: HelpCircle, no: X } as const;
+
+function Question({
+  prompt,
+  summary,
+  preset,
+  busy,
+  onAnswer,
+}: {
+  prompt: { title: string; answers: Answer[] };
+  summary?: string;
+  preset: Answer | null;
+  busy: boolean;
+  onAnswer: (answer: Answer) => void;
+}) {
+  return (
+    <>
+      <h1 className="text-lg font-bold text-gray-900">{prompt.title}</h1>
+      {summary && <p className="text-gray-700">{summary}</p>}
+      {preset && prompt.answers.includes(preset) && (
+        <p className="text-sm text-gray-600">
+          Du hast in der Nachricht „{ANSWER_LABEL[preset]}" gewählt — bitte bestätigen.
+        </p>
+      )}
+      <div className="flex flex-wrap justify-center gap-2">
+        {prompt.answers.map((answer) => {
+          const Icon = ANSWER_ICON[answer];
+          const highlighted = preset === answer;
+          return (
+            <Button
+              key={answer}
+              variant={answer === 'yes' ? 'primary' : answer === 'no' ? 'danger' : undefined}
+              aria-pressed={highlighted || undefined}
+              className={highlighted ? 'ring-2 ring-offset-2 ring-primary' : undefined}
+              disabled={busy}
+              onClick={() => onAnswer(answer)}
+            >
+              <Icon className="h-4 w-4" aria-hidden="true" />
+              {ANSWER_LABEL[answer]}
+            </Button>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -161,6 +197,7 @@ function Problem({ status }: { status: string }) {
     closed: 'Die Rückmeldung ist für diese Mannschaft geschlossen. Bitte wende dich an deinen Mannschaftsführer.',
     unknown: 'Dieser Link ist ungültig. Vielleicht wurde er beim Kopieren abgeschnitten.',
     invalid_answer: 'Diese Antwort kennen wir nicht.',
+    full: 'Leider sind schon alle Plätze vergeben.',
     not_supported: 'Diese Art von Link wird noch nicht unterstützt.',
   };
 

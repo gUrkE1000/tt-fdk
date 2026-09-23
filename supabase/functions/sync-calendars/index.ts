@@ -8,17 +8,17 @@
 // Plan aus und schreibt das Protokoll. Diese Trennung ist der Grund, warum der heikelste
 // Teil des Imports vollständig ohne Datenbank getestet werden kann.
 
-import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { authorize, corsHeaders, environment, json, readBody, type SupabaseClient } from '../_shared/http.ts';
+import { isSafeFeedUrl } from '../_shared/guards.ts';
 import { parseIcs, extractMatchday } from '../_shared/ics.ts';
 import { determineHomeAway } from '../_shared/homeAway.ts';
 import { planSync, type ExistingMatch, type SyncAction } from '../_shared/syncPlanner.ts';
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-cron-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+/** Länger wartet der Abgleich nicht auf einen Verbandskalender. */
+const FETCH_TIMEOUT_MS = 20_000;
+
+/** Ein Saisonkalender hat einige Dutzend Kilobyte. Alles über 5 MB ist kein Spielplan. */
+const MAX_FEED_BYTES = 5 * 1024 * 1024;
 
 interface SyncRequest {
   teamId?: string;
@@ -40,40 +40,25 @@ interface TeamResult {
   updated: number;
   deactivated: number;
   message?: string;
-}
-
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  });
+  /** Wie viele Schreibvorgänge in der Datenbank gescheitert sind. */
+  writeErrors?: number;
 }
 
 Deno.serve(async (request: Request): Promise<Response> => {
-  if (request.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders('POST') });
   if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  const env = environment();
+  if (!env) return json({ error: 'not_configured' }, 500);
+  const { admin } = env;
 
-  if (!supabaseUrl || !serviceKey || !anonKey) return json({ error: 'not_configured' }, 500);
-
-  const admin = createClient(supabaseUrl, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-
-  const allowed = await authorize(request, admin, supabaseUrl, anonKey);
-  if (!allowed) return json({ error: 'unauthorized' }, 401);
-
-  let body: SyncRequest = {};
-  try {
-    if (request.headers.get('content-length') !== '0') {
-      body = (await request.json()) as SyncRequest;
-    }
-  } catch {
-    body = {};
+  // Cron-Secret für den nächtlichen Lauf, sonst Admin oder Mannschaftsführer aus dem
+  // Import-Dialog.
+  if (!(await authorize(request, env, ['admin', 'team_leader']))) {
+    return json({ error: 'unauthorized' }, 401);
   }
+
+  const body = await readBody<SyncRequest>(request);
 
   // Der Lauf wird protokolliert, bevor er beginnt. Bricht die Funktion ab, bleibt ein
   // `pending`-Eintrag stehen — das ist als Fehlerbild brauchbarer als gar nichts.
@@ -89,7 +74,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
     .eq('sync_enabled', true)
     .not('webcal_url', 'is', null);
 
-  if (body.teamId) query = query.eq('id', body.teamId);
+  if (typeof body.teamId === 'string' && body.teamId) query = query.eq('id', body.teamId);
 
   const { data: teams, error: teamsError } = await query;
 
@@ -114,54 +99,6 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
   return json({ status, teams: results });
 });
-
-/**
- * Zwei Wege herein: das Cron-Secret aus `private.cron_config` für den nächtlichen Lauf,
- * oder das Token eines Admins beziehungsweise Mannschaftsführers aus dem Import-Dialog.
- */
-async function authorize(
-  request: Request,
-  admin: SupabaseClient,
-  supabaseUrl: string,
-  anonKey: string,
-): Promise<boolean> {
-  const cronSecret = request.headers.get('x-cron-secret');
-  if (cronSecret) {
-    const { data } = await admin
-      .schema('private')
-      .from('cron_config')
-      .select('value')
-      .eq('key', 'cron_secret')
-      .maybeSingle();
-
-    const expected = (data as { value?: string } | null)?.value;
-    // Länge und Inhalt müssen stimmen; ein leer konfiguriertes Secret öffnet nichts.
-    return Boolean(expected) && cronSecret === expected;
-  }
-
-  const authHeader = request.headers.get('Authorization') ?? '';
-  if (!authHeader.startsWith('Bearer ')) return false;
-
-  const caller = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-
-  const { data: user } = await caller.auth.getUser();
-  if (!user?.user) return false;
-
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('role, status, deleted_at')
-    .eq('id', user.user.id)
-    .maybeSingle();
-
-  const row = profile as { role?: string; status?: string; deleted_at?: string | null } | null;
-  return (
-    row?.status === 'active' &&
-    !row.deleted_at &&
-    (row.role === 'admin' || row.role === 'team_leader')
-  );
-}
 
 async function loadAliases(admin: SupabaseClient): Promise<string[]> {
   const { data } = await admin
@@ -199,12 +136,27 @@ async function syncTeam(
   let icsText: string;
   try {
     // webcal:// ist http(s) mit anderem Namen; fetch kennt das Schema nicht.
-    const url = (team.webcal_url ?? '').replace(/^webcal:\/\//i, 'https://');
-    const response = await fetch(url, { headers: { Accept: 'text/calendar' } });
+    const url = (team.webcal_url ?? '').trim().replace(/^webcal:\/\//i, 'https://');
+    if (!isSafeFeedUrl(url)) {
+      return {
+        ...empty,
+        status: 'failed',
+        message: 'Die Kalenderadresse muss mit https:// oder webcal:// beginnen und auf einen öffentlichen Server zeigen.',
+      };
+    }
+
+    const response = await fetch(url, {
+      headers: { Accept: 'text/calendar' },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
     if (!response.ok) {
       return { ...empty, status: 'failed', message: `HTTP ${response.status}` };
     }
-    icsText = await response.text();
+    if (!isSafeFeedUrl(response.url || url)) {
+      return { ...empty, status: 'failed', message: 'Der Kalender leitet auf eine unzulässige Adresse um.' };
+    }
+    icsText = await readLimited(response, MAX_FEED_BYTES);
   } catch (error) {
     return {
       ...empty,
@@ -249,30 +201,41 @@ async function syncTeam(
     },
   });
 
-  const counts = { inserted: 0, rescheduled: 0, updated: 0, deactivated: 0 };
+  const counts = { inserted: 0, rescheduled: 0, updated: 0, deactivated: 0, writeErrors: 0 };
 
   for (const action of plan.actions) {
     await applyAction(admin, team.id, action, counts);
   }
 
-  return {
-    ...empty,
-    ...counts,
-    status: plan.status,
-    message: plan.warning,
-  };
+  // Ein Plan, der sich nicht vollständig schreiben ließ, ist kein Erfolg — auch wenn der
+  // Kalender selbst in Ordnung war.
+  const status = counts.writeErrors > 0 ? 'failed' : plan.status;
+  const message =
+    counts.writeErrors > 0
+      ? `${counts.writeErrors} Änderung(en) ließen sich nicht speichern.${plan.warning ? ` ${plan.warning}` : ''}`
+      : plan.warning;
+
+  return { ...empty, ...counts, status, message };
 }
 
 async function applyAction(
   admin: SupabaseClient,
   teamId: string,
   action: SyncAction,
-  counts: { inserted: number; rescheduled: number; updated: number; deactivated: number },
+  counts: { inserted: number; rescheduled: number; updated: number; deactivated: number; writeErrors: number },
 ): Promise<void> {
   const now = new Date().toISOString();
 
+  /** Schreibt, zählt Fehler und sagt, ob es geklappt hat. */
+  const ok = (result: { error: { message: string } | null }, what: string): boolean => {
+    if (!result.error) return true;
+    console.error(`${what}:`, result.error.message);
+    counts.writeErrors += 1;
+    return false;
+  };
+
   if (action.kind === 'insert') {
-    await admin.from('matches').insert({
+    const inserted = await admin.from('matches').insert({
       team_id: teamId,
       source: 'ics',
       external_uid: action.match.external_uid,
@@ -286,14 +249,14 @@ async function applyAction(
       matchday: action.match.matchday,
       last_synced_at: now,
     });
-    counts.inserted += 1;
+    if (ok(inserted, 'insert')) counts.inserted += 1;
     return;
   }
 
   if (action.kind === 'reschedule') {
     // Die Fassung steigt: alle bisherigen Zusagen gelten damit nicht mehr, ohne dass eine
     // einzige Zeile gelöscht wird. Wer zugesagt hatte, wird erneut gefragt.
-    await admin
+    const updated = await admin
       .from('matches')
       .update({
         // Die UID wird mitgeschrieben: Feeds, die sie je Export neu vergeben, würden das
@@ -312,20 +275,24 @@ async function applyAction(
         last_synced_at: now,
       })
       .eq('id', action.id);
+    if (!ok(updated, 'reschedule')) return;
 
-    await admin.from('match_changes').insert({
-      match_id: action.id,
-      change_type: 'sync_reschedule',
-      old_value: { dtstart: action.fromDtstart },
-      new_value: { dtstart: action.match.dtstart },
-    });
+    ok(
+      await admin.from('match_changes').insert({
+        match_id: action.id,
+        change_type: 'sync_reschedule',
+        old_value: { dtstart: action.fromDtstart },
+        new_value: { dtstart: action.match.dtstart },
+      }),
+      'match_changes',
+    );
 
     counts.rescheduled += 1;
     return;
   }
 
   if (action.kind === 'update_details') {
-    await admin
+    const updated = await admin
       .from('matches')
       .update({
         external_uid: action.match.external_uid,
@@ -339,12 +306,12 @@ async function applyAction(
         last_synced_at: now,
       })
       .eq('id', action.id);
-    counts.updated += 1;
+    if (ok(updated, 'update_details')) counts.updated += 1;
     return;
   }
 
   if (action.kind === 'clear_override') {
-    await admin
+    const updated = await admin
       .from('matches')
       .update({
         external_uid: action.uid,
@@ -353,19 +320,23 @@ async function applyAction(
         last_synced_at: now,
       })
       .eq('id', action.id);
+    if (!ok(updated, 'clear_override')) return;
 
-    await admin.from('match_changes').insert({
-      match_id: action.id,
-      change_type: 'sync_override_cleared',
-      new_value: { reason: 'Der Verband hat die Verlegung übernommen.' },
-    });
+    ok(
+      await admin.from('match_changes').insert({
+        match_id: action.id,
+        change_type: 'sync_override_cleared',
+        new_value: { reason: 'Der Verband hat die Verlegung übernommen.' },
+      }),
+      'match_changes',
+    );
 
     counts.updated += 1;
     return;
   }
 
   if (action.kind === 'deactivate') {
-    await admin
+    const updated = await admin
       .from('matches')
       .update({
         active: false,
@@ -373,22 +344,59 @@ async function applyAction(
         last_synced_at: now,
       })
       .eq('id', action.id);
+    if (!ok(updated, 'deactivate')) return;
 
-    await admin.from('match_changes').insert({
-      match_id: action.id,
-      change_type: 'sync_deactivated',
-      new_value: { reason: 'Im Verbandskalender nicht mehr enthalten' },
-    });
+    ok(
+      await admin.from('match_changes').insert({
+        match_id: action.id,
+        change_type: 'sync_deactivated',
+        new_value: { reason: 'Im Verbandskalender nicht mehr enthalten' },
+      }),
+      'match_changes',
+    );
 
     counts.deactivated += 1;
     return;
   }
 
   // touch — unverändert, aber die UID kann trotzdem eine neue sein.
-  await admin
-    .from('matches')
-    .update({ external_uid: action.uid, last_synced_at: now })
-    .eq('id', action.id);
+  ok(
+    await admin
+      .from('matches')
+      .update({ external_uid: action.uid, last_synced_at: now })
+      .eq('id', action.id),
+    'touch',
+  );
+}
+
+/** Den Body lesen, aber nicht mehr als `limit` Bytes — ein riesiger Feed sprengte sonst den Speicher. */
+async function readLimited(response: Response, limit: number): Promise<string> {
+  const declared = Number(response.headers.get('content-length') ?? '0');
+  if (declared > limit) throw new Error('Der Kalender ist zu groß.');
+
+  const reader = response.body?.getReader();
+  if (!reader) return '';
+
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > limit) {
+      await reader.cancel();
+      throw new Error('Der Kalender ist zu groß.');
+    }
+    chunks.push(value);
+  }
+
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
 }
 
 async function finish(

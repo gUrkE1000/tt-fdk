@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
+import { todayInBerlin } from '../../lib/dates';
+import { fetchAll } from '../../lib/fetchAll';
 import { queryKeys } from '../../lib/queryKeys';
 import type { Enums, InsertDto, Tables, UpdateDto, ViewRow } from '../../lib/database.types';
 
@@ -153,8 +155,8 @@ export function useTrainingSessions(days = SESSION_WINDOW_DAYS) {
   return useQuery({
     queryKey: queryKeys.trainings.sessions(),
     queryFn: async (): Promise<TrainingSession[]> => {
-      const today = new Date().toISOString().slice(0, 10);
-      const until = new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+      const today = todayInBerlin();
+      const until = todayInBerlin(new Date(Date.now() + days * 86_400_000));
 
       const { data, error } = await supabase
         .from('training_sessions')
@@ -179,9 +181,14 @@ export function useSessionParticipants() {
   return useQuery({
     queryKey: queryKeys.trainings.attendance(),
     queryFn: async (): Promise<SessionParticipant[]> => {
-      const { data, error } = await supabase.from('v_session_participants').select('*');
-      if (error) throw error;
-      return data ?? [];
+      return fetchAll((from, to) =>
+        supabase
+          .from('v_session_participants')
+          .select('*', { count: 'exact' })
+          .order('session_id')
+          .order('profile_id')
+          .range(from, to),
+      );
     },
   });
 }
@@ -190,9 +197,13 @@ export function useSessionCounts() {
   return useQuery({
     queryKey: [...queryKeys.trainings.attendance(), 'counts'],
     queryFn: async (): Promise<SessionCounts[]> => {
-      const { data, error } = await supabase.from('v_session_counts').select('*');
-      if (error) throw error;
-      return data ?? [];
+      return fetchAll((from, to) =>
+        supabase
+          .from('v_session_counts')
+          .select('*', { count: 'exact' })
+          .order('session_id')
+          .range(from, to),
+      );
     },
   });
 }

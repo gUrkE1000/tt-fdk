@@ -21,6 +21,7 @@ function makeBuilder(table: string) {
   const chain = {
     select: () => chain,
     order: () => chain,
+    range: () => chain,
     is: () => chain,
     gte: () => chain,
     lte: () => chain,

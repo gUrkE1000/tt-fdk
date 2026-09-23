@@ -15,6 +15,7 @@ export const queryKeys = {
   members: {
     all: ['members'] as const,
     list: (filters?: unknown) => ['members', 'list', filters ?? null] as const,
+    adminList: (filters?: unknown) => ['members', 'admin-list', filters ?? null] as const,
     detail: (id: string) => ['members', 'detail', id] as const,
     directory: () => ['members', 'directory'] as const,
     rankings: () => ['members', 'rankings'] as const,

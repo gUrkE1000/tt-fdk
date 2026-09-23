@@ -51,6 +51,10 @@ CREATE TABLE IF NOT EXISTS auth.users (
     email               TEXT UNIQUE,
     encrypted_password  TEXT,
     raw_user_meta_data  JSONB NOT NULL DEFAULT '{}'::jsonb,
+    -- Gesetzt von inviteUserByEmail bzw. beim Bestätigen der Adresse. handle_new_user
+    -- übernimmt ein vorhandenes Profil nur, wenn eins von beiden belegt ist.
+    invited_at          TIMESTAMPTZ,
+    email_confirmed_at  TIMESTAMPTZ,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -172,17 +176,20 @@ $$;
 
 -- Registriert einen Benutzer auf dem echten Weg: der Trigger on_auth_user_created
 -- läuft mit. Damit lässt sich prüfen, ob Verknüpfung und Codeprüfung greifen.
+--
+-- p_invited bildet inviteUserByEmail nach: Supabase setzt dabei invited_at.
 CREATE OR REPLACE FUNCTION tests.signup(
-    p_email TEXT,
-    p_meta  JSONB DEFAULT '{}'::jsonb,
-    p_id    UUID DEFAULT gen_random_uuid()
+    p_email   TEXT,
+    p_meta    JSONB DEFAULT '{}'::jsonb,
+    p_id      UUID DEFAULT gen_random_uuid(),
+    p_invited BOOLEAN DEFAULT false
 )
 RETURNS UUID
 LANGUAGE plpgsql SECURITY DEFINER
 AS $$
 BEGIN
-    INSERT INTO auth.users (id, email, raw_user_meta_data)
-    VALUES (p_id, p_email, p_meta);
+    INSERT INTO auth.users (id, email, raw_user_meta_data, invited_at)
+    VALUES (p_id, p_email, p_meta, CASE WHEN p_invited THEN NOW() END);
     RETURN p_id;
 END;
 $$;

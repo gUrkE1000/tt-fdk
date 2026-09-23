@@ -41,6 +41,7 @@ function makeBuilder(table: string) {
   const chain = {
     select: () => chain,
     order: () => chain,
+    range: () => chain,
     eq: () => chain,
     insert: (values: Row) => {
       state.inserts.push(values);

@@ -1,0 +1,21 @@
+# Hält Abhängigkeiten und die per Commit-SHA gepinnten Actions aktuell. Einmal im Monat
+# und gebündelt: Ein Verein hat keinen Bereitschaftsdienst für wöchentliche Updates.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      alle:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ['*']

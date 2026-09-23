@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
+import { fetchAll } from '../../lib/fetchAll';
 import { queryKeys } from '../../lib/queryKeys';
 import type { ViewRow } from '../../lib/database.types';
 import type { CalendarItem } from './events';
@@ -14,12 +15,15 @@ export function useCalendarItems() {
   return useQuery({
     queryKey: queryKeys.calendar.items(),
     queryFn: async (): Promise<CalendarItem[]> => {
-      const { data, error } = await supabase
-        .from('v_calendar_items')
-        .select('*')
-        .order('starts_at');
-      if (error) throw error;
-      return data ?? [];
+      return fetchAll((from, to) =>
+        supabase
+          .from('v_calendar_items')
+          .select('*', { count: 'exact' })
+          .order('starts_at')
+          .order('kind')
+          .order('id')
+          .range(from, to),
+      );
     },
   });
 }
@@ -33,13 +37,16 @@ export function useMyUpcoming(profileId: string | null) {
     queryKey: queryKeys.calendar.mine(profileId),
     enabled: profileId !== null,
     queryFn: async (): Promise<MyDate[]> => {
-      const { data, error } = await supabase
-        .from('v_my_upcoming')
-        .select('*')
-        .eq('profile_id', profileId!)
-        .order('starts_at');
-      if (error) throw error;
-      return data ?? [];
+      return fetchAll((from, to) =>
+        supabase
+          .from('v_my_upcoming')
+          .select('*', { count: 'exact' })
+          .eq('profile_id', profileId!)
+          .order('starts_at')
+          .order('kind')
+          .order('id')
+          .range(from, to),
+      );
     },
   });
 }

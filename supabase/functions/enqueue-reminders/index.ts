@@ -13,7 +13,8 @@
 // Wer was bekommt, entscheidet `_shared/reminderPlanner.ts` — dort ohne Uhr und ohne
 // Datenbank vollständig getestet. Hier bleibt das Holen und das Einreihen.
 
-import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { authorize, corsHeaders, environment, json, type SupabaseClient } from '../_shared/http.ts';
+import { berlinToday, fetchAllPages } from '../_shared/guards.ts';
 import {
   formatOpenItems,
   planEventReminders,
@@ -26,35 +27,15 @@ import {
   type ReminderSession,
 } from '../_shared/reminderPlanner.ts';
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-cron-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  });
-}
-
 Deno.serve(async (request: Request): Promise<Response> => {
-  if (request.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders('POST') });
   if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  const env = environment();
+  if (!env) return json({ error: 'not_configured' }, 500);
+  const { admin } = env;
 
-  if (!supabaseUrl || !serviceKey || !anonKey) return json({ error: 'not_configured' }, 500);
-
-  const admin = createClient(supabaseUrl, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-
-  if (!(await authorize(request, admin, supabaseUrl, anonKey))) {
+  if (!(await authorize(request, env, ['admin']))) {
     return json({ error: 'unauthorized' }, 401);
   }
 
@@ -68,45 +49,6 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
   return json({ matchReminders, trainingReminders, eventReminders, openReminders });
 });
-
-async function authorize(
-  request: Request,
-  admin: SupabaseClient,
-  supabaseUrl: string,
-  anonKey: string,
-): Promise<boolean> {
-  const cronSecret = request.headers.get('x-cron-secret');
-  if (cronSecret) {
-    const { data } = await admin
-      .schema('private')
-      .from('cron_config')
-      .select('value')
-      .eq('key', 'cron_secret')
-      .maybeSingle();
-
-    const expected = (data as { value?: string } | null)?.value;
-    return Boolean(expected) && cronSecret === expected;
-  }
-
-  const authHeader = request.headers.get('Authorization') ?? '';
-  if (!authHeader.startsWith('Bearer ')) return false;
-
-  const caller = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-
-  const { data: user } = await caller.auth.getUser();
-  if (!user?.user) return false;
-
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('role, status, deleted_at')
-    .eq('id', user.user.id)
-    .maybeSingle();
-
-  const row = profile as { role?: string; status?: string; deleted_at?: string | null } | null;
-  return row?.role === 'admin' && row.status === 'active' && !row.deleted_at;
-}
 
 interface Settings {
   openReminderDays: number;
@@ -163,7 +105,13 @@ async function doMatchReminders(admin: SupabaseClient, now: Date): Promise<numbe
       .from('match_participations')
       .select('match_id, profile_id, response, removed, lineup_position')
       .in('match_id', matchIds),
-    admin.from('profiles').select('id, reminder_games_hours, deleted_at, no_games'),
+    fetchAllPages((from, to) =>
+      admin
+        .from('profiles')
+        .select('id, reminder_games_hours, deleted_at, no_games')
+        .order('id')
+        .range(from, to),
+    ).then((data) => ({ data })),
     admin.from('match_reminders').select('match_id, profile_id, match_version').in('match_id', matchIds),
   ]);
 
@@ -223,10 +171,11 @@ async function doMatchReminders(admin: SupabaseClient, now: Date): Promise<numbe
     // Ein Schlüsselkonflikt heißt: ein paralleler Lauf war schneller.
     if (error) continue;
 
-    await admin.rpc('enqueue_match_reminder', {
+    const { error: enqueueError } = await admin.rpc('enqueue_match_reminder', {
       p_match_id: action.matchId,
       p_profile_id: action.profileId,
     });
+    if (enqueueError) console.error('enqueue_match_reminder:', enqueueError.message);
   }
 
   return actions.length;
@@ -266,7 +215,9 @@ async function doTrainingReminders(admin: SupabaseClient, now: Date): Promise<nu
       admin.from('training_members').select('training_id, profile_id').in('training_id', trainingIds),
       admin.from('training_attendance').select('session_id, profile_id').in('session_id', sessionIds),
       admin.from('training_reminder_filter').select('profile_id, training_id'),
-      admin.from('profiles').select('id, status, deleted_at'),
+      fetchAllPages((from, to) =>
+        admin.from('profiles').select('id, status, deleted_at').order('id').range(from, to),
+      ).then((data) => ({ data })),
     ]);
 
   const trainings = new Map(
@@ -331,20 +282,25 @@ async function doTrainingReminders(admin: SupabaseClient, now: Date): Promise<nu
   for (const action of actions) {
     // Erst merken, dann einreihen — wie beim Spiel. Der Merkposten hängt hier am Termin,
     // nicht an der Person: Ein zweiter Lauf soll niemanden noch einmal fragen.
-    const { error } = await admin
+    // Das Update trifft nur eine Zeile, wenn sie noch frei war. Ein paralleler Lauf, der
+    // schneller war, hinterlässt eine leere Rückgabe — ohne Fehler. Deshalb die Zeilen
+    // zurückgeben lassen und zählen, nicht nur auf `error` schauen.
+    const { data: claimed, error } = await admin
       .from('training_sessions')
       .update({ reminder_sent_at: now.toISOString() })
       .eq('id', action.sessionId)
-      .is('reminder_sent_at', null);
+      .is('reminder_sent_at', null)
+      .select('id');
 
-    if (error) continue;
+    if (error || !claimed || claimed.length === 0) continue;
 
     for (const profileId of action.profileIds) {
-      await admin.rpc('enqueue_training_reminder', {
+      const { error: enqueueError } = await admin.rpc('enqueue_training_reminder', {
         p_session_id: action.sessionId,
         p_profile_id: profileId,
       });
-      sent += 1;
+      if (enqueueError) console.error('enqueue_training_reminder:', enqueueError.message);
+      else sent += 1;
     }
   }
 
@@ -397,20 +353,22 @@ async function doEventReminders(
   let sent = 0;
 
   for (const action of actions) {
-    const { error } = await admin
+    const { data: claimed, error } = await admin
       .from('club_events')
       .update({ reminder_sent_at: now.toISOString() })
       .eq('id', action.eventId)
-      .is('reminder_sent_at', null);
+      .is('reminder_sent_at', null)
+      .select('id');
 
-    if (error) continue;
+    if (error || !claimed || claimed.length === 0) continue;
 
     for (const profileId of action.profileIds) {
-      await admin.rpc('enqueue_event_reminder', {
+      const { error: enqueueError } = await admin.rpc('enqueue_event_reminder', {
         p_event_id: action.eventId,
         p_profile_id: profileId,
       });
-      sent += 1;
+      if (enqueueError) console.error('enqueue_event_reminder:', enqueueError.message);
+      else sent += 1;
     }
   }
 
@@ -422,10 +380,24 @@ async function doOpenReminders(
   now: Date,
   settings: Settings,
 ): Promise<number> {
-  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(now);
+  const today = berlinToday(now);
 
-  const [{ data: openRows }, { data: sentRows }] = await Promise.all([
-    admin.from('v_open_participations').select('*'),
+  // Nur, was im Erinnerungszeitraum liegt — und alle Seiten davon. Ohne Datumsfilter und
+  // ohne Blättern schnitt PostgREST die Liste bei 1000 Zeilen ab, und ein zufälliger Teil
+  // der Mitglieder bekam keine Sammelerinnerung.
+  const until = new Date(now.getTime() + (settings.openReminderDays + 1) * 24 * 3600_000);
+
+  const [openRows, { data: sentRows }] = await Promise.all([
+    fetchAllPages((from, to) =>
+      admin
+        .from('v_open_participations')
+        .select('profile_id, kind, id, starts_at, title')
+        .lte('starts_at', until.toISOString())
+        .order('profile_id')
+        .order('kind')
+        .order('id')
+        .range(from, to),
+    ),
     admin.from('open_reminder_log').select('profile_id').eq('sent_on', today),
   ]);
 
@@ -459,11 +431,12 @@ async function doOpenReminders(
 
     if (error) continue;
 
-    await admin.rpc('enqueue_notification', {
+    const { error: enqueueError } = await admin.rpc('enqueue_notification', {
       p_profile: action.profileId,
       p_type: 'open_participations',
       p_payload: { list: formatOpenItems(action.items) },
     });
+    if (enqueueError) console.error('enqueue_notification:', enqueueError.message);
   }
 
   return actions.length;

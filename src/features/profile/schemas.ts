@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+/** Wie viele Kopie-Adressen ein Mitglied hinterlegen darf (CHECK auf profiles). */
+export const MAX_EMAIL_COPIES = 3;
+const EMAIL_PATTERN = /^[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+$/;
+
 export const profileSchema = z.object({
   firstName: z.string().trim().min(1, 'Bitte Vornamen eingeben'),
   lastName: z.string().trim().min(1, 'Bitte Nachnamen eingeben'),
@@ -9,7 +13,18 @@ export const profileSchema = z.object({
   mobilePhone: z.string().trim().optional().or(z.literal('')),
   // Kommagetrennt, z. B. für Eltern („An die hinterlegten Adressen gehen alle
   // Benachrichtigungen in Kopie").
-  emailsCopies: z.string().trim().optional().or(z.literal('')),
+  // Höchstens drei gültige Adressen — dieselbe Grenze prüft die Datenbank.
+  emailsCopies: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(''))
+    .refine((value) => parseEmailList(value ?? '').length <= MAX_EMAIL_COPIES, {
+      message: `Höchstens ${MAX_EMAIL_COPIES} Adressen`,
+    })
+    .refine((value) => parseEmailList(value ?? '').every((entry) => EMAIL_PATTERN.test(entry)), {
+      message: 'Mindestens eine Adresse sieht nicht nach einer E-Mail-Adresse aus',
+    }),
   // z.number() statt z.coerce.number(): die Umwandlung übernimmt react-hook-form über
   // valueAsNumber. Mit coerce wäre der Eingabetyp des Schemas `unknown` und der Resolver
   // passte nicht mehr zum Formulartyp.

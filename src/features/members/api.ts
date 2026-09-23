@@ -24,20 +24,71 @@ export type MemberRanking = Tables<'member_rankings'>;
 export type Group = Tables<'groups'>;
 export type RankingType = Enums<'ranking_type'>;
 
+/**
+ * Was jedes Mitglied über andere lesen darf. Kontaktdaten, Geburtstag und persönliche
+ * Einstellungen gehören nicht dazu: Die Datenbank gibt diese Spalten über `profiles`
+ * gar nicht mehr her (Spaltenrechte). Wer sie braucht, nimmt das Verzeichnis
+ * (`v_members_directory`, mit Freigabe) oder – als Admin – `useAdminMembers`.
+ */
+export const MEMBER_SUMMARY_COLUMNS =
+  'id, first_name, last_name, full_name, gender, member_number, role, status, no_games, qttr, contact_visible, hide_birthday, auth_linked_at, deleted_at, created_at, updated_at';
+
+export type MemberSummary = Pick<
+  Member,
+  | 'id'
+  | 'first_name'
+  | 'last_name'
+  | 'full_name'
+  | 'gender'
+  | 'member_number'
+  | 'role'
+  | 'status'
+  | 'no_games'
+  | 'qttr'
+  | 'contact_visible'
+  | 'hide_birthday'
+  | 'auth_linked_at'
+  | 'deleted_at'
+  | 'created_at'
+  | 'updated_at'
+>;
+
 // ---------------------------------------------------------------- Lesen
 
+/** Die Mitgliederliste für alle Seiten außer der Verwaltung – ohne Kontaktdaten. */
 export function useMembers(options: { includeDeleted?: boolean } = {}) {
   const includeDeleted = options.includeDeleted ?? false;
 
   return useQuery({
     queryKey: queryKeys.members.list({ includeDeleted }),
-    queryFn: async (): Promise<Member[]> => {
-      let query = supabase.from('profiles').select('*').order('full_name');
+    queryFn: async (): Promise<MemberSummary[]> => {
+      let query = supabase.from('profiles').select(MEMBER_SUMMARY_COLUMNS).order('full_name');
       if (!includeDeleted) query = query.is('deleted_at', null);
 
       const { data, error } = await query;
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as MemberSummary[];
+    },
+  });
+}
+
+/** Alle Profile mit allen Spalten – nur für Administratoren (die Datenbank prüft das). */
+async function fetchAdminMembers(): Promise<Member[]> {
+  const { data, error } = await supabase.rpc('rpc_admin_members');
+  if (error) throw error;
+  return ((data ?? []) as Member[]).sort((a, b) =>
+    (a.full_name ?? '').localeCompare(b.full_name ?? '', 'de'),
+  );
+}
+
+export function useAdminMembers(options: { includeDeleted?: boolean } = {}) {
+  const includeDeleted = options.includeDeleted ?? false;
+
+  return useQuery({
+    queryKey: queryKeys.members.adminList({ includeDeleted }),
+    queryFn: async (): Promise<Member[]> => {
+      const rows = await fetchAdminMembers();
+      return includeDeleted ? rows : rows.filter((row) => row.deleted_at === null);
     },
   });
 }
@@ -47,13 +98,8 @@ export function useMember(id: string | null) {
     queryKey: queryKeys.members.detail(id ?? ''),
     enabled: id !== null,
     queryFn: async (): Promise<Member | null> => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', id!)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      const rows = await fetchAdminMembers();
+      return rows.find((row) => row.id === id) ?? null;
     },
   });
 }

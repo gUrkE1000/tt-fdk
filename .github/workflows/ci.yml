@@ -15,9 +15,8 @@ jobs:
     name: Typen, Tests, Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
           cache: npm
@@ -26,6 +25,9 @@ jobs:
 
       - name: Typprüfung
         run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
 
       - name: Tests
         run: npm test
@@ -36,6 +38,23 @@ jobs:
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_ANON_KEY: build-placeholder
           VITE_APP_URL: https://example.invalid
+
+  functions:
+    name: Edge Functions (Deno-Typprüfung)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.x
+
+      # Die Functions laufen in Deno, nicht in Node: tsc im Frontend-Job sieht sie nicht.
+      # `--node-modules-dir=none`, damit Deno das package.json im Wurzelverzeichnis nicht
+      # für seine eigenen npm:-Abhängigkeiten hält.
+      - name: Typprüfung
+        working-directory: supabase/functions
+        run: deno check --node-modules-dir=none */index.ts
 
   database:
     name: Migrationen und RLS
@@ -64,9 +83,8 @@ jobs:
       DB_NAME: vereinsplaner
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
           cache: npm

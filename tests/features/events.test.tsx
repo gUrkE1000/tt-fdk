@@ -22,6 +22,7 @@ function makeBuilder(table: string) {
   const chain = {
     select: () => chain,
     order: () => chain,
+    range: () => chain,
     is: () => chain,
     eq: (_column: string, value: unknown) => {
       touched.push(value);

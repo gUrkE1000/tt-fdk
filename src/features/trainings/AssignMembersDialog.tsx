@@ -9,7 +9,7 @@ import {
   Select,
   useToast,
 } from '../../components/ui';
-import type { GroupWithMembers, Member } from '../members/api';
+import type { GroupWithMembers, MemberSummary as Member } from '../members/api';
 import type { TeamWithRoster } from '../teams/api';
 import { useAssignTrainingMembers, type TrainingWithPeople } from './api';
 import { resolveAssignment, type AssignSource } from './schemas';

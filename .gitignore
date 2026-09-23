@@ -9,3 +9,6 @@ coverage/
 
 # Lokale Test-Datenbank
 .pgdata/
+
+# Arbeitsdateien der Supabase-CLI
+supabase/.temp/

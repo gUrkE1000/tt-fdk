@@ -6,7 +6,7 @@
 // die gesamte Datenbank lesen und schreiben. Also läuft der Aufruf hier, serverseitig,
 // und die Funktion prüft vorher selbst, dass der Aufrufer wirklich Administrator ist.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from '../_shared/supabase.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -45,6 +45,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
   // ihn dieselbe Row Level Security wie im Browser.
   const caller = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: authHeader } },
+    auth: { autoRefreshToken: false, persistSession: false },
   });
 
   const { data: user } = await caller.auth.getUser();
@@ -56,6 +57,8 @@ Deno.serve(async (request: Request): Promise<Response> => {
     .eq('id', user.user.id)
     .maybeSingle();
 
+  // callerProfile kommt über den Client des Aufrufers (RLS), gelesen werden nur Spalten,
+  // die er über profiles sehen darf.
   if (callerProfile?.role !== 'admin' || callerProfile?.status !== 'active') {
     return json({ error: 'forbidden' }, 403);
   }
@@ -80,7 +83,10 @@ Deno.serve(async (request: Request): Promise<Response> => {
     .eq('id', body.profileId)
     .maybeSingle();
 
-  if (profileError) return json({ error: 'lookup_failed', detail: profileError.message }, 500);
+  if (profileError) {
+    console.error('profiles:', profileError.message);
+    return json({ error: 'lookup_failed' }, 500);
+  }
   if (!profile || profile.deleted_at) return json({ error: 'unknown_profile' }, 404);
   if (!profile.email) return json({ error: 'no_email' }, 400);
 
@@ -99,8 +105,10 @@ Deno.serve(async (request: Request): Promise<Response> => {
   if (inviteError) {
     const alreadyRegistered =
       inviteError.status === 422 || /already been registered/i.test(inviteError.message);
+    // Die Meldung des Auth-Dienstes gehört ins Protokoll, nicht in den Browser.
+    if (!alreadyRegistered) console.error('inviteUserByEmail:', inviteError.message);
     return json(
-      { error: alreadyRegistered ? 'already_registered' : 'invite_failed', detail: inviteError.message },
+      { error: alreadyRegistered ? 'already_registered' : 'invite_failed' },
       alreadyRegistered ? 409 : 500,
     );
   }

@@ -17,7 +17,7 @@ import {
   Table,
   useToast,
 } from '../../components/ui';
-import { formatDate } from '../../lib/dates';
+import { formatDate, todayInBerlin } from '../../lib/dates';
 import {
   useDeleteAutoAttendance,
   useMyAutoAttendance,
@@ -59,7 +59,7 @@ export default function AutoAttendanceTab({ profileId }: { profileId: string }) 
     if (dialogOpen) form.reset(EMPTY_AUTO_ATTENDANCE);
   }, [dialogOpen, form]);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInBerlin();
   const rows = entries.data ?? [];
 
   // Nur Trainings, zu denen man überhaupt kommen darf.

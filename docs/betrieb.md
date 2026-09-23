@@ -278,33 +278,49 @@ INSERT INTO public.profiles (first_name, last_name, email, role, status)
 VALUES ('Vorname', 'Nachname', 'admin@example.org', 'admin', 'unconfirmed');
 ```
 
-Danach meldet sich diese Adresse per E-Mail-Link an; `handle_new_user()` verknüpft das
-vorhandene Profil und setzt es auf `active`.
+Danach im Dashboard unter *Authentication → Users → Add user* entweder **Send invitation**
+oder **Create new user** mit **Auto Confirm User**. `handle_new_user()` verknüpft das
+vorhandene Profil nur für ein eingeladenes oder bestätigtes Konto und setzt es auf
+`active`. Ein E-Mail-Link von der Anmeldeseite hilft hier nicht — die legt bewusst keine
+Konten an.
 
 ## 9. Sicherung
 
 Supabase sichert die Datenbank selbst — aber innerhalb von Supabase. Das hilft gegen einen
 versehentlich gelöschten Datensatz, nicht gegen ein gelöschtes oder gesperrtes Projekt.
 
-Deshalb zusätzlich `.github/workflows/backup.yml`: sonntags um 04:30 UTC ein `pg_dump` in
-ein privates Artefakt dieses Repositories, aufbewahrt für 90 Tage.
+Deshalb zusätzlich `.github/workflows/backup.yml`: sonntags um 04:30 UTC ein `pg_dump`,
+**verschlüsselt** mit [age](https://age-encryption.org), als Artefakt dieses Repositories,
+aufbewahrt für 90 Tage.
 
 Einzurichten:
 
-1. Repository-Secret **`SUPABASE_DB_URL`** setzen — die Verbindungszeichenfolge aus
+1. Schlüsselpaar erzeugen — **auf dem eigenen Rechner, nicht in GitHub**:
+
+   ```bash
+   age-keygen -o vereinsplaner-sicherung.key
+   # Public key: age1…
+   ```
+
+   Die Datei `vereinsplaner-sicherung.key` ist der private Schlüssel. Sie gehört an zwei
+   sichere Orte beim Vorstand (Passwortmanager, ausgedruckt im Vereinsordner). Wer sie
+   verliert, kann keine Sicherung mehr öffnen.
+2. Repository-Variable **`BACKUP_AGE_RECIPIENT`** auf den öffentlichen Schlüssel
+   (`age1…`) setzen. Fehlt sie, bricht der Job ab, statt unverschlüsselt hochzuladen.
+3. Repository-Secret **`SUPABASE_DB_URL`** setzen — die Verbindungszeichenfolge aus
    *Project Settings → Database → Connection string* (Modus „Session", mit Passwort).
-2. Repository-Variable **`BACKUP_ENABLED`** auf `true` setzen. Ohne sie läuft der Job nicht;
+4. Repository-Variable **`BACKUP_ENABLED`** auf `true` setzen. Ohne sie läuft der Job nicht;
    ein Job, der jede Woche an einem fehlenden Secret scheitert, trainiert nur an, Fehler zu
    übersehen.
 
-> Das Artefakt enthält **alle Mitgliederdaten**. Es ist damit genauso schützenswert wie die
-> Datenbank: Das Repository muss privat bleiben, und wer Zugriff darauf hat, hat Zugriff auf
-> den ganzen Verein.
+> Das Artefakt kann jeder mit Lesezugriff auf das Repository herunterladen. Ohne den
+> privaten Schlüssel ist es wertlos — genau deshalb liegt er nicht in GitHub.
 
 ### Wiederherstellen
 
 ```bash
-pg_restore --no-owner --no-privileges --dbname "$PGURL" vereinsplaner-JJJJ-MM-TT.dump
+age --decrypt -i vereinsplaner-sicherung.key -o sicherung.dump vereinsplaner-JJJJ-MM-TT.dump.age
+pg_restore --no-owner --no-privileges --dbname "$PGURL" sicherung.dump
 ```
 
 Eine Sicherung, die nie zurückgespielt wurde, ist eine Vermutung. Einmal im Jahr in eine

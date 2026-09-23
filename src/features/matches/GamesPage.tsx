@@ -53,7 +53,9 @@ export default function GamesPage() {
   const [sharing, setSharing] = useState<MatchRow | null>(null);
   const [rescheduling, setRescheduling] = useState<MatchRow | null>(null);
 
-  const teamList = teams.data ?? [];
+  // Ohne useMemo wäre `?? []` bei jedem Rendern ein neues Array — und jedes useMemo,
+  // das davon abhängt, rechnete jedes Mal neu.
+  const teamList = useMemo(() => teams.data ?? [], [teams.data]);
   const venueList = venues.data ?? [];
   const members = useMembers();
   const participations = useAllParticipations();

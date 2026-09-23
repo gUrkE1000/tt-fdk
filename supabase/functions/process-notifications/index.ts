@@ -4,7 +4,7 @@
 // Zustandslogik steckt in `_shared/notificationState.ts` und ist dort vollständig
 // getestet; hier bleibt das Holen, das Verschicken und das Zurückschreiben.
 
-import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { authorize, environment, json, corsHeaders, type SupabaseClient } from '../_shared/http.ts';
 import {
   applyOutcome,
   preflight,
@@ -18,16 +18,13 @@ import {
   summarizePush,
   type EndpointOutcome,
 } from '../_shared/pushMessage.ts';
+import { sanitizeCc, vapidSubject } from '../_shared/guards.ts';
 import webpush from 'npm:web-push@3.6.7';
 
 const BATCH_SIZE = 50;
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-cron-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+/** Länger wartet ein Versand nicht auf Resend — sonst überholt der nächste Lauf diesen. */
+const SEND_TIMEOUT_MS = 15_000;
 
 interface QueueRow {
   id: string;
@@ -40,56 +37,43 @@ interface QueueRow {
   attempts: number;
 }
 
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  });
-}
-
 Deno.serve(async (request: Request): Promise<Response> => {
-  if (request.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders('POST') });
   if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  const env = environment();
+  if (!env) return json({ error: 'not_configured' }, 500);
+  const { admin } = env;
+
   const resendKey = Deno.env.get('RESEND_API_KEY');
   const vapidPublic = Deno.env.get('VAPID_PUBLIC_KEY');
   const vapidPrivate = Deno.env.get('VAPID_PRIVATE_KEY');
 
-  if (!supabaseUrl || !serviceKey || !anonKey) return json({ error: 'not_configured' }, 500);
-
-  const admin = createClient(supabaseUrl, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-
-  if (!(await authorize(request, admin, supabaseUrl, anonKey))) {
+  if (!(await authorize(request, env, ['admin']))) {
     return json({ error: 'unauthorized' }, 401);
   }
 
   const settings = await loadSettings(admin);
 
-  // Ohne VAPID-Schlüsselpaar nimmt kein Push-Dienst etwas an. Fehlt es, bleibt der
-  // E-Mail-Weg unberührt; die Push-Zeilen werden übersprungen statt zu scheitern.
-  const pushReady = Boolean(vapidPublic && vapidPrivate);
+  // Ohne VAPID-Schlüsselpaar und ohne echte Kontaktangabe nimmt kein Push-Dienst etwas
+  // an. Fehlt eins davon, bleibt der E-Mail-Weg unberührt; die Push-Zeilen werden
+  // übersprungen statt zu scheitern.
+  const subject = vapidSubject(settings.senderEmail, settings.appUrl);
+  const pushReady = Boolean(vapidPublic && vapidPrivate && subject);
   if (pushReady) {
-    webpush.setVapidDetails(
-      settings.senderEmail ? `mailto:${settings.senderEmail}` : 'mailto:admin@example.org',
-      vapidPublic!,
-      vapidPrivate!,
-    );
+    webpush.setVapidDetails(subject!, vapidPublic!, vapidPrivate!);
   }
 
-  const { data: queue, error: queueError } = await admin
-    .from('notifications')
-    .select('id, profile_id, channel, type, subject, body_text, payload, attempts')
-    .eq('status', 'pending')
-    .lte('scheduled_for', new Date().toISOString())
-    .order('scheduled_for')
-    .limit(BATCH_SIZE);
+  // Beanspruchen statt nur lesen: `claim_notifications` setzt die Zeilen in einem Schritt
+  // auf `sending`. Ein zweiter, überlappender Lauf bekommt sie nicht mehr.
+  const { data: queue, error: queueError } = await admin.rpc('claim_notifications', {
+    p_limit: BATCH_SIZE,
+  });
 
-  if (queueError) return json({ error: 'queue_unavailable', detail: queueError.message }, 500);
+  if (queueError) {
+    console.error('claim_notifications:', queueError.message);
+    return json({ error: 'queue_unavailable' }, 500);
+  }
 
   const rows = (queue ?? []) as QueueRow[];
   if (rows.length === 0) return json({ processed: 0, sent: 0, failed: 0, skipped: 0 });
@@ -100,7 +84,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
     ? await loadSubscriptions(admin, profileIds)
     : new Map<string, PushSubscriptionRow[]>();
 
-  const counts = { processed: 0, sent: 0, failed: 0, skipped: 0, retried: 0 };
+  const counts = { processed: 0, sent: 0, failed: 0, skipped: 0, retried: 0, writeErrors: 0 };
 
   for (const row of rows) {
     const recipient = recipients.get(row.profile_id);
@@ -116,7 +100,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
     const early = preflight(state);
     if (early) {
-      await write(admin, row.id, early);
+      if (!(await write(admin, row.id, early))) counts.writeErrors += 1;
       counts.processed += 1;
       counts.skipped += 1;
       continue;
@@ -130,7 +114,9 @@ Deno.serve(async (request: Request): Promise<Response> => {
           : ({ kind: 'error', message: 'RESEND_API_KEY ist nicht gesetzt.' } as SendOutcome);
 
     const change = applyOutcome(state, outcome);
-    await write(admin, row.id, change);
+    // Scheitert das Zurückschreiben, bleibt die Zeile in `sending` und kommt nach 30
+    // Minuten wieder — dann womöglich doppelt. Das soll im Protokoll stehen.
+    if (!(await write(admin, row.id, change))) counts.writeErrors += 1;
 
     counts.processed += 1;
     if (change.status === 'sent') counts.sent += 1;
@@ -140,45 +126,6 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
   return json(counts);
 });
-
-async function authorize(
-  request: Request,
-  admin: SupabaseClient,
-  supabaseUrl: string,
-  anonKey: string,
-): Promise<boolean> {
-  const cronSecret = request.headers.get('x-cron-secret');
-  if (cronSecret) {
-    const { data } = await admin
-      .schema('private')
-      .from('cron_config')
-      .select('value')
-      .eq('key', 'cron_secret')
-      .maybeSingle();
-
-    const expected = (data as { value?: string } | null)?.value;
-    return Boolean(expected) && cronSecret === expected;
-  }
-
-  const authHeader = request.headers.get('Authorization') ?? '';
-  if (!authHeader.startsWith('Bearer ')) return false;
-
-  const caller = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-
-  const { data: user } = await caller.auth.getUser();
-  if (!user?.user) return false;
-
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('role, status, deleted_at')
-    .eq('id', user.user.id)
-    .maybeSingle();
-
-  const row = profile as { role?: string; status?: string; deleted_at?: string | null } | null;
-  return row?.role === 'admin' && row.status === 'active' && !row.deleted_at;
-}
 
 interface Settings {
   clubName: string;
@@ -243,7 +190,7 @@ async function sendEmail(
     return { kind: 'permanent', message: 'Keine Absenderadresse in den Vereinsdaten hinterlegt.' };
   }
 
-  const cc = Array.isArray(row.payload.cc) ? (row.payload.cc as string[]) : undefined;
+  const cc = sanitizeCc(row.payload.cc, to);
 
   try {
     const response = await fetch('https://api.resend.com/emails', {
@@ -269,6 +216,7 @@ async function sendEmail(
           settingsUrl: settings.appUrl ? `${settings.appUrl}/profile` : undefined,
         }),
       }),
+      signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
     });
 
     if (response.ok) return { kind: 'ok' };
@@ -289,11 +237,12 @@ async function sendEmail(
   }
 }
 
+/** Den neuen Zustand zurückschreiben. `false`, wenn das nicht geklappt hat. */
 async function write(
   admin: SupabaseClient,
   id: string,
   change: ReturnType<typeof applyOutcome>,
-): Promise<void> {
+): Promise<boolean> {
   const update: Record<string, unknown> = {
     status: change.status,
     attempts: change.attempts,
@@ -303,7 +252,9 @@ async function write(
 
   if (change.scheduledFor) update.scheduled_for = change.scheduledFor;
 
-  await admin.from('notifications').update(update).eq('id', id);
+  const { error } = await admin.from('notifications').update(update).eq('id', id);
+  if (error) console.error(`notifications ${id}:`, error.message);
+  return !error;
 }
 
 // ---------------------------------------------------------------------------- Push
@@ -364,7 +315,7 @@ async function sendPush(
           keys: { p256dh: subscription.p256dh, auth: subscription.auth },
         },
         payload,
-        { TTL: 60 * 60 * 24 },
+        { TTL: 60 * 60 * 24, timeout: SEND_TIMEOUT_MS },
       );
       outcomes.push({ gone: false, delivered: true, retry: false });
 

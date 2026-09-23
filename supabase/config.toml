@@ -1,0 +1,41 @@
+# Konfiguration der Supabase-CLI für dieses Repository.
+#
+# Wichtig ist hier vor allem der Abschnitt [functions.*]: `supabase functions deploy`
+# liest ihn bei jedem Ausrollen. Eine Einstellung, die nur im Dashboard gesetzt ist,
+# setzt das nächste Ausrollen zurück (docs/einrichtung.md, Abschnitt 7).
+#
+# project_id ist nur ein lokaler Name, nicht die Projekt-Kennung in Supabase. Die kommt
+# beim Ausrollen über `--project-ref` bzw. `supabase link`.
+project_id = "vereinsplaner"
+
+# ---------------------------------------------------------------- Edge Functions
+#
+# verify_jwt = false heißt: Das Gateway lässt Aufrufe ohne Supabase-JWT durch. Das ist
+# für diese Functions nötig, weil ihre Aufrufer keins haben:
+#   - calendar-feed: Kalenderprogramme kennen nur den Abo-Token in der Adresse.
+#   - die fünf Cron-Functions: pg_cron ruft über pg_net mit `x-cron-secret`, ohne JWT.
+#
+# Offen sind sie damit nicht. Jede prüft den Aufrufer selbst (_shared/http.ts): das
+# Cron-Secret über verify_cron_secret(), oder das JWT eines Benutzers über auth.getUser()
+# samt Rolle und Status. invite-member bleibt beim Standard (JWT Pflicht).
+
+[functions.calendar-feed]
+verify_jwt = false
+
+[functions.process-notifications]
+verify_jwt = false
+
+[functions.enqueue-reminders]
+verify_jwt = false
+
+[functions.substitute-engine]
+verify_jwt = false
+
+[functions.sync-calendars]
+verify_jwt = false
+
+[functions.generate-training-sessions]
+verify_jwt = false
+
+[functions.invite-member]
+verify_jwt = true

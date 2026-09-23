@@ -37,7 +37,9 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
   const counts = useSessionCounts();
   const sessionKeys = useSessionKeys();
 
-  const trainingList = trainings.data ?? [];
+  // Ohne useMemo wäre `?? []` bei jedem Rendern ein neues Array — und jedes useMemo,
+  // das davon abhängt, rechnete jedes Mal neu.
+  const trainingList = useMemo(() => trainings.data ?? [], [trainings.data]);
   const venueList = venues.data ?? [];
 
   const nameOf = useMemo(() => {

@@ -7,7 +7,8 @@
 // Was zu tun ist, entscheidet `_shared/substituteEngine.ts`. Hier steht das Laden, das
 // Ausführen und das Benachrichtigen.
 
-import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { authorize, corsHeaders, environment, json, readBody, type SupabaseClient } from '../_shared/http.ts';
+import { berlinToday } from '../_shared/guards.ts';
 import {
   planSubstituteStep,
   type EngineAbsence,
@@ -18,13 +19,6 @@ import {
   type EngineRequest,
   type SubstituteMode,
 } from '../_shared/substituteEngine.ts';
-
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-cron-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
 
 /** Weiter voraus lohnt der Aufwand nicht; Absagen kommen selten drei Wochen vorher. */
 const HORIZON_DAYS = 21;
@@ -39,42 +33,22 @@ interface MatchRow {
   lineup_locked: boolean;
 }
 
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  });
-}
-
 Deno.serve(async (request: Request): Promise<Response> => {
-  if (request.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders('POST') });
   if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  const env = environment();
+  if (!env) return json({ error: 'not_configured' }, 500);
+  const { admin } = env;
 
-  if (!supabaseUrl || !serviceKey || !anonKey) return json({ error: 'not_configured' }, 500);
-
-  const admin = createClient(supabaseUrl, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-
-  if (!(await authorize(request, admin, supabaseUrl, anonKey))) {
+  if (!(await authorize(request, env, ['admin', 'team_leader']))) {
     return json({ error: 'unauthorized' }, 401);
   }
 
-  let body: { matchId?: string } = {};
-  try {
-    if (request.headers.get('content-length') !== '0') {
-      body = (await request.json()) as { matchId?: string };
-    }
-  } catch {
-    body = {};
-  }
+  const body = await readBody<{ matchId: string }>(request);
 
   const now = new Date();
-  const matches = await loadMatches(admin, now, body.matchId);
+  const matches = await loadMatches(admin, now, typeof body.matchId === 'string' ? body.matchId : undefined);
 
   const summary = { matches: matches.length, requested: 0, expired: 0, cancelled: 0, exhausted: 0 };
 
@@ -87,49 +61,6 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
   return json(summary);
 });
-
-async function authorize(
-  request: Request,
-  admin: SupabaseClient,
-  supabaseUrl: string,
-  anonKey: string,
-): Promise<boolean> {
-  const cronSecret = request.headers.get('x-cron-secret');
-  if (cronSecret) {
-    const { data } = await admin
-      .schema('private')
-      .from('cron_config')
-      .select('value')
-      .eq('key', 'cron_secret')
-      .maybeSingle();
-
-    const expected = (data as { value?: string } | null)?.value;
-    return Boolean(expected) && cronSecret === expected;
-  }
-
-  const authHeader = request.headers.get('Authorization') ?? '';
-  if (!authHeader.startsWith('Bearer ')) return false;
-
-  const caller = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-
-  const { data: user } = await caller.auth.getUser();
-  if (!user?.user) return false;
-
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('role, status, deleted_at')
-    .eq('id', user.user.id)
-    .maybeSingle();
-
-  const row = profile as { role?: string; status?: string; deleted_at?: string | null } | null;
-  return (
-    row?.status === 'active' &&
-    !row.deleted_at &&
-    (row.role === 'admin' || row.role === 'team_leader')
-  );
-}
 
 async function loadMatches(
   admin: SupabaseClient,
@@ -178,7 +109,14 @@ async function planForMatch(
       .from('substitute_requests')
       .select('id, profile_id, rank, status, expires_at, match_version, created_by')
       .eq('match_id', match.id),
-    admin.from('absences').select('profile_id, start_date, end_date'),
+    // Nur Abwesenheiten, die das Spiel noch betreffen können. Ohne Filter lud jeder Lauf
+    // alle Abwesenheiten aller Jahre — und PostgREST schnitt bei 1000 Zeilen ab, sodass
+    // Abwesende trotzdem als Ersatz angefragt wurden.
+    admin
+      .from('absences')
+      .select('profile_id, start_date, end_date')
+      .gte('end_date', berlinToday(now))
+      .lte('start_date', berlinToday(new Date(match.dtstart))),
     admin
       .from('notifications')
       .select('id')
@@ -303,11 +241,13 @@ async function apply(
       p_rank: action.rank,
       p_expires_at: action.expiresAt,
     });
-    if (!error) summary.requested += 1;
+    if (error) console.error('enqueue_substitute_request:', error.message);
+    else summary.requested += 1;
     return;
   }
 
   // exhausted
-  await admin.rpc('notify_chain_exhausted', { p_match_id: match.id });
-  summary.exhausted += 1;
+  const { error } = await admin.rpc('notify_chain_exhausted', { p_match_id: match.id });
+  if (error) console.error('notify_chain_exhausted:', error.message);
+  else summary.exhausted += 1;
 }

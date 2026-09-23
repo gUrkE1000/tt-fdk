@@ -19,6 +19,7 @@ function makeBuilder(table: string) {
   const chain = {
     select: () => chain,
     order: () => chain,
+    range: () => chain,
     is: () => chain,
     eq: () => chain,
     upsert: (values: unknown) => {

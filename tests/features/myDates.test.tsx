@@ -19,6 +19,7 @@ function makeBuilder(table: string) {
   const chain = {
     select: () => chain,
     order: () => chain,
+    range: () => chain,
     eq: () => chain,
     then: (resolve: (value: { data: Row[]; error: null }) => unknown) =>
       resolve({ data: state.tables[table] ?? [], error: null }),

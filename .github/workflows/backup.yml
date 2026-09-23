@@ -40,11 +40,31 @@ jobs:
           pg_dump --no-owner --no-privileges --format=custom \
                   --file="vereinsplaner-$(date -u +%Y-%m-%d).dump" "$PGURL"
 
+      # Verschlüsselt, bevor die Datei GitHub verlässt. Das Artefakt kann jeder mit
+      # Lesezugriff auf das Repository herunterladen — ohne Verschlüsselung lägen dort alle
+      # Mitgliederdaten im Klartext. Der öffentliche Schlüssel steht in der Variable
+      # BACKUP_AGE_RECIPIENT (age1…); den privaten hat nur der Vorstand, nicht GitHub.
+      # Einrichtung und Wiederherstellung: docs/betrieb.md, Abschnitt „Sicherung".
+      - name: Verschlüsseln
+        env:
+          RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+        run: |
+          if [ -z "$RECIPIENT" ]; then
+            echo "::error::Variable BACKUP_AGE_RECIPIENT fehlt — unverschlüsselt wird nichts hochgeladen."
+            rm -f ./*.dump
+            exit 1
+          fi
+          sudo apt-get install -y age
+          for file in ./*.dump; do
+            age --recipient "$RECIPIENT" --output "$file.age" "$file"
+            rm -f "$file"
+          done
+
       - name: Als Artefakt ablegen
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: datenbank-sicherung
-          path: '*.dump'
+          path: '*.dump.age'
           # Drei Monate. Länger aufzubewahren hieße, personenbezogene Daten
           # aufzubewahren, ohne dass sie jemandem nützen.
           retention-days: 90

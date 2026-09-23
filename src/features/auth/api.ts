@@ -290,13 +290,18 @@ export function usePublicClubInfo(enabled = true) {
   });
 }
 
+/**
+ * Das eigene Profil, vollständig. Über die Tabelle ginge das nicht mehr: Kontaktdaten und
+ * persönliche Einstellungen sind dort per Spaltenrecht gesperrt, auch für die eigene Zeile.
+ */
 export async function fetchProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await withTimeout(
-    supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+    supabase.rpc('rpc_my_profile'),
     'Laden des Profils',
   );
   if (error) throw readableError(error);
-  return data;
+  const rows = (data ?? []) as Profile[];
+  return rows.find((row) => row.id === userId) ?? null;
 }
 
 /** Hält fest, wann jemand zuletzt da war — Grundlage für „seit deinem letzten Login". */

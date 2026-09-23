@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
+import { fetchAll } from '../../lib/fetchAll';
 import { queryKeys } from '../../lib/queryKeys';
 import type { Tables, UpdateDto, ViewRow } from '../../lib/database.types';
 
@@ -36,12 +37,14 @@ export function useAllAbsences() {
   return useQuery({
     queryKey: ['absences', 'all'],
     queryFn: async (): Promise<Absence[]> => {
-      const { data, error } = await supabase
-        .from('v_absences')
-        .select('*')
-        .order('start_date', { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      return fetchAll((from, to) =>
+        supabase
+          .from('v_absences')
+          .select('*', { count: 'exact' })
+          .order('start_date', { ascending: false })
+          .order('id')
+          .range(from, to),
+      );
     },
   });
 }

@@ -20,6 +20,7 @@ function makeBuilder(table: string) {
   const chain = {
     select: () => chain,
     order: () => chain,
+    range: () => chain,
     is: () => chain,
     eq: () => chain,
     insert: (values: unknown) => {
@@ -285,7 +286,7 @@ describe('ClubPage', () => {
     await userEvent.click(screen.getByRole('button', { name: /Neuen Code vorschlagen/ }));
 
     const code = screen.getByLabelText('Code') as HTMLInputElement;
-    expect(code.value).toMatch(/^[A-HJ-NP-Z2-9]{8}$/);
+    expect(code.value).toMatch(/^[A-HJ-NP-Z2-9]{12}$/);
     expect(state.upserts).toHaveLength(0);
   });
 });

@@ -8,7 +8,8 @@
 // mit Grund. Die Entscheidung darüber trifft `_shared/sessionPlanner.ts`, dort ohne Uhr
 // und ohne Datenbank vollständig getestet. Hier bleibt das Holen und das Ausführen.
 
-import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { authorize, corsHeaders, environment, json, readBody, type SupabaseClient } from '../_shared/http.ts';
+import { berlinToday } from '../_shared/guards.ts';
 import {
   HORIZON_DAYS,
   addDays,
@@ -19,98 +20,32 @@ import {
   type PlannedTraining,
 } from '../_shared/sessionPlanner.ts';
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-cron-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  });
-}
-
 Deno.serve(async (request: Request): Promise<Response> => {
-  if (request.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders('POST') });
   if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  const env = environment();
+  if (!env) return json({ error: 'not_configured' }, 500);
+  const { admin } = env;
 
-  if (!supabaseUrl || !serviceKey || !anonKey) return json({ error: 'not_configured' }, 500);
-
-  const admin = createClient(supabaseUrl, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-
-  if (!(await authorize(request, admin, supabaseUrl, anonKey))) {
+  // Trainer dürfen den Lauf anstoßen: sie ändern ein Training und wollen die Termine sehen.
+  if (!(await authorize(request, env, ['admin', 'trainer']))) {
     return json({ error: 'unauthorized' }, 401);
   }
 
   // Ein einzelnes Training, wenn der Trigger nach dem Speichern ruft — sonst alle.
-  let onlyTraining: string | null = null;
-  try {
-    const body = await request.json();
-    const value = (body as { training_id?: unknown } | null)?.training_id;
-    if (typeof value === 'string' && value.length > 0) onlyTraining = value;
-  } catch {
-    // Kein Body ist der Normalfall beim nächtlichen Lauf.
-  }
+  // Kein Body ist der Normalfall beim nächtlichen Lauf.
+  const body = await readBody<{ training_id: string }>(request);
+  const onlyTraining =
+    typeof body.training_id === 'string' && body.training_id.length > 0 ? body.training_id : null;
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Deutsche Zeit: um 1 Uhr nachts ist in UTC noch gestern.
+  const today = berlinToday();
   const horizon = addDays(today, HORIZON_DAYS);
 
   const result = await generate(admin, today, horizon, onlyTraining);
   return json(result);
 });
-
-async function authorize(
-  request: Request,
-  admin: SupabaseClient,
-  supabaseUrl: string,
-  anonKey: string,
-): Promise<boolean> {
-  const cronSecret = request.headers.get('x-cron-secret');
-  if (cronSecret) {
-    const { data } = await admin
-      .schema('private')
-      .from('cron_config')
-      .select('value')
-      .eq('key', 'cron_secret')
-      .maybeSingle();
-
-    const expected = (data as { value?: string } | null)?.value;
-    return Boolean(expected) && cronSecret === expected;
-  }
-
-  const authHeader = request.headers.get('Authorization') ?? '';
-  if (!authHeader.startsWith('Bearer ')) return false;
-
-  const caller = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-
-  const { data: user } = await caller.auth.getUser();
-  if (!user?.user) return false;
-
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('role, status, deleted_at')
-    .eq('id', user.user.id)
-    .maybeSingle();
-
-  const row = profile as { role?: string; status?: string; deleted_at?: string | null } | null;
-  // Trainer dürfen den Lauf anstoßen: sie ändern ein Training und wollen die Termine sehen.
-  return (
-    (row?.role === 'admin' || row?.role === 'trainer') &&
-    row.status === 'active' &&
-    !row.deleted_at
-  );
-}
 
 interface Result {
   created: number;
@@ -137,8 +72,7 @@ async function generate(
   let query = admin
     .from('trainings')
     .select(
-      'id, weekday, time_start, time_end, venue_id, rhythm, start_date,' +
-        ' skip_public_holidays, skip_school_holidays, active',
+      'id, weekday, time_start, time_end, venue_id, rhythm, start_date, skip_public_holidays, skip_school_holidays, active',
     );
   if (onlyTraining) query = query.eq('id', onlyTraining);
 
@@ -188,9 +122,12 @@ async function generate(
     });
 
     if (plan.create.length > 0) {
-      const { data: inserted } = await admin
+      // upsert mit ignoreDuplicates: Läuft der Trigger nach dem Speichern parallel zum
+      // nächtlichen Lauf, hat einer der beiden einen Tag womöglich schon angelegt. Ein
+      // einfaches insert scheiterte dann komplett — für alle Termine dieses Trainings.
+      const { data: inserted, error: insertError } = await admin
         .from('training_sessions')
-        .insert(
+        .upsert(
           plan.create.map((entry) => ({
             training_id: entry.trainingId,
             session_date: entry.sessionDate,
@@ -200,8 +137,11 @@ async function generate(
             cancel_reason: entry.cancelReason,
             cancellation_id: entry.cancellationId,
           })),
+          { onConflict: 'training_id,session_date', ignoreDuplicates: true },
         )
         .select('id, session_date, cancelled');
+
+      if (insertError) console.error(`training_sessions ${row.id}:`, insertError.message);
 
       const rows = (inserted ?? []) as {
         id: string;

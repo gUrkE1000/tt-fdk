@@ -25,7 +25,15 @@ export const clubDataSchema = z.object({
   bundesland: z.string().refine((value) => value in BUNDESLAENDER, {
     message: 'Bitte ein Bundesland wählen',
   }),
-  registration_code: z.string().trim(),
+  // Leer schaltet die Selbstregistrierung ab. Sonst mindestens zehn Zeichen: Der Code
+  // lässt sich ohne Anmeldung prüfen, ein kurzer wäre schnell erraten. Der Knopf
+  // „Vorschlagen" erzeugt zwölf.
+  registration_code: z
+    .string()
+    .trim()
+    .refine((value) => value === '' || value.length >= 10, {
+      message: 'Mindestens zehn Zeichen – oder leer lassen, um die Registrierung abzuschalten',
+    }),
   default_venue_id: z.string(),
 });
 export type ClubDataValues = z.infer<typeof clubDataSchema>;

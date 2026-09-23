@@ -16,8 +16,9 @@ import {
   TimeInput,
   useToast,
 } from '../../components/ui';
-import type { Member, GroupWithMembers } from '../members/api';
+import type { MemberSummary as Member, GroupWithMembers } from '../members/api';
 import type { Venue } from '../venues/api';
+import { todayInBerlin } from '../../lib/dates';
 import {
   useCreateTraining,
   useSaveTrainingPeople,
@@ -82,7 +83,7 @@ export default function TrainingDialog({
     form.reset(
       training
         ? toFormValues(training)
-        : { ...EMPTY_TRAINING, startDate: new Date().toISOString().slice(0, 10) },
+        : { ...EMPTY_TRAINING, startDate: todayInBerlin() },
     );
   }, [open, training, form]);
 

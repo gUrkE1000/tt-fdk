@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { todayInBerlin } from '../../lib/dates';
 
 export const eventSchema = z
   .object({
@@ -116,5 +117,5 @@ export function isRegistrationOpen(
 ): boolean {
   if (new Date(event.starts_at).getTime() <= now.getTime()) return false;
   if (!event.participate_until) return true;
-  return now.toISOString().slice(0, 10) <= event.participate_until;
+  return todayInBerlin(now) <= event.participate_until;
 }

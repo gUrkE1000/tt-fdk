@@ -961,6 +961,7 @@ export interface Database {
           attempts: number;
           error: string | null;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
@@ -976,6 +977,7 @@ export interface Database {
           attempts?: number;
           error?: string | null;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
@@ -991,6 +993,7 @@ export interface Database {
           attempts?: number;
           error?: string | null;
           created_at?: string;
+          updated_at?: string;
         };
         Relationships: [
           {
@@ -2130,6 +2133,14 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_birthdays: {
+        Row: {
+          id: string | null;
+          full_name: string | null;
+          birthday: string | null;
+        };
+        Relationships: [];
+      };
       v_calendar_items: {
         Row: {
           kind: string | null;
@@ -2384,16 +2395,8 @@ export interface Database {
       };
     };
     Functions: {
-      apply_event_answer: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      apply_reschedule_vote: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      apply_substitute_answer: {
-        Args: { [key: string]: unknown };
+      berlin_today: {
+        Args: Record<string, never>;
         Returns: unknown;
       };
       can_see_absences: {
@@ -2410,30 +2413,6 @@ export interface Database {
       };
       current_member_role: {
         Args: Record<string, never>;
-        Returns: unknown;
-      };
-      enqueue_event_reminder: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      enqueue_match_reminder: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      enqueue_notification: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      enqueue_substitute_request: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      enqueue_training_reminder: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      event_payload: {
-        Args: { [key: string]: unknown };
         Returns: unknown;
       };
       get_public_club_info: {
@@ -2460,23 +2439,11 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
-      kick_session_generation: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      kick_substitute_engine: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
       leads_match: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
       leads_team: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      match_payload: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
@@ -2504,32 +2471,12 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
-      notify_chain_exhausted: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      notify_reschedule_confirmed: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      notify_training_cancelled: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      recompute_lineup: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      render_template: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      retention_days: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
       rpc_activate_member: {
         Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_admin_members: {
+        Args: Record<string, never>;
         Returns: unknown;
       };
       rpc_answer_action_token: {
@@ -2573,6 +2520,10 @@ export interface Database {
         Returns: unknown;
       };
       rpc_my_calendar_token: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
+      rpc_my_profile: {
         Args: Record<string, never>;
         Returns: unknown;
       };
@@ -2636,23 +2587,15 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
-      run_retention: {
-        Args: Record<string, never>;
-        Returns: unknown;
-      };
-      training_audience: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
-      training_payload: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
       trains: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
       trains_session: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      valid_email_list: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
@@ -2670,7 +2613,7 @@ export interface Database {
       member_status: "active" | "pending_approval" | "unconfirmed";
       message_object: "match" | "session" | "event";
       notification_channel: "email" | "push";
-      notification_status: "pending" | "sent" | "failed" | "skipped";
+      notification_status: "pending" | "sending" | "sent" | "failed" | "skipped";
       participation_response: "none" | "yes" | "no" | "unclear";
       participation_source: "auto" | "self" | "leader" | "request" | "link";
       poll_status: "open" | "closed" | "applied";

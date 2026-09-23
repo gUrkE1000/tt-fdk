@@ -23,6 +23,7 @@ const STATUS_TONES: Record<string, 'yes' | 'no' | 'late' | 'neutral'> = {
   failed: 'no',
   skipped: 'late',
   pending: 'neutral',
+  sending: 'neutral',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -30,6 +31,9 @@ const STATUS_LABELS: Record<string, string> = {
   failed: 'fehlgeschlagen',
   skipped: 'übersprungen',
   pending: 'wartet',
+  // Vom Versandlauf beansprucht; bleibt eine Zeile länger als 30 Minuten hier stehen,
+  // nimmt der nächste Lauf sie wieder auf.
+  sending: 'wird versendet',
 };
 
 const CHIPS: { value: NotificationFilter; label: string }[] = [

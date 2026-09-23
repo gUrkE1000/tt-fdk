@@ -16,7 +16,7 @@ import {
   useToast,
 } from '../../components/ui';
 import { RANKING_TYPE_LABELS } from '../../lib/labels';
-import type { Member } from '../members/api';
+import type { MemberSummary as Member } from '../members/api';
 import { useCreateTeam, useSaveRoster, useUpdateTeam, type TeamWithRoster } from './api';
 import {
   EMPTY_TEAM,

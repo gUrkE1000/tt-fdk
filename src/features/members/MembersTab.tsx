@@ -13,7 +13,7 @@ import {
   useActivateMember,
   useDeleteMember,
   useGroups,
-  useMembers,
+  useAdminMembers,
   useRankings,
   type Member,
 } from './api';
@@ -37,7 +37,7 @@ const STATUS_OPTIONS = [
 
 export default function MembersTab() {
   const { toast } = useToast();
-  const members = useMembers();
+  const members = useAdminMembers();
   const rankings = useRankings();
   const groups = useGroups();
   const activateMember = useActivateMember();
@@ -52,7 +52,9 @@ export default function MembersTab() {
   const [excelOpen, setExcelOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Member | null>(null);
 
-  const groupList = groups.data ?? [];
+  // Ohne useMemo wäre `?? []` bei jedem Rendern ein neues Array — und jedes useMemo,
+  // das davon abhängt, rechnete jedes Mal neu.
+  const groupList = useMemo(() => groups.data ?? [], [groups.data]);
 
   const groupMembers = useMemo(
     () => Object.fromEntries(groupList.map((group) => [group.id, group.memberIds])),
