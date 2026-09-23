@@ -16,6 +16,7 @@ import {
   useToast,
   ErrorState,
   LoadingState,
+  useConfirm,
 } from '../../components/ui';
 import { formatDateTime } from '../../lib/dates';
 import {
@@ -49,6 +50,7 @@ function toLocalInput(value: string | null | undefined): string {
  */
 export default function NewsTab({ canEdit = false }: NewsTabProps) {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const news = useNews();
   const saveNews = useSaveNews();
   const deleteNews = useDeleteNews();
@@ -99,7 +101,13 @@ export default function NewsTab({ canEdit = false }: NewsTabProps) {
 
   async function remove(item: NewsItem) {
     if (!item.id) return;
-    if (!window.confirm(`„${item.title}" wirklich löschen?`)) return;
+    const ok = await confirm({
+      title: `„${item.title}" löschen?`,
+      description: 'Die Neuigkeit verschwindet für alle Mitglieder.',
+      confirmLabel: 'Löschen',
+      danger: true,
+    });
+    if (!ok) return;
 
     try {
       await deleteNews.mutateAsync(item.id);

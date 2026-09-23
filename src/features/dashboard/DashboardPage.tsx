@@ -138,6 +138,7 @@ export default function DashboardPage() {
           teamName={nextTeam?.name}
           location={nextVenue?.name}
           loading={matches.isLoading || participations.isLoading}
+          error={matches.isError || participations.isError}
         />
 
         <StatTile

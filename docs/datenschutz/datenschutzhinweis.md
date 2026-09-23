@@ -33,6 +33,12 @@ stellst das unter **Mein Profil** ein und kannst es jederzeit ändern.
 Analysedienste, keine Werbung, keine Weitergabe an Dritte zu Werbezwecken und keine
 Cookies außer dem, der dich angemeldet hält.
 
+**Auf deinem Gerät:** Damit die App auch ohne Empfang etwas zeigt (in der Halle), legt sie
+den zuletzt geladenen Stand — Termine, Rückmeldungen, Namen — im Speicher deines Browsers
+ab. Nur auf deinem Gerät, nur für dich. Er wird beim Abmelden gelöscht und nach einer
+Woche ohne Nutzung verworfen. Protokolle, die Mitgliederverwaltung und deine Mitteilungen
+werden dort nicht abgelegt.
+
 ## Warum wir das dürfen
 
 Die meisten Daten brauchen wir, um den Spiel- und Trainingsbetrieb zu organisieren — das

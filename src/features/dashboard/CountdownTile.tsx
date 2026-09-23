@@ -12,6 +12,8 @@ export interface CountdownTileProps {
   location?: string;
   /** Solange die Spiele laden, steht hier nichts Falsches wie „Kein Spiel angesetzt". */
   loading?: boolean;
+  /** Laden gescheitert — auch dann kein „Kein Spiel angesetzt". */
+  error?: boolean;
 }
 
 /** „heute", „morgen", „in 5 Tagen" — Zahlen liest niemand gern, wenn es ein Wort tut. */
@@ -33,6 +35,7 @@ export default function CountdownTile({
   teamName,
   location,
   loading = false,
+  error = false,
 }: CountdownTileProps) {
   const { next, days, within30 } = countdown;
 
@@ -44,10 +47,16 @@ export default function CountdownTile({
       </div>
 
       <p className="mt-2 text-2xl font-black text-gray-900">
-        {loading ? <span className="text-gray-300">…</span> : countdownLabel(days)}
+        {loading || error ? (
+          <span className="text-gray-300">{error ? '—' : '…'}</span>
+        ) : (
+          countdownLabel(days)
+        )}
       </p>
 
-      {next ? (
+      {error ? (
+        <p className="mt-1 text-sm text-status-no">Die Spiele ließen sich gerade nicht laden.</p>
+      ) : next ? (
         <div className="mt-1 space-y-0.5 text-sm text-gray-600">
           <p className="font-semibold text-gray-800">
             {teamName ? `${teamName} gegen ` : ''}

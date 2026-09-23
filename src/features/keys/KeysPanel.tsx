@@ -9,6 +9,7 @@ import {
   IconButton,
   Table,
   useToast,
+  useConfirm,
 } from '../../components/ui';
 import { useDeleteKey, useKeys, type KeyRow } from './api';
 import { holderText } from './schemas';
@@ -24,6 +25,7 @@ import KeyDialog from './KeyDialog';
  */
 export default function KeysPanel() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const keys = useKeys();
   const deleteKey = useDeleteKey();
 
@@ -33,7 +35,13 @@ export default function KeysPanel() {
 
   async function remove(entry: KeyRow) {
     if (!entry.id) return;
-    if (!window.confirm(`„${entry.name}" wirklich löschen? Das Protokoll verschwindet mit.`)) return;
+    const ok = await confirm({
+      title: `„${entry.name}" löschen?`,
+      description: 'Das Protokoll der Übergaben verschwindet mit.',
+      confirmLabel: 'Löschen',
+      danger: true,
+    });
+    if (!ok) return;
 
     try {
       await deleteKey.mutateAsync(entry.id);

@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
 import { fetchProfile, touchLastLogin, withTimeout, type Profile } from './api';
+import { isNetworkFailure, storedSession } from './offlineSession';
 import type { Role } from '../../app/nav';
 
 export interface SessionState {
@@ -24,6 +25,9 @@ export interface SessionState {
 }
 
 const SessionContext = createContext<SessionState | null>(null);
+
+/** Wie lange online auf die Erneuerung der Anmeldung gewartet wird, bevor die gespeicherte gilt. */
+const PROVISIONAL_SESSION_MS = 3_000;
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -48,19 +52,49 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       Nach Ablauf wird weitergemacht, nicht abgebrochen: Ohne Sitzung landet man auf der
       Anmeldeseite, und die ist eine brauchbare Auskunft. Ein Kringel ist keine.
     */
+    /*
+      Ohne Netz versucht Supabase gut zwölf Sekunden lang, das Token zu erneuern, bevor
+      `getSession()` antwortet — so lange stünde in der Halle nur ein Ladekringel vor
+      dem gespeicherten Stand. Liegt eine Sitzung auf dem Gerät, gilt sie deshalb
+      vorläufig: sofort, wenn das Gerät offline ist, sonst nach drei Sekunden. Was
+      `getSession()` danach meldet, hat Vorrang — auch eine Abmeldung.
+    */
+    const provisional = storedSession();
+    const provisionalTimer = provisional
+      ? setTimeout(
+          () => {
+            if (!active) return;
+            setSession((current) => current ?? provisional);
+            setInitialising(false);
+          },
+          isNetworkFailure(null) ? 0 : PROVISIONAL_SESSION_MS,
+        )
+      : undefined;
+
     void withTimeout(supabase.auth.getSession(), 'Prüfen der Anmeldung')
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        clearTimeout(provisionalTimer);
         if (!active) return;
-        setSession(data.session ?? null);
+        // Ohne Netz ließ sich das Token nicht erneuern: Dann gilt die zuletzt bekannte
+        // Sitzung weiter, damit der gespeicherte Stand zu sehen ist (offlineSession.ts).
+        const next = data.session ?? (isNetworkFailure(error) ? storedSession() : null);
+        setSession(next);
       })
-      .catch(() => {
-        /* Abgelaufen oder gescheitert — beides heißt: nicht angemeldet. */
+      .catch((error: unknown) => {
+        clearTimeout(provisionalTimer);
+        // Zeitgrenze: Hängt es am Netz, dasselbe wie oben — sonst nicht angemeldet.
+        if (!active) return;
+        setSession(isNetworkFailure(error) ? storedSession() : null);
       })
       .finally(() => {
         if (active) setInitialising(false);
       });
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, next) => {
+      // „Keine Sitzung" beim Start heißt ohne Netz nur „nicht erneuerbar" — das
+      // entscheidet der Aufruf oben. Abgemeldet ist erst, wer abgemeldet wurde.
+      if (!next && event !== 'SIGNED_OUT') return;
+
       setSession(next);
       setInitialising(false);
       if (!next) {
@@ -69,9 +103,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       }
     });
 
+    // Netz wieder da: die Sitzung ordentlich erneuern und alles frisch laden.
+    function onOnline() {
+      void supabase.auth.getSession().then(({ data }) => {
+        if (!active || !data.session) return;
+        setSession(data.session);
+        void queryClient.invalidateQueries();
+      });
+    }
+    window.addEventListener('online', onOnline);
+
     return () => {
       active = false;
+      clearTimeout(provisionalTimer);
       subscription.subscription.unsubscribe();
+      window.removeEventListener('online', onOnline);
     };
   }, [queryClient]);
 

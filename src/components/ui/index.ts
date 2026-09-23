@@ -92,3 +92,6 @@ export type { RichTextProps } from './RichText';
 
 export { LoadingState, ErrorState } from './QueryState';
 export type { LoadingStateProps, ErrorStateProps } from './QueryState';
+
+export { ConfirmProvider, useConfirm } from './Confirm';
+export type { ConfirmOptions } from './Confirm';

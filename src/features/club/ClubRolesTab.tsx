@@ -12,6 +12,7 @@ import {
   PersonPicker,
   Textarea,
   useToast,
+  useConfirm,
 } from '../../components/ui';
 import { useMembers } from '../members/api';
 import {
@@ -34,6 +35,7 @@ import {
  */
 export default function ClubRolesTab() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const roles = useClubRoles();
   const members = useMembers();
   const saveRole = useSaveClubRole();
@@ -90,7 +92,12 @@ export default function ClubRolesTab() {
   }
 
   async function remove(role: ClubRoleWithMembers) {
-    if (!window.confirm(`Das Amt „${role.name}" wirklich löschen?`)) return;
+    const ok = await confirm({
+      title: `Das Amt „${role.name}" löschen?`,
+      confirmLabel: 'Löschen',
+      danger: true,
+    });
+    if (!ok) return;
 
     try {
       await deleteRole.mutateAsync(role.id);

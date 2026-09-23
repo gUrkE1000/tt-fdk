@@ -7,14 +7,16 @@ Vereinstermine, Umfragen, Kalender und Benachrichtigungen.
 **Stand (19.09.2026):** Die Anwendung ist gebaut und läuft gegen ein eingerichtetes
 Supabase-Projekt — Mitglieder, Mannschaften und Spielpläne aus click-TT, Rückmeldungen und
 Ersatzsuche, Training, Vereinstermine, Umfragen, Kalender mit ICS-Abo, Benachrichtigungen
-per E-Mail und Push, Übersicht, PWA und Betriebssicht. 990 Vitest-Tests, 469
+per E-Mail und Push, Übersicht, PWA und Betriebssicht. 1012 Vitest-Tests, 469
 pgTAP-Assertions.
 
 **Nachtrag (23.09.2026) — aus Mitgliedersicht verbessert:** „Offen für dich" (Übersicht,
 Meine Termine, Zähler im Menü), Trainings-Rückmeldung per Link ohne Anmeldung, Bemerkung
 beim Training, Meldung neuer Umfragen und Neuigkeiten, Verlauf der Mitteilungen,
 Spielkarte mit Rückmeldungen nach Namen, nuScore-Code/PIN und Route, vergangene Spiele,
-Klick im Kalender führt zur Karte.
+Klick im Kalender führt zur Karte. Dazu: Lade- und Fehlerzustände statt falscher
+Leerlisten, sofortige Antworten, Offline-Stand auf dem Gerät, Daten ab 30 Tagen zurück,
+Seiten und große Bibliotheken werden nachgeladen (Hauptpaket 1,87 MB → 816 KB).
 
 Noch nicht eingeladen ist jemand: Was davor zu erledigen ist, steht in
 [docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md). Nicht gebaut sind

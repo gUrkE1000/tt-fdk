@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { MessageSquare, Send, Trash2 } from 'lucide-react';
-import { Avatar, Button, IconButton, Textarea, useToast } from '../../components/ui';
+import {
+  Avatar,
+  Button,
+  IconButton,
+  Textarea,
+  useToast,
+  useConfirm,
+} from '../../components/ui';
 import { cn } from '../../lib/cn';
 import { formatDateTime } from '../../lib/dates';
 import { useSession } from '../auth/session';
@@ -31,6 +38,7 @@ export interface MessagesPanelProps {
 export default function MessagesPanel({ type, objectId, count, className }: MessagesPanelProps) {
   const { profile, role } = useSession();
   const { toast } = useToast();
+  const confirm = useConfirm();
 
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState('');
@@ -62,7 +70,12 @@ export default function MessagesPanel({ type, objectId, count, className }: Mess
 
   async function onDelete(message: ObjectMessage) {
     if (!message.id) return;
-    if (!window.confirm('Diese Nachricht löschen?')) return;
+    const ok = await confirm({
+      title: 'Diese Nachricht löschen?',
+      confirmLabel: 'Löschen',
+      danger: true,
+    });
+    if (!ok) return;
 
     try {
       await remove.mutateAsync(message.id);

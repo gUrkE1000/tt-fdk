@@ -34,6 +34,32 @@ Der Service Worker (`src/sw.ts`) speichert ausschließlich die Anwendung selbst 
 Alles, was an Supabase geht, läuft ohne Zwischenspeicher direkt ins Netz — eine
 zwischengespeicherte Teilnehmerliste von gestern sähe aus wie die Wahrheit.
 
+Für offline gibt es stattdessen einen **ausgewiesenen** alten Stand: `src/lib/queryPersist.ts`
+legt die zuletzt geladenen Abfragen je Benutzer im `localStorage` ab (nicht: Admin-Sichten,
+Mitteilungen), beim Abmelden gelöscht, nach einer Woche verworfen. Der Hinweisbalken
+(`src/app/layout/ConnectionBanner.tsx`) sagt offline, von wann der Stand ist. Ohne Netz gilt
+die zuletzt bekannte Anmeldung vorläufig weiter (`src/features/auth/offlineSession.ts`),
+sonst landete man nach Ablauf des einstündigen Tokens auf der Anmeldeseite.
+
+### Konventionen für Oberflächen
+
+- **Laden und Fehler sind keine Leere.** Eine Liste zeigt `LoadingState`, solange ihre
+  Abfragen laden, und `ErrorState` mit „Erneut versuchen", wenn sie scheitern — den
+  Leerzustand nur bei echter Leere. `queryStatus(...)` (`src/lib/queryStatus.ts`) fasst
+  mehrere Abfragen zusammen.
+- **Antworten sofort zeigen.** Rückmeldungen (Spiel, Training, Vereinstermin) ändern den
+  Zwischenspeicher vor dem Serveraufruf (`src/lib/optimistic.ts`) und setzen bei Fehler
+  oder Ablehnung zurück.
+- **Nur laden, was gebraucht wird.** Spiele und Rückmeldungen laden standardmäßig ab 30
+  Tagen zurück (`useMatches('recent')`), gefiltert in der Datenbank; `'all'` nur für
+  Historien. Seiten hinter der Anmeldung, Kalender, Texteditor und Drag-and-drop werden
+  per `lazy()` nachgeladen — große Bibliotheken nicht direkt in eine Seite importieren,
+  die jedes Mitglied öffnet.
+- **Rückfragen** über `useConfirm()`, nicht `window.confirm`.
+- **Tests mit festen Terminen frieren die Uhr ein**
+  (`vi.useFakeTimers({ toFake: ['Date'] })` + `vi.setSystemTime(...)`), sonst werden sie
+  rot, sobald die Termine in der Vergangenheit liegen.
+
 ## 2. Datenbank
 
 Alles Datenbankseitige liegt in `supabase/`:
