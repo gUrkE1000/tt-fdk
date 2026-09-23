@@ -114,6 +114,25 @@ export default function PlanningTab() {
           // Im Hochformat sonst überhohe Zeilen: das Raster war höher als der Bildschirm.
           aspectRatio={compact ? 0.9 : 1.35}
           dayMaxEvents={compact ? 2 : false}
+          /*
+            Ein Termin ist ein farbiger Block, kein Punkt.
+
+            FullCalendar zeichnet Termine mit Uhrzeit im Monatsraster als Punkt, Uhrzeit
+            und Titel — in dieser Reihenfolge. In einer Spalte von fünfzig Pixeln bleibt
+            davon „● 20 Uhr" übrig und der Titel wird abgeschnitten. Man sieht dann, dass
+            etwas ist, aber nicht was, und das ist die unbrauchbarste Hälfte der Auskunft.
+
+            Als Block trägt der Eintrag die Farbe seiner Kategorie und beginnt mit dem
+            Titel. Am Telefon fällt die Uhrzeit ganz weg: „Erwachsene IV" sagt mehr als
+            „20 Uhr", und beides passt dort nicht nebeneinander. In der Listenansicht
+            steht die Uhrzeit ohnehin in einer eigenen Spalte.
+          */
+          eventDisplay="block"
+          displayEventTime={!compact}
+          eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+          eventClassNames={(arg) =>
+            arg.event.extendedProps.cancelled === true ? ['vp-event-cancelled'] : []
+          }
           events={events}
           noEventsText="In diesem Zeitraum steht nichts an."
         />

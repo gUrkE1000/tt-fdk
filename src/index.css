@@ -194,6 +194,46 @@
 }
 
 /*
+ * Die Termine selbst.
+ *
+ * `eventDisplay="block"` macht aus dem Punkt einen farbigen Balken; die Bibliothek gibt
+ * ihm aber weder Rundung noch Innenabstand, und der Titel läuft aus der Zelle heraus.
+ * Die Farbe kommt aus den Daten (Kategorie, bei Spielen die Mannschaftsfarbe) und wird
+ * hier bewusst nicht angefasst — nur die Form.
+ */
+.fc .fc-daygrid-event,
+.fc .fc-timegrid-event {
+  @apply rounded-md border-0 px-1.5 py-0.5 text-xs font-semibold text-white;
+}
+
+.fc .fc-daygrid-event .fc-event-main,
+.fc .fc-daygrid-event .fc-event-title {
+  @apply truncate text-white;
+}
+
+.fc .fc-daygrid-event .fc-event-time {
+  @apply font-normal opacity-80;
+}
+
+/* Ein abgesagter Termin verschwindet nicht — wer zugesagt hatte, soll ihn sehen. */
+.fc .vp-event-cancelled {
+  @apply opacity-70;
+}
+
+.fc .vp-event-cancelled .fc-event-title {
+  @apply line-through;
+}
+
+/* In der Liste trägt der Punkt die Farbe; dort ist der Balken fehl am Platz. */
+.fc .fc-list-event td {
+  @apply bg-transparent text-gray-900;
+}
+
+.fc .fc-list-event:hover td {
+  @apply bg-gray-50;
+}
+
+/*
  * FullCalendar auf schmalen Bildschirmen.
  *
  * Die Bibliothek legt Titel und Schaltflächen nebeneinander in eine Zeile, ohne Umbruch.
@@ -223,5 +263,14 @@
 
   .fc .fc-daygrid-day-number {
     @apply px-1 text-xs;
+  }
+
+  /* Zwei Termine an einem Tag sollen beide lesbar bleiben. */
+  .fc .fc-daygrid-event {
+    @apply px-1 py-px text-[11px] leading-tight;
+  }
+
+  .fc .fc-daygrid-day-events {
+    @apply mx-px;
   }
 }
