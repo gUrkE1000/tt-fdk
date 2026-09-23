@@ -10,7 +10,19 @@ export interface NotificationMatrixProps {
 }
 
 /**
- * Fünfzehn Ereignistypen mal zwei Kanäle.
+ * Was für einen Typ gerade gilt: der Entwurf, sonst das Gespeicherte. Ein pauschales
+ * „an" als Rückfall zeigte zwischen Laden und Befüllen des Entwurfs jeden Haken gesetzt
+ * — auch die abgewählten.
+ */
+export function stateOf(
+  row: PreferenceRow,
+  draft: Record<string, { email: boolean; push: boolean }>,
+): { email: boolean; push: boolean } {
+  return draft[row.type!] ?? { email: row.email ?? true, push: row.push ?? true };
+}
+
+/**
+ * Siebzehn Ereignistypen mal zwei Kanäle.
  *
  * Auf dem Smartphone ist eine Tabelle mit zwei Spalten Kästchen unbedienbar, deshalb
  * unterhalb von 640 px eine Liste mit zwei Schaltern je Zeile. Dieselben Daten, andere
@@ -22,7 +34,7 @@ export default function NotificationMatrix({
   onChange,
   onChangeAll,
 }: NotificationMatrixProps) {
-  const states = rows.map((row) => draft[row.type!] ?? { email: true, push: true });
+  const states = rows.map((row) => stateOf(row, draft));
   const allPush = states.length > 0 && states.every((state) => state.push);
   const allEmail = states.length > 0 && states.every((state) => state.email);
 
@@ -60,7 +72,7 @@ export default function NotificationMatrix({
         </thead>
         <tbody>
           {rows.map((row) => {
-            const state = draft[row.type!] ?? { email: true, push: true };
+            const state = stateOf(row, draft);
             return (
               <tr key={row.type} className="border-b border-gray-100">
                 <td className="py-2 pr-3 text-gray-800">{row.label}</td>
@@ -95,7 +107,7 @@ export default function NotificationMatrix({
       {/* Unter sm: je Ereignis ein Block mit zwei Schaltern. */}
       <ul className="space-y-3 sm:hidden">
         {rows.map((row) => {
-          const state = draft[row.type!] ?? { email: true, push: true };
+          const state = stateOf(row, draft);
           return (
             <li key={row.type} className="rounded-xl border border-gray-200 p-3">
               <p className="mb-1.5 font-semibold text-gray-900">{row.label}</p>

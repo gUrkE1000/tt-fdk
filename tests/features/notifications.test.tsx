@@ -52,6 +52,7 @@ vi.mock('../../src/lib/supabaseClient', () => ({
 import NotificationsTab from '../../src/features/profile/NotificationsTab';
 import { ToastProvider } from '../../src/components/ui';
 import { changedPreferences, type PreferenceRow } from '../../src/features/notifications/api';
+import NotificationMatrix from '../../src/features/notifications/NotificationMatrix';
 import type { Profile } from '../../src/features/profile/api';
 
 const profile = {
@@ -119,6 +120,33 @@ describe('changedPreferences', () => {
 });
 
 // ------------------------------------------------------------------ Oberfläche
+
+describe('NotificationMatrix', () => {
+  // Zwischen dem Laden der Einstellungen und dem Befüllen des Entwurfs ist der Entwurf
+  // leer. Dann gilt das Gespeicherte — nicht „alles an".
+  it('zeigt ohne Entwurf die gespeicherten Einstellungen', () => {
+    render(<NotificationMatrix rows={preferenceRows} draft={{}} onChange={() => {}} />);
+
+    expect(screen.getByLabelText('Erinnerung an Spieltermin per E-Mail')).not.toBeChecked();
+    expect(screen.getByLabelText('Erinnerung an Spieltermin in der App')).toBeChecked();
+  });
+
+  it('schaltet eine ganze Spalte auf einmal', async () => {
+    const onChangeAll = vi.fn();
+    render(
+      <NotificationMatrix
+        rows={preferenceRows}
+        draft={{}}
+        onChange={() => {}}
+        onChangeAll={onChangeAll}
+      />,
+    );
+
+    // Nicht alle E-Mails sind an — der Knopf bietet „an" an.
+    await userEvent.click(screen.getByRole('button', { name: 'Alle E-Mails an' }));
+    expect(onChangeAll).toHaveBeenCalledWith('email', true);
+  });
+});
 
 describe('NotificationsTab', () => {
   it('zeigt jeden Typ mit beiden Kanälen', async () => {

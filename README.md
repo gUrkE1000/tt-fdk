@@ -7,7 +7,7 @@ Vereinstermine, Umfragen, Kalender und Benachrichtigungen.
 **Stand (19.09.2026):** Die Anwendung ist gebaut und läuft gegen ein eingerichtetes
 Supabase-Projekt — Mitglieder, Mannschaften und Spielpläne aus click-TT, Rückmeldungen und
 Ersatzsuche, Training, Vereinstermine, Umfragen, Kalender mit ICS-Abo, Benachrichtigungen
-per E-Mail und Push, Übersicht, PWA und Betriebssicht. 988 Vitest-Tests, 469
+per E-Mail und Push, Übersicht, PWA und Betriebssicht. 990 Vitest-Tests, 469
 pgTAP-Assertions.
 
 **Nachtrag (23.09.2026) — aus Mitgliedersicht verbessert:** „Offen für dich" (Übersicht,

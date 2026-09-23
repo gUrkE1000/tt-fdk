@@ -5,7 +5,7 @@ import {
   useNotificationPreferences,
   useSavePreferences,
 } from '../notifications/api';
-import NotificationMatrix from '../notifications/NotificationMatrix';
+import NotificationMatrix, { stateOf } from '../notifications/NotificationMatrix';
 import { parseEmailList } from './schemas';
 import { useUpdateMyProfile, type Profile } from './api';
 
@@ -81,7 +81,7 @@ export default function NotificationsTab({ profile }: { profile: Profile }) {
               setDraft((current) =>
                 Object.fromEntries(
                   rows.map((row) => {
-                    const state = current[row.type!] ?? { email: true, push: true };
+                    const state = stateOf(row, current);
                     return [row.type!, { ...state, [channel]: value }];
                   }),
                 ),
