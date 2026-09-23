@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Trainings, Spieltermine und Vereinstermine des Vereins." />
     <meta name="theme-color" content="#0d9488" />
+    <!--
+      Hell ist die Voreinstellung. `only light` verbietet dem Browser, die Seite von sich
+      aus abzudunkeln (Auto-Dark in Chrome und Samsung Internet) — das sähe aus wie ein
+      Dark Mode, den niemand gewählt hat, und träfe Farben, die nie dunkel geprüft wurden.
+      Wer dunkel will, stellt es unter „Mein Profil" um; dann setzt `.dark` das
+      Farbschema per CSS selbst.
+    -->
+    <meta name="color-scheme" content="only light" />
 
     <!-- iOS liest das Manifest nicht; Symbol und Titel des Startbildschirms stehen hier. -->
     <link rel="apple-touch-icon" href="%BASE_URL%icons/apple-touch-icon.png" />
