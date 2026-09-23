@@ -35,6 +35,18 @@ darüber an. Außerdem zeigt die Karte einen Knopf nur noch, wenn ihm eine Aktio
 übergeben wurde — ein stummer Knopf kann so nicht wieder entstehen. Abgesichert in
 `tests/features/lineup.test.tsx` (MyGamesPage, „öffnet als Mannschaftsführer …").
 
+**Nachtrag, gleicher Tag:** Nach dem Ausrollen meldete der Verein „die Knöpfe sind
+weg". Auf den Spielkarten waren sie da (im Browser gegen einen echten PostgREST mit den
+Testdaten geprüft) — aber die Übersicht öffnet seit diesem Tag mit dem Reiter „Offen",
+und dort stand das Spiel nur mit Zusage/Unsicher/Absage. Die Knöpfe des
+Mannschaftsführers stehen jetzt auch dort. Außerdem bekommt der Administrator sie auf
+allen Spielkarten (`useCanManageMatch`), nicht nur unter „Spieltermine" — verwalten
+darf er ohnehin jede Mannschaft.
+
+**Lehre:** Eine Änderung an der Startseite („Offen" als erster Reiter) verschiebt, wo
+Leute suchen. Beim Prüfen einer Meldung den Weg nehmen, den der Meldende nimmt — hier:
+App öffnen, nichts anklicken.
+
 ---
 
 ## F-6 · Link der Terminumfrage meldet „wird noch nicht unterstützt"

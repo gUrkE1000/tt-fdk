@@ -1,7 +1,9 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, CheckCircle2, Clock, Vote, X } from 'lucide-react';
+import { CalendarClock, Check, CheckCircle2, Clock, Share2, Users, Vote, X } from 'lucide-react';
 import {
   Badge,
+  Button,
   Card,
   CardBody,
   EmptyState,
@@ -13,7 +15,18 @@ import {
 import { cn } from '../../lib/cn';
 import { formatDateTime } from '../../lib/dates';
 import { useSession } from '../auth/session';
-import { useAllParticipations, type Participation } from '../matches/api';
+import {
+  useAllParticipations,
+  useAllVolunteers,
+  useMatches,
+  type MatchRow,
+  type Participation,
+} from '../matches/api';
+import { useCanManageMatch } from '../matches/canManage';
+import MatchDialogs, { type OpenMatchDialog } from '../matches/MatchDialogs';
+import { useTeams } from '../teams/api';
+import { useVenues } from '../venues/api';
+import { useMembers } from '../members/api';
 import ResponseButtons from '../matches/ResponseButtons';
 import { useSetAttendance, type AttendanceStatus } from '../trainings/api';
 import { useSetEventParticipation, type EventStatus } from '../events/api';
@@ -55,6 +68,21 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
   const profileId = profile?.id ?? null;
   const items = useMyOpenItems(profileId);
   const participations = useAllParticipations();
+
+  // Für Spiele der eigenen Mannschaft (oder als Admin) stehen hier auch die Knöpfe des
+  // Mannschaftsführers — sonst müsste man für die Aufstellung erst die Seite wechseln.
+  const canManage = useCanManageMatch();
+  const matches = useMatches();
+  const teams = useTeams();
+  const venues = useVenues();
+  const volunteers = useAllVolunteers();
+  const members = useMembers();
+  const [dialog, setDialog] = useState<OpenMatchDialog | null>(null);
+
+  const nameOf = useMemo(() => {
+    const names = new Map((members.data ?? []).map((member) => [member.id, member.full_name ?? '']));
+    return (id: string) => names.get(id) ?? '';
+  }, [members.data]);
 
   const all = items.data ?? [];
   const shown = limit === undefined ? all : all.slice(0, limit);
@@ -101,9 +129,27 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
                   : null
               }
             />
+            {item.kind === 'match' && (
+              <ManagerButtons
+                match={(matches.data ?? []).find((match) => match.id === item.id)}
+                canManage={canManage}
+                onOpen={setDialog}
+              />
+            )}
           </CardBody>
         </Card>
       ))}
+
+      <MatchDialogs
+        open={dialog}
+        onClose={() => setDialog(null)}
+        teams={teams.data ?? []}
+        venues={venues.data ?? []}
+        participations={participations.data ?? []}
+        volunteers={volunteers.data ?? []}
+        members={members.data ?? []}
+        nameOf={nameOf}
+      />
 
       {limit !== undefined && all.length > limit && (
         <p className="text-sm text-gray-600">
@@ -113,6 +159,34 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
           </Link>
         </p>
       )}
+    </div>
+  );
+}
+
+function ManagerButtons({
+  match,
+  canManage,
+  onOpen,
+}: {
+  match: MatchRow | undefined;
+  canManage: (teamId: string | null | undefined) => boolean;
+  onOpen: (dialog: OpenMatchDialog) => void;
+}) {
+  if (!match || !canManage(match.team_id)) return null;
+  return (
+    <div className="flex flex-wrap gap-2 border-t border-gray-100 pt-2">
+      <Button size="sm" onClick={() => onOpen({ kind: 'manage', match })}>
+        <Users className="h-4 w-4" aria-hidden="true" />
+        Spieler verwalten
+      </Button>
+      <Button size="sm" onClick={() => onOpen({ kind: 'share', match })}>
+        <Share2 className="h-4 w-4" aria-hidden="true" />
+        Aufstellung teilen
+      </Button>
+      <Button size="sm" onClick={() => onOpen({ kind: 'reschedule', match })}>
+        <CalendarClock className="h-4 w-4" aria-hidden="true" />
+        Spielverlegung
+      </Button>
     </div>
   );
 }

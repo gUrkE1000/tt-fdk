@@ -14,6 +14,7 @@ import { useAllParticipations, useAllVolunteers, useMatches, type MatchRow } fro
 import { isFinished } from './filters';
 import GameCard from './GameCard';
 import MatchDialogs, { type OpenMatchDialog } from './MatchDialogs';
+import { useCanManageMatch } from './canManage';
 
 export type MyGamesScope = 'all' | 'home' | 'away' | 'past';
 
@@ -79,15 +80,8 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
     return limit === undefined ? rows : rows.slice(0, limit);
   }, [matches.data, participations.data, profileId, scope, limit]);
 
-  const leaderTeamIds = useMemo(
-    () =>
-      new Set(
-        (teams.data ?? [])
-          .filter((team) => profileId && team.leaderIds.includes(profileId))
-          .map((team) => team.id),
-      ),
-    [teams.data, profileId],
-  );
+  // Mannschaftsführer der Mannschaft oder Administrator.
+  const canManage = useCanManageMatch();
 
   const status = queryStatus(matches, participations);
   if (status.loading) return <LoadingState rows={limit ? Math.min(limit, 3) : 3} />;
@@ -123,7 +117,7 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
             volunteers={(volunteers.data ?? []).filter((entry) => entry.match_id === match.id)}
             nameOf={nameOf}
             profileId={profileId}
-            canManage={leaderTeamIds.has(match.team_id)}
+            canManage={canManage(match.team_id)}
             onManagePlayers={() => setDialog({ kind: 'manage', match })}
             onShareLineup={() => setDialog({ kind: 'share', match })}
             onReschedule={() => setDialog({ kind: 'reschedule', match })}

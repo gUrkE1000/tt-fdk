@@ -60,6 +60,9 @@ vi.mock('../../src/lib/supabaseClient', () => ({
   APP_URL: 'http://localhost:5173',
 }));
 
+// Veränderbar, damit einzelne Tests als Administrator laufen können.
+const sessionState = { role: 'team_leader' };
+
 const profile = {
   id: 'p-me',
   first_name: 'Meik',
@@ -75,7 +78,7 @@ vi.mock('../../src/features/auth/session', () => ({
   useSession: () => ({
     session: null,
     profile,
-    role: 'team_leader',
+    role: sessionState.role,
     loading: false,
     previousLoginAt: null,
   }),
@@ -83,6 +86,7 @@ vi.mock('../../src/features/auth/session', () => ({
 }));
 
 import MyGamesPage from '../../src/features/matches/MyGamesPage';
+import OpenItemsList from '../../src/features/dashboard/OpenItemsList';
 import ManagePlayersDialog from '../../src/features/matches/ManagePlayersDialog';
 import ShareLineupDialog from '../../src/features/matches/ShareLineupDialog';
 import { ToastProvider } from '../../src/components/ui';
@@ -192,6 +196,7 @@ function renderWith(ui: React.ReactElement) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  sessionState.role = 'team_leader';
   state.tables = {
     matches: [upcoming as unknown as Row],
     match_participations: [
@@ -402,6 +407,25 @@ describe('MyGamesPage', () => {
     expect(await screen.findByRole('dialog', { name: 'Aufstellung teilen' })).toBeInTheDocument();
   });
 
+  it('zeigt einem Administrator die Knöpfe auch ohne eigene Mannschaft', async () => {
+    sessionState.role = 'admin';
+    state.tables.team_leaders = [];
+    renderWith(<MyGamesPage />);
+    await screen.findByText(/1\. Herren gegen/);
+
+    await userEvent.click(screen.getByRole('button', { name: /Spieler verwalten/ }));
+    expect(await screen.findByRole('dialog', { name: 'Spieler verwalten' })).toBeInTheDocument();
+  });
+
+  it('zeigt einem Mitglied ohne Mannschaftsführung keine Knöpfe', async () => {
+    sessionState.role = 'member';
+    state.tables.team_leaders = [];
+    renderWith(<MyGamesPage />);
+    await screen.findByText(/1\. Herren gegen/);
+
+    expect(screen.queryByRole('button', { name: /Spieler verwalten/ })).toBeNull();
+  });
+
   it('filtert Heim- und Auswärtsspiele', async () => {
     renderWith(<MyGamesPage />);
     await screen.findByText(/1\. Herren gegen/);
@@ -604,5 +628,41 @@ describe('ShareLineupDialog', () => {
     const call = state.rpcCalls.find((entry) => entry.name === 'rpc_share_lineup')!;
     expect((call.args as { p_match_id: string; p_text: string }).p_match_id).toBe('m-1');
     expect((call.args as { p_text: string }).p_text).toContain('TTC Nachbarstadt');
+  });
+});
+
+// ------------------------------------------------------------------ Offen für dich
+
+// Fehlerbild vom 23.09.2026, zweiter Teil: Die Übersicht öffnet mit „Offen", und dort
+// stand das eigene Spiel nur mit Zusage/Absage — ohne die Knöpfe des Mannschaftsführers.
+describe('OpenItemsList', () => {
+  beforeEach(() => {
+    state.tables.v_open_participations = [
+      {
+        profile_id: 'p-me',
+        kind: 'match',
+        id: 'm-1',
+        starts_at: '2026-10-08T17:30:00Z',
+        title: '1. Herren gegen TTC Nachbarstadt',
+      },
+    ];
+    state.tables.v_my_open_polls = [];
+  });
+
+  it('bietet dem Mannschaftsführer auch hier Spieler verwalten und Aufstellung teilen', async () => {
+    renderWith(<OpenItemsList />);
+    await screen.findByText('1. Herren gegen TTC Nachbarstadt');
+
+    await userEvent.click(await screen.findByRole('button', { name: /Aufstellung teilen/ }));
+    expect(await screen.findByRole('dialog', { name: 'Aufstellung teilen' })).toBeInTheDocument();
+  });
+
+  it('zeigt die Knöpfe nicht, wer die Mannschaft nicht führt', async () => {
+    sessionState.role = 'member';
+    state.tables.team_leaders = [];
+    renderWith(<OpenItemsList />);
+    await screen.findByText('1. Herren gegen TTC Nachbarstadt');
+
+    expect(screen.queryByRole('button', { name: /Spieler verwalten/ })).toBeNull();
   });
 });

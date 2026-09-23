@@ -23,6 +23,7 @@ import {
 } from '../matches/filters';
 import GameCard from '../matches/GameCard';
 import MatchDialogs, { type OpenMatchDialog } from '../matches/MatchDialogs';
+import { useCanManageMatch } from '../matches/canManage';
 
 const PAGE_SIZES = [10, 25, 50];
 
@@ -70,15 +71,8 @@ export default function ClubGamesTab() {
 
   const shown = visible.slice(0, pageSize);
 
-  const leaderTeamIds = useMemo(
-    () =>
-      new Set(
-        teamList
-          .filter((team) => profile?.id && team.leaderIds.includes(profile.id))
-          .map((team) => team.id),
-      ),
-    [teamList, profile?.id],
-  );
+  // Mannschaftsführer der Mannschaft oder Administrator.
+  const canManage = useCanManageMatch();
 
   const status = queryStatus(matches, participations);
 
@@ -142,7 +136,7 @@ export default function ClubGamesTab() {
                 volunteers={(volunteers.data ?? []).filter((entry) => entry.match_id === match.id)}
                 nameOf={nameOf}
                 profileId={profile?.id ?? null}
-                canManage={leaderTeamIds.has(match.team_id)}
+                canManage={canManage(match.team_id)}
                 onManagePlayers={() => setDialog({ kind: 'manage', match })}
                 onShareLineup={() => setDialog({ kind: 'share', match })}
                 onReschedule={() => setDialog({ kind: 'reschedule', match })}
