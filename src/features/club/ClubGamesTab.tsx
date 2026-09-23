@@ -13,12 +13,7 @@ import { useSession } from '../auth/session';
 import { useMembers } from '../members/api';
 import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
-import {
-  useAllParticipations,
-  useAllVolunteers,
-  useMatches,
-  type MatchRow,
-} from '../matches/api';
+import { useAllParticipations, useAllVolunteers, useMatches } from '../matches/api';
 import {
   EMPTY_MATCH_FILTERS,
   filterMatches,
@@ -27,7 +22,7 @@ import {
   type MatchFilters,
 } from '../matches/filters';
 import GameCard from '../matches/GameCard';
-import RescheduleDialog from '../matches/RescheduleDialog';
+import MatchDialogs, { type OpenMatchDialog } from '../matches/MatchDialogs';
 
 const PAGE_SIZES = [10, 25, 50];
 
@@ -46,7 +41,7 @@ export default function ClubGamesTab() {
 
   const [filters, setFilters] = useState<MatchFilters>(EMPTY_MATCH_FILTERS);
   const [pageSize, setPageSize] = useState(10);
-  const [rescheduling, setRescheduling] = useState<MatchRow | null>(null);
+  const [dialog, setDialog] = useState<OpenMatchDialog | null>(null);
 
   // Ohne useMemo wäre `?? []` bei jedem Rendern ein neues Array — und jedes useMemo,
   // das davon abhängt, rechnete jedes Mal neu.
@@ -148,7 +143,9 @@ export default function ClubGamesTab() {
                 nameOf={nameOf}
                 profileId={profile?.id ?? null}
                 canManage={leaderTeamIds.has(match.team_id)}
-                onReschedule={() => setRescheduling(match)}
+                onManagePlayers={() => setDialog({ kind: 'manage', match })}
+                onShareLineup={() => setDialog({ kind: 'share', match })}
+                onReschedule={() => setDialog({ kind: 'reschedule', match })}
               />
             ))}
           </div>
@@ -163,10 +160,15 @@ export default function ClubGamesTab() {
         </>
       )}
 
-      <RescheduleDialog
-        open={rescheduling !== null}
-        onOpenChange={(next) => !next && setRescheduling(null)}
-        match={rescheduling}
+      <MatchDialogs
+        open={dialog}
+        onClose={() => setDialog(null)}
+        teams={teamList}
+        venues={venueList}
+        participations={participations.data ?? []}
+        volunteers={volunteers.data ?? []}
+        members={members.data ?? []}
+        nameOf={nameOf}
       />
     </div>
   );

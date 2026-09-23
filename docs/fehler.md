@@ -8,6 +8,35 @@ Gemeldete, noch offene Fehler stehen unter [Offen](#offen).
 
 ---
 
+## F-7 · „Spieler verwalten" und „Aufstellung teilen" tun nichts
+
+**Gemeldet** 23.09.2026, Spiel am 08.10., als Mannschaftsführer unter „Meine Spiele".
+**Schwere** hoch — Aufstellung festlegen und teilen ging nur noch über „Spieltermine".
+**Behoben** 23.09.2026.
+
+### Bild
+
+An der Spielkarte stehen die Knöpfe „Spieler verwalten", „Aufstellung teilen" und
+„Spielverlegung". Die ersten beiden reagieren nicht, der dritte schon.
+
+### Ursache
+
+Die Karte (`GameCard`) zeigt die Knöpfe, sobald jemand die Mannschaft führt, und ruft
+beim Tippen die übergebenen Funktionen auf. „Meine Spiele" (und damit die Übersicht)
+sowie „Mein Verein → Spiele" übergaben aber nur die für die Spielverlegung — die beiden
+anderen waren `undefined`, und ein Knopf mit `onClick={undefined}` tut schlicht nichts.
+Nur „Spieltermine" hatte alle drei Dialoge angeschlossen. Kein Test tippte die Knöpfe
+außerhalb von „Spieltermine" an.
+
+### Behebung
+
+`MatchDialogs` bündelt die drei Dialoge; jede Liste mit Spielkarten schließt sie
+darüber an. Außerdem zeigt die Karte einen Knopf nur noch, wenn ihm eine Aktion
+übergeben wurde — ein stummer Knopf kann so nicht wieder entstehen. Abgesichert in
+`tests/features/lineup.test.tsx` (MyGamesPage, „öffnet als Mannschaftsführer …").
+
+---
+
 ## F-6 · Link der Terminumfrage meldet „wird noch nicht unterstützt"
 
 **Gefunden** 23.09.2026 bei der Durchsicht der Antwort-Links, nicht gemeldet.

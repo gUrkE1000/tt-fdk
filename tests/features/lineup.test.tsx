@@ -382,6 +382,26 @@ describe('MyGamesPage', () => {
     );
   });
 
+  // Fehlerbild vom 23.09.2026: Beide Knöpfe standen an der Karte, taten aber nichts —
+  // „Meine Spiele" hatte die Dialoge nie angeschlossen, nur „Spieltermine".
+  it('öffnet als Mannschaftsführer „Spieler verwalten"', async () => {
+    renderWith(<MyGamesPage />);
+    await screen.findByText(/1\. Herren gegen/);
+
+    await userEvent.click(screen.getByRole('button', { name: /Spieler verwalten/ }));
+
+    expect(await screen.findByRole('dialog', { name: 'Spieler verwalten' })).toBeInTheDocument();
+  });
+
+  it('öffnet als Mannschaftsführer „Aufstellung teilen"', async () => {
+    renderWith(<MyGamesPage />);
+    await screen.findByText(/1\. Herren gegen/);
+
+    await userEvent.click(screen.getByRole('button', { name: /Aufstellung teilen/ }));
+
+    expect(await screen.findByRole('dialog', { name: 'Aufstellung teilen' })).toBeInTheDocument();
+  });
+
   it('filtert Heim- und Auswärtsspiele', async () => {
     renderWith(<MyGamesPage />);
     await screen.findByText(/1\. Herren gegen/);

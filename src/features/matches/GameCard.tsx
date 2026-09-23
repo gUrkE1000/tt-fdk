@@ -223,20 +223,28 @@ export default function GameCard({
 
         {match.comment && <p className="text-sm text-gray-600">{match.comment}</p>}
 
-        {canManage && (
+        {/* Ein Knopf erscheint nur, wenn die Liste ihn auch anschließt — ein Knopf,
+            der nichts tut, ist schlimmer als keiner. */}
+        {canManage && (onManagePlayers || onShareLineup || onReschedule) && (
           <div className="flex flex-wrap gap-2 border-t border-gray-100 pt-3">
-            <Button size="sm" onClick={onManagePlayers}>
-              <Users className="h-4 w-4" aria-hidden="true" />
-              Spieler verwalten
-            </Button>
-            <Button size="sm" onClick={onShareLineup}>
-              <Share2 className="h-4 w-4" aria-hidden="true" />
-              Aufstellung teilen
-            </Button>
-            <Button size="sm" onClick={onReschedule}>
-              <CalendarClock className="h-4 w-4" aria-hidden="true" />
-              Spielverlegung
-            </Button>
+            {onManagePlayers && (
+              <Button size="sm" onClick={onManagePlayers}>
+                <Users className="h-4 w-4" aria-hidden="true" />
+                Spieler verwalten
+              </Button>
+            )}
+            {onShareLineup && (
+              <Button size="sm" onClick={onShareLineup}>
+                <Share2 className="h-4 w-4" aria-hidden="true" />
+                Aufstellung teilen
+              </Button>
+            )}
+            {onReschedule && (
+              <Button size="sm" onClick={onReschedule}>
+                <CalendarClock className="h-4 w-4" aria-hidden="true" />
+                Spielverlegung
+              </Button>
+            )}
           </div>
         )}
         <MessagesPanel type="match" objectId={match.id} />

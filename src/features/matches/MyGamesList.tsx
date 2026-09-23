@@ -13,7 +13,7 @@ import { useVenues } from '../venues/api';
 import { useAllParticipations, useAllVolunteers, useMatches, type MatchRow } from './api';
 import { isFinished } from './filters';
 import GameCard from './GameCard';
-import RescheduleDialog from './RescheduleDialog';
+import MatchDialogs, { type OpenMatchDialog } from './MatchDialogs';
 
 export type MyGamesScope = 'all' | 'home' | 'away' | 'past';
 
@@ -42,7 +42,7 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
   const venues = useVenues();
   const members = useMembers();
 
-  const [rescheduling, setRescheduling] = useState<MatchRow | null>(null);
+  const [dialog, setDialog] = useState<OpenMatchDialog | null>(null);
 
   const profileId = profile?.id ?? null;
 
@@ -124,15 +124,22 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
             nameOf={nameOf}
             profileId={profileId}
             canManage={leaderTeamIds.has(match.team_id)}
-            onReschedule={() => setRescheduling(match)}
+            onManagePlayers={() => setDialog({ kind: 'manage', match })}
+            onShareLineup={() => setDialog({ kind: 'share', match })}
+            onReschedule={() => setDialog({ kind: 'reschedule', match })}
           />
         ))}
       </div>
 
-      <RescheduleDialog
-        open={rescheduling !== null}
-        onOpenChange={(next) => !next && setRescheduling(null)}
-        match={rescheduling}
+      <MatchDialogs
+        open={dialog}
+        onClose={() => setDialog(null)}
+        teams={teams.data ?? []}
+        venues={venues.data ?? []}
+        participations={participations.data ?? []}
+        volunteers={volunteers.data ?? []}
+        members={members.data ?? []}
+        nameOf={nameOf}
       />
     </>
   );
