@@ -1,47 +1,23 @@
 import { z } from 'zod';
 
 /**
- * Die beiden Modi der Aufstellung und die drei der Ersatzanfragen, mit den Hilfetexten
- * aus dem TT-Planer. Sie stehen hier wörtlich, weil sie das Verhalten erklären, das wir
- * nachbauen — eine eigene Formulierung würde nur Unterschiede suggerieren, die es nicht
- * gibt.
+ * Die beiden Modi der Aufstellung. Wer überhaupt gefragt wird, entscheidet der
+ * Mannschaftsführer je Spiel; eine automatische Ersatzkette gibt es nicht (Migration
+ * match_requests).
  */
 export const LINEUP_MODE_HELP = {
   fixed:
-    'Feste Stammspieler: Mit dieser Option könnt ihr Mannschaften verwalten, die primär mit ' +
-    'den gleichen Spielern antreten soll. Sofern ein Stammspieler nicht spielen kann, wird ' +
-    'automatisch ein Ersatz gesucht.',
+    'Feste Stammspieler: Wer zusagt, wird automatisch aufgestellt — erst die Stammspieler ' +
+    'nach ihrem Rang, dann die Ersatzspieler in ihrer Reihenfolge. Der Mannschaftsführer ' +
+    'kann die Reihenfolge jederzeit von Hand ändern.',
   open:
-    'Offene Spieler: Mit dieser Option könnt ihr Mannschaften verwalten, bei denen die ' +
-    'Aufstellung offen ist. Alle Spieler werden für das Spiel angefragt und können zu- oder ' +
-    'absagen. Der Mannschaftsführer kann bei einer Überbesetzung die finale Aufstellung ' +
-    'festlegen.',
-} as const;
-
-export const SUBSTITUTE_MODE_HELP = {
-  sequential:
-    'Einzeln nach Reihenfolge: Die Reihenfolge der Ersatzspieler ist für die automatischen ' +
-    'Ersatzanfragen relevant. Spieler werden der Reihe nach angefragt. Sofern dieser nicht ' +
-    'Ersatz spielen kann, wird der nächste aus der Liste angefragt.',
-  parallel:
-    'Alle Ersatzspieler gleichzeitig: Alle hinterlegten Ersatzspieler werden bei automatischen ' +
-    'Ersatzanfragen gleichzeitig benachrichtigt. Sofern eine Ersatzanfrage für einen Spieler ' +
-    'angenommen wird, werden alle anderen Anfragen gelöscht.',
-  manual:
-    'Manuell: Mit dieser Option werden keine automatischen Ersatzanfragen erstellt, sobald ein ' +
-    'Stammspieler absagt. Der Mannschaftsführer oder Admin kann die Ersatzanfragen manuell ' +
-    'erstellen und verwalten.',
+    'Offene Spieler: Die Angefragten sagen zu oder ab, die Aufstellung legt der ' +
+    'Mannschaftsführer selbst fest — auch bei einer Überbesetzung.',
 } as const;
 
 export const LINEUP_MODE_LABELS = {
   fixed: 'Feste Stammspieler',
   open: 'Offene Spieler',
-} as const;
-
-export const SUBSTITUTE_MODE_LABELS = {
-  sequential: 'Einzeln nach Reihenfolge',
-  parallel: 'Alle Ersatzspieler gleichzeitig',
-  manual: 'Manuell',
 } as const;
 
 export const teamSchema = z
@@ -118,7 +94,7 @@ export const EMPTY_TEAM: TeamValues = {
   ranking: null,
   leagues: [],
   lineupMode: 'fixed',
-  substituteMode: 'sequential',
+  substituteMode: 'manual',
   substituteTimeoutHours: 24,
   hideUsersNoRanking: false,
   blockParticipantsAfter: '',

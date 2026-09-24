@@ -22,8 +22,6 @@ import {
   EMPTY_TEAM,
   LINEUP_MODE_HELP,
   LINEUP_MODE_LABELS,
-  SUBSTITUTE_MODE_HELP,
-  SUBSTITUTE_MODE_LABELS,
   parseLeagues,
   teamSchema,
   type TeamValues,
@@ -36,11 +34,6 @@ const RANKING_TYPE_OPTIONS = Object.entries(RANKING_TYPE_LABELS).map(([value, la
 }));
 
 const LINEUP_MODE_OPTIONS = Object.entries(LINEUP_MODE_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}));
-
-const SUBSTITUTE_MODE_OPTIONS = Object.entries(SUBSTITUTE_MODE_LABELS).map(([value, label]) => ({
   value,
   label,
 }));
@@ -226,41 +219,6 @@ export default function TeamDialog({ open, onOpenChange, team, members }: TeamDi
     </div>
   );
 
-  const substitutes = (
-    <div className="space-y-4">
-      <FormField
-        label="Ersatzanfragen-Logik"
-        hint={SUBSTITUTE_MODE_HELP[form.watch('substituteMode')]}
-      >
-        {(p) => (
-          <Select {...p} {...form.register('substituteMode')} options={SUBSTITUTE_MODE_OPTIONS} />
-        )}
-      </FormField>
-
-      <FormField
-        label="Frist je Ersatzanfrage (Stunden)"
-        hint="Antwortet der Gefragte nicht in dieser Zeit, rückt die Kette weiter. Im TT-Planer gibt es dieses Feld nicht — dort ist die Wartezeit unsichtbar."
-        error={form.formState.errors.substituteTimeoutHours?.message}
-      >
-        {(p) => (
-          <Input
-            {...p}
-            {...form.register('substituteTimeoutHours', { valueAsNumber: true })}
-            type="number"
-            min={1}
-            max={336}
-          />
-        )}
-      </FormField>
-
-      <Checkbox
-        checked={form.watch('manualRequestAutoAdd')}
-        onCheckedChange={(value) => form.setValue('manualRequestAutoAdd', value)}
-        label="Spieler bei manuellen Ersatzanfragen bei Zusage automatisch zur Aufstellung hinzufügen"
-      />
-    </div>
-  );
-
   const settings = (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -348,7 +306,6 @@ export default function TeamDialog({ open, onOpenChange, team, members }: TeamDi
           tabs={[
             { value: 'basics', label: 'Stammdaten', content: basics },
             { value: 'roster', label: 'Kader', content: roster },
-            { value: 'substitutes', label: 'Ersatz', content: substitutes },
             { value: 'settings', label: 'Einstellungen', content: settings },
           ]}
         />

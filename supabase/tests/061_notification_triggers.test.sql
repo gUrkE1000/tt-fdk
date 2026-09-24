@@ -1,7 +1,7 @@
 -- Was löst welche Benachrichtigung aus?
 
 BEGIN;
-SELECT plan(18);
+SELECT plan(20);
 
 DELETE FROM public.notifications;
 DELETE FROM public.action_tokens;
@@ -20,10 +20,28 @@ END $$;
 
 DO $$ BEGIN PERFORM tests.as_service_role(); END $$;
 SELECT is(
-    (SELECT count(DISTINCT profile_id) FROM public.notifications
-      WHERE type = 'match_created')::int,
+    (SELECT count(*) FROM public.notifications
+      WHERE type = 'match_players_needed' AND channel = 'email'
+        AND profile_id = '22222222-0000-0000-0000-000000000005')::int,
+    1,
+    'Ein neues Spiel bittet den Mannschaftsführer, Spieler anzufragen'
+);
+
+DO $$ BEGIN PERFORM tests.as_service_role(); END $$;
+SELECT is(
+    (SELECT count(*) FROM public.notifications WHERE type = 'match_created')::int,
+    0,
+    'Gefragt ist damit noch niemand'
+);
+
+DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000005'); END $$;
+SELECT is(
+    public.rpc_request_players(
+        ARRAY['66666666-0000-0000-0000-000000000001']::uuid[],
+        ARRAY(SELECT profile_id FROM public.team_members
+               WHERE team_id = '44444444-0000-0000-0000-000000000001')),
     6,
-    'Ein neues Spiel fragt den ganzen Kader'
+    'Der Mannschaftsführer fragt den ganzen Kader an'
 );
 
 DO $$ BEGIN PERFORM tests.as_service_role(); END $$;

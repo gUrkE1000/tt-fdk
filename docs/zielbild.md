@@ -27,7 +27,7 @@ Trainer oder Mitglied eine der folgenden Tätigkeiten wieder über WhatsApp/Tele
 |---|---|---|
 | Z1 | Spieltermine erscheinen automatisch aus click-TT, Verlegungen werden erkannt | ICS-URL je Mannschaft hinterlegen → Termine erscheinen ≤ 24 h; Terminänderung → Rückmeldungen werden entwertet, Beteiligte informiert |
 | Z2 | Spieler melden sich mit einem Klick zu/ab, auch von einem Link in der Benachrichtigung | Push/E-Mail enthält Link; Klick ohne weiteren Login speichert die Antwort |
-| Z3 | Bei Absage eines Stammspielers wird automatisch Ersatz gesucht | Modus „Einzeln": Ersatz 1 angefragt → Ablehnung/Frist → Ersatz 2 …; Modus „Alle": alle angefragt, erste Zusage gewinnt, Rest storniert; Modus „Manuell": nichts automatisch. Leerlauf wird den Mannschaftsführern gemeldet |
+| Z3 | ~~Bei Absage eines Stammspielers wird automatisch Ersatz gesucht~~ — **entfallen** (E-1, 24.09.2026): Der Mannschaftsführer fragt je Spiel an, wer spielen soll | Modus „Einzeln": Ersatz 1 angefragt → Ablehnung/Frist → Ersatz 2 …; Modus „Alle": alle angefragt, erste Zusage gewinnt, Rest storniert; Modus „Manuell": nichts automatisch. Leerlauf wird den Mannschaftsführern gemeldet |
 | Z4 | Der Mannschaftsführer legt die Aufstellung fest und teilt sie | Dialog „Spieler verwalten" mit allen sechs Aktionen; „Aufstellung teilen" erzeugt kopierfertigen Text inkl. Ort, Fahrer, Hinweis |
 | Z5 | Jeder wird erinnert, ohne dass jemand daran denken muss | Spiel: X h vorher pro Mitglied; Training: X h vorher pro Training; offene Rückmeldungen: täglicher Sammelhinweis |
 | Z6 | Jeder bestimmt selbst, worüber und wie er informiert wird | Matrix Ereignistyp × Kanal (App-Push, E-Mail) pro Mitglied; Kopie-Adressen (Eltern) |

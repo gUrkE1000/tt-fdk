@@ -114,9 +114,27 @@ nicht und wir bauen sie nicht.
 ### `teams`, `team_leaders`, `team_members`
 
 Eine Mannschaft hat eine feste Größe (`size`) — so viele stehen je Spiel am Tisch. Wer
-darüber hinaus dazugehört, ist Ersatz und hat einen `rank`: die Reihenfolge, in der die
-Ersatzkette fragt. Ein Trigger verhindert mehr Stammspieler als `size`, ein eindeutiger
-Teilindex doppelte Ersatzränge.
+darüber hinaus dazugehört, ist Ersatz und hat einen `rank`: die Reihenfolge in der Auswahl
+„Spieler anfragen" und in der Aufstellung. Ein Trigger verhindert mehr Stammspieler als
+`size`, ein eindeutiger Teilindex doppelte Ersatzränge.
+
+Wer zu einer Mannschaft gehört (Kader oder Führung), sieht ihre Spiele —
+`can_see_match(uuid)` ist die eine Regel dafür, an der die Policies von `matches`,
+`match_participations`, `match_volunteers`, den Terminumfragen und den Nachrichten am
+Spiel hängen. Außerdem sieht ein Spiel, wer dafür angefragt ist, und der Admin.
+
+### Anfragen und `match_offers`
+
+Eine Zeile in `match_participations` heißt: **angefragt**. Ein neues Spiel hat keine; der
+Mannschaftsführer legt sie mit `rpc_request_players(uuid[], uuid[])` an — für mehrere
+Spiele auf einmal, wer schon eine Zeile hat, wird übersprungen. Zu- oder absagen kann nur,
+wer eine Zeile hat. `rpc_withdraw_request` nimmt eine unbeantwortete Anfrage zurück.
+
+`match_offers` hält „Ich hätte Zeit": Wer das Spiel sieht, aber nicht gefragt ist, meldet
+sich mit `rpc_offer_match`; die Mannschaftsführung bekommt `match_offer`. Sobald die
+Person eine Zeile in `match_participations` bekommt (angefragt oder aufgestellt), löscht
+ein Trigger das Angebot. Lesen dürfen die Person selbst, die Mannschaftsführung und der
+Admin.
 
 ### `matches`
 
@@ -478,9 +496,12 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `rpc_update_qttr_bulk(jsonb)` | QTTR-Werte einer ganzen Liste in einem Aufruf (nur Admin) |
 | `leads_team(uuid)`, `leads_match(uuid)` | Führt der Angemeldete diese Mannschaft bzw. die zu diesem Spiel? |
 | `check_team_member_limits()` | Trigger: nicht mehr Stammspieler als `teams.size` |
-| `seed_match_participations()` | Trigger: legt beim neuen Spiel für den ganzen Kader offene Zeilen an |
+| `belongs_to_team(uuid)`, `can_see_match(uuid)` | Gehört der Angemeldete zur Mannschaft? Darf er das Spiel sehen? |
+| `rpc_request_players(uuid[], uuid[])` | Spieler für ein oder mehrere Spiele anfragen (Mannschaftsführung/Admin) |
+| `rpc_withdraw_request(uuid, uuid)` | Unbeantwortete Anfrage zurücknehmen |
+| `rpc_offer_match(uuid, text)`, `rpc_withdraw_offer(uuid, uuid)` | „Ich hätte Zeit" melden, zurückziehen oder (Mannschaftsführung) verwerfen |
 | `recompute_lineup(uuid)` | Berechnet die Aufstellung neu (siehe unten) |
-| `rpc_set_match_response(uuid, response, text)` | Eigene Zu- oder Absage, prüft den Meldeschluss |
+| `rpc_set_match_response(uuid, response, text)` | Eigene Zu- oder Absage, nur für Angefragte; prüft den Meldeschluss |
 | `rpc_set_training_attendance(uuid, status, int, uuid, text)` | Trainingsrückmeldung; die Bemerkung (letzter Parameter) bleibt bei `NULL` unverändert |
 | `apply_training_answer(uuid, uuid, text)` | Trainingsrückmeldung über den Antwort-Link (`training_response`); Statuswerte statt Fehler: `cancelled`, `started`, `not_assigned`, `full` |
 | `rpc_announce_poll(uuid)`, `rpc_announce_news(uuid)` | Neue Umfrage bzw. Neuigkeit melden (nur Veranstalter/Admin, je einmal) |

@@ -23,6 +23,7 @@ import {
   type Participation,
 } from '../matches/api';
 import { useCanManageMatch } from '../matches/canManage';
+import { useMatchesWithoutRequests } from '../matches/requests';
 import { eventPath, matchPath, trainingPath } from '../../lib/paths';
 import MatchDialogs, { type OpenMatchDialog } from '../matches/MatchDialogs';
 import { useTeams } from '../teams/api';
@@ -85,6 +86,7 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
   const volunteers = useAllVolunteers();
   const members = useMembers();
   const [dialog, setDialog] = useState<OpenMatchDialog | null>(null);
+  const unrequested = useMatchesWithoutRequests();
 
   const nameOf = useMemo(() => {
     const names = new Map((members.data ?? []).map((member) => [member.id, member.full_name ?? '']));
@@ -96,6 +98,61 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
 
   if (items.isLoading) return <LoadingState />;
   if (items.isError) return <ErrorState onRetry={() => void items.refetch()} />;
+
+  const dialogs = (
+    <MatchDialogs
+      open={dialog}
+      onClose={() => setDialog(null)}
+      teams={teams.data ?? []}
+      venues={venues.data ?? []}
+      participations={participations.data ?? []}
+      volunteers={volunteers.data ?? []}
+      members={members.data ?? []}
+      nameOf={nameOf}
+    />
+  );
+
+  const requestHint = unrequested.length > 0 && (
+    <Card>
+      <CardBody className="space-y-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge tone="warning">Mannschaftsführung</Badge>
+          <span className="text-sm font-semibold text-gray-900">
+            {unrequested.length === 1
+              ? 'Für 1 Spiel ist noch niemand angefragt'
+              : `Für ${unrequested.length} Spiele ist noch niemand angefragt`}
+          </span>
+        </div>
+        <ul className="space-y-1.5">
+          {unrequested.map((match) => (
+            <li key={match.id} className="flex flex-wrap items-center justify-between gap-2">
+              <Link
+                to={matchPath(match.id)}
+                className="text-sm text-gray-800 underline-offset-2 hover:text-primary hover:underline"
+              >
+                {match.dtstart ? formatDateTime(match.dtstart) : ''} ·{' '}
+                {(teams.data ?? []).find((team) => team.id === match.team_id)?.name ?? 'Mannschaft'}{' '}
+                gegen {match.opponent || 'unbekannt'}
+              </Link>
+              <Button size="sm" onClick={() => setDialog({ kind: 'manage', match })}>
+                <Users className="h-4 w-4" aria-hidden="true" />
+                Spieler anfragen
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </CardBody>
+    </Card>
+  );
+
+  if (all.length === 0 && requestHint) {
+    return (
+      <div className="space-y-3">
+        {requestHint}
+        {dialogs}
+      </div>
+    );
+  }
 
   if (all.length === 0) {
     return (
@@ -109,6 +166,7 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
 
   return (
     <div className="space-y-3">
+      {requestHint}
       {shown.map((item) => (
         <Card key={`${item.kind}:${item.id}`}>
           <CardBody className="space-y-2">
@@ -147,16 +205,7 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
         </Card>
       ))}
 
-      <MatchDialogs
-        open={dialog}
-        onClose={() => setDialog(null)}
-        teams={teams.data ?? []}
-        venues={venues.data ?? []}
-        participations={participations.data ?? []}
-        volunteers={volunteers.data ?? []}
-        members={members.data ?? []}
-        nameOf={nameOf}
-      />
+      {dialogs}
 
       {limit !== undefined && all.length > limit && (
         <p className="text-sm text-gray-600">

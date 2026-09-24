@@ -67,7 +67,6 @@ import {
   teamSchema,
   teamSubtitle,
   LINEUP_MODE_HELP,
-  SUBSTITUTE_MODE_HELP,
 } from '../../src/features/teams/schemas';
 
 const team = {
@@ -190,12 +189,10 @@ describe('Mannschafts-Schema', () => {
     ]);
   });
 
-  it('hält die Hilfetexte des TT-Planers wörtlich vor', () => {
-    expect(LINEUP_MODE_HELP.fixed).toMatch(/automatisch ein Ersatz gesucht/);
-    expect(LINEUP_MODE_HELP.open).toMatch(/bei einer Überbesetzung die finale Aufstellung/);
-    expect(SUBSTITUTE_MODE_HELP.sequential).toMatch(/der Reihe nach angefragt/);
-    expect(SUBSTITUTE_MODE_HELP.parallel).toMatch(/gleichzeitig benachrichtigt/);
-    expect(SUBSTITUTE_MODE_HELP.manual).toMatch(/keine automatischen Ersatzanfragen/);
+  it('erklärt die beiden Aufstellungsmodi ohne automatische Ersatzkette', () => {
+    expect(LINEUP_MODE_HELP.fixed).toMatch(/Wer zusagt, wird automatisch aufgestellt/);
+    expect(LINEUP_MODE_HELP.open).toMatch(/auch bei einer Überbesetzung/);
+    expect(LINEUP_MODE_HELP.fixed).not.toMatch(/Ersatz gesucht/);
   });
 });
 
@@ -223,7 +220,7 @@ describe('TeamsPage', () => {
     expect(within(dialog).getByLabelText('Ligen')).toHaveValue('Bezirksliga');
   });
 
-  it('erklärt die gewählte Spieler-Logik im Wortlaut des TT-Planers', async () => {
+  it('erklärt die gewählte Spieler-Logik', async () => {
     renderPage(<TeamsPage />);
     await screen.findAllByText('1. Herren');
 
@@ -231,7 +228,8 @@ describe('TeamsPage', () => {
     const dialog = await screen.findByRole('dialog');
     await userEvent.click(within(dialog).getByRole('tab', { name: 'Kader' }));
 
-    expect(await screen.findByText(/automatisch ein Ersatz gesucht/)).toBeInTheDocument();
+    expect(await screen.findByText(/Wer zusagt, wird automatisch aufgestellt/)).toBeInTheDocument();
+    expect(within(dialog).queryByRole('tab', { name: 'Ersatz' })).not.toBeInTheDocument();
   });
 
   it('nennt die Höchstzahl der Stammspieler', async () => {

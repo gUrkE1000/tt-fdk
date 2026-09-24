@@ -11,6 +11,7 @@ import { useMembers } from '../members/api';
 import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
 import { useAllParticipations, useAllVolunteers, useMatches, type MatchRow } from './api';
+import { myTeamIds } from './requests';
 import { isFinished } from './filters';
 import GameCard from './GameCard';
 import MatchDialogs, { type OpenMatchDialog } from './MatchDialogs';
@@ -70,15 +71,18 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
       return limit === undefined ? past : past.slice(0, limit);
     }
 
+    // Kommende Spiele: die, für die man gefragt ist, und alle der eigenen Mannschaften —
+    // auch ohne Anfrage, damit man sich als verfügbar melden kann.
+    const teamIds = myTeamIds(teams.data ?? [], profileId);
     const rows = (matches.data ?? [])
-      .filter((match) => myMatchIds.has(match.id))
+      .filter((match) => myMatchIds.has(match.id) || teamIds.has(match.team_id))
       .filter((match) => match.active && !isFinished(match))
       .filter((match) =>
         scope === 'all' ? true : scope === 'home' ? match.is_home : !match.is_home,
       );
 
     return limit === undefined ? rows : rows.slice(0, limit);
-  }, [matches.data, participations.data, profileId, scope, limit]);
+  }, [matches.data, participations.data, teams.data, profileId, scope, limit]);
 
   // Mannschaftsführer der Mannschaft oder Administrator.
   const canManage = useCanManageMatch();

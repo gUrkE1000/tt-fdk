@@ -36,7 +36,8 @@ SELECT is_empty(
               'trains', 'trains_session', 'can_see_training', 'may_see_training_roster',
               'may_see_session_roster', 'may_join_training', 'is_poll_target',
               'may_see_poll_results', 'may_hand_over_key', 'can_see_message_object',
-              'may_see_training_statistics', 'berlin_today', 'valid_email_list')
+              'may_see_training_statistics', 'berlin_today', 'valid_email_list',
+              'belongs_to_team', 'can_see_match')
           AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = p.oid AND d.deptype = 'e') $$,
     'authenticated darf außer rpc_* nur die Prädikate der Policies ausführen'
 );

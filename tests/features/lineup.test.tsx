@@ -429,6 +429,36 @@ describe('MyGamesPage', () => {
     expect(screen.queryByRole('button', { name: /Spieler verwalten/ })).toBeNull();
   });
 
+  it('zeigt ein Spiel der eigenen Mannschaft ohne Anfrage mit „Ich hätte Zeit"', async () => {
+    sessionState.role = 'member';
+    state.tables.team_leaders = [];
+    state.tables.match_participations = (state.tables.match_participations ?? []).filter(
+      (row) => row.profile_id !== 'p-me',
+    );
+    renderWith(<MyGamesPage />);
+
+    expect(await screen.findByText('Du bist für dieses Spiel nicht angefragt.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Zusage/ })).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: /Ich hätte Zeit/ }));
+
+    await waitFor(() =>
+      expect(state.rpcCalls).toContainEqual({
+        name: 'rpc_offer_match',
+        args: { p_match_id: 'm-1', p_comment: '' },
+      }),
+    );
+  });
+
+  it('erinnert die Mannschaftsführung an Spiele ohne Anfrage', async () => {
+    state.tables.match_participations = [];
+    renderWith(<OpenItemsList />);
+
+    expect(await screen.findByText('Für 1 Spiel ist noch niemand angefragt')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /Spieler anfragen/ }));
+    expect(await screen.findByRole('dialog', { name: 'Spieler verwalten' })).toBeInTheDocument();
+  });
+
   it('filtert Heim- und Auswärtsspiele', async () => {
     renderWith(<MyGamesPage />);
     await screen.findByText(/1\. Herren gegen/);
@@ -457,7 +487,12 @@ describe('ManagePlayersDialog', () => {
             { id: 'p-olaf', full_name: 'Olaf Organisator', qttr: 1450 },
             { id: 'p-uwe', full_name: 'Uwe Unklar', qttr: 1390 },
             { id: 'p-neu', full_name: 'Nina Neu', qttr: null },
-          ] as never
+          ].map((member) => ({
+            ...member,
+            status: 'active',
+            role: 'member',
+            no_games: false,
+          })) as never
         }
       />,
     );
@@ -467,7 +502,7 @@ describe('ManagePlayersDialog', () => {
     renderDialog();
 
     expect(await screen.findByText(/^Aufstellung \(2\)$/)).toBeInTheDocument();
-    expect(screen.getByText(/^Offene Spieler \(1\)$/)).toBeInTheDocument();
+    expect(screen.getByText(/^Angefragt, noch keine Antwort \(1\)$/)).toBeInTheDocument();
     expect(screen.getByText(/^Spieler Absagen \(1\)$/)).toBeInTheDocument();
     expect(screen.getByText(/^Spieler noch unklar \(1\)$/)).toBeInTheDocument();
   });
@@ -496,7 +531,7 @@ describe('ManagePlayersDialog', () => {
 
   it('fügt einen offenen Spieler hinzu', async () => {
     renderDialog();
-    await screen.findByText(/^Offene Spieler \(1\)$/);
+    await screen.findByText(/^Angefragt, noch keine Antwort \(1\)$/);
 
     await userEvent.click(screen.getByRole('button', { name: 'Theo Trainer hinzufügen' }));
 
@@ -533,11 +568,73 @@ describe('ManagePlayersDialog', () => {
     ).toBeInTheDocument();
   });
 
-  it('bietet Mitglieder außerhalb des Kaders zum Hinzufügen an', async () => {
+  it('bietet Mitglieder außerhalb des Kaders zum direkten Aufstellen an', async () => {
     renderDialog();
-    expect(
-      await screen.findByText('Andere Spieler (ohne Mannschaftszuordnung)'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Direkt aufstellen (ohne Anfrage)')).toBeInTheDocument();
+  });
+
+  it('zieht eine unbeantwortete Anfrage zurück', async () => {
+    renderDialog();
+    await screen.findByText(/^Angefragt, noch keine Antwort \(1\)$/);
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Anfrage an Theo Trainer zurückziehen' }),
+    );
+
+    await waitFor(() =>
+      expect(state.rpcCalls).toContainEqual({
+        name: 'rpc_withdraw_request',
+        args: { p_match_id: 'm-1', p_profile_id: 'p-theo' },
+      }),
+    );
+  });
+
+  it('fragt ausgewählte Spieler an', async () => {
+    renderDialog();
+    await userEvent.click(await screen.findByRole('button', { name: /Spieler auswählen/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Nina Neu/ }));
+    await userEvent.click(screen.getByRole('button', { name: '1 Person anfragen' }));
+
+    await waitFor(() =>
+      expect(state.rpcCalls).toContainEqual({
+        name: 'rpc_request_players',
+        args: { p_match_ids: ['m-1'], p_profile_ids: ['p-neu'] },
+      }),
+    );
+  });
+
+  it('hakt bei einem Spiel ohne Anfrage die Stammspieler vor', async () => {
+    state.tables.match_participations = [];
+    renderDialog();
+
+    const button = await screen.findByRole('button', { name: '2 Personen anfragen' });
+    await userEvent.click(button);
+
+    await waitFor(() =>
+      expect(state.rpcCalls).toContainEqual({
+        name: 'rpc_request_players',
+        args: { p_match_ids: ['m-1'], p_profile_ids: ['p-me', 'p-tina'] },
+      }),
+    );
+  });
+
+  it('zeigt, wer sich als verfügbar gemeldet hat, und stellt auf', async () => {
+    state.tables.match_offers = [
+      { match_id: 'm-1', profile_id: 'p-neu', comment: 'Ab 19 Uhr', created_at: '2026-01-01' },
+    ];
+    renderDialog();
+
+    expect(await screen.findByText(/^Hätten Zeit \(1\)$/)).toBeInTheDocument();
+    expect(screen.getByText('Ab 19 Uhr')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Nina Neu aufstellen' }));
+
+    await waitFor(() =>
+      expect(state.rpcCalls).toContainEqual({
+        name: 'rpc_manage_player',
+        args: { p_match_id: 'm-1', p_profile_id: 'p-neu', p_action: 'add' },
+      }),
+    );
   });
 });
 

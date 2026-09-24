@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { queryKeys } from '../../lib/queryKeys';
 import type { ViewRow } from '../../lib/database.types';
 import { pendingForMe, useSubstituteRequests } from '../substitutes/api';
+import { useMatchesWithoutRequests } from '../matches/requests';
 
 /**
  * „Offen für dich": alles, wo die eigene Antwort noch fehlt.
@@ -84,11 +85,16 @@ export function useMyOpenItems(profileId: string | null) {
 
 /**
  * Die Zahl für die Navigation und die Kachel: offene Rückmeldungen plus
- * Ersatzanfragen an mich. Die Ersatzanfragen stehen nicht in der Liste selbst, sondern
+ * Ersatzanfragen an mich plus — für die Mannschaftsführung — Spiele ohne Anfrage. Die Ersatzanfragen stehen nicht in der Liste selbst, sondern
  * als eigener Hinweis darüber — sie haben eine Frist und sind deshalb dringender.
  */
 export function useOpenCount(profileId: string | null): number {
   const items = useMyOpenItems(profileId);
   const requests = useSubstituteRequests();
-  return (items.data?.length ?? 0) + pendingForMe(requests.data ?? [], profileId).length;
+  const unrequested = useMatchesWithoutRequests();
+  return (
+    (items.data?.length ?? 0) +
+    pendingForMe(requests.data ?? [], profileId).length +
+    unrequested.length
+  );
 }

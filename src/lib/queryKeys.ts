@@ -43,6 +43,7 @@ export const queryKeys = {
     detail: (id: string) => ['matches', 'detail', id] as const,
     participations: (matchId: string) => ['matches', 'participations', matchId] as const,
     mine: () => ['matches', 'mine'] as const,
+    offers: () => ['matches', 'offers'] as const,
   },
 
   trainings: {

@@ -276,6 +276,97 @@ export function useManagePlayer() {
   });
 }
 
+/**
+ * Spieler für ein oder mehrere Spiele anfragen. Wer schon eine Zeile hat, wird
+ * übersprungen; die Datenbank meldet, wie viele Anfragen neu verschickt wurden.
+ */
+export function useRequestPlayers() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      matchIds,
+      profileIds,
+    }: {
+      matchIds: string[];
+      profileIds: string[];
+    }): Promise<number> => {
+      const { data, error } = await supabase.rpc('rpc_request_players', {
+        p_match_ids: matchIds,
+        p_profile_ids: profileIds,
+      });
+      if (error) throw new Error(error.message);
+      return (data as number | null) ?? 0;
+    },
+    onSuccess: () => invalidateMatches(queryClient),
+  });
+}
+
+/** Eine noch unbeantwortete Anfrage zurücknehmen. */
+export function useWithdrawRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ matchId, profileId }: { matchId: string; profileId: string }) => {
+      const { error } = await supabase.rpc('rpc_withdraw_request', {
+        p_match_id: matchId,
+        p_profile_id: profileId,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => invalidateMatches(queryClient),
+  });
+}
+
+export type MatchOffer = Tables<'match_offers'>;
+
+/**
+ * „Ich hätte Zeit"-Meldungen. Die Datenbank liefert die eigenen und die der
+ * Mannschaften, die man führt.
+ */
+export function useMatchOffers() {
+  return useQuery({
+    queryKey: queryKeys.matches.offers(),
+    queryFn: async (): Promise<MatchOffer[]> => {
+      const { data, error } = await supabase.from('match_offers').select('*');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+/** Sich für ein Spiel verfügbar melden, ohne angefragt zu sein. */
+export function useOfferMatch() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ matchId, comment = '' }: { matchId: string; comment?: string }) => {
+      const { error } = await supabase.rpc('rpc_offer_match', {
+        p_match_id: matchId,
+        p_comment: comment,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => invalidateMatches(queryClient),
+  });
+}
+
+/** Die eigene Meldung zurückziehen — oder, als Mannschaftsführer, eine fremde verwerfen. */
+export function useWithdrawOffer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ matchId, profileId }: { matchId: string; profileId?: string }) => {
+      const { error } = await supabase.rpc('rpc_withdraw_offer', {
+        p_match_id: matchId,
+        ...(profileId ? { p_profile_id: profileId } : {}),
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => invalidateMatches(queryClient),
+  });
+}
+
 export function useSetLineup() {
   const queryClient = useQueryClient();
 

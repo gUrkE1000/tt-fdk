@@ -9,7 +9,24 @@ und niemand die Herleitung zweimal führen muss.
 ## E-1 · Wer darf Spieltermine sehen und sich eintragen?
 
 **Aufgefallen** 21.09.2026 beim Probelauf mit einem zweiten Konto.
-**Stand** offen — Jan fragt im Verein nach. Tendenz: **Möglichkeit 1**.
+**Stand** **entschieden am 24.09.2026** — umgesetzt in
+`supabase/migrations/20261102000000_match_requests.sql`. Die Beschreibung unten ist der
+Stand vor der Entscheidung.
+
+### Entscheidung
+
+Möglichkeit 2, ergänzt um Anfragen durch den Mannschaftsführer:
+
+- **Sehen:** Ein Spiel sehen die Mannschaft (Stamm, Ersatz, Mannschaftsführung), wer für
+  genau dieses Spiel angefragt ist, und der Admin. Andere Mannschaften sehen es nicht.
+- **Gefragt wird niemand automatisch.** Der Mannschaftsführer wählt je Spiel aus, wen er
+  anfragt — Stammspieler sind vorausgewählt, auf Wunsch für mehrere Spiele auf einmal.
+  Nur Angefragte können zu- oder absagen.
+- **„Ich hätte Zeit":** Wer zur Mannschaft gehört, aber nicht gefragt ist, meldet sich als
+  verfügbar. Der Mannschaftsführer bekommt eine Nachricht und kann aufstellen.
+- **Keine automatische Ersatzkette** mehr; alle Mannschaften stehen auf „von Hand".
+- **Bestehende Spiele:** Unbeantwortete automatische Anfragen an künftigen Spielen sind
+  entfernt; wer schon geantwortet hat, bleibt stehen.
 
 ### Wie es heute ist
 
@@ -128,4 +145,5 @@ Kein Aufwand. Der Nachteil bleibt: nach der Antwort führt der Link ins Leere.
 
 ## Erledigt
 
-*(noch nichts)*
+- **E-1** · Wer darf Spieltermine sehen und sich eintragen? — entschieden am 24.09.2026,
+  siehe oben.

@@ -153,7 +153,7 @@ describe('chainFor', () => {
 describe('ChainStepper', () => {
   it('erklärt, wenn noch niemand gefragt wurde', () => {
     renderWith(<ChainStepper matchId="m-1" requests={[]} onAskSomeone={() => {}} />);
-    expect(screen.getByText(/Noch niemand angefragt/)).toBeInTheDocument();
+    expect(screen.getByText(/Noch keine Ersatzanfrage/)).toBeInTheDocument();
   });
 
   it('zeigt jede Anfrage mit Rang, Namen und Status', () => {

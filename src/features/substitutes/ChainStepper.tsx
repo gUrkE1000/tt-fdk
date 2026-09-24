@@ -27,7 +27,8 @@ const STATUS_TONE: Record<string, BadgeTone> = {
 export interface ChainStepperProps {
   matchId: string;
   requests: SubstituteRequest[];
-  onAskSomeone: () => void;
+  /** Ohne Rückruf entfällt der Knopf „Ersatz anfragen". */
+  onAskSomeone?: () => void;
 }
 
 /**
@@ -56,16 +57,17 @@ export default function ChainStepper({ matchId, requests, onAskSomeone }: ChainS
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 className="text-xs font-bold uppercase tracking-wide text-gray-500">Ersatzkette</h4>
-        <Button size="sm" onClick={onAskSomeone}>
-          <UserPlus className="h-3.5 w-3.5" aria-hidden="true" />
-          Ersatz anfragen
-        </Button>
+        {onAskSomeone && (
+          <Button size="sm" onClick={onAskSomeone}>
+            <UserPlus className="h-3.5 w-3.5" aria-hidden="true" />
+            Ersatz anfragen
+          </Button>
+        )}
       </div>
 
       {chain.length === 0 ? (
         <p className="text-sm text-gray-500">
-          Noch niemand angefragt. Sobald ein Stammspieler absagt, fragt die Automatik den
-          ersten Ersatzspieler.
+          Noch keine Ersatzanfrage.
         </p>
       ) : (
         <ol className="space-y-1.5">

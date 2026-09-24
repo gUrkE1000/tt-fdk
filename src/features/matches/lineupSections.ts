@@ -108,7 +108,9 @@ export const ACTION_HELP = {
   add: 'Fügt den Spieler beim Spiel hinzu und informiert diesen per E-Mail darüber',
   remove: 'Entfernt den Spieler vorerst beim Spiel und informiert diesen per E-Mail darüber',
   decline: 'Setzt den Spieler beim Spiel auf Absage und informiert diesen per E-Mail darüber',
-  request: 'Fragt den Spieler an, ob dieser bei dem Spiel Ersatz spielen könnte',
+  request: 'Fragt den Spieler für das Spiel an und schickt ihm Zusage- und Absage-Link',
+  withdraw: 'Zieht die Anfrage zurück, solange der Spieler noch nicht geantwortet hat',
+  dismissOffer: 'Verwirft die Meldung „Ich hätte Zeit" — der Spieler wird nicht benachrichtigt',
   reset: 'Setzt den Teilnahme Status des Spielers zurück',
   deleteRequest: 'Löscht die Ersatzanfrage',
 } as const;

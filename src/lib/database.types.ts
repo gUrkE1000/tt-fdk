@@ -545,6 +545,42 @@ export interface Database {
           },
         ];
       };
+      match_offers: {
+        Row: {
+          match_id: string;
+          profile_id: string;
+          comment: string;
+          created_at: string;
+        };
+        Insert: {
+          match_id: string;
+          profile_id: string;
+          comment?: string;
+          created_at?: string;
+        };
+        Update: {
+          match_id?: string;
+          profile_id?: string;
+          comment?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "match_offers_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "match_offers_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       match_participations: {
         Row: {
           match_id: string;
@@ -2415,12 +2451,20 @@ export interface Database {
       };
     };
     Functions: {
+      belongs_to_team: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       berlin_today: {
         Args: Record<string, never>;
         Returns: unknown;
       };
       can_see_absences: {
         Args: Record<string, never>;
+        Returns: unknown;
+      };
+      can_see_match: {
+        Args: { [key: string]: unknown };
         Returns: unknown;
       };
       can_see_message_object: {
@@ -2555,6 +2599,14 @@ export interface Database {
         Args: Record<string, never>;
         Returns: unknown;
       };
+      rpc_offer_match: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_request_players: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       rpc_reset_calendar_token: {
         Args: Record<string, never>;
         Returns: unknown;
@@ -2612,6 +2664,14 @@ export interface Database {
         Returns: unknown;
       };
       rpc_vote_reschedule: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_withdraw_offer: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_withdraw_request: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };

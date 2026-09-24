@@ -15,6 +15,7 @@ import type { Venue } from '../venues/api';
 import type { TeamWithRoster } from '../teams/api';
 import type { MatchRow, Participation, Volunteer } from './api';
 import ResponseButtons from './ResponseButtons';
+import OfferButton from './OfferButton';
 import VolunteerToggles from './VolunteerToggles';
 import RescheduleVotePanel from './RescheduleVotePanel';
 import MessagesPanel from '../messages/MessagesPanel';
@@ -91,6 +92,9 @@ export default function GameCard({
                 {match.is_home ? 'Heim' : 'Auswärts'}
               </Badge>
               {!match.active && <Badge tone="removed">entfällt</Badge>}
+              {canManage && match.active && !finished && participations.length === 0 && (
+                <Badge tone="warning">noch niemand angefragt</Badge>
+              )}
             </div>
             <p className="mt-0.5 text-sm text-gray-700">
               <span
@@ -195,7 +199,16 @@ export default function GameCard({
 
         <RescheduleVotePanel matchId={match.id} />
 
-        {profileId && (
+        {profileId && mine === null && (
+          <OfferButton
+            matchId={match.id}
+            profileId={profileId}
+            canManage={canManage}
+            disabled={!match.active || finished}
+          />
+        )}
+
+        {profileId && mine !== null && (
           <ResponseButtons
             matchId={match.id}
             participation={mine}

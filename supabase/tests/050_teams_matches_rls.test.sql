@@ -17,8 +17,8 @@ SELECT is(
 
 SELECT is(
     (SELECT count(*) FROM public.matches)::int,
-    4,
-    'und alle Spieltermine'
+    1,
+    'aber nur die Spieltermine der eigenen Mannschaft'
 );
 
 SELECT throws_ok(
@@ -31,13 +31,13 @@ SELECT throws_ok(
 -- Ohne passende Policy trifft ein UPDATE keine Zeile. PostgreSQL meldet dabei keinen
 -- Fehler, sondern ändert schlicht nichts — geprüft wird deshalb die Wirkung.
 UPDATE public.match_participations SET response = 'yes'
- WHERE match_id = '55555555-0000-0000-0000-000000000001'
-   AND profile_id = '22222222-0000-0000-0000-000000000005';
+ WHERE match_id = '55555555-0000-0000-0000-000000000003'
+   AND profile_id = '22222222-0000-0000-0000-000000000004';
 
 SELECT is(
     (SELECT response::text FROM public.match_participations
-      WHERE match_id = '55555555-0000-0000-0000-000000000001'
-        AND profile_id = '22222222-0000-0000-0000-000000000005'),
+      WHERE match_id = '55555555-0000-0000-0000-000000000003'
+        AND profile_id = '22222222-0000-0000-0000-000000000004'),
     'none',
     'Ein direkter Schreibversuch auf die Beteiligung bleibt wirkungslos'
 );
@@ -126,15 +126,15 @@ SELECT is(
 SELECT is(
     (SELECT count(*) FROM public.match_participations
       WHERE match_id = (SELECT id FROM public.matches WHERE summary = 'Nachholspiel'))::int,
-    7,
-    'Beim Anlegen bekommt der ganze Kader eine offene Zeile'
+    0,
+    'Beim Anlegen ist noch niemand angefragt'
 );
 
 SELECT is(
-    (SELECT count(DISTINCT response)::int FROM public.match_participations
-      WHERE match_id = (SELECT id FROM public.matches WHERE summary = 'Nachholspiel')),
-    1,
-    'und zwar ausschließlich mit „keine Antwort"'
+    (SELECT substitute_mode::text FROM public.teams
+      WHERE id = '44444444-0000-0000-0000-000000000001'),
+    'manual',
+    'Die automatische Ersatzkette ist aus'
 );
 
 -- ============================================================ Gast

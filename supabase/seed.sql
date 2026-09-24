@@ -187,6 +187,20 @@ VALUES
      date_trunc('day', NOW()) - INTERVAL '7 days' + INTERVAL '23 hours', 4)
 ON CONFLICT (id) DO NOTHING;
 
+-- Die Mannschaftsführer haben für diese Spiele ihren ganzen Kader angefragt. Ein
+-- neues Spiel hat keine Anfragen (siehe Migration match_requests); der Seed füllt
+-- sie direkt, damit die Listen und Tests etwas zu zeigen haben.
+INSERT INTO public.match_participations (match_id, profile_id, response, source)
+SELECT m.id, tm.profile_id, 'none', 'leader'
+  FROM public.matches m
+  JOIN public.team_members tm ON tm.team_id = m.team_id
+  JOIN public.profiles p ON p.id = tm.profile_id
+ WHERE m.id IN ('55555555-0000-0000-0000-000000000001', '55555555-0000-0000-0000-000000000002',
+                '55555555-0000-0000-0000-000000000003', '55555555-0000-0000-0000-000000000004')
+   AND p.deleted_at IS NULL
+   AND NOT p.no_games
+ON CONFLICT (match_id, profile_id) DO NOTHING;
+
 -- ----------------------------------------------------------------- Trainings
 -- Drei Trainings, die die drei Sichtbarkeitsfälle abdecken: ein normales mit
 -- Zuordnung, ein offenes (auch für Gäste) und ein inkognito geführtes.

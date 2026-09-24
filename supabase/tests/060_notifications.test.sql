@@ -49,7 +49,7 @@ SELECT is(
     (SELECT subject FROM public.notifications
       WHERE profile_id = '22222222-0000-0000-0000-000000000001'
         AND type = 'match_created' AND channel = 'email'),
-    'Neuer Spieltermin: 1. Herren gegen TTC Nachbarstadt am 05.10.2026',
+    'Anfrage: 1. Herren gegen TTC Nachbarstadt am 05.10.2026',
     'Der Betreff ist beim Einreihen fertig gerendert'
 );
 
@@ -193,8 +193,8 @@ SELECT throws_ok(
 
 SELECT is(
     (SELECT count(*) FROM public.v_my_notification_preferences)::int,
-    17,
-    'Die Matrix zeigt genau die siebzehn abwählbaren Typen'
+    19,
+    'Die Matrix zeigt genau die neunzehn abwählbaren Typen'
 );
 
 SELECT is(
