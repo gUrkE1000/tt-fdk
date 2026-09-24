@@ -94,7 +94,12 @@ describe('detailPath', () => {
     expect(detailPath('match', 'm-8')).toBe('/match/m-8');
   });
 
-  it('führt Spiele, Trainings und Vereinstermine zu ihrer Karte', () => {
+  it('führt Trainings und Vereinstermine auf ihre eigene Seite', () => {
+    expect(detailPath('training', 's-1')).toBe('/training/s-1');
+    expect(detailPath('event', 'e-1')).toBe('/event/e-1');
+  });
+
+  it('fällt ohne ID auf die Liste zurück', () => {
     expect(detailPath('match')).toBe('/my-club?tab=games');
     expect(detailPath('training')).toBe('/my-club?tab=trainings');
     expect(detailPath('event')).toBe('/my-club?tab=events');

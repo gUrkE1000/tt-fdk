@@ -23,7 +23,7 @@ import {
   type Participation,
 } from '../matches/api';
 import { useCanManageMatch } from '../matches/canManage';
-import { matchPath } from '../matches/paths';
+import { eventPath, matchPath, trainingPath } from '../../lib/paths';
 import MatchDialogs, { type OpenMatchDialog } from '../matches/MatchDialogs';
 import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
@@ -41,12 +41,18 @@ const KIND_LABELS: Record<OpenKind, string> = {
 };
 
 /** Wo die vollständige Karte steht — mit Teilnehmern, Nachrichten, Gästen. */
-const DETAIL_LINKS: Record<OpenKind, string> = {
-  match: '/my-games',
-  training: '/my-club?tab=trainings',
-  event: '/my-club?tab=events',
-  poll: '/votes',
-};
+function detailLink(item: OpenItem): string {
+  switch (item.kind) {
+    case 'match':
+      return matchPath(item.id);
+    case 'training':
+      return trainingPath(item.id);
+    case 'event':
+      return eventPath(item.id);
+    default:
+      return '/votes';
+  }
+}
 
 const EVENT_REFUSALS: Record<string, string> = {
   closed: 'Die Anmeldefrist ist vorbei.',
@@ -115,7 +121,7 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
               )}
             </div>
             <Link
-              to={item.kind === 'match' ? matchPath(item.id) : DETAIL_LINKS[item.kind]}
+              to={detailLink(item)}
               className="block font-semibold text-gray-900 underline-offset-2 hover:text-primary hover:underline"
             >
               {item.title}

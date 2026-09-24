@@ -69,6 +69,63 @@ Kader — eine Zusage gilt als Angebot einzuspringen."
 
 ---
 
+## E-2 · Wohin führen die Links in Benachrichtigungen?
+
+**Aufgefallen** 24.09.2026, nachdem Spiele, Trainingstermine und Vereinstermine eigene
+Seiten bekommen haben (`/match/…`, `/training/…`, `/event/…`).
+**Stand** offen — zurückgestellt, erst sollen sich die neuen Seiten im Alltag bewähren.
+
+### Wie es heute ist
+
+| Benachrichtigung | Link in E-Mail | Tippen auf die Push-Nachricht |
+|---|---|---|
+| Spiel (Erinnerung, neu, geändert, aufgestellt …) | Antwort-Link `/r/…` | dieselbe Antwortseite |
+| Vereinstermin (Einladung, Erinnerung) | Antwort-Link `/r/…` | dieselbe Antwortseite |
+| Trainings-Erinnerung | Antwort-Link `/r/…` | dieselbe Antwortseite |
+| Ersatzanfrage, Terminumfrage | Antwort-Link `/r/…` | dieselbe Antwortseite |
+| alles andere (Trainingsausfall, Nachricht am Termin, Ersatz gefunden, neue Umfrage …) | Startseite bzw. `/votes`, `/my-club?tab=news` | dieselbe Seite |
+
+Der Antwort-Link speichert **ohne Anmeldung** (Zielbild Z2) und gilt **einmal**. Wer nach
+der Antwort noch einmal tippt, etwa um nachzusehen, wer fährt, liest „Über diesen Link
+wurde schon geantwortet“ und muss das Spiel selbst suchen.
+
+### Möglichkeit 1 — beides: Antwort-Link und Link zur Seite *(Vorschlag)*
+
+- E-Mail: Der Antwort-Link bleibt; darunter eine zweite Zeile „Ansehen: …/match/<id>“.
+- Push: Tippen öffnet die **Seite** des Termins. Dort lässt sich ebenfalls antworten,
+  vorausgesetzt man ist angemeldet — in der installierten App ist man das fast immer.
+- Benachrichtigungen ohne Antwort (Ausfall, Nachricht, Ersatz gefunden) führen auf
+  die Seite ihres Termins statt auf die Startseite.
+
+**Zu bauen:** eine Migration — die Nutzlast-Funktionen (`match_payload`,
+`event_payload`, `training_payload`) geben zusätzlich `page` mit, die Vorlagen in
+`notification_templates` bekommen die zweite Zeile; `supabase/functions/_shared/pushMessage.ts`
+nimmt für das Tippen `page` statt `link`. pgTAP für die Nutzlast, Vitest für
+`pushMessage`. **Ausrollen:** „Supabase ausrollen“ mit Migrationen **und** Edge
+Functions (der Versand liegt in `process-notifications`).
+**Aufwand:** klein bis mittel.
+
+### Möglichkeit 2 — nur noch die Seite
+
+Antwort-Link entfällt, alles führt auf die Seite. Einfacher, aber Z2 („ein Klick ohne
+weiteren Login“) wäre für E-Mail-Leser ohne gespeicherte Anmeldung verloren —
+vermutlich genau die, die ohnehin am seltensten antworten. **Nicht empfohlen.**
+
+### Möglichkeit 3 — so lassen
+
+Kein Aufwand. Der Nachteil bleibt: nach der Antwort führt der Link ins Leere.
+
+### Was zu klären ist
+
+1. Soll das Tippen auf eine **Push-Nachricht** die Terminseite öffnen (Überblick) oder
+   die Schnellantwort (ein Tipp weniger)?
+2. Reicht in der **E-Mail** eine zweite Zeile, oder lieber zwei Knöpfe
+   („Zusagen“ / „Ansehen“)? Knöpfe brauchen HTML-Vorlagen statt reinem Text
+   (`_shared/emailHtml.ts` macht Adressen bisher nur anklickbar).
+3. Gilt das für **alle** Benachrichtigungstypen oder nur für Spiele?
+
+---
+
 ## Erledigt
 
 *(noch nichts)*

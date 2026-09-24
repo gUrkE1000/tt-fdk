@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 interface Row {
@@ -74,6 +74,7 @@ vi.mock('../../src/features/auth/session', () => ({
 }));
 
 import EventsPage from '../../src/features/events/EventsPage';
+import EventPage from '../../src/features/events/EventPage';
 import { ToastProvider } from '../../src/components/ui';
 import {
   EMPTY_EVENT,
@@ -337,5 +338,37 @@ describe('EventsPage', () => {
     await waitFor(() =>
       expect(screen.getByRole('tab', { name: 'Offene Termine (0)' })).toBeInTheDocument(),
     );
+  });
+});
+
+// ------------------------------------------------------------------ Seite eines Termins
+
+describe('EventPage', () => {
+  function renderEvent(id: string) {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    return render(
+      <QueryClientProvider client={client}>
+        <ToastProvider>
+          <MemoryRouter initialEntries={[`/event/${id}`]}>
+            <Routes>
+              <Route path="/event/:eventId" element={<EventPage />} />
+            </Routes>
+          </MemoryRouter>
+        </ToastProvider>
+      </QueryClientProvider>,
+    );
+  }
+
+  it('zeigt genau diesen Vereinstermin mit Zu- und Absage', async () => {
+    renderEvent('e-1');
+    expect(await screen.findByRole('heading', { name: upcoming.name })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Zusage/ })).toBeInTheDocument();
+  });
+
+  it('sagt es, wenn es den Termin nicht gibt', async () => {
+    renderEvent('weg');
+    expect(
+      await screen.findByText('Diesen Vereinstermin gibt es nicht (mehr)'),
+    ).toBeInTheDocument();
   });
 });

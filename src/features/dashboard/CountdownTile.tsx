@@ -3,7 +3,7 @@ import { CalendarClock, MapPin } from 'lucide-react';
 import { Badge } from '../../components/ui';
 import { formatDateTime } from '../../lib/dates';
 import type { MatchCountdown } from './summary';
-import { matchPath } from '../matches/paths';
+import { matchPath } from '../../lib/paths';
 
 export interface CountdownTileProps {
   countdown: MatchCountdown;

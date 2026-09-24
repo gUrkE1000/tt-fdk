@@ -180,6 +180,17 @@ describe('MyDatesPage', () => {
     expect(screen.queryByText('Noch offen')).toBeNull();
   });
 
+  it('führt von jedem Termin auf seine Seite', async () => {
+    renderPage();
+    expect(
+      await screen.findByRole('link', { name: '1. Herren gegen TTC Nachbarstadt' }),
+    ).toHaveAttribute('href', '/match/m-1');
+    expect(screen.getByRole('link', { name: 'Erwachsenentraining' })).toHaveAttribute(
+      'href',
+      '/training/s-1',
+    );
+  });
+
   it('lässt Vergangenes draußen', async () => {
     renderPage();
     await screen.findByText('1. Herren gegen TTC Nachbarstadt');

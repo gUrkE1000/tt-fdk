@@ -172,6 +172,27 @@ export function useTrainingSessions(days = SESSION_WINDOW_DAYS) {
 }
 
 /**
+ * Ein einzelner Trainingstermin — für die Terminseite, auf die der Kalender verlinkt.
+ * Unabhängig vom Zwei-Wochen-Fenster der Liste. `null`: gibt es nicht, oder die RLS
+ * gibt ihn nicht heraus.
+ */
+export function useTrainingSession(sessionId: string | null) {
+  return useQuery({
+    queryKey: [...queryKeys.trainings.all, 'session', sessionId ?? ''],
+    enabled: sessionId !== null,
+    queryFn: async (): Promise<TrainingSession | null> => {
+      const { data, error } = await supabase
+        .from('training_sessions')
+        .select('*')
+        .eq('id', sessionId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+/**
  * Wer zu welchem Termin kommt — und wie viele.
  *
  * Zwei Abfragen, weil die Datenbank zwei Antworten gibt: Namen nur für den, der sie sehen

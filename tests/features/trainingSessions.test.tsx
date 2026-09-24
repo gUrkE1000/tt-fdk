@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 interface Row {
@@ -29,6 +29,12 @@ function makeBuilder(table: string) {
       deleted.push(value);
       return chain;
     },
+    // Die Terminseite fragt einen Termin per `eq('id', …)` ab.
+    maybeSingle: () =>
+      Promise.resolve({
+        data: (state.tables[table] ?? []).find((row) => row.id === deleted.at(-1)) ?? null,
+        error: null,
+      }),
     insert: (values: unknown) => {
       state.inserts.push({ table, values });
       return {
@@ -70,6 +76,7 @@ vi.mock('../../src/features/auth/session', () => ({
 }));
 
 import SessionsTab from '../../src/features/trainings/SessionsTab';
+import TrainingSessionPage from '../../src/features/trainings/TrainingSessionPage';
 import OpenTrainingsList from '../../src/features/trainings/OpenTrainingsList';
 import { ToastProvider } from '../../src/components/ui';
 
@@ -359,5 +366,42 @@ describe('OpenTrainingsList', () => {
     expect(await screen.findAllByRole('button', { name: 'Nicht mehr teilnehmen' })).not.toHaveLength(
       0,
     );
+  });
+});
+
+// ------------------------------------------------------------------ Seite eines Termins
+
+describe('TrainingSessionPage', () => {
+  function renderSession(id: string) {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    return render(
+      <QueryClientProvider client={client}>
+        <ToastProvider>
+          <MemoryRouter initialEntries={[`/training/${id}`]}>
+            <Routes>
+              <Route path="/training/:sessionId" element={<TrainingSessionPage />} />
+            </Routes>
+          </MemoryRouter>
+        </ToastProvider>
+      </QueryClientProvider>,
+    );
+  }
+
+  it('zeigt genau diesen Trainingstermin mit Zu- und Absage', async () => {
+    renderSession('s-1');
+    expect(await screen.findByRole('heading', { name: 'Erwachsenentraining' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Bin dabei/ })).toBeInTheDocument();
+  });
+
+  it('zeigt einen Ausfall mit Grund', async () => {
+    renderSession('s-3');
+    expect(await screen.findByText('Halle ist Wahllokal')).toBeInTheDocument();
+  });
+
+  it('sagt es, wenn es den Termin nicht gibt', async () => {
+    renderSession('weg');
+    expect(
+      await screen.findByText('Diesen Trainingstermin gibt es nicht (mehr)'),
+    ).toBeInTheDocument();
   });
 });

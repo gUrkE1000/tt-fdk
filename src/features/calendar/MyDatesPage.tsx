@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { CalendarCheck, CalendarX, MapPin, Rss } from 'lucide-react';
 import {
   Badge,
@@ -16,6 +16,7 @@ import { formatDateTime } from '../../lib/dates';
 import { useSession } from '../auth/session';
 import { useMyUpcoming, type MyDate } from './api';
 import SubscribeDialog from './SubscribeDialog';
+import { detailPath, type CalendarKind } from './events';
 import OpenItemsList from '../dashboard/OpenItemsList';
 import { useMyOpenItems } from '../dashboard/openItems';
 
@@ -81,7 +82,17 @@ export default function MyDatesPage() {
                   {STATUS_LABELS[row.my_status ?? ''] ?? row.my_status}
                 </Badge>
               </div>
-              <p className="text-sm text-gray-700">{row.title}</p>
+              {/* Zum Termin selbst — dort lässt sich die Antwort auch ändern. */}
+              {row.id && detailPath(row.kind as CalendarKind, row.id) ? (
+                <Link
+                  to={detailPath(row.kind as CalendarKind, row.id)!}
+                  className="block text-sm font-semibold text-gray-800 underline-offset-2 hover:text-primary hover:underline"
+                >
+                  {row.title}
+                </Link>
+              ) : (
+                <p className="text-sm text-gray-700">{row.title}</p>
+              )}
               {row.location && (
                 <p className="flex items-start gap-1.5 text-sm text-gray-600">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />

@@ -1,5 +1,5 @@
 import type { ViewRow } from '../../lib/database.types';
-import { matchPath } from '../matches/paths';
+import { eventPath, matchPath, trainingPath } from '../../lib/paths';
 
 export type CalendarItem = ViewRow<'v_calendar_items'>;
 
@@ -28,18 +28,18 @@ export const CATEGORIES: readonly CategoryDefinition[] = [
 export const ALL_KINDS: CalendarKind[] = CATEGORIES.map((category) => category.kind);
 
 /**
- * Wohin ein Klick auf einen Eintrag führt: zu der Karte, an der man antworten kann —
- * bei einem Spiel auf die Seite genau dieses Spiels. Geburtstage und Hallensperren
- * haben keine; dort passiert beim Klick nichts.
+ * Wohin ein Klick auf einen Eintrag führt: auf die Seite genau dieses Spiels, dieses
+ * Trainingstermins oder Vereinstermins. Ohne ID (sollte nicht vorkommen) zur Liste.
+ * Geburtstage und Hallensperren haben keine Seite; dort passiert beim Klick nichts.
  */
 export function detailPath(kind: CalendarKind, id?: string): string | null {
   switch (kind) {
     case 'match':
       return id ? matchPath(id) : '/my-club?tab=games';
     case 'training':
-      return '/my-club?tab=trainings';
+      return id ? trainingPath(id) : '/my-club?tab=trainings';
     case 'event':
-      return '/my-club?tab=events';
+      return id ? eventPath(id) : '/my-club?tab=events';
     default:
       return null;
   }
