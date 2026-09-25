@@ -5,7 +5,6 @@ import {
   CalendarOff,
   Check,
   Clock,
-  KeyRound,
   MapPin,
   MessageSquare,
   Navigation,
@@ -36,6 +35,7 @@ import {
   type TrainingWithPeople,
 } from './api';
 import type { SessionKeys } from '../keys/api';
+import KeyBearerRow from './KeyBearerRow';
 
 const CHOICES: {
   value: AttendanceStatus;
@@ -266,24 +266,12 @@ export default function SessionCard({
               </p>
             )}
 
-            {training?.requires_key_owner &&
-              (keys?.has_key_holder ? (
-                <p className="flex items-start gap-1.5 rounded-xl bg-status-yes-soft p-2.5 text-sm text-status-yes">
-                  <KeyRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                  <span>
-                    {/* Der Name kommt nur, wenn die Teilnehmerliste sichtbar ist —
-                        bei Inkognito bleibt es bei „jemand". */}
-                    Schlüssel: {keys.holder_name ?? 'jemand mit Schlüssel ist dabei'}
-                  </span>
-                </p>
-              ) : (
-                <p className="flex items-start gap-1.5 rounded-xl bg-status-late-soft p-2.5 text-sm text-status-late">
-                  <KeyRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                  <span>
-                    Bisher hat niemand mit Hallenschlüssel zugesagt — so bleibt die Halle zu.
-                  </span>
-                </p>
-              ))}
+            <KeyBearerRow
+              session={session}
+              training={training}
+              keys={keys}
+              profileId={profileId}
+            />
 
             {profileId && (
               <div className="space-y-1.5">

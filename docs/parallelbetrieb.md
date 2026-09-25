@@ -124,7 +124,7 @@ funktioniert hat.
 | 7.2 | Ein Feiertag **oder** ein Ferientag ist eingetreten und das Training fiel automatisch aus | | | |
 | 7.3 | Ein Trainer hat einen Termin von Hand abgesagt; die Teilnehmer wurden informiert | | | |
 | 7.4 | Rückmeldungen dabei / später / nicht wurden genutzt — von mehr als der Hälfte der Teilnehmer | | | |
-| 7.5 | Die Schlüsselwarnung hat gegriffen: Termin ohne Schlüsselinhaber wurde angezeigt | | | |
+| 7.5 | Bei den Trainingsterminen stand, wer den Schlüssel bringt; fehlte jemand, kam am Vortag die Erinnerung an den Trainer | | | |
 | 7.6 | Kein Trainer hat nebenher weiter eine Liste auf Papier geführt | | | |
 
 ### Z8 — Termine, Umfragen, Abwesenheiten, Kalender

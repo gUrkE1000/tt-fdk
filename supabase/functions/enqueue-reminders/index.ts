@@ -1,10 +1,12 @@
 // Erinnerungen einreihen (Aufgabe 4.5).
 //
-// Läuft alle zehn Minuten. Vier Aufgaben:
+// Läuft alle zehn Minuten. Fünf Aufgaben:
 //   1. Erinnerung an ein Spiel, je Person mit ihrem eigenen Vorlauf.
 //   2. Erinnerung an einen Trainingstermin, mit dem Vorlauf des Trainings.
 //   3. Erinnerung an einen Vereinstermin, mit dem vereinsweiten Vorlauf.
 //   4. Ein täglicher Sammelhinweis auf alles, wozu noch eine Antwort fehlt.
+//   5. Ein Hinweis an die Trainer, wenn morgen niemand den Hallenschlüssel bringt
+//      (ganz in der Datenbank: `enqueue_key_reminders`).
 //
 // Die Asymmetrie in 1 und 2 ist Absicht: Beim Spiel entscheidet die Person, wie früh sie
 // erinnert werden will, beim Training das Training. Wer dienstags um 19 Uhr trainiert,
@@ -46,8 +48,9 @@ Deno.serve(async (request: Request): Promise<Response> => {
   const trainingReminders = await doTrainingReminders(admin, now);
   const eventReminders = await doEventReminders(admin, now, settings);
   const openReminders = await doOpenReminders(admin, now, settings);
+  const keyReminders = await doKeyReminders(admin);
 
-  return json({ matchReminders, trainingReminders, eventReminders, openReminders });
+  return json({ matchReminders, trainingReminders, eventReminders, openReminders, keyReminders });
 });
 
 interface Settings {
@@ -440,4 +443,13 @@ async function doOpenReminders(
   }
 
   return actions.length;
+}
+
+async function doKeyReminders(admin: SupabaseClient): Promise<number> {
+  const { data, error } = await admin.rpc('enqueue_key_reminders');
+  if (error) {
+    console.error('enqueue_key_reminders:', error.message);
+    return 0;
+  }
+  return typeof data === 'number' ? data : 0;
 }
