@@ -8,6 +8,40 @@ Gemeldete, noch offene Fehler stehen unter [Offen](#offen).
 
 ---
 
+## F-9 · „Supabase ausrollen" scheitert an `schema_migrations_pkey`
+
+**Aufgefallen** 25.09.2026 beim Ausrollen von PR #9.
+**Schwere** mittel — die neue Migration wäre nie eingespielt worden; die Datenbank blieb
+unverändert.
+**Behoben** 25.09.2026.
+
+### Bild
+
+„Supabase ausrollen" bricht ab mit `duplicate key value violates unique constraint
+"schema_migrations_pkey"`, `Key (version)=(20261103000000) already exists`. Angeboten wird
+dabei eine Migration, die längst eingespielt ist (`training_create`).
+
+### Ursache
+
+Zwei parallel entstandene Migrationen trugen dieselbe Zeitmarke:
+`20261103000000_training_create.sql` (PR #8, schon ausgerollt) und
+`20261103000000_leader_notifications.sql` (PR #9). Supabase erkennt eine Migration an der
+Zahl, nicht am Namen. Die CLI ordnete den vorhandenen Eintrag der alphabetisch ersten Datei
+zu (`leader_notifications`, also „schon da") und wollte `training_create` noch einmal
+einspielen. Die lokale Testdatenbank und die CI spielen nach Dateinamen ein und merkten
+nichts.
+
+`training_create` besteht nur aus wiederholbaren Anweisungen; der abgebrochene Lauf hat
+nichts verändert.
+
+### Behebung
+
+- `leader_notifications` heißt jetzt `20261103000001_leader_notifications.sql`.
+- `tests/scripts/migrationVersions.test.ts` lässt die CI scheitern, sobald zwei
+  Migrationen dieselbe Zeitmarke tragen.
+
+---
+
 ## F-8 · „Training anlegen" scheitert, Trainer verlieren beim Speichern ihr Training
 
 **Gemeldet** 25.09.2026, „beim Training eintragen klappt irgendwas nicht".
