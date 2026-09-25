@@ -285,6 +285,25 @@ wenn die Teilnehmerliste verborgen ist. Der **Name** hängt dagegen an
 `may_see_session_roster` — sonst verriete der Hinweis bei einem inkognito geführten
 Training genau das, was Inkognito verbergen soll.
 
+### `training_session_keys`, `training_key_reminders`
+
+Wer den Hallenschlüssel zu einem Trainingstermin bringt — eingetragen, nicht mehr nur
+abgeleitet (Migration `training_key_bearer`). Gilt für jedes Training;
+`trainings.requires_key_owner` wird nicht mehr gelesen.
+
+- Geschrieben wird nur über `rpc_set_session_key_bearer(session, profile)`: die eigene ID
+  trägt einen selbst ein, `NULL` trägt aus, eine fremde ID darf nur der Trainer des
+  Trainings oder der Admin setzen. Ein Mitglied verdrängt niemanden, der schon
+  eingetragen ist. Wer vom Trainer eingetragen wird, bekommt `training_key_assigned`.
+- Sagt der Eingetragene ab (`training_attendance.status = 'no'`), trägt ein Trigger ihn aus.
+- `enqueue_key_reminders()` (aus dem Erinnerungslauf) schickt den Trainern einmal je
+  Termin `training_key_missing`, wenn der Termin in den nächsten 24 Stunden liegt und
+  niemand eingetragen ist; die Nachricht nennt, wer laut `keys` einen Schlüssel für die
+  Halle hat. `training_key_reminders` merkt sich das; Austragen setzt es zurück.
+- Gelesen wird über `v_session_keys` (`has_bearer`, `bearer_id`, `bearer_name`). Die Tabelle
+  selbst ist für `authenticated` gesperrt; der Name steht nur, wo die Teilnehmerliste
+  sichtbar ist, oder für einen selbst.
+
 ### `action_tokens`
 
 Macht den Link in einer E-Mail ohne Anmeldung nutzbar. Einmalschlüssel mit Verfallsdatum,

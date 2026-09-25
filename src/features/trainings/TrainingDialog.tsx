@@ -118,7 +118,6 @@ export default function TrainingDialog({
       is_open: values.isOpen,
       trainer_invites_only: values.trainerInvitesOnly,
       is_incognito: values.isIncognito,
-      requires_key_owner: values.requiresKeyOwner,
       skip_public_holidays: values.skipPublicHolidays,
       skip_school_holidays: values.skipSchoolHolidays,
       hide_in_calendar: values.hideInCalendar,
@@ -287,11 +286,6 @@ export default function TrainingDialog({
           onCheckedChange={(value) => form.setValue('isIncognito', value)}
           label="Inkognito-Training (Teilnehmerzahl und Liste sind nur für Trainer sichtbar)"
         />
-        <Checkbox
-          checked={form.watch('requiresKeyOwner')}
-          onCheckedChange={(value) => form.setValue('requiresKeyOwner', value)}
-          label="Teilnehmer mit Hallenschlüssel immer notwendig"
-        />
       </div>
     </div>
   );
@@ -427,7 +421,6 @@ export function toFormValues(training: TrainingWithPeople): TrainingValues {
     isOpen: training.is_open,
     trainerInvitesOnly: training.trainer_invites_only,
     isIncognito: training.is_incognito,
-    requiresKeyOwner: training.requires_key_owner,
     skipPublicHolidays: training.skip_public_holidays,
     skipSchoolHolidays: training.skip_school_holidays,
     hideInCalendar: training.hide_in_calendar,

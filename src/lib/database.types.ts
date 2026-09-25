@@ -1850,6 +1850,29 @@ export interface Database {
           },
         ];
       };
+      training_key_reminders: {
+        Row: {
+          session_id: string;
+          sent_at: string;
+        };
+        Insert: {
+          session_id: string;
+          sent_at?: string;
+        };
+        Update: {
+          session_id?: string;
+          sent_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_key_reminders_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: true;
+            referencedRelation: "training_sessions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       training_members: {
         Row: {
           training_id: string;
@@ -1909,6 +1932,49 @@ export interface Database {
             columns: ["training_id"];
             isOneToOne: false;
             referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_session_keys: {
+        Row: {
+          session_id: string;
+          profile_id: string;
+          set_by: string | null;
+          set_at: string;
+        };
+        Insert: {
+          session_id: string;
+          profile_id: string;
+          set_by?: string | null;
+          set_at?: string;
+        };
+        Update: {
+          session_id?: string;
+          profile_id?: string;
+          set_by?: string | null;
+          set_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_session_keys_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: true;
+            referencedRelation: "training_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_session_keys_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_session_keys_set_by_fkey";
+            columns: ["set_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -2404,6 +2470,9 @@ export interface Database {
           session_id: string | null;
           has_key_holder: boolean | null;
           holder_name: string | null;
+          has_bearer: boolean | null;
+          bearer_id: string | null;
+          bearer_name: string | null;
         };
         Relationships: [];
       };
@@ -2632,6 +2701,10 @@ export interface Database {
         Returns: unknown;
       };
       rpc_set_match_response: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_set_session_key_bearer: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
