@@ -102,29 +102,42 @@ export function defaultSelection(
     .map((candidate) => candidate.id);
 }
 
-/** Kommende, nicht abgesagte Spiele, für die noch niemand gefragt ist. */
+/**
+ * Wie weit „Offen für dich" nach vorn schaut. Wer nur zwei, drei Wochen im Voraus
+ * anfragt, soll nicht die ganze Rückrunde als offen gezählt bekommen.
+ */
+export const REQUEST_WINDOW_DAYS = 21;
+
+/** Kommende, nicht abgesagte Spiele im Zeitfenster, für die noch niemand gefragt ist. */
 export function matchesWithoutRequests(
   matches: MatchRow[],
   participations: Participation[],
   teamIds: Set<string>,
   now: Date = new Date(),
+  windowDays: number = REQUEST_WINDOW_DAYS,
 ): MatchRow[] {
   const withRequests = new Set(participations.map((entry) => entry.match_id));
-  const nowIso = now.toISOString();
+  const from = now.getTime();
+  const until = from + windowDays * 86_400_000;
 
   return matches
-    .filter(
-      (match) =>
+    .filter((match) => {
+      // Als Zahl vergleichen: Die Zeitstempel kommen mal mit, mal ohne Millisekunden.
+      const starts = match.dtstart ? Date.parse(match.dtstart) : NaN;
+      return (
         teamIds.has(match.team_id) &&
         match.active &&
-        (match.dtstart ?? '') > nowIso &&
-        !withRequests.has(match.id),
-    )
+        starts > from &&
+        starts <= until &&
+        !withRequests.has(match.id)
+      );
+    })
     .sort((a, b) => (a.dtstart ?? '').localeCompare(b.dtstart ?? ''));
 }
 
 /**
- * Die Spiele der eigenen Mannschaften ohne Anfrage — für „Offen für dich". Nur für
+ * Die Spiele der eigenen Mannschaften ohne Anfrage in den nächsten
+ * `REQUEST_WINDOW_DAYS` Tagen — für „Offen für dich". Nur für
  * die Mannschaftsführung, nicht für den Administrator: Der sieht jede Mannschaft, und
  * „offen für dich" wäre dann der ganze Spielplan.
  */

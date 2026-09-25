@@ -117,6 +117,31 @@ describe('matchesWithoutRequests', () => {
     );
     expect(result.map((entry) => entry.id)).toEqual(['m-frueher', 'm-ohne']);
   });
+
+  it('schaut nur drei Wochen nach vorn', () => {
+    const result = matchesWithoutRequests(
+      [
+        match('m-bald', { dtstart: '2026-10-21T17:00:00Z' }),
+        match('m-rand', { dtstart: '2026-10-22T12:00:00Z' }),
+        match('m-rueckrunde', { dtstart: '2027-01-15T17:00:00Z' }),
+      ],
+      [],
+      new Set(['t-1']),
+      now,
+    );
+    expect(result.map((entry) => entry.id)).toEqual(['m-bald', 'm-rand']);
+  });
+
+  it('nimmt auf Wunsch ein anderes Zeitfenster', () => {
+    const result = matchesWithoutRequests(
+      [match('m-bald'), match('m-spaeter', { dtstart: '2026-10-20T17:00:00Z' })],
+      [],
+      new Set(['t-1']),
+      now,
+      10,
+    );
+    expect(result.map((entry) => entry.id)).toEqual(['m-bald']);
+  });
 });
 
 describe('myTeamIds', () => {

@@ -452,6 +452,9 @@ describe('MyGamesPage', () => {
 
   it('erinnert die Mannschaftsführung an Spiele ohne Anfrage', async () => {
     state.tables.match_participations = [];
+    // „Offen für dich" schaut drei Wochen nach vorn; das Spiel der Vorlage liegt in vier.
+    const inTenDays = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString();
+    state.tables.matches = [{ ...upcoming, dtstart: inTenDays, dtstart_external: inTenDays }];
     renderWith(<OpenItemsList />);
 
     expect(await screen.findByText('Für 1 Spiel ist noch niemand angefragt')).toBeInTheDocument();
