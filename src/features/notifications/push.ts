@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabaseClient';
-import { serviceWorkerSupported } from '../../lib/pwa';
+import { serviceWorkerSupported, type Platform } from '../../lib/pwa';
 
 /**
  * Web Push im Browser (Aufgabe 8.3).
@@ -53,6 +53,39 @@ export async function readPushState(): Promise<PushState> {
   } catch {
     return 'available';
   }
+}
+
+/**
+ * Wo man eine Sperre wieder aufhebt. Die Antwort hängt davon ab, ob die Seite im
+ * Browser oder als installierte App läuft: Unter Android verwaltet das System die
+ * Mitteilungen der installierten App selbst — die Einstellung im Chrome-Browser gilt
+ * für sie nicht. Genau daran scheitert man sonst („im Browser erlaubt, trotzdem rot").
+ */
+export function blockedHelp(platform: Platform, installed: boolean): string[] {
+  if (platform === 'android' && installed) {
+    return [
+      'Du nutzt die installierte App. Für sie gilt nicht die Einstellung im Chrome-Browser, sondern die von Android.',
+      'Android-Einstellungen → Apps → Vereinsplaner → Benachrichtigungen → einschalten.',
+      'Alternativ: App-Symbol lange gedrückt halten → App-Info → Benachrichtigungen.',
+    ];
+  }
+  if (platform === 'android') {
+    return [
+      'In Chrome auf das Symbol links neben der Adresse tippen → Berechtigungen → Benachrichtigungen → Zulassen.',
+      'Bleibt die Glocke rot: In den Android-Einstellungen → Apps → Chrome → Benachrichtigungen prüfen, ob Chrome überhaupt Mitteilungen senden darf.',
+    ];
+  }
+  if (platform === 'ios') {
+    return installed
+      ? ['iPhone-Einstellungen → Mitteilungen → Vereinsplaner → Mitteilungen erlauben.']
+      : [
+          'Auf dem iPhone gibt es Mitteilungen nur für die installierte App: in Safari „Teilen" → „Zum Home-Bildschirm", dann die App öffnen und die Glocke antippen.',
+        ];
+  }
+  return [
+    'Auf das Schloss-Symbol links neben der Adresse klicken → Benachrichtigungen → Zulassen, dann die Seite neu laden.',
+    'Bleibt die Glocke rot: in den Systemeinstellungen prüfen, ob der Browser Mitteilungen senden darf.',
+  ];
 }
 
 /**

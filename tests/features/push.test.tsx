@@ -45,6 +45,7 @@ vi.mock('../../src/features/auth/session', () => ({
 }));
 
 import {
+  blockedHelp,
   disablePush,
   enablePush,
   readPushState,
@@ -256,6 +257,49 @@ describe('BellButton', () => {
     expect(button).toHaveAttribute('id', 'deniedNotificationsButton');
 
     await userEvent.click(button);
-    expect(await screen.findByText(/Einstellungen des Browsers/)).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Mitteilungen sind blockiert' })).toBeInTheDocument();
+    expect(screen.getByText(/Schloss-Symbol/)).toBeInTheDocument();
+  });
+
+  it('wird von selbst wieder blau, sobald die Sperre aufgehoben ist', async () => {
+    setupBrowser({ permission: 'denied' });
+    renderBell();
+    await screen.findByRole('button', { name: 'Mitteilungen inaktiv' });
+
+    // In den Einstellungen freigegeben, dann zurück in die App.
+    (Notification as unknown as { permission: NotificationPermission }).permission = 'granted';
+    window.dispatchEvent(new Event('focus'));
+
+    expect(await screen.findByRole('button', { name: 'Mitteilungen aktivieren' })).toBeInTheDocument();
+  });
+
+  it('prüft beim Antippen der roten Glocke erst neu und meldet dann an', async () => {
+    setupBrowser({ permission: 'denied', requested: 'granted' });
+    renderBell();
+    const button = await screen.findByRole('button', { name: 'Mitteilungen inaktiv' });
+
+    (Notification as unknown as { permission: NotificationPermission }).permission = 'default';
+    await userEvent.click(button);
+
+    expect(await screen.findByRole('button', { name: 'Mitteilungen aktiv' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('blockedHelp', () => {
+  it('schickt die installierte App unter Android in die Android-Einstellungen', () => {
+    const help = blockedHelp('android', true).join(' ');
+    expect(help).toMatch(/Android-Einstellungen → Apps → Vereinsplaner → Benachrichtigungen/);
+    expect(help).toMatch(/nicht die Einstellung im Chrome-Browser/);
+  });
+
+  it('nennt im Android-Browser die Seiteneinstellung und die von Chrome', () => {
+    const help = blockedHelp('android', false).join(' ');
+    expect(help).toMatch(/Berechtigungen → Benachrichtigungen → Zulassen/);
+    expect(help).toMatch(/Apps → Chrome → Benachrichtigungen/);
+  });
+
+  it('erklärt auf dem iPhone ohne Installation, dass es erst die App braucht', () => {
+    expect(blockedHelp('ios', false).join(' ')).toMatch(/Zum Home-Bildschirm/);
   });
 });
