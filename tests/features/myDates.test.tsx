@@ -169,6 +169,26 @@ describe('MyDatesPage', () => {
     expect(screen.getByText('Training')).toBeInTheDocument();
   });
 
+  it('führt den eigenen Schlüsseldienst als Zusage, ohne Link', async () => {
+    state.tables.v_my_upcoming.push({
+      profile_id: 'p-01',
+      kind: 'key_duty',
+      id: 'k-1',
+      starts_at: soon,
+      ends_at: soon,
+      title: 'Schlüsseldienst (Vertretung)',
+      location: 'Sporthalle Musterstadt',
+      my_status: 'yes',
+      active: true,
+    });
+    renderPage();
+
+    const title = await screen.findByText('Schlüsseldienst (Vertretung)');
+    expect(title.tagName).toBe('P');
+    expect(screen.getByText('Schlüsseldienst')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Zugesagte Termine (3)' })).toBeInTheDocument();
+  });
+
   it('zählt „Komme später" als Zusage', async () => {
     renderPage();
     expect(await screen.findByText('Komme später')).toBeInTheDocument();

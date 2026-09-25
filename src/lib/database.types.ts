@@ -2420,6 +2420,8 @@ export interface Database {
           full_name: string | null;
           is_override: boolean | null;
           regular_id: string | null;
+          starts_at: string | null;
+          ends_at: string | null;
         };
         Relationships: [];
       };

@@ -8,7 +8,7 @@ import {
 import { queryStatus } from '../../lib/queryStatus';
 import { useSession } from '../auth/session';
 import { useMembers } from '../members/api';
-import { useVenues } from '../venues/api';
+import { useVenueOf } from '../venues/defaultVenue';
 import {
   SESSION_WINDOW_DAYS,
   useSessionAssignees,
@@ -37,7 +37,8 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
   const { profile } = useSession();
   const sessions = useTrainingSessions();
   const trainings = useTrainings();
-  const venues = useVenues();
+  // Ohne eigenen Ort steht der Standardort da — dort gilt auch eine Hallensperre.
+  const venueOf = useVenueOf();
   const members = useMembers();
   const participants = useSessionParticipants();
   const counts = useSessionCounts();
@@ -47,7 +48,6 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
   // Ohne useMemo wäre `?? []` bei jedem Rendern ein neues Array — und jedes useMemo,
   // das davon abhängt, rechnete jedes Mal neu.
   const trainingList = useMemo(() => trainings.data ?? [], [trainings.data]);
-  const venueList = venues.data ?? [];
 
   const nameOf = useMemo(() => {
     const names = new Map((members.data ?? []).map((member) => [member.id, member.full_name ?? '']));
@@ -96,7 +96,7 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
             key={session.id}
             session={session}
             training={training}
-            venue={venueList.find((venue) => venue.id === training?.venue_id)}
+            venue={venueOf(training?.venue_id)}
             participants={(participants.data ?? []).filter(
               (entry) => entry.session_id === session.id,
             )}

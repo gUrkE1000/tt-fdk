@@ -48,7 +48,8 @@ vi.mock('../../src/features/auth/session', () => ({
 }));
 
 import GameCard from '../../src/features/matches/GameCard';
-import { defaultVenueId, findVenueBlock } from '../../src/features/matches/venueBlock';
+import { findVenueBlock } from '../../src/features/matches/venueBlock';
+import { defaultVenueId } from '../../src/features/venues/defaultVenue';
 import { isMySession, formatSchedule, isoWeekdayOf } from '../../src/features/trainings/schemas';
 import { PasswordInput, ToastProvider } from '../../src/components/ui';
 import { RegisterCodeForm } from '../../src/features/auth/LoginPage';

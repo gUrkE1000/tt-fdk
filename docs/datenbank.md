@@ -452,6 +452,13 @@ denen die Halle gebraucht wird (Training findet statt oder Heimspiel), mit der P
 `v_session_keys` zeigt am Trainingstermin `duty_id`/`duty_name`; an einem Tag mit
 Schlüsseldienst entfällt die Erinnerung „Noch niemand bringt den Schlüssel".
 
+Seit Migration `20261106000000_key_duty_followups`: `v_key_duty_dates` trägt die Zeit der
+Hallenbelegung (`starts_at`/`ends_at`, erste bis letzte Belegung des Tages), und der
+eigene Schlüsseldienst steht in `v_my_upcoming` (Art `key_duty`, Status `yes`) — damit in
+„Meine Termine" und im Kalender-Abo. Einen festen Wochentag bekommt nur, wer
+Schlüsseldienst hat (Trigger); wird das Kennzeichen entfernt oder das Konto gelöscht,
+fallen Wochentage und künftige Vertretungen weg.
+
 ### Systemtraining: `training_session_participants`
 
 `trainings.is_system` (nie offen, ein Trigger setzt `is_open = false`): Teilnehmer werden
@@ -465,7 +472,10 @@ benachrichtigt.
 `club_default_venue()`: der in den Vereinsdaten gewählte Standardort, sonst die einzige
 aktive Halle. Ein Training oder Heimspiel ohne eigenen Ort findet dort statt — eine
 Hallensperre sagt es mit ab (Training) bzw. meldet der Mannschaftsführung
-`match_venue_blocked` (Heimspiel: muss verlegt werden, wird nicht abgesagt).
+`match_venue_blocked` (Heimspiel: muss verlegt werden, wird nicht abgesagt). Die Nachricht kommt
+auch, wenn ein Heimspiel erst später in eine gesperrte Halle gerät — neu importiert,
+verlegt, zum Heimspiel gemacht oder in die Halle gelegt (Trigger auf `matches`), aber je
+Spiel nur einmal, solange es in der Sperre bleibt.
 
 ### `private.cron_config`
 
