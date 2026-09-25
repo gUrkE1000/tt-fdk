@@ -112,7 +112,13 @@ export default function RequestPlayersPanel({
       <h4 className="text-xs font-bold uppercase tracking-wide text-gray-600">Spieler anfragen</h4>
 
       {candidates.length === 0 ? (
-        <p className="text-sm text-gray-600">Alle, die sich anfragen lassen, sind schon gefragt.</p>
+        // Nicht „alle sind gefragt" allein: Wer vorerst entfernt wurde, hat weiter eine
+        // Zeile und zählt als gefragt — der Satz las sich sonst wie „alle haben zugesagt".
+        <p className="text-sm text-gray-600">
+          Es gibt niemanden mehr, den du anfragen kannst: Alle Mitglieder sind für dieses Spiel
+          schon angefragt, aufgestellt, abgesagt oder vorerst entfernt. Wie jeder steht, siehst
+          du unten.
+        </p>
       ) : (
         <>
           <PersonPicker

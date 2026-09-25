@@ -50,6 +50,10 @@ export default function ShareLineupDialog({
       .filter((entry) => entry.kind === 'driver')
       .map((entry) => nameOf(entry.profile_id));
 
+    const direct = volunteers
+      .filter((entry) => entry.kind === 'direct')
+      .map((entry) => nameOf(entry.profile_id));
+
     return buildShareText({
       teamName: team?.name ?? 'Mannschaft',
       opponent: match.opponent || 'unbekannt',
@@ -60,6 +64,7 @@ export default function ShareLineupDialog({
       requiredPlayers: match.required_players ?? 0,
       confirmedNames: confirmed,
       driverNames: drivers,
+      directNames: direct,
       arrivalMinutes: match.is_home
         ? (team?.arrival_minutes_home ?? 60)
         : (team?.arrival_minutes_away ?? 30),

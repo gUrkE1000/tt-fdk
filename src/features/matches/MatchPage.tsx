@@ -10,6 +10,7 @@ import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
 import { useMatch, useParticipations, useVolunteers, type MatchRow } from './api';
 import { useCanManageMatch } from './canManage';
+import { useVenueBlockFor } from './venueBlock';
 import GameCard from './GameCard';
 import MatchDialogs, { type OpenMatchDialog } from './MatchDialogs';
 
@@ -32,6 +33,7 @@ export default function MatchPage() {
   const venues = useVenues();
   const members = useMembers();
   const canManage = useCanManageMatch();
+  const venueBlockFor = useVenueBlockFor();
   const [dialog, setDialog] = useState<OpenMatchDialog | null>(null);
 
   const nameOf = useMemo(() => {
@@ -92,6 +94,7 @@ export default function MatchPage() {
         participations={participations.data ?? []}
         volunteers={volunteers.data ?? []}
         nameOf={nameOf}
+        venueBlock={venueBlockFor(row)}
         profileId={profile?.id ?? null}
         canManage={canManage(row.team_id)}
         onManagePlayers={() => setDialog({ kind: 'manage', match: row })}

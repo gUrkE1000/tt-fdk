@@ -56,6 +56,14 @@ describe('buildLineupText', () => {
     expect(text).toContain('Fahrer: Anna');
   });
 
+  it('nennt bei Auswärtsspielen, wer direkt fährt', () => {
+    const away = buildLineupText({ ...BASE, isHome: false, directNames: ['Bernd Beispiel'] });
+    expect(away).toContain('Fährt direkt: Bernd');
+
+    const home = buildLineupText({ ...BASE, isHome: true, directNames: ['Bernd Beispiel'] });
+    expect(home).not.toContain('Fährt direkt');
+  });
+
   it('hängt den Hinweis auf ein zeitgleiches Spiel an', () => {
     const text = buildLineupText({ ...BASE, concurrentTeamName: 'Erwachsene I' });
     expect(text).toContain('Erwachsene I spielt zeitgleich am selben Ort.');

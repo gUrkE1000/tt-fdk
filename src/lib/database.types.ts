@@ -383,6 +383,68 @@ export interface Database {
         };
         Relationships: [];
       };
+      key_duty_overrides: {
+        Row: {
+          duty_date: string;
+          profile_id: string;
+          set_by: string | null;
+          set_at: string;
+        };
+        Insert: {
+          duty_date: string;
+          profile_id: string;
+          set_by?: string | null;
+          set_at?: string;
+        };
+        Update: {
+          duty_date?: string;
+          profile_id?: string;
+          set_by?: string | null;
+          set_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "key_duty_overrides_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "key_duty_overrides_set_by_fkey";
+            columns: ["set_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      key_duty_weekdays: {
+        Row: {
+          weekday: number;
+          profile_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          weekday: number;
+          profile_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          weekday?: number;
+          profile_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "key_duty_weekdays_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       key_handovers: {
         Row: {
           id: string;
@@ -1282,6 +1344,7 @@ export interface Database {
           deleted_at: string | null;
           created_at: string;
           updated_at: string;
+          key_service: boolean;
         };
         Insert: {
           id?: string;
@@ -1306,6 +1369,7 @@ export interface Database {
           deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
+          key_service?: boolean;
         };
         Update: {
           id?: string;
@@ -1330,6 +1394,7 @@ export interface Database {
           deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
+          key_service?: boolean;
         };
         Relationships: [];
       };
@@ -1979,6 +2044,49 @@ export interface Database {
           },
         ];
       };
+      training_session_participants: {
+        Row: {
+          session_id: string;
+          profile_id: string;
+          assigned_by: string | null;
+          assigned_at: string;
+        };
+        Insert: {
+          session_id: string;
+          profile_id: string;
+          assigned_by?: string | null;
+          assigned_at?: string;
+        };
+        Update: {
+          session_id?: string;
+          profile_id?: string;
+          assigned_by?: string | null;
+          assigned_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_session_participants_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "training_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_session_participants_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_session_participants_assigned_by_fkey";
+            columns: ["assigned_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       training_sessions: {
         Row: {
           id: string;
@@ -2125,6 +2233,7 @@ export interface Database {
           active: boolean;
           created_at: string;
           updated_at: string;
+          is_system: boolean;
         };
         Insert: {
           id?: string;
@@ -2151,6 +2260,7 @@ export interface Database {
           active?: boolean;
           created_at?: string;
           updated_at?: string;
+          is_system?: boolean;
         };
         Update: {
           id?: string;
@@ -2177,6 +2287,7 @@ export interface Database {
           active?: boolean;
           created_at?: string;
           updated_at?: string;
+          is_system?: boolean;
         };
         Relationships: [
           {
@@ -2264,6 +2375,7 @@ export interface Database {
           venue_id: string | null;
           is_home: boolean | null;
           cancelled: boolean | null;
+          mine: boolean | null;
         };
         Relationships: [];
       };
@@ -2297,6 +2409,17 @@ export interface Database {
           status: Database["public"]["Enums"]["event_status"] | null;
           guests: number | null;
           updated_at: string | null;
+        };
+        Relationships: [];
+      };
+      v_key_duty_dates: {
+        Row: {
+          duty_date: string | null;
+          weekday: number | null;
+          profile_id: string | null;
+          full_name: string | null;
+          is_override: boolean | null;
+          regular_id: string | null;
         };
         Relationships: [];
       };
@@ -2473,6 +2596,8 @@ export interface Database {
           has_bearer: boolean | null;
           bearer_id: string | null;
           bearer_name: string | null;
+          duty_id: string | null;
+          duty_name: string | null;
         };
         Relationships: [];
       };
@@ -2544,6 +2669,10 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      club_default_venue: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
       current_member_role: {
         Args: Record<string, never>;
         Returns: unknown;
@@ -2560,6 +2689,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: unknown;
       };
+      is_my_training_session: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       is_organizer_or_admin: {
         Args: Record<string, never>;
         Returns: unknown;
@@ -2569,6 +2702,10 @@ export interface Database {
         Returns: unknown;
       };
       is_poll_target: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      key_duty_for: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
@@ -2696,6 +2833,10 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
+      rpc_set_key_duty_override: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       rpc_set_lineup: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -2705,6 +2846,10 @@ export interface Database {
         Returns: unknown;
       };
       rpc_set_session_key_bearer: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      rpc_set_session_participants: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
@@ -2786,10 +2931,10 @@ export interface Database {
       substitute_status: "pending" | "accepted" | "declined" | "expired" | "cancelled";
       sync_status: "pending" | "success" | "warning" | "failed";
       team_member_kind: "regular" | "substitute";
-      training_rhythm: "weekly" | "biweekly" | "monthly";
+      training_rhythm: "weekly" | "biweekly" | "monthly" | "once";
       training_type: "adults" | "youth";
       user_role: "admin" | "team_leader" | "trainer" | "organizer" | "member" | "guest";
-      volunteer_kind: "driver" | "catering";
+      volunteer_kind: "driver" | "catering" | "direct";
     };
   };
 }

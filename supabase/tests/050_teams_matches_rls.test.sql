@@ -15,10 +15,12 @@ SELECT is(
     'Jedes aktive Mitglied sieht alle Mannschaften'
 );
 
+-- Spiele sehen alle spielenden Mitglieder (Rückmeldungsrunde 25.09.2026);
+-- dazu gehört man nur bei der eigenen Mannschaft.
 SELECT is(
-    (SELECT count(*) FROM public.matches)::int,
+    (SELECT count(*) FROM public.matches WHERE public.can_see_match(id))::int,
     1,
-    'aber nur die Spieltermine der eigenen Mannschaft'
+    'aber gehört nur zu den Spielterminen der eigenen Mannschaft'
 );
 
 SELECT throws_ok(

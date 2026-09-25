@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarOff, Dumbbell, Pencil, Plus, Trash2, UserPlus } from 'lucide-react';
+import { CalendarOff, Pencil, Plus, Trash2, UserPlus } from 'lucide-react';
+import TableTennis from '../../components/icons/TableTennis';
 import {
   Badge,
   Button,
@@ -252,7 +253,7 @@ function PlanningTab() {
         )}
         empty={
           <EmptyState
-            icon={Dumbbell}
+            icon={TableTennis}
             title="Noch keine Trainings"
             description="Lege ein Training an — die Termine dazu entstehen daraus von selbst."
           />

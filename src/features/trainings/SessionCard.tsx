@@ -27,6 +27,7 @@ import { mapsUrl } from '../../lib/maps';
 import { formatVenueAddress } from '../venues/schemas';
 import type { Venue } from '../venues/api';
 import {
+  useSessionAssignees,
   useSetAttendance,
   type AttendanceStatus,
   type SessionCounts,
@@ -36,6 +37,7 @@ import {
 } from './api';
 import type { SessionKeys } from '../keys/api';
 import KeyBearerRow from './KeyBearerRow';
+import SessionAssigneesPanel from './SessionAssigneesPanel';
 
 const CHOICES: {
   value: AttendanceStatus;
@@ -96,6 +98,17 @@ export default function SessionCard({
 }: SessionCardProps) {
   const { toast } = useToast();
   const setAttendance = useSetAttendance();
+  const assignees = useSessionAssignees();
+
+  // Systemtraining: Zu- und absagen kann, wer diesem Termin zugeteilt ist — und der Trainer.
+  const system = training?.is_system === true;
+  const assigneeIds = (assignees.data ?? [])
+    .filter((entry) => entry.session_id === session.id)
+    .map((entry) => entry.profile_id);
+  const mayAnswer =
+    !system ||
+    (profileId !== null &&
+      (assigneeIds.includes(profileId) || (training?.trainerIds ?? []).includes(profileId)));
 
   const mine = participants.find((entry) => entry.profile_id === profileId) ?? null;
   const [guests, setGuests] = useState(mine?.guests ?? 0);
@@ -191,6 +204,7 @@ export default function SessionCard({
             )}
             {session.cancelled && <Badge tone="removed">fällt aus</Badge>}
             {training?.is_open && <Badge tone="primary">offenes Training</Badge>}
+            {system && <Badge tone="info">Systemtraining</Badge>}
           </div>
           <p className="mt-0.5 text-sm text-gray-700">{training?.name ?? 'Training'}</p>
         </div>
@@ -273,7 +287,22 @@ export default function SessionCard({
               profileId={profileId}
             />
 
-            {profileId && (
+            {system && training && (
+              <SessionAssigneesPanel
+                session={session}
+                training={training}
+                assigneeIds={assigneeIds}
+                nameOf={nameOf}
+              />
+            )}
+
+            {profileId && !mayAnswer && (
+              <p className="text-sm text-gray-500">
+                Systemtraining: Teilnehmer teilt der Trainer je Termin zu.
+              </p>
+            )}
+
+            {profileId && mayAnswer && (
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-1.5">
                   {CHOICES.map((choice) => {

@@ -206,6 +206,58 @@ export function useSessionParticipants() {
   });
 }
 
+export interface SessionAssignee {
+  session_id: string;
+  profile_id: string;
+}
+
+/**
+ * Systemtraining: wer welchem Termin zugeteilt ist. Die Datenbank gibt jedem die
+ * eigenen Zuteilungen und die Listen, deren Teilnehmer er auch sonst sehen darf.
+ */
+export function useSessionAssignees() {
+  return useQuery({
+    queryKey: queryKeys.trainings.assignees(),
+    queryFn: async (): Promise<SessionAssignee[]> => {
+      return fetchAll((from, to) =>
+        supabase
+          .from('training_session_participants')
+          .select('session_id, profile_id', { count: 'exact' })
+          .order('session_id')
+          .order('profile_id')
+          .range(from, to),
+      );
+    },
+  });
+}
+
+/** Die Teilnehmer eines Termins festlegen (ersetzt die bisherige Liste). */
+export function useSetSessionAssignees() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      sessionId,
+      profileIds,
+    }: {
+      sessionId: string;
+      profileIds: string[];
+    }): Promise<number> => {
+      const { data, error } = await supabase.rpc('rpc_set_session_participants', {
+        p_session_id: sessionId,
+        p_profile_ids: profileIds,
+      });
+      if (error) throw new Error(error.message);
+      return (data as number | null) ?? 0;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.trainings.assignees() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.trainings.attendance() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.calendar.all });
+    },
+  });
+}
+
 export function useSessionCounts() {
   return useQuery({
     queryKey: [...queryKeys.trainings.attendance(), 'counts'],

@@ -15,7 +15,7 @@ function words(name: string): string[] {
 }
 
 /**
- * „Max Mustermann" → „Max M".
+ * „Max Mustermann" → „Max M.".
  *
  * Für Listen, die auch jemand sehen darf, der nicht den ganzen Verein kennen muss.
  * Ein Name ohne Nachnamen bleibt, wie er ist: Aus „Max" lässt sich nichts kürzen, und
@@ -28,7 +28,7 @@ export function getShortName(name: string): string {
   const initial = parts[parts.length - 1].charAt(0).toUpperCase();
   if (initial === '') return name;
 
-  return `${parts.slice(0, -1).join(' ')} ${initial}`;
+  return `${parts.slice(0, -1).join(' ')} ${initial}.`;
 }
 
 /**

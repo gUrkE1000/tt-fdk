@@ -19,7 +19,8 @@
 
 import { parseLocalDateToUtc } from './ics.ts';
 
-export type Rhythm = 'weekly' | 'biweekly' | 'monthly';
+/** `once` = „Einmalig“: genau ein Termin am Startdatum. */
+export type Rhythm = 'weekly' | 'biweekly' | 'monthly' | 'once';
 
 export interface PlannedTraining {
   id: string;
@@ -71,6 +72,11 @@ export interface SessionPlanInput {
   from: string;
   /** Letzter Tag, einschließlich. */
   to: string;
+  /**
+   * Der Ort eines Trainings ohne eigenen Ort (Standardort des Vereins). Ohne ihn
+   * träfe eine Hallensperre ein solches Training nie.
+   */
+  defaultVenueId?: string | null;
 }
 
 export interface CreatedSession {
@@ -128,7 +134,12 @@ export function planSessions(input: SessionPlanInput): SessionPlan {
 
   for (const date of dates) {
     const skip = skipReason(training, input.holidays, date);
-    const cancellation = matchingCancellation(training, input.cancellations, date);
+    const cancellation = matchingCancellation(
+      training,
+      input.cancellations,
+      date,
+      input.defaultVenueId ?? null,
+    );
 
     const reason = skip ?? cancellation?.reason ?? '';
     const cancellationId = skip === null ? (cancellation?.id ?? null) : null;
@@ -188,6 +199,12 @@ export function planSessions(input: SessionPlanInput): SessionPlan {
 
 /** Alle Termine der Regel im Fenster, aufsteigend. */
 export function occurrences(training: PlannedTraining, from: string, to: string): string[] {
+  // „Einmalig“: der Tag selbst, auch wenn der Wochentag nicht dazu passt — das
+  // Datum ist, was der Trainer ausgewählt hat.
+  if (training.rhythm === 'once') {
+    return training.startDate >= from && training.startDate <= to ? [training.startDate] : [];
+  }
+
   const anchor = firstOccurrence(training.startDate, training.weekday);
   if (anchor > to) return [];
 
@@ -271,11 +288,13 @@ function matchingCancellation(
   training: PlannedTraining,
   cancellations: readonly CancellationPeriod[],
   date: string,
+  defaultVenueId: string | null,
 ): CancellationPeriod | null {
+  const venueId = training.venueId ?? defaultVenueId;
   for (const entry of cancellations) {
     if (date < entry.fromDate || date > entry.toDate) continue;
     if (entry.trainingId !== null && entry.trainingId === training.id) return entry;
-    if (entry.venueId !== null && training.venueId !== null && entry.venueId === training.venueId) {
+    if (entry.venueId !== null && venueId !== null && entry.venueId === venueId) {
       return entry;
     }
   }

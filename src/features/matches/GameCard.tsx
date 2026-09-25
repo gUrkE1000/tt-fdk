@@ -1,4 +1,14 @@
-import { AlertTriangle, CalendarClock, KeyRound, MapPin, Navigation, Share2, Users } from 'lucide-react';
+import {
+  AlertTriangle,
+  Ban,
+  CalendarClock,
+  KeyRound,
+  MapPin,
+  Navigation,
+  Share2,
+  UserMinus,
+  Users,
+} from 'lucide-react';
 import {
   Avatar,
   Badge,
@@ -7,7 +17,7 @@ import {
   CardBody,
   ProgressBar,
 } from '../../components/ui';
-import { formatDateTime } from '../../lib/dates';
+import { formatDate, formatDateTime } from '../../lib/dates';
 import { isFinished } from './filters';
 import { mapsUrl } from '../../lib/maps';
 import { formatVenueAddress } from '../venues/schemas';
@@ -35,6 +45,11 @@ export interface GameCardProps {
   onManagePlayers?: () => void;
   onShareLineup?: () => void;
   onReschedule?: () => void;
+  /**
+   * Die Hallensperre, in die dieses Heimspiel fällt (`useVenueBlockFor`). Dann muss es
+   * verlegt werden — die Karte sagt das unübersehbar.
+   */
+  venueBlock?: { reason: string; from_date: string; to_date: string } | null;
 }
 
 export default function GameCard({
@@ -49,8 +64,21 @@ export default function GameCard({
   onManagePlayers,
   onShareLineup,
   onReschedule,
+  venueBlock,
 }: GameCardProps) {
   const mine = participations.find((entry) => entry.profile_id === profileId) ?? null;
+
+  // Spiele sehen alle; mitmachen (antworten, „Ich hätte Zeit", Fahrdienst, Nachrichten)
+  // nur, wer zur Mannschaft gehört, angefragt ist oder sie führt.
+  const inTeam =
+    profileId !== null &&
+    Boolean(
+      team &&
+        (team.leaderIds.includes(profileId) ||
+          team.regularIds.includes(profileId) ||
+          team.substituteIds.includes(profileId)),
+    );
+  const involved = mine !== null || inTeam || Boolean(canManage);
 
   const lineup = participations
     .filter((entry) => entry.lineup_position !== null && entry.response === 'yes' && !entry.removed)
@@ -92,6 +120,7 @@ export default function GameCard({
                 {match.is_home ? 'Heim' : 'Auswärts'}
               </Badge>
               {!match.active && <Badge tone="removed">entfällt</Badge>}
+              {venueBlock && <Badge tone="no">Halle gesperrt</Badge>}
               {canManage && match.active && !finished && participations.length === 0 && (
                 <Badge tone="warning">noch niemand angefragt</Badge>
               )}
@@ -107,6 +136,21 @@ export default function GameCard({
             </p>
           </div>
         </div>
+
+        {venueBlock && (
+          <p
+            role="alert"
+            className="flex items-start gap-2 rounded-xl border-2 border-red-600 bg-red-50 p-3 text-sm font-semibold text-red-700"
+          >
+            <Ban className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+            <span>
+              Die Halle ist am {formatDate(venueBlock.from_date)}
+              {venueBlock.to_date !== venueBlock.from_date && ` bis ${formatDate(venueBlock.to_date)}`}{' '}
+              gesperrt{venueBlock.reason ? ` (${venueBlock.reason})` : ''}. Dieses Heimspiel muss
+              verlegt werden.
+            </span>
+          </p>
+        )}
 
         {address && (
           <p className="flex flex-wrap items-start gap-x-1.5 text-sm text-gray-600">
@@ -165,6 +209,7 @@ export default function GameCard({
               <summary className="cursor-pointer select-none text-gray-600 hover:text-gray-900">
                 Rückmeldungen: {groups.yes.length} zu · {groups.unclear.length} unsicher ·{' '}
                 {groups.no.length} ab · {groups.open.length} offen
+                {groups.removed.length > 0 && ` · ${groups.removed.length} vorerst entfernt`}
               </summary>
               <dl className="mt-1.5 space-y-1">
                 {(
@@ -173,6 +218,7 @@ export default function GameCard({
                     ['Unsicher', groups.unclear, 'text-status-unclear'],
                     ['Absage', groups.no, 'text-status-no'],
                     ['Noch offen', groups.open, 'text-gray-500'],
+                    ['Vorerst entfernt', groups.removed, 'text-gray-500'],
                   ] as const
                 )
                   .filter(([, names]) => names.length > 0)
@@ -197,9 +243,19 @@ export default function GameCard({
           </p>
         )}
 
-        <RescheduleVotePanel matchId={match.id} />
+        {mine?.removed && (
+          <p className="flex items-start gap-1.5 rounded-xl bg-gray-100 p-2.5 text-sm text-gray-700">
+            <UserMinus className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>
+              Der Mannschaftsführer hat dich vorerst aus der Aufstellung genommen. Deine Antwort
+              bleibt gespeichert.
+            </span>
+          </p>
+        )}
 
-        {profileId && mine === null && (
+        {involved && <RescheduleVotePanel matchId={match.id} />}
+
+        {profileId && mine === null && inTeam && (
           <OfferButton
             matchId={match.id}
             profileId={profileId}
@@ -225,11 +281,12 @@ export default function GameCard({
           />
         )}
 
-        {profileId && !finished && (
+        {profileId && !finished && involved && (
           <VolunteerToggles
             matchId={match.id}
             profileId={profileId}
             volunteers={volunteers}
+            isHome={match.is_home}
             hidden={team?.hide_drivers_catering ?? false}
           />
         )}
@@ -260,7 +317,7 @@ export default function GameCard({
             )}
           </div>
         )}
-        <MessagesPanel type="match" objectId={match.id} />
+        {involved && <MessagesPanel type="match" objectId={match.id} />}
 
       </CardBody>
     </Card>

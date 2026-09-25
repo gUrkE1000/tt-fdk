@@ -158,6 +158,20 @@ export default function KeyBearerRow({ session, training, keys, profileId }: Key
     );
   }
 
+  // Schlüsseldienst des Tages (fest oder Vertretung): Dann fehlt kein Schlüssel.
+  if (keys.duty_id) {
+    return (
+      <p className="flex items-start gap-1.5 rounded-xl bg-status-yes-soft p-2.5 text-sm text-status-yes">
+        <KeyRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+        <span>
+          {keys.duty_id === profileId
+            ? 'Du hast an diesem Tag Schlüsseldienst.'
+            : `Schlüsseldienst: ${keys.duty_name ?? 'ist eingeteilt'}`}
+        </span>
+      </p>
+    );
+  }
+
   const holderNames = holders.map((key) => key.holder_name).filter(Boolean);
 
   return (

@@ -78,9 +78,10 @@ SELECT is(
 );
 
 -- ============================================================ Kalender
-SELECT ok(
-    (SELECT count(*) FROM public.v_calendar_items WHERE kind = 'birthday')::int > 0,
-    'Der Kalender rechnet Geburtstage aus'
+SELECT is(
+    (SELECT count(*) FROM public.v_calendar_items WHERE kind = 'birthday')::int,
+    0,
+    'Geburtstage stehen nicht mehr im Kalender'
 );
 
 SELECT is(

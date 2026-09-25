@@ -56,6 +56,13 @@ function session(overrides: Partial<ExistingSession> & { sessionDate: string }):
 // ------------------------------------------------------------------- Rhythmus
 
 describe('occurrences', () => {
+  it('„Einmalig“ ergibt genau den Tag des Startdatums', () => {
+    const once = { ...TRAINING, rhythm: 'once' as const, startDate: '2026-09-17', weekday: 4 };
+    expect(occurrences(once, '2026-09-01', '2026-09-30')).toEqual(['2026-09-17']);
+    expect(occurrences(once, '2026-09-18', '2026-10-30')).toEqual([]);
+    expect(occurrences(once, '2026-08-01', '2026-09-16')).toEqual([]);
+  });
+
   it('trifft wöchentlich denselben Wochentag', () => {
     const dates = occurrences(TRAINING, '2026-09-01', '2026-09-30');
     expect(dates).toEqual(['2026-09-01', '2026-09-08', '2026-09-15', '2026-09-22', '2026-09-29']);
@@ -395,5 +402,58 @@ describe('HORIZON_DAYS', () => {
   it('plant acht Wochen im Voraus', () => {
     expect(HORIZON_DAYS).toBe(56);
     expect(addDays('2026-09-01', HORIZON_DAYS)).toBe('2026-10-27');
+  });
+});
+
+// ------------------------------------------------------------------- Standardort
+
+describe('Hallensperre und Training ohne Ort', () => {
+  const noVenue: PlannedTraining = { ...TRAINING, venueId: null };
+  const blocked: CancellationPeriod = {
+    id: 'c-halle',
+    trainingId: null,
+    venueId: 'v-1',
+    fromDate: '2026-09-08',
+    toDate: '2026-09-08',
+    reason: 'Halle gesperrt',
+  };
+
+  it('trifft ein Training ohne Ort, wenn die Halle der Standardort ist', () => {
+    const plan = planSessions(
+      input({ training: noVenue, cancellations: [blocked], defaultVenueId: 'v-1' }),
+    );
+    const day = plan.create.find((entry) => entry.sessionDate === '2026-09-08');
+    expect(day?.cancelled).toBe(true);
+    expect(day?.cancellationId).toBe('c-halle');
+  });
+
+  it('ohne Standardort bleibt es wie bisher', () => {
+    const plan = planSessions(input({ training: noVenue, cancellations: [blocked] }));
+    expect(plan.create.find((entry) => entry.sessionDate === '2026-09-08')?.cancelled).toBe(false);
+  });
+
+  it('der eigene Ort geht dem Standardort vor', () => {
+    const plan = planSessions(
+      input({
+        training: { ...TRAINING, venueId: 'v-2' },
+        cancellations: [blocked],
+        defaultVenueId: 'v-1',
+      }),
+    );
+    expect(plan.create.find((entry) => entry.sessionDate === '2026-09-08')?.cancelled).toBe(false);
+  });
+
+  it('sagt einen bestehenden Termin ab, wenn die Sperre später kommt', () => {
+    const plan = planSessions(
+      input({
+        training: noVenue,
+        cancellations: [blocked],
+        defaultVenueId: 'v-1',
+        existing: [session({ sessionDate: '2026-09-08' })],
+      }),
+    );
+    expect(plan.cancel).toEqual([
+      { id: 's-2026-09-08', reason: 'Halle gesperrt', cancellationId: 'c-halle' },
+    ]);
   });
 });

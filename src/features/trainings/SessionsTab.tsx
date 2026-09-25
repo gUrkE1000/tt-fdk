@@ -11,6 +11,7 @@ import { useMembers } from '../members/api';
 import { useVenues } from '../venues/api';
 import {
   SESSION_WINDOW_DAYS,
+  useSessionAssignees,
   useSessionCounts,
   useSessionParticipants,
   useTrainingSessions,
@@ -18,7 +19,7 @@ import {
 } from './api';
 import SessionCard from './SessionCard';
 import { useSessionKeys } from '../keys/api';
-import { myTrainingIds } from './schemas';
+import { isMySession } from './schemas';
 
 export interface SessionsTabProps {
   /** Nur die Termine dieses Mitglieds statt aller sichtbaren. */
@@ -41,6 +42,7 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
   const participants = useSessionParticipants();
   const counts = useSessionCounts();
   const sessionKeys = useSessionKeys();
+  const assignees = useSessionAssignees();
 
   // Ohne useMemo wäre `?? []` bei jedem Rendern ein neues Array — und jedes useMemo,
   // das davon abhängt, rechnete jedes Mal neu.
@@ -56,9 +58,20 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
     const rows = sessions.data ?? [];
     if (!onlyMine || !profile?.id) return rows;
 
-    const mine = myTrainingIds(trainingList, profile.id);
-    return rows.filter((session) => mine.has(session.training_id));
-  }, [sessions.data, onlyMine, profile?.id, trainingList]);
+    const assigned = new Set(
+      (assignees.data ?? [])
+        .filter((entry) => entry.profile_id === profile.id)
+        .map((entry) => entry.session_id),
+    );
+    return rows.filter((session) =>
+      isMySession(
+        session,
+        trainingList.find((training) => training.id === session.training_id),
+        profile.id,
+        assigned,
+      ),
+    );
+  }, [sessions.data, onlyMine, profile?.id, trainingList, assignees.data]);
 
   const status = queryStatus(sessions, trainings);
   if (status.loading) return <LoadingState />;

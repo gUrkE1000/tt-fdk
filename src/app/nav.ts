@@ -1,11 +1,10 @@
 import type { LucideIcon } from 'lucide-react';
+import TableTennis from '../components/icons/TableTennis';
 import {
   LayoutDashboard,
-  Swords,
   CalendarCheck,
   Building2,
   BarChart3,
-  Dumbbell,
   Users,
   CalendarDays,
   PartyPopper,
@@ -48,7 +47,7 @@ export const NAV: NavSection[] = [
     section: null,
     items: [
       { to: '/', label: 'Übersicht', icon: LayoutDashboard, roles: [], primary: true },
-      { to: '/my-games', label: 'Meine Spiele', icon: Swords, roles: [], primary: true },
+      { to: '/my-games', label: 'Meine Spiele', icon: TableTennis, roles: [], primary: true },
       { to: '/my-dates', label: 'Meine Termine', icon: CalendarCheck, roles: [] },
       { to: '/notifications', label: 'Mitteilungen', icon: Inbox, roles: [] },
     ],
@@ -76,7 +75,7 @@ export const NAV: NavSection[] = [
       {
         to: '/trainings',
         label: 'Trainings',
-        icon: Dumbbell,
+        icon: TableTennis,
         roles: ['admin', 'trainer'],
         primary: true,
       },

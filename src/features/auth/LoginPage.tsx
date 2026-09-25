@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Navigate } from 'react-router-dom';
-import { MailCheck } from 'lucide-react';
-import { Button, FormField, Input, Tabs, useToast } from '../../components/ui';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { MailCheck, UserPlus } from 'lucide-react';
+import { Button, FormField, Input, PasswordInput, Tabs, useToast } from '../../components/ui';
 import {
   requestMagicLink,
   requestPasswordReset,
@@ -121,7 +121,7 @@ function PasswordForm() {
 
       <FormField label="Passwort" error={errors.password?.message}>
         {(p) => (
-          <Input {...p} {...register('password')} type="password" autoComplete="current-password" />
+          <PasswordInput {...p} {...register('password')} autoComplete="current-password" />
         )}
       </FormField>
 
@@ -136,6 +136,50 @@ function PasswordForm() {
       >
         Passwort vergessen?
       </button>
+    </form>
+  );
+}
+
+/**
+ * „Konto erstellen": Registrieren geht nur mit dem Vereinscode (Link oder QR-Code),
+ * danach schaltet der Administrator frei. Der Reiter fragt den Code ab und öffnet das
+ * Registrierungsformular — dasselbe, auf das der Vereinslink führt.
+ */
+export function RegisterCodeForm() {
+  const navigate = useNavigate();
+  const [code, setCode] = useState('');
+  const trimmed = code.trim();
+
+  return (
+    <form
+      className="space-y-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (trimmed) navigate(`/register/${encodeURIComponent(trimmed)}`);
+      }}
+    >
+      <FormField
+        label="Vereinscode"
+        hint="Steht im Registrierungslink oder unter dem QR-Code des Vereins. Hast du keinen, frag im Verein."
+      >
+        {(p) => (
+          <Input
+            {...p}
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            autoComplete="off"
+            autoCapitalize="none"
+          />
+        )}
+      </FormField>
+      <Button type="submit" variant="primary" className="w-full" disabled={!trimmed}>
+        <UserPlus className="h-4 w-4" aria-hidden="true" />
+        Weiter zur Registrierung
+      </Button>
+      <p className="text-xs text-gray-500">
+        Nach der Registrierung schaltet dich ein Administrator frei. Wurdest du per E-Mail
+        eingeladen, brauchst du kein Konto anzulegen — melde dich einfach mit dem E-Mail-Link an.
+      </p>
     </form>
   );
 }
@@ -164,6 +208,7 @@ export default function LoginPage() {
           tabs={[
             { value: 'link', label: 'Mit E-Mail-Link', content: <MagicLinkForm /> },
             { value: 'password', label: 'Mit Passwort', content: <PasswordForm /> },
+            { value: 'register', label: 'Konto erstellen', content: <RegisterCodeForm /> },
           ]}
         />
       </div>

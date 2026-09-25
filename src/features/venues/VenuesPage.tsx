@@ -15,6 +15,7 @@ import { useSetVenueActive, useVenues, type Venue } from './api';
 import { formatVenueAddress } from './schemas';
 import VenueDialog from './VenueDialog';
 import KeysPanel from '../keys/KeysPanel';
+import KeyDutyPanel from '../keys/KeyDutyPanel';
 
 export default function VenuesPage() {
   const { toast } = useToast();
@@ -129,6 +130,14 @@ export default function VenuesPage() {
       </div>
 
       <KeysPanel />
+
+      <section>
+        <PageHeader
+          title="Schlüsseldienst"
+          description="Wer an welchem Wochentag die Halle auf- und zuschließt. Fällt jemand aus, trägst du für genau diesen Tag eine Vertretung ein."
+        />
+        <KeyDutyPanel editWeekdays limit={20} />
+      </section>
 
       <VenueDialog open={dialogOpen} onOpenChange={setDialogOpen} venue={editing} />
     </div>

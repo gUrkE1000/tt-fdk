@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { QueryClientContext } from '@tanstack/react-query';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Check, Clock, HelpCircle, X } from 'lucide-react';
 import { Button, buttonClasses, Card, CardBody } from '../../components/ui';
@@ -71,6 +72,12 @@ export default function ActionPage() {
   const [result, setResult] = useState<AnswerResult | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Die Antwort lief am Zwischenspeicher der App vorbei. Ohne Neuladen zeigte die
+  // Übersicht nach „Zur App" noch den alten Stand — eben „offen", obwohl beantwortet.
+  // `useContext` statt `useQueryClient`: Die Seite funktioniert auch ohne Anbieter.
+  const queryClient = useContext(QueryClientContext);
+  const refreshApp = () => void queryClient?.invalidateQueries();
+
   useEffect(() => {
     if (!token) return;
     let active = true;
@@ -98,6 +105,7 @@ export default function ActionPage() {
         p_answer: answer,
       });
       setResult(error ? { status: 'error' } : ((data ?? { status: 'error' }) as AnswerResult));
+      if (!error) refreshApp();
     } finally {
       setBusy(false);
     }
@@ -125,7 +133,7 @@ export default function ActionPage() {
             <Problem status={info.status} />
           )}
 
-          <Link to="/" className={buttonClasses({ variant: 'ghost' })}>
+          <Link to="/" onClick={refreshApp} className={buttonClasses({ variant: 'ghost' })}>
             Zur App
           </Link>
         </CardBody>

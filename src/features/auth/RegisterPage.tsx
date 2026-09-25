@@ -4,7 +4,15 @@ import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MailCheck, ShieldX, WifiOff } from 'lucide-react';
-import { Button, EmptyState, FormField, Input, LoadingScreen, useToast } from '../../components/ui';
+import {
+  Button,
+  EmptyState,
+  FormField,
+  Input,
+  LoadingScreen,
+  PasswordInput,
+  useToast,
+} from '../../components/ui';
 import { lastStep, registerWithCode, usePublicClubInfo, validateRegistrationCode } from './api';
 import { registerSchema, type RegisterValues } from './schemas';
 
@@ -230,7 +238,7 @@ export default function RegisterPage() {
             error={errors.password?.message}
           >
             {(p) => (
-              <Input {...p} {...register('password')} type="password" autoComplete="new-password" />
+              <PasswordInput {...p} {...register('password')} autoComplete="new-password" />
             )}
           </FormField>
 

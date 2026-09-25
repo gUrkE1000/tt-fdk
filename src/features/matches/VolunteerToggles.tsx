@@ -1,4 +1,4 @@
-import { Car, ShoppingBasket } from 'lucide-react';
+import { Car, Navigation } from 'lucide-react';
 import { useToast } from '../../components/ui';
 import { cn } from '../../lib/cn';
 import { useToggleVolunteer, type Volunteer } from './api';
@@ -7,20 +7,28 @@ export interface VolunteerTogglesProps {
   matchId: string;
   profileId: string;
   volunteers: Volunteer[];
-  /** Die Mannschaft kann beides ausblenden (Bestandsaufnahme C). */
+  /** „Ich fahre direkt" gibt es nur bei Auswärtsspielen. */
+  isHome?: boolean;
+  /** Die Mannschaft kann den Fahrdienst ausblenden (Bestandsaufnahme C). */
   hidden?: boolean;
 }
 
 /**
- * Fahrdienst und Verpflegung.
+ * Fahrdienst.
  *
- * Im TT-Planer sind das zwei Selbstbedienungsknöpfe, keine Zuteilung durch den
+ * Im TT-Planer sind das Selbstbedienungsknöpfe, keine Zuteilung durch den
  * Mannschaftsführer — und das ist richtig so: wer fahren kann, weiß es selbst am besten.
+ *
+ * „Ich fahre direkt" ist für die, die nah an der Auswärtshalle wohnen und nicht zum
+ * Treffpunkt kommen. Es schließt „Ich kann fahren" aus — wer direkt fährt, nimmt am
+ * Treffpunkt niemanden mit. Die Datenbank nimmt das jeweils andere zurück.
+ * Die frühere Verpflegung („Ich bringe etwas mit") gibt es nicht mehr.
  */
 export default function VolunteerToggles({
   matchId,
   profileId,
   volunteers,
+  isHome,
   hidden,
 }: VolunteerTogglesProps) {
   const { toast } = useToast();
@@ -30,17 +38,23 @@ export default function VolunteerToggles({
 
   const mine = volunteers.filter((entry) => entry.profile_id === profileId);
   const isDriver = mine.some((entry) => entry.kind === 'driver');
-  const isCatering = mine.some((entry) => entry.kind === 'catering');
+  const isDirect = mine.some((entry) => entry.kind === 'direct');
 
   const drivers = volunteers.filter((entry) => entry.kind === 'driver');
+  const direct = volunteers.filter((entry) => entry.kind === 'direct');
 
-  async function flip(kind: 'driver' | 'catering', on: boolean) {
+  async function flip(kind: 'driver' | 'direct', on: boolean) {
     try {
       await toggle.mutateAsync({ matchId, profileId, kind, on });
     } catch (error) {
       toast(error instanceof Error ? error.message : 'Das hat nicht geklappt', 'error');
     }
   }
+
+  const summary = [
+    drivers.length > 0 ? (drivers.length === 1 ? '1 Fahrer' : `${drivers.length} Fahrer`) : null,
+    direct.length > 0 ? `${direct.length} ${direct.length === 1 ? 'fährt' : 'fahren'} direkt` : null,
+  ].filter(Boolean);
 
   return (
     <div className="space-y-1">
@@ -52,20 +66,18 @@ export default function VolunteerToggles({
           offLabel="Ich kann fahren"
           onClick={() => void flip('driver', !isDriver)}
         />
-        <Toggle
-          icon={ShoppingBasket}
-          on={isCatering}
-          onLabel="Bringe doch nichts mit"
-          offLabel="Ich bringe etwas mit"
-          onClick={() => void flip('catering', !isCatering)}
-        />
+        {!isHome && (
+          <Toggle
+            icon={Navigation}
+            on={isDirect}
+            onLabel="Fahre doch nicht direkt"
+            offLabel="Ich fahre direkt"
+            onClick={() => void flip('direct', !isDirect)}
+          />
+        )}
       </div>
 
-      {drivers.length > 0 && (
-        <p className="text-xs text-gray-500">
-          {drivers.length === 1 ? '1 Fahrer' : `${drivers.length} Fahrer`} eingetragen
-        </p>
-      )}
+      {summary.length > 0 && <p className="text-xs text-gray-500">{summary.join(' · ')} eingetragen</p>}
     </div>
   );
 }

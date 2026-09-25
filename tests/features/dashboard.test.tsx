@@ -282,12 +282,12 @@ const inThreeDays = new Date(Date.now() + 3 * 86_400_000).toISOString();
 const inFortyDays = new Date(Date.now() + 40 * 86_400_000).toISOString();
 const tomorrow = new Date(Date.now() + 86_400_000);
 
-function renderPage() {
+function renderPage(path = '/') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <ToastProvider>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={[path]}>
           <DashboardPage />
         </MemoryRouter>
       </ToastProvider>
@@ -410,7 +410,8 @@ describe('DashboardPage', () => {
     renderPage();
     // Ein eigenes Training plus das offene, zu dem jeder eingeladen ist.
     expect(await screen.findByRole('tab', { name: 'Trainings (2)' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Spiele (2)' })).toBeInTheDocument();
+    // „Spiele" gibt es auf der Übersicht nicht mehr — dafür ist „Meine Spiele" da.
+    expect(screen.queryByRole('tab', { name: /^Spiele/ })).toBeNull();
     expect(screen.getByRole('tab', { name: 'Offene Trainings (1)' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Kalender' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Schlüssel' })).toBeInTheDocument();
@@ -426,13 +427,21 @@ describe('DashboardPage', () => {
   it('zeigt einem Mitglied keine offenen Rückmeldungen', async () => {
     renderPage();
     await screen.findByText('In 3 Tagen');
-    expect(screen.queryByText('Offene Rückmeldungen')).toBeNull();
+    expect(screen.queryByText('Spieler ohne Antwort')).toBeNull();
   });
 
   it('zeigt dem Administrator die offenen Rückmeldungen', async () => {
     state.role = 'admin';
     renderPage();
-    expect(await screen.findByText('Offene Rückmeldungen')).toBeInTheDocument();
-    expect(await screen.findByText('Spieler bei 2 Spielen')).toBeInTheDocument();
+    // Nicht mit der eigenen Zahl („Offen für dich") zu verwechseln: Hier zählen die
+    // Angefragten, die noch nicht geantwortet haben.
+    expect(await screen.findByText('Spieler ohne Antwort')).toBeInTheDocument();
+    expect(await screen.findByText('Angefragte bei 2 Spielen im Verein')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Spieler ohne Antwort/ })).toHaveAttribute('href', '/games');
+  });
+
+  it('öffnet über ?tab= direkt einen Reiter', async () => {
+    renderPage('/?tab=keys');
+    expect(await screen.findByRole('tab', { name: 'Schlüssel', selected: true })).toBeInTheDocument();
   });
 });

@@ -276,7 +276,7 @@ export default function TeamDialog({ open, onOpenChange, team, members }: TeamDi
         <Checkbox
           checked={form.watch('hideDriversCatering')}
           onCheckedChange={(value) => form.setValue('hideDriversCatering', value)}
-          label="Fahrdienst und Mitbringen bei Spielen ausblenden"
+          label="Fahrdienst bei Spielen ausblenden"
         />
       </div>
     </div>

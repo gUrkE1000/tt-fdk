@@ -291,6 +291,16 @@ export default function ManagePlayersDialog({
             <span className="text-sm font-semibold tabular-nums text-gray-900">
               {`${inLineup} / ${required} Spieler besetzt`}
             </span>
+            <span className="text-xs text-gray-500">
+              {[
+                `${sections.open.length} ohne Antwort`,
+                sections.unclear.length > 0 ? `${sections.unclear.length} unsicher` : null,
+                sections.declined.length > 0 ? `${sections.declined.length} abgesagt` : null,
+                sections.removed.length > 0 ? `${sections.removed.length} vorerst entfernt` : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
             {match.lineup_locked && (
               <Button size="sm" onClick={() => void onRestoreAutomatic()}>
                 <Wand2 className="h-4 w-4" aria-hidden="true" />

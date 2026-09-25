@@ -39,6 +39,35 @@ export default function PlanningTab() {
 
   return (
     <div className="space-y-3">
+      <div
+        role="group"
+        aria-label="Welche Termine"
+        className="inline-flex rounded-xl border border-gray-300 bg-white p-0.5"
+      >
+        {(
+          [
+            [false, 'Alle Termine'],
+            [true, 'Für mich relevant'],
+          ] as const
+        ).map(([mineOnly, label]) => (
+          <button
+            key={label}
+            type="button"
+            aria-pressed={filters.mineOnly === mineOnly}
+            onClick={() => setFilters({ ...filters, mineOnly })}
+            className={cn(
+              'min-h-touch rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
+              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+              filters.mineOnly === mineOnly
+                ? 'bg-primary text-white'
+                : 'text-gray-600 hover:bg-gray-50',
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         {CATEGORIES.map((category) => {
           const active = filters.kinds.includes(category.kind);
@@ -136,6 +165,9 @@ export default function PlanningTab() {
           eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
           eventClassNames={(arg) => [
             ...(arg.event.extendedProps.cancelled === true ? ['vp-event-cancelled'] : []),
+            ...(arg.event.extendedProps.kind === 'venue_blocked' && arg.event.display !== 'background'
+              ? ['vp-event-blocked']
+              : []),
             ...(detailPath(arg.event.extendedProps.kind as CalendarKind) ? ['cursor-pointer'] : []),
           ]}
           eventClick={(arg) => {

@@ -10,6 +10,7 @@ import {
   useToast,
 } from '../../components/ui';
 import { RANKING_TYPE_LABELS } from '../../lib/labels';
+import { useSession } from '../auth/session';
 import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
 import { useMembers } from '../members/api';
@@ -36,6 +37,7 @@ import RescheduleDialog from './RescheduleDialog';
 
 export default function GamesPage() {
   const { toast } = useToast();
+  const { profile, role } = useSession();
   // Mannschaftsführer brauchen unter „Beendete Termine" die ganze Saison.
   const matches = useMatches('all');
   const teams = useTeams();
@@ -74,9 +76,23 @@ export default function GamesPage() {
     [teamList],
   );
 
+  // Alle Mitglieder sehen alle Spiele (Rückmeldung 25.09.2026). Diese Seite ist aber die
+  // Arbeitsliste: Der Administrator verwaltet jede Mannschaft, der Mannschaftsführer
+  // seine eigenen.
+  const scoped = useMemo(() => {
+    const all = matches.data ?? [];
+    if (role === 'admin') return all;
+    const led = new Set(
+      teamList
+        .filter((team) => profile?.id != null && team.leaderIds.includes(profile.id))
+        .map((team) => team.id),
+    );
+    return all.filter((match) => led.has(match.team_id));
+  }, [matches.data, role, teamList, profile?.id]);
+
   const visible = useMemo(
-    () => filterMatches(matches.data ?? [], filters, rankingTypes),
-    [matches.data, filters, rankingTypes],
+    () => filterMatches(scoped, filters, rankingTypes),
+    [scoped, filters, rankingTypes],
   );
 
   const open = visible.filter((match) => !isFinished(match));
@@ -84,7 +100,7 @@ export default function GamesPage() {
 
   // Alle abgesagten Termine, ungefiltert: Was aufgeräumt wird, richtet sich nicht danach,
   // welcher Filter gerade eingestellt ist.
-  const cancelled = (matches.data ?? []).filter((match) => !match.active);
+  const cancelled = scoped.filter((match) => !match.active);
 
   async function onCleanupConfirmed() {
     try {

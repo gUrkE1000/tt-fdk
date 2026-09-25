@@ -29,6 +29,7 @@ import {
 import {
   EMPTY_TRAINING,
   RHYTHM_LABELS,
+  isoWeekdayOf,
   STATISTICS_VISIBILITY_LABELS,
   TRAINING_TYPE_LABELS,
   WEEKDAYS,
@@ -106,7 +107,8 @@ export default function TrainingDialog({
     const row = {
       name: values.name,
       type: values.type,
-      weekday: values.weekday,
+      // Einmalig: Der Tag ist das Datum; der Wochentag folgt daraus.
+      weekday: values.rhythm === 'once' ? isoWeekdayOf(values.startDate) : values.weekday,
       time_start: values.timeStart,
       time_end: values.timeEnd || null,
       venue_id: values.venueId || null,
@@ -115,7 +117,8 @@ export default function TrainingDialog({
       reminder_hours: values.reminderHours,
       details: values.details,
       max_participants: values.maxParticipants,
-      is_open: values.isOpen,
+      is_open: values.isSystem ? false : values.isOpen,
+      is_system: values.isSystem,
       trainer_invites_only: values.trainerInvitesOnly,
       is_incognito: values.isIncognito,
       skip_public_holidays: values.skipPublicHolidays,
@@ -156,6 +159,8 @@ export default function TrainingDialog({
     detail: member.qttr != null ? `${member.qttr} QTTR` : undefined,
   }));
 
+  const once = form.watch('rhythm') === 'once';
+
   const basics = (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -165,16 +170,21 @@ export default function TrainingDialog({
         <FormField label="Trainingstyp" required>
           {(p) => <Select {...p} {...form.register('type')} options={TYPE_OPTIONS} />}
         </FormField>
-        <FormField label="Wochentag" required>
-          {(p) => (
-            <Select
-              {...p}
-              {...form.register('weekday', { valueAsNumber: true })}
-              options={WEEKDAY_OPTIONS}
-            />
-          )}
-        </FormField>
-        <FormField label="Trainingsort" hint="Leer lassen, wenn der Ort wechselt.">
+        {!once && (
+          <FormField label="Wochentag" required>
+            {(p) => (
+              <Select
+                {...p}
+                {...form.register('weekday', { valueAsNumber: true })}
+                options={WEEKDAY_OPTIONS}
+              />
+            )}
+          </FormField>
+        )}
+        <FormField
+          label="Trainingsort"
+          hint="Leer = Standardort des Vereins. Eine Sperre dieser Halle sagt das Training dann mit ab."
+        >
           {(p) => (
             <Select
               {...p}
@@ -202,9 +212,13 @@ export default function TrainingDialog({
           {(p) => <Select {...p} {...form.register('rhythm')} options={RHYTHM_OPTIONS} />}
         </FormField>
         <FormField
-          label="Startdatum"
+          label={once ? 'Datum' : 'Startdatum'}
           required
-          hint="Ab hier zählt der Rhythmus: „zweiwöchentlich“ braucht einen Anfang."
+          hint={
+            once
+              ? 'Das Training findet genau einmal an diesem Tag statt.'
+              : 'Ab hier zählt der Rhythmus: „zweiwöchentlich“ braucht einen Anfang.'
+          }
           error={form.formState.errors.startDate?.message}
         >
           {(p) => <DateInput {...p} {...form.register('startDate')} />}
@@ -271,7 +285,17 @@ export default function TrainingDialog({
 
       <div className="space-y-2 rounded-xl bg-gray-50 p-3">
         <Checkbox
+          checked={form.watch('isSystem')}
+          onCheckedChange={(value) => {
+            form.setValue('isSystem', value);
+            if (value) form.setValue('isOpen', false);
+          }}
+          label="Systemtraining (Teilnehmer je Termin von Hand zuteilen)"
+          hint="Zum Beispiel bezahltes Einzeltraining. Die Zuteilung machst du am einzelnen Termin; nur die Zugeteilten werden gefragt."
+        />
+        <Checkbox
           checked={form.watch('isOpen')}
+          disabled={form.watch('isSystem')}
           onCheckedChange={(value) => form.setValue('isOpen', value)}
           label="Offenes Training (jedes Mitglied kann teilnehmen)"
           hint="Offene Trainings sehen auch Gäste."
@@ -419,6 +443,7 @@ export function toFormValues(training: TrainingWithPeople): TrainingValues {
     details: training.details,
     maxParticipants: training.max_participants,
     isOpen: training.is_open,
+    isSystem: training.is_system ?? false,
     trainerInvitesOnly: training.trainer_invites_only,
     isIncognito: training.is_incognito,
     skipPublicHolidays: training.skip_public_holidays,
