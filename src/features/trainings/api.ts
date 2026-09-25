@@ -98,29 +98,24 @@ export interface TrainingPeopleInput {
 }
 
 /**
- * Trainer, Zuordnung und Statistikgruppen vollständig ersetzen — erst löschen, dann
- * schreiben, wie beim Kader einer Mannschaft.
+ * Trainer, Zuordnung und Statistikgruppen auf genau diese Listen bringen.
+ *
+ * Die Trainer zuletzt: Nimmt sich ein Trainer selbst heraus, darf er danach nichts mehr
+ * an diesem Training schreiben — die übrigen Listen müssen dann schon stehen.
  */
 export function useSaveTrainingPeople() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (input: TrainingPeopleInput) => {
-      await replaceRows(
-        'training_trainers',
-        input.trainingId,
-        input.trainerIds.map((id) => ({ training_id: input.trainingId, profile_id: id })),
-      );
-      await replaceRows(
-        'training_members',
-        input.trainingId,
-        input.memberIds.map((id) => ({ training_id: input.trainingId, profile_id: id })),
-      );
+      await replaceRows('training_members', 'profile_id', input.trainingId, input.memberIds);
       await replaceRows(
         'training_statistics_groups',
+        'group_id',
         input.trainingId,
-        input.statisticsGroupIds.map((id) => ({ training_id: input.trainingId, group_id: id })),
+        input.statisticsGroupIds,
       );
+      await replaceRows('training_trainers', 'profile_id', input.trainingId, input.trainerIds);
     },
     onSuccess: () => invalidate(queryClient),
   });
@@ -132,11 +127,7 @@ export function useAssignTrainingMembers() {
 
   return useMutation({
     mutationFn: async ({ trainingId, memberIds }: { trainingId: string; memberIds: string[] }) => {
-      await replaceRows(
-        'training_members',
-        trainingId,
-        memberIds.map((id) => ({ training_id: trainingId, profile_id: id })),
-      );
+      await replaceRows('training_members', 'profile_id', trainingId, memberIds);
     },
     onSuccess: () => invalidate(queryClient),
   });
@@ -436,19 +427,34 @@ export function useDeleteCancellation() {
 
 type PeopleTable = 'training_trainers' | 'training_members' | 'training_statistics_groups';
 
+/**
+ * Die Zeilen eines Trainings auf genau `ids` bringen: erst ergänzen, dann das Übrige
+ * entfernen.
+ *
+ * Nicht „alles löschen, neu schreiben": Die Policies fragen bei jedem Schreiben, ob der
+ * Angemeldete das Training leitet — und das steht in `training_trainers`. Hätte ein
+ * Trainer dort erst alles gelöscht, wäre er beim Wiedereintragen schon keiner mehr.
+ */
 async function replaceRows(
   table: PeopleTable,
+  column: 'profile_id' | 'group_id',
   trainingId: string,
-  rows: Record<string, string>[],
+  ids: readonly string[],
 ): Promise<void> {
-  const dropped = await supabase.from(table).delete().eq('training_id', trainingId);
-  if (dropped.error) throw dropped.error;
+  if (ids.length > 0) {
+    // Der Aufruf ist für die drei Tabellen gleich, ihre Zeilentypen sind es nicht.
+    // Ein Typparameter je Tabelle wäre hier mehr Gerüst als Gewinn.
+    const rows = ids.map((id) => ({ training_id: trainingId, [column]: id }));
+    const { error } = await supabase
+      .from(table)
+      .upsert(rows as never, { onConflict: `training_id,${column}`, ignoreDuplicates: true });
+    if (error) throw error;
+  }
 
-  if (rows.length === 0) return;
-
-  // Der Aufruf ist für die drei Tabellen gleich, ihre Zeilentypen sind es nicht.
-  // Ein Typparameter je Tabelle wäre hier mehr Gerüst als Gewinn.
-  const { error } = await supabase.from(table).insert(rows as never);
+  const stale = supabase.from(table).delete().eq('training_id', trainingId);
+  const { error } = await (ids.length > 0
+    ? stale.not(column as never, 'in', `(${ids.join(',')})`)
+    : stale);
   if (error) throw error;
 }
 

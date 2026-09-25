@@ -14,6 +14,9 @@ const state = {
   inserts: [] as { table: string; values: unknown }[],
   updates: [] as { table: string; values: unknown }[],
   deletes: [] as { table: string; value: unknown }[],
+  upserts: [] as { table: string; values: unknown }[],
+  /** Was beim Löschen stehen bleiben soll: `not(column, 'in', '(a,b)')`. */
+  keeps: [] as { table: string; filter: string }[],
 };
 
 function makeBuilder(table: string) {
@@ -30,6 +33,10 @@ function makeBuilder(table: string) {
         then: (resolve: (value: { error: null }) => unknown) => resolve({ error: null }),
       };
     },
+    upsert: (values: unknown) => {
+      state.upserts.push({ table, values });
+      return Promise.resolve({ error: null });
+    },
     update: (values: unknown) => {
       state.updates.push({ table, values });
       return { eq: () => Promise.resolve({ error: null }) };
@@ -37,7 +44,12 @@ function makeBuilder(table: string) {
     delete: () => ({
       eq: (_column: string, value: unknown) => {
         state.deletes.push({ table, value });
-        return Promise.resolve({ error: null });
+        return Object.assign(Promise.resolve({ error: null }), {
+          not: (_notColumn: string, _operator: string, filter: string) => {
+            state.keeps.push({ table, filter });
+            return Promise.resolve({ error: null });
+          },
+        });
       },
     }),
     then: (resolve: (value: { data: Row[]; error: null }) => unknown) =>
@@ -58,10 +70,19 @@ vi.mock('../../src/lib/supabaseClient', () => ({
   APP_URL: 'http://localhost:5173',
 }));
 
-const profile = { id: 'p-anna', full_name: 'Anna Admin', role: 'admin', status: 'active' };
+const me = {
+  profile: { id: 'p-anna', full_name: 'Anna Admin', role: 'admin', status: 'active' },
+  role: 'admin',
+};
 
 vi.mock('../../src/features/auth/session', () => ({
-  useSession: () => ({ session: null, profile, role: 'admin', loading: false, previousLoginAt: null }),
+  useSession: () => ({
+    session: null,
+    profile: me.profile,
+    role: me.role,
+    loading: false,
+    previousLoginAt: null,
+  }),
   SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
@@ -181,6 +202,10 @@ beforeEach(() => {
   state.inserts = [];
   state.updates = [];
   state.deletes = [];
+  state.upserts = [];
+  state.keeps = [];
+  me.profile = { id: 'p-anna', full_name: 'Anna Admin', role: 'admin', status: 'active' };
+  me.role = 'admin';
 });
 
 // ------------------------------------------------------------------ reine Logik
@@ -478,6 +503,56 @@ describe('Trainingsdialog', () => {
     expect(values.reminder_hours).toBe(5);
     expect(values.skip_public_holidays).toBe(true);
     expect(values.time_end).toBeNull();
+  });
+
+  it('trägt Personen nach, statt erst alle zu löschen', async () => {
+    await openDialog();
+
+    await userEvent.type(screen.getByLabelText(/Name des Trainings/), 'Jugendtraining');
+    await userEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    // Der Trainer zuletzt, damit ein Trainer, der sich selbst herausnimmt, vorher noch
+    // die übrigen Listen schreiben darf.
+    await waitFor(() =>
+      expect(state.deletes.map((row) => row.table)).toEqual([
+        'training_members',
+        'training_statistics_groups',
+        'training_trainers',
+      ]),
+    );
+    expect(state.inserts.map((row) => row.table)).toEqual(['trainings']);
+  });
+
+  it('behält beim Bearbeiten die bisherigen Trainer, statt sie zu löschen', async () => {
+    renderPage(<TrainingsPage />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Planung' }));
+    await screen.findAllByText('Erwachsenentraining');
+    await userEvent.click(screen.getAllByRole('button', { name: /Erwachsenentraining bearbeiten/ })[0]!);
+    await userEvent.click(await screen.findByRole('button', { name: 'Speichern' }));
+
+    await waitFor(() =>
+      expect(state.upserts).toContainEqual({
+        table: 'training_trainers',
+        values: [{ training_id: 'tr-1', profile_id: 'p-tina' }],
+      }),
+    );
+    expect(state.keeps).toContainEqual({ table: 'training_trainers', filter: '(p-tina)' });
+  });
+
+  it('setzt einen Trainer beim Anlegen selbst als Trainer ein', async () => {
+    me.profile = { id: 'p-tina', full_name: 'Tina Trainerin', role: 'trainer', status: 'active' };
+    me.role = 'trainer';
+    await openDialog();
+
+    await userEvent.type(screen.getByLabelText(/Name des Trainings/), 'Techniktraining');
+    await userEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    await waitFor(() =>
+      expect(state.upserts).toContainEqual({
+        table: 'training_trainers',
+        values: [{ training_id: 'neu-1', profile_id: 'p-tina' }],
+      }),
+    );
   });
 });
 
