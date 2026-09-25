@@ -1,14 +1,15 @@
 import { lazy, Suspense, useMemo } from 'react';
-import { Dumbbell, Inbox, MessageSquareWarning } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Inbox, MessageSquareWarning } from 'lucide-react';
+import TableTennis from '../../components/icons/TableTennis';
 import { LoadingState, PageHeader, StatTile, Tabs } from '../../components/ui';
 import { useSession } from '../auth/session';
 import { useClubSettings } from '../club/api';
 import { useAllParticipations, useMatches } from '../matches/api';
-import MyGamesList from '../matches/MyGamesList';
 import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
-import { useTrainings, useTrainingSessions } from '../trainings/api';
-import { myTrainingIds, openTrainings } from '../trainings/schemas';
+import { useSessionAssignees, useTrainings, useTrainingSessions } from '../trainings/api';
+import { isMySession, openTrainings } from '../trainings/schemas';
 import SessionsTab from '../trainings/SessionsTab';
 import OpenTrainingsList from '../trainings/OpenTrainingsList';
 import MyKeysTab from '../keys/MyKeysTab';
@@ -47,6 +48,7 @@ export default function DashboardPage() {
   const venues = useVenues();
   const trainings = useTrainings();
   const sessions = useTrainingSessions();
+  const assignees = useSessionAssignees();
   const settings = useClubSettings();
 
   const countdown = useMemo(
@@ -88,20 +90,31 @@ export default function DashboardPage() {
   // das davon abhängt, rechnete jedes Mal neu.
   const trainingList = useMemo(() => trainings.data ?? [], [trainings.data]);
 
-  const mySessionCount = useMemo(() => {
-    const mine = myTrainingIds(trainingList, profileId);
-    return (sessions.data ?? []).filter((session) => mine.has(session.training_id)).length;
-  }, [sessions.data, trainingList, profileId]);
+  // Beim Systemtraining zählt die Zuteilung zum einzelnen Termin.
+  const isMine = useMemo(() => {
+    const assigned = new Set(
+      (assignees.data ?? [])
+        .filter((entry) => entry.profile_id === profileId)
+        .map((entry) => entry.session_id),
+    );
+    const byId = new Map(trainingList.map((training) => [training.id, training]));
+    return (session: { id: string; training_id: string }) =>
+      isMySession(session, byId.get(session.training_id), profileId, assigned);
+  }, [assignees.data, trainingList, profileId]);
+
+  const mySessionCount = useMemo(
+    () => (sessions.data ?? []).filter(isMine).length,
+    [sessions.data, isMine],
+  );
 
   const openTrainingCount = openTrainings(trainingList).length;
 
   // Das nächste eigene Training, das nicht ausfällt — die zweite Frage nach „wann
   // spiele ich": wann bin ich das nächste Mal in der Halle?
   const nextTraining = useMemo(() => {
-    const mine = myTrainingIds(trainingList, profileId);
     const now = Date.now();
     const session = (sessions.data ?? [])
-      .filter((entry) => mine.has(entry.training_id) && !entry.cancelled)
+      .filter((entry) => isMine(entry) && !entry.cancelled)
       .filter((entry) => new Date(entry.starts_at).getTime() >= now)
       .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0];
     if (!session) return null;
@@ -109,12 +122,20 @@ export default function DashboardPage() {
       session,
       name: trainingList.find((entry) => entry.id === session.training_id)?.name ?? 'Training',
     };
-  }, [sessions.data, trainingList, profileId]);
+  }, [sessions.data, trainingList, isMine]);
 
   const openItems = useMyOpenItems(profileId);
   const openCount = openItems.data?.length ?? 0;
 
   const quicklinks = parseQuicklinks(settings.data?.quicklinks_json);
+
+  // Links aus Benachrichtigungen öffnen einen Reiter direkt, etwa `/?tab=keys`.
+  const [params] = useSearchParams();
+  const requestedTab = params.get('tab');
+  const initialTab =
+    requestedTab && ['open', 'trainings', 'calendar', 'keys', 'open-trainings'].includes(requestedTab)
+      ? requestedTab
+      : undefined;
 
   return (
     <div>
@@ -158,24 +179,39 @@ export default function DashboardPage() {
             label="Nächstes Training"
             value={countdownLabel(calendarDaysUntil(nextTraining.session.starts_at, new Date()))}
             hint={`${nextTraining.name} · ${formatDateTime(nextTraining.session.starts_at)}`}
-            icon={Dumbbell}
+            icon={TableTennis}
           />
         )}
 
+        {/* Nicht die eigenen offenen Antworten (die stehen unter „Offen für dich"),
+            sondern die der angefragten Spieler in den eigenen Mannschaften. Früher hieß
+            die Kachel „Offene Rückmeldungen" und wurde für die eigene Zahl gehalten. */}
         {showOpenResponses && (
-          <StatTile
-            label="Offene Rückmeldungen"
-            value={openResponses.players}
-            hint={`Spieler bei ${openResponses.matches} ${
-              openResponses.matches === 1 ? 'Spiel' : 'Spielen'
-            }`}
-            icon={MessageSquareWarning}
-            tone={openResponses.players > 0 ? 'warning' : 'success'}
-          />
+          <Link
+            to="/games"
+            className="block rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            <StatTile
+              label="Spieler ohne Antwort"
+              value={openResponses.players}
+              hint={
+                openResponses.players === 0
+                  ? role === 'admin'
+                    ? 'Alle Angefragten haben geantwortet'
+                    : 'Alle Angefragten deiner Mannschaften haben geantwortet'
+                  : `Angefragte bei ${openResponses.matches} ${
+                      openResponses.matches === 1 ? 'Spiel' : 'Spielen'
+                    }${role === 'admin' ? ' im Verein' : ' deiner Mannschaften'}`
+              }
+              icon={MessageSquareWarning}
+              tone={openResponses.players > 0 ? 'warning' : 'success'}
+            />
+          </Link>
         )}
       </div>
 
       <Tabs
+        defaultValue={initialTab}
         tabs={[
           {
             value: 'open',
@@ -186,11 +222,6 @@ export default function DashboardPage() {
             value: 'trainings',
             label: `Trainings (${mySessionCount})`,
             content: <SessionsTab onlyMine />,
-          },
-          {
-            value: 'games',
-            label: `Spiele (${countdown.total})`,
-            content: <MyGamesList />,
           },
           {
             value: 'calendar',

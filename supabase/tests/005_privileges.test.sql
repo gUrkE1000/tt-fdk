@@ -37,7 +37,9 @@ SELECT is_empty(
               'may_see_session_roster', 'may_join_training', 'is_poll_target',
               'may_see_poll_results', 'may_hand_over_key', 'can_see_message_object',
               'may_see_training_statistics', 'berlin_today', 'valid_email_list',
-              'belongs_to_team', 'can_see_match')
+              'belongs_to_team', 'can_see_match',
+              -- Sichten rufen sie mit den Rechten des Aufrufers
+              'club_default_venue', 'is_my_training_session', 'key_duty_for')
           AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = p.oid AND d.deptype = 'e') $$,
     'authenticated darf außer rpc_* nur die Prädikate der Policies ausführen'
 );

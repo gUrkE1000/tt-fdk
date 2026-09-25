@@ -109,6 +109,8 @@ export interface TrainingReminderInput {
   sessions: ReminderSession[];
   /** Wer zu welchem Training gehört. Bei einem offenen Training: alle aktiven Mitglieder. */
   assignments: { trainingId: string; profileId: string }[];
+  /** Wer genau einem Termin zugeteilt ist (Systemtraining). Fehlt = niemand. */
+  sessionAssignments?: { sessionId: string; profileId: string }[];
   /** Wer zu einem Termin schon geantwortet hat. */
   answered: { sessionId: string; profileId: string }[];
   /**
@@ -154,6 +156,13 @@ export function planTrainingReminders(input: TrainingReminderInput): TrainingRem
     byTraining.set(entry.trainingId, list);
   }
 
+  const bySession = new Map<string, string[]>();
+  for (const entry of input.sessionAssignments ?? []) {
+    const list = bySession.get(entry.sessionId) ?? [];
+    list.push(entry.profileId);
+    bySession.set(entry.sessionId, list);
+  }
+
   const actions: TrainingReminderAction[] = [];
 
   for (const session of input.sessions) {
@@ -171,7 +180,12 @@ export function planTrainingReminders(input: TrainingReminderInput): TrainingRem
     if (now < due) continue;
     if (now - due > CATCH_UP_HOURS * 3600_000) continue;
 
-    const profileIds = (byTraining.get(session.trainingId) ?? []).filter((profileId) => {
+    const candidates = [
+      ...(byTraining.get(session.trainingId) ?? []),
+      ...(bySession.get(session.id) ?? []),
+    ];
+
+    const profileIds = candidates.filter((profileId) => {
       if (answered.has(`${session.id}|${profileId}`)) return false;
       const picked = chosen.get(profileId);
       return picked === undefined || picked.has(session.trainingId);

@@ -28,6 +28,8 @@ export interface LineupTextInput {
   confirmedNames: string[];
   /** Namen derer, die fahren können. */
   driverNames?: string[];
+  /** Namen derer, die direkt zur Auswärtshalle fahren (nicht zum Treffpunkt). */
+  directNames?: string[];
   /** Minuten vor Spielbeginn, zu denen man da sein soll. */
   arrivalMinutes: number;
   /** Standardhinweis der Mannschaft für Heim- bzw. Auswärtsspiele. */
@@ -65,6 +67,9 @@ export function buildLineupText(input: LineupTextInput): string {
   if (backups.length > 0) lines.push(`Ersatz: ${formatList(backups)}`);
   if (input.driverNames && input.driverNames.length > 0) {
     lines.push(`Fahrer: ${formatList(input.driverNames.map(getFirstName))}`);
+  }
+  if (!input.isHome && input.directNames && input.directNames.length > 0) {
+    lines.push(`Fährt direkt: ${formatList(input.directNames.map(getFirstName))}`);
   }
 
   lines.push(

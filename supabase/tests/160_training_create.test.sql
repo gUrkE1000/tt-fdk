@@ -33,8 +33,8 @@ SELECT lives_ok(
 DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000003'); END $$;
 
 SELECT lives_ok(
-    $$ INSERT INTO public.trainings (id, name, weekday, time_start)
-       VALUES ('66666666-0000-0000-0000-0000000000b1', 'Tinas Techniktraining', 4, '18:00')
+    $$ INSERT INTO public.trainings (id, name, weekday, time_start, is_open)
+       VALUES ('66666666-0000-0000-0000-0000000000b1', 'Tinas Techniktraining', 4, '18:00', false)
        RETURNING id $$,
     'Ein Trainer legt ein Training an und bekommt die id zurück'
 );

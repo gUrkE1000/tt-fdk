@@ -3,15 +3,15 @@ import { getFirstName, getShortName, isNameMatch } from '../../src/lib/names';
 
 describe('getShortName', () => {
   it('kürzt den Nachnamen auf die Initiale', () => {
-    expect(getShortName('Max Mustermann')).toBe('Max M');
+    expect(getShortName('Max Mustermann')).toBe('Max M.');
   });
 
   it('lässt mehrere Vornamen stehen', () => {
-    expect(getShortName('Karl Heinz Müller')).toBe('Karl Heinz M');
+    expect(getShortName('Karl Heinz Müller')).toBe('Karl Heinz M.');
   });
 
   it('macht die Initiale groß, auch wenn der Name klein geschrieben ist', () => {
-    expect(getShortName('max mustermann')).toBe('max M');
+    expect(getShortName('max mustermann')).toBe('max M.');
   });
 
   it('lässt einen Namen ohne Nachnamen unverändert', () => {
@@ -20,12 +20,12 @@ describe('getShortName', () => {
   });
 
   it('ignoriert Leerraum am Rand und zwischen den Wörtern', () => {
-    expect(getShortName('  Max Mustermann  ')).toBe('Max M');
-    expect(getShortName('Max   Mustermann')).toBe('Max M');
+    expect(getShortName('  Max Mustermann  ')).toBe('Max M.');
+    expect(getShortName('Max   Mustermann')).toBe('Max M.');
   });
 
   it('kommt mit Umlauten im Nachnamen zurecht', () => {
-    expect(getShortName('Anna Öztürk')).toBe('Anna Ö');
+    expect(getShortName('Anna Öztürk')).toBe('Anna Ö.');
   });
 });
 

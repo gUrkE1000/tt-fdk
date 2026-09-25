@@ -45,7 +45,7 @@ describe('groupResponses', () => {
     { ...base, profile_id: 'd', response: 'none', version_responded: null },
     // Zusage zur alten Fassung zählt als offen.
     { ...base, profile_id: 'e', response: 'yes', version_responded: 1 },
-    // Vom Mannschaftsführer herausgenommen: zählt gar nicht.
+    // Vom Mannschaftsführer herausgenommen: zählt bei keiner Antwort, steht für sich.
     { ...base, profile_id: 'f', response: 'yes', removed: true },
   ] as unknown as Participation[];
 
@@ -58,6 +58,7 @@ describe('groupResponses', () => {
       unclear: ['Carla'],
       no: ['Bernd'],
       open: ['Dora', 'Emil'],
+      removed: ['Fritz'],
     });
   });
 });
@@ -105,8 +106,8 @@ describe('detailPath', () => {
     expect(detailPath('event')).toBe('/my-club?tab=events');
   });
 
-  it('lässt Geburtstage und Hallensperren ohne Ziel', () => {
-    expect(detailPath('birthday')).toBeNull();
+  it('lässt Schlüsseldienst und Hallensperren ohne Ziel', () => {
+    expect(detailPath('key_duty')).toBeNull();
     expect(detailPath('venue_blocked')).toBeNull();
   });
 });

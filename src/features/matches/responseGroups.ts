@@ -6,6 +6,8 @@ export interface ResponseGroups {
   no: string[];
   /** Keine Antwort — oder eine Antwort auf eine ältere Fassung des Termins. */
   open: string[];
+  /** Vom Mannschaftsführer vorerst herausgenommen — zählt bei keiner Antwort mit. */
+  removed: string[];
 }
 
 /**
@@ -13,18 +15,23 @@ export interface ResponseGroups {
  *
  * Für Spieler, die überlegen einzuspringen, ist das die wichtigste Auskunft an einer
  * Spielkarte — die Aufstellung allein sagt nicht, wer fehlt. „Vorerst entfernt" zählt
- * nicht mit: Der Mannschaftsführer hat die Person bewusst herausgenommen.
+ * bei keiner Antwort mit: Der Mannschaftsführer hat die Person bewusst herausgenommen.
+ * Sie steht in einer eigenen Gruppe — verschwände sie, sähe es aus, als hätten alle
+ * Übrigen zugesagt.
  */
 export function groupResponses(
   match: Pick<MatchRow, 'version'>,
   participations: Participation[],
   nameOf: (profileId: string) => string,
 ): ResponseGroups {
-  const groups: ResponseGroups = { yes: [], unclear: [], no: [], open: [] };
+  const groups: ResponseGroups = { yes: [], unclear: [], no: [], open: [], removed: [] };
 
   for (const entry of participations) {
-    if (entry.removed) continue;
     const name = nameOf(entry.profile_id) || 'Unbekannt';
+    if (entry.removed) {
+      groups.removed.push(name);
+      continue;
+    }
     const current = (entry.version_responded ?? 0) >= (match.version ?? 1);
 
     if (entry.response === 'none' || !current) groups.open.push(name);
@@ -38,5 +45,6 @@ export function groupResponses(
   groups.unclear.sort(byName);
   groups.no.sort(byName);
   groups.open.sort(byName);
+  groups.removed.sort(byName);
   return groups;
 }

@@ -24,6 +24,7 @@ import {
 import GameCard from '../matches/GameCard';
 import MatchDialogs, { type OpenMatchDialog } from '../matches/MatchDialogs';
 import { useCanManageMatch } from '../matches/canManage';
+import { useVenueBlockFor } from '../matches/venueBlock';
 
 const PAGE_SIZES = [10, 25, 50];
 
@@ -73,6 +74,7 @@ export default function ClubGamesTab() {
 
   // Mannschaftsführer der Mannschaft oder Administrator.
   const canManage = useCanManageMatch();
+  const venueBlockFor = useVenueBlockFor();
 
   const status = queryStatus(matches, participations);
 
@@ -135,6 +137,7 @@ export default function ClubGamesTab() {
                 )}
                 volunteers={(volunteers.data ?? []).filter((entry) => entry.match_id === match.id)}
                 nameOf={nameOf}
+                venueBlock={venueBlockFor(match)}
                 profileId={profile?.id ?? null}
                 canManage={canManage(match.team_id)}
                 onManagePlayers={() => setDialog({ kind: 'manage', match })}

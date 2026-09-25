@@ -54,6 +54,7 @@ export type { FormFieldProps } from './FormField';
 
 export { default as Input, inputClasses } from './Input';
 export type { InputProps } from './Input';
+export { default as PasswordInput } from './PasswordInput';
 
 export { default as Textarea } from './Textarea';
 export type { TextareaProps } from './Textarea';

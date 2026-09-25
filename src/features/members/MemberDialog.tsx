@@ -99,6 +99,7 @@ export default function MemberDialog({
       role: values.role,
       status: values.status,
       no_games: values.noGames,
+      key_service: values.keyService,
       qttr: values.qttr,
       contact_visible: values.contactVisible,
       hide_birthday: values.hideBirthday,
@@ -212,6 +213,12 @@ export default function MemberDialog({
           hint="Reine Trainingsteilnehmer tauchen in keiner Aufstellung auf."
         />
         <Checkbox
+          checked={form.watch('keyService')}
+          onCheckedChange={(value) => form.setValue('keyService', value)}
+          label="Schlüsseldienst"
+          hint="Schließt die Halle auf und zu. Die festen Wochentage vergibst du unter „Orte & Schlüssel“."
+        />
+        <Checkbox
           checked={form.watch('contactVisible')}
           onCheckedChange={(value) => form.setValue('contactVisible', value)}
           label="Kontaktdaten für alle Mitglieder sichtbar"
@@ -292,6 +299,7 @@ export function toFormValues(
     role: member?.role ?? 'member',
     status: member?.status ?? 'unconfirmed',
     noGames: member?.no_games ?? false,
+    keyService: member?.key_service ?? false,
     qttr: member?.qttr ?? null,
     contactVisible: member?.contact_visible ?? false,
     hideBirthday: member?.hide_birthday ?? false,

@@ -13,6 +13,18 @@ und niemand die Herleitung zweimal führen muss.
 `supabase/migrations/20261102000000_match_requests.sql`. Die Beschreibung unten ist der
 Stand vor der Entscheidung.
 
+### Nachtrag 25.09.2026 — Sehen wieder für alle
+
+Nach der Rückmeldungsrunde mit den Mitgliedern: **Alle spielenden Mitglieder sehen alle
+Spiele wieder** (Kalender, Spielseite, „Mein Verein"). Alles andere aus der Entscheidung
+unten bleibt: Zu- und absagen nur Angefragte, „Ich hätte Zeit" und Fahrdienst nur, wer
+zur Mannschaft gehört oder angefragt ist, Nachrichten am Spiel nur für Beteiligte.
+„Meine Spiele" zeigt weiter nur die eigenen; „Spieltermine" zeigt dem Mannschaftsführer
+seine Mannschaften, dem Administrator alle. Umgesetzt in
+`supabase/migrations/20261105000001_feedback_round.sql`: Die Lese-Policies von
+`matches`, `match_participations` und `match_volunteers` prüfen `is_playing_member()`,
+`can_see_match()` heißt seitdem „gehört dazu".
+
 ### Entscheidung
 
 Möglichkeit 2, ergänzt um Anfragen durch den Mannschaftsführer:
@@ -146,4 +158,4 @@ Kein Aufwand. Der Nachteil bleibt: nach der Antwort führt der Link ins Leere.
 ## Erledigt
 
 - **E-1** · Wer darf Spieltermine sehen und sich eintragen? — entschieden am 24.09.2026,
-  siehe oben.
+  „Sehen" am 25.09.2026 wieder für alle geöffnet, siehe oben.

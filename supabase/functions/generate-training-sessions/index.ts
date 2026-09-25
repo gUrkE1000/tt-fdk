@@ -83,7 +83,7 @@ async function generate(
     time_start: string;
     time_end: string | null;
     venue_id: string | null;
-    rhythm: 'weekly' | 'biweekly' | 'monthly';
+    rhythm: 'weekly' | 'biweekly' | 'monthly' | 'once';
     start_date: string;
     skip_public_holidays: boolean;
     skip_school_holidays: boolean;
@@ -92,10 +92,11 @@ async function generate(
 
   if (trainings.length === 0) return result;
 
-  const [holidays, cancellations, sessions] = await Promise.all([
+  const [holidays, cancellations, sessions, defaultVenueId] = await Promise.all([
     loadHolidays(admin, from, to),
     loadCancellations(admin, from, to),
     loadSessions(admin, from, to, trainings.map((training) => training.id)),
+    loadDefaultVenue(admin),
   ]);
 
   for (const row of trainings) {
@@ -119,6 +120,7 @@ async function generate(
       existing: sessions.get(row.id) ?? [],
       from,
       to,
+      defaultVenueId,
     });
 
     if (plan.create.length > 0) {
@@ -208,6 +210,19 @@ async function loadHolidays(
   return ((data ?? []) as { kind: 'public' | 'school'; start_date: string; end_date: string }[]).map(
     (row) => ({ kind: row.kind, startDate: row.start_date, endDate: row.end_date }),
   );
+}
+
+/**
+ * Der Standardort des Vereins (oder die einzige aktive Halle). Ein Training ohne Ort
+ * findet dort statt — eine Sperre dieser Halle sagt es mit ab.
+ */
+async function loadDefaultVenue(admin: SupabaseClient): Promise<string | null> {
+  const { data, error } = await admin.rpc('club_default_venue');
+  if (error) {
+    console.error('club_default_venue:', error.message);
+    return null;
+  }
+  return typeof data === 'string' && data.length > 0 ? data : null;
 }
 
 async function loadCancellations(

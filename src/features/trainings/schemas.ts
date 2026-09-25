@@ -7,6 +7,7 @@ export const TRAINING_TYPE_LABELS: Record<Enums<'training_type'>, string> = {
 };
 
 export const RHYTHM_LABELS: Record<Enums<'training_rhythm'>, string> = {
+  once: 'einmalig',
   weekly: 'wöchentlich',
   biweekly: 'zweiwöchentlich',
   monthly: 'monatlich',
@@ -38,15 +39,31 @@ export function toTimeInput(value: string | null | undefined): string {
   return (value ?? '').slice(0, 5);
 }
 
-/** „Dienstag, 19:00–21:00 Uhr“ — die Zeitangabe in der Trainingsliste. */
+/**
+ * „Dienstag, 19:00–21:00 Uhr“ — die Zeitangabe in der Trainingsliste. Ein einmaliges
+ * Training nennt stattdessen sein Datum: „am 17.10.2026, 19:00 Uhr“.
+ */
 export function formatSchedule(training: {
   weekday: number;
   time_start: string;
   time_end: string | null;
+  rhythm?: string;
+  start_date?: string;
 }): string {
   const start = toTimeInput(training.time_start);
   const end = toTimeInput(training.time_end);
-  return `${weekdayLabel(training.weekday)}, ${end ? `${start}–${end}` : start} Uhr`;
+  const time = `${end ? `${start}–${end}` : start} Uhr`;
+  if (training.rhythm === 'once' && training.start_date) {
+    const [year, month, day] = training.start_date.split('-');
+    return `am ${day}.${month}.${year}, ${time}`;
+  }
+  return `${weekdayLabel(training.weekday)}, ${time}`;
+}
+
+/** Wochentag eines ISO-Datums, 1 = Montag … 7 = Sonntag. */
+export function isoWeekdayOf(date: string): number {
+  const day = new Date(`${date}T00:00:00Z`).getUTCDay();
+  return day === 0 ? 7 : day;
 }
 
 // ---------------------------------------------------------------------------- Training
@@ -61,7 +78,7 @@ export const trainingSchema = z
     timeEnd: z.string(),
     /** Leer = kein Ort hinterlegt. */
     venueId: z.string(),
-    rhythm: z.enum(['weekly', 'biweekly', 'monthly']),
+    rhythm: z.enum(['once', 'weekly', 'biweekly', 'monthly']),
     startDate: z.string().min(1, 'Ohne Startdatum steht der Rhythmus nicht fest'),
     reminderHours: z
       .number({ error: 'Bitte eine Zahl eingeben' })
@@ -77,6 +94,8 @@ export const trainingSchema = z
       .nullable(),
 
     isOpen: z.boolean(),
+    /** Systemtraining: Teilnehmer werden je Termin zugeteilt. Nie offen. */
+    isSystem: z.boolean(),
     trainerInvitesOnly: z.boolean(),
     isIncognito: z.boolean(),
     skipPublicHolidays: z.boolean(),
@@ -119,7 +138,9 @@ export const EMPTY_TRAINING: TrainingValues = {
   reminderHours: 5,
   details: '',
   maxParticipants: null,
-  isOpen: false,
+  // Trainings sind standardmäßig offen für alle Mitglieder (Rückmeldung 25.09.2026).
+  isOpen: true,
+  isSystem: false,
   trainerInvitesOnly: false,
   isIncognito: false,
   skipPublicHolidays: true,
@@ -255,6 +276,23 @@ export function myTrainingIds(
       .filter((training) => training.is_open || training.memberIds.includes(profileId))
       .map((training) => training.id),
   );
+}
+
+/**
+ * Welche Termine „meine" sind. Wie `myTrainingIds`, nur dass beim Systemtraining nicht
+ * das Training zählt, sondern die Zuteilung zum einzelnen Termin — und der Trainer.
+ */
+export function isMySession(
+  session: { id: string; training_id: string },
+  training: { id: string; is_open: boolean; is_system?: boolean; memberIds: readonly string[]; trainerIds?: readonly string[] } | undefined,
+  profileId: string | null,
+  assignedSessionIds: ReadonlySet<string>,
+): boolean {
+  if (!profileId) return true;
+  if (!training) return false;
+  if (training.trainerIds?.includes(profileId)) return true;
+  if (training.is_system) return assignedSessionIds.has(session.id);
+  return training.is_open || training.memberIds.includes(profileId);
 }
 
 /**

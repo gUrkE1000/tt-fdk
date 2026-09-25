@@ -3,7 +3,7 @@ import { eventPath, matchPath, trainingPath } from '../../lib/paths';
 
 export type CalendarItem = ViewRow<'v_calendar_items'>;
 
-export type CalendarKind = 'training' | 'match' | 'event' | 'birthday' | 'venue_blocked';
+export type CalendarKind = 'training' | 'match' | 'event' | 'key_duty' | 'venue_blocked';
 
 export interface CategoryDefinition {
   kind: CalendarKind;
@@ -11,6 +11,9 @@ export interface CategoryDefinition {
   /** Farbe aus den Design-Tokens; die Mannschaftsfarbe sticht sie bei Spielen aus. */
   color: string;
 }
+
+/** Hallensperren sind rot und nicht zu übersehen — an diesen Tagen fällt alles aus. */
+export const BLOCKED_COLOR = '#DC2626';
 
 /**
  * Die Kategorien des Kalenders in fester Reihenfolge — sie sind zugleich die Chips zum
@@ -21,8 +24,8 @@ export const CATEGORIES: readonly CategoryDefinition[] = [
   { kind: 'training', label: 'Trainings', color: '#0F766E' },
   { kind: 'match', label: 'Spiele', color: '#1D4ED8' },
   { kind: 'event', label: 'Vereinstermine', color: '#7C3AED' },
-  { kind: 'birthday', label: 'Geburtstage', color: '#DB2777' },
-  { kind: 'venue_blocked', label: 'Halle nicht verfügbar', color: '#B45309' },
+  { kind: 'key_duty', label: 'Schlüsseldienst', color: '#B45309' },
+  { kind: 'venue_blocked', label: 'Halle gesperrt', color: BLOCKED_COLOR },
 ];
 
 export const ALL_KINDS: CalendarKind[] = CATEGORIES.map((category) => category.kind);
@@ -30,7 +33,7 @@ export const ALL_KINDS: CalendarKind[] = CATEGORIES.map((category) => category.k
 /**
  * Wohin ein Klick auf einen Eintrag führt: auf die Seite genau dieses Spiels, dieses
  * Trainingstermins oder Vereinstermins. Ohne ID (sollte nicht vorkommen) zur Liste.
- * Geburtstage und Hallensperren haben keine Seite; dort passiert beim Klick nichts.
+ * Schlüsseldienst und Hallensperren haben keine Seite; dort passiert beim Klick nichts.
  */
 export function detailPath(kind: CalendarKind, id?: string): string | null {
   switch (kind) {
@@ -49,11 +52,17 @@ export interface CalendarFilters {
   kinds: CalendarKind[];
   /** „Nur Heimspiele anzeigen" — betrifft ausschließlich Spiele. */
   homeOnly: boolean;
+  /**
+   * „Für mich relevant": nur, was einen selbst betrifft (Spalte `mine` der Sicht).
+   * Standard ist der ganze Verein.
+   */
+  mineOnly: boolean;
 }
 
 export const DEFAULT_CALENDAR_FILTERS: CalendarFilters = {
   kinds: ALL_KINDS,
   homeOnly: false,
+  mineOnly: false,
 };
 
 export interface DisplayEvent {
@@ -64,6 +73,9 @@ export interface DisplayEvent {
   allDay: boolean;
   backgroundColor: string;
   borderColor: string;
+  /** `background`: die farbige Fläche hinter einem gesperrten Tag. */
+  display?: 'background';
+  classNames?: string[];
   /** `targetId`: die ID des Spiels, Trainingstermins oder Vereinstermins — für den Link. */
   extendedProps: { kind: CalendarKind; cancelled: boolean; targetId: string };
 }
@@ -75,6 +87,9 @@ export interface DisplayEvent {
  * Kalender-Widget suchen müsste: welche Kategorie sichtbar ist, dass „Nur Heimspiele"
  * ausschließlich Spiele betrifft, und dass ein abgesagter Termin blass erscheint statt
  * zu verschwinden — wer zugesagt hatte, soll sehen, dass etwas ausfällt.
+ *
+ * Eine Hallensperre wird doppelt gezeichnet: als roter Balken mit Titel und als rote
+ * Fläche über den ganzen Tag. So fällt sie auch in der Monatsansicht sofort auf.
  */
 export function toDisplayEvents(
   items: readonly CalendarItem[],
@@ -88,13 +103,14 @@ export function toDisplayEvents(
       const kind = item.kind as CalendarKind | null;
       if (!kind || !visible.has(kind)) return false;
       if (filters.homeOnly && kind === 'match' && item.is_home !== true) return false;
+      if (filters.mineOnly && item.mine !== true) return false;
       return item.starts_at !== null;
     })
-    .map((item) => {
+    .flatMap((item): DisplayEvent[] => {
       const kind = item.kind as CalendarKind;
       const color = (kind === 'match' && item.color) || byKind.get(kind) || '#6B7280';
 
-      return {
+      const event: DisplayEvent = {
         id: `${kind}:${item.id}`,
         title: item.cancelled ? `${item.title ?? ''} (fällt aus)` : (item.title ?? ''),
         start: item.starts_at as string,
@@ -104,6 +120,19 @@ export function toDisplayEvents(
         borderColor: item.cancelled ? '#9CA3AF' : color,
         extendedProps: { kind, cancelled: item.cancelled === true, targetId: item.id ?? '' },
       };
+
+      if (kind !== 'venue_blocked') return [event];
+
+      return [
+        { ...event, title: `⛔ ${event.title}`, classNames: ['vp-event-blocked'] },
+        {
+          ...event,
+          id: `${event.id}:flaeche`,
+          title: '',
+          display: 'background',
+          classNames: ['vp-day-blocked'],
+        },
+      ];
     });
 }
 

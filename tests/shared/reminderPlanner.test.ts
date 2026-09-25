@@ -323,6 +323,26 @@ function trainingInput(overrides: Partial<TrainingReminderInput> = {}): Training
 }
 
 describe('planTrainingReminders', () => {
+  it('fragt beim Systemtraining die dem Termin Zugeteilten', () => {
+    const actions = planTrainingReminders(
+      trainingInput({
+        assignments: [],
+        sessionAssignments: [
+          { sessionId: 's-1', profileId: 'p-7' },
+          { sessionId: 's-2', profileId: 'p-8' },
+        ],
+      }),
+    );
+    expect(actions).toEqual([{ sessionId: 's-1', profileIds: ['p-7'] }]);
+  });
+
+  it('fragt niemanden doppelt, der zugeordnet und zugeteilt ist', () => {
+    const actions = planTrainingReminders(
+      trainingInput({ sessionAssignments: [{ sessionId: 's-1', profileId: 'p-1' }] }),
+    );
+    expect(actions[0].profileIds.sort()).toEqual(['p-1', 'p-2']);
+  });
+
   it('fragt alle Zugeordneten, sobald der Vorlauf erreicht ist', () => {
     const actions = planTrainingReminders(trainingInput());
     expect(actions).toHaveLength(1);

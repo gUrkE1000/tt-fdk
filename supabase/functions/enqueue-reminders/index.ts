@@ -209,7 +209,7 @@ async function doTrainingReminders(admin: SupabaseClient, now: Date): Promise<nu
   const trainingIds = [...new Set(rows.map((row) => row.training_id))];
   const sessionIds = rows.map((row) => row.id);
 
-  const [{ data: trainingRows }, { data: memberRows }, { data: answeredRows }, { data: filterRows }, { data: profileRows }] =
+  const [{ data: trainingRows }, { data: memberRows }, { data: answeredRows }, { data: filterRows }, { data: profileRows }, { data: participantRows }] =
     await Promise.all([
       admin
         .from('trainings')
@@ -221,6 +221,11 @@ async function doTrainingReminders(admin: SupabaseClient, now: Date): Promise<nu
       fetchAllPages((from, to) =>
         admin.from('profiles').select('id, status, deleted_at').order('id').range(from, to),
       ).then((data) => ({ data })),
+      // Systemtraining: wer genau diesem Termin zugeteilt ist.
+      admin
+        .from('training_session_participants')
+        .select('session_id, profile_id')
+        .in('session_id', sessionIds),
     ]);
 
   const trainings = new Map(
@@ -266,10 +271,15 @@ async function doTrainingReminders(admin: SupabaseClient, now: Date): Promise<nu
       reminderHours: trainings.get(row.training_id)?.reminder_hours ?? 0,
     }));
 
+  const active = new Set(activeProfiles);
+
   const actions = planTrainingReminders({
     now,
     sessions,
     assignments,
+    sessionAssignments: ((participantRows ?? []) as { session_id: string; profile_id: string }[])
+      .filter((row) => active.has(row.profile_id))
+      .map((row) => ({ sessionId: row.session_id, profileId: row.profile_id })),
     answered: ((answeredRows ?? []) as { session_id: string; profile_id: string }[]).map((row) => ({
       sessionId: row.session_id,
       profileId: row.profile_id,

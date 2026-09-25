@@ -5,6 +5,7 @@ import { useSession } from '../auth/session';
 import { useKeys, type KeyRow } from './api';
 import { holderText } from './schemas';
 import HandoverDialog from './HandoverDialog';
+import KeyDutyPanel from './KeyDutyPanel';
 
 /**
  * Reiter „Schlüssel" der Übersicht (Aufgabe 9.1, Bestandsaufnahme A).
@@ -26,18 +27,26 @@ export default function MyKeysTab() {
       (entry.holder_id === profileId || entry.responsible_id === profileId),
   );
 
+  // Wer Schlüsseldienst hat, sieht hier seine Tage und trägt bei Ausfall eine
+  // Vertretung ein.
+  const duty = profile?.key_service ? <KeyDutyPanel /> : null;
+
   if (mine.length === 0) {
     return (
-      <EmptyState
-        icon={KeyRound}
-        title="Du hast keinen Schlüssel"
-        description="Sobald dir jemand einen Hallenschlüssel übergibt, steht er hier — mitsamt der Möglichkeit, ihn weiterzugeben."
-      />
+      <div className="space-y-3">
+        {duty}
+        <EmptyState
+          icon={KeyRound}
+          title="Du hast keinen Schlüssel"
+          description="Sobald dir jemand einen Hallenschlüssel übergibt, steht er hier — mitsamt der Möglichkeit, ihn weiterzugeben."
+        />
+      </div>
     );
   }
 
   return (
     <div className="space-y-3">
+      {duty}
       {mine.map((entry) => {
         const holding = entry.holder_id === profileId;
 

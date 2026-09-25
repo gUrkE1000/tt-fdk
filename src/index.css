@@ -224,6 +224,20 @@
   @apply line-through;
 }
 
+/* Hallensperre: groß, fett, rot — an diesem Tag fällt in der Halle alles aus. */
+.fc .vp-event-blocked {
+  @apply py-1 text-sm font-extrabold uppercase tracking-wide;
+}
+
+.fc .vp-day-blocked {
+  background-color: rgb(220 38 38 / 0.22);
+  opacity: 1;
+}
+
+.fc .fc-list-event.vp-event-blocked td {
+  @apply bg-red-50 text-red-700;
+}
+
 /* In der Liste trägt der Punkt die Farbe; dort ist der Balken fehl am Platz. */
 .fc .fc-list-event td {
   @apply bg-transparent text-gray-900;

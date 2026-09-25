@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CalendarCheck } from 'lucide-react';
+import TableTennis from '../../components/icons/TableTennis';
 import {
   EmptyState,
   ErrorState,
@@ -16,6 +16,8 @@ import { isFinished } from './filters';
 import GameCard from './GameCard';
 import MatchDialogs, { type OpenMatchDialog } from './MatchDialogs';
 import { useCanManageMatch } from './canManage';
+import { useVenueBlockFor } from './venueBlock';
+import { getShortName } from '../../lib/names';
 
 export type MyGamesScope = 'all' | 'home' | 'away' | 'past';
 
@@ -52,6 +54,10 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
     const names = new Map((members.data ?? []).map((member) => [member.id, member.full_name ?? '']));
     return (id: string) => names.get(id) ?? '';
   }, [members.data]);
+
+  // Auf den Karten „Max M." — einheitlich und für jeden, der mitliest, genug.
+  const shortNameOf = useMemo(() => (id: string) => getShortName(nameOf(id)), [nameOf]);
+  const venueBlockFor = useVenueBlockFor();
 
   const mine = useMemo(() => {
     if (!profileId) return [] as MatchRow[];
@@ -94,7 +100,7 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
   if (mine.length === 0) {
     return (
       <EmptyState
-        icon={CalendarCheck}
+        icon={TableTennis}
         title={empty?.title ?? (scope === 'past' ? 'Noch keine vergangenen Spiele' : 'Keine offenen Spiele')}
         description={
           empty?.description ??
@@ -119,7 +125,8 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
               (entry) => entry.match_id === match.id,
             )}
             volunteers={(volunteers.data ?? []).filter((entry) => entry.match_id === match.id)}
-            nameOf={nameOf}
+            nameOf={shortNameOf}
+            venueBlock={venueBlockFor(match)}
             profileId={profileId}
             canManage={canManage(match.team_id)}
             onManagePlayers={() => setDialog({ kind: 'manage', match })}

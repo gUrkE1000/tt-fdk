@@ -437,6 +437,36 @@ Termine, denn ein Kalenderprogramm kann sich nicht anmelden. Die Tabelle hat des
 **keine einzige Policy** — herausgegeben wird der Token nur an den Eigentümer, über
 `rpc_my_calendar_token()`. `rpc_reset_calendar_token()` macht den alten wertlos.
 
+### Schlüsseldienst: `key_duty_weekdays`, `key_duty_overrides`
+
+Migration `20261105000001_feedback_round`. Wer die Halle auf- und zuschließt:
+`profiles.key_service` kennzeichnet die Personen (setzt nur der Admin, Spaltenschutz per
+Trigger). `key_duty_weekdays` hält je Wochentag (1 = Montag … 7 = Sonntag) die feste
+Person, `key_duty_overrides` die Vertretung für genau einen Tag — Folgetermine bleiben
+beim Wochentag. `key_duty_for(date)` liefert die Person des Tages.
+
+Vertretungen gehen nur über `rpc_set_key_duty_override(date, profile_id)`: Admin und
+jeder mit Schlüsseldienst dürfen, vertreten kann nur, wer selbst Schlüsseldienst hat;
+die Vertretung bekommt `key_duty_assigned`. `v_key_duty_dates` listet die Tage, an
+denen die Halle gebraucht wird (Training findet statt oder Heimspiel), mit der Person.
+`v_session_keys` zeigt am Trainingstermin `duty_id`/`duty_name`; an einem Tag mit
+Schlüsseldienst entfällt die Erinnerung „Noch niemand bringt den Schlüssel".
+
+### Systemtraining: `training_session_participants`
+
+`trainings.is_system` (nie offen, ein Trigger setzt `is_open = false`): Teilnehmer werden
+je Termin zugeteilt, über `rpc_set_session_participants(session_id, profile_ids)` (Admin
+oder Trainer; ersetzt die Liste, neu Zugeteilte bekommen `training_session_assigned`).
+Zugeteilte dürfen zu- und absagen (auch per Link), werden erinnert und beim Ausfall
+benachrichtigt.
+
+### Standardort
+
+`club_default_venue()`: der in den Vereinsdaten gewählte Standardort, sonst die einzige
+aktive Halle. Ein Training oder Heimspiel ohne eigenen Ort findet dort statt — eine
+Hallensperre sagt es mit ab (Training) bzw. meldet der Mannschaftsführung
+`match_venue_blocked` (Heimspiel: muss verlegt werden, wird nicht abgesagt).
+
 ### `private.cron_config`
 
 Liegt im Schema `private`, das PostgREST nicht veröffentlicht. Ab Aufgabe 3.3 lesen die
@@ -632,8 +662,8 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `teams`, `team_leaders` | aktive Mitglieder **außer Gästen** | Admin |
 | `team_members` | aktive Mitglieder | Admin oder Mannschaftsführer der Mannschaft |
 | `matches` | aktive Mitglieder **außer Gästen** | Anlegen/Ändern: Admin oder Mannschaftsführer; Löschen: Admin |
-| `match_participations` | aktive Mitglieder | **niemand direkt** — nur über die RPCs |
-| `match_volunteers` | aktive Mitglieder | eigene Zeile, Mannschaftsführer oder Admin |
+| `match_participations` | aktive Mitglieder außer Gästen | **niemand direkt** — nur über die RPCs |
+| `match_volunteers` | aktive Mitglieder außer Gästen | eigene Zeile bei Spielen, zu denen man gehört (`can_see_match`), Mannschaftsführer oder Admin; `direct` nur auswärts, schließt `driver` aus |
 | `match_changes` | Admin und Mannschaftsführer | niemand direkt |
 | `sync_runs` | Admin und Mannschaftsführer | niemand direkt |
 | `notification_templates` | aktive Mitglieder | niemand über die API |
@@ -650,6 +680,9 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `training_sessions` | wer das Training sieht | **niemand direkt** — nur der Erzeugungs-Job |
 | `training_attendance` | eigene Zeile; fremde nur, wenn nicht inkognito | **niemand direkt** — nur `rpc_set_training_attendance` |
 | `training_cancellations` | aktive Mitglieder | Admin; ein Trainer nur für sein eigenes Training, nie für eine ganze Halle |
+| `training_session_participants` | eigene Zeile; sonst wer die Teilnehmer sehen darf | **niemand direkt** — nur `rpc_set_session_participants` |
+| `key_duty_weekdays` | aktive Mitglieder | Admin |
+| `key_duty_overrides` | aktive Mitglieder | **niemand direkt** — nur `rpc_set_key_duty_override` |
 | `training_auto_attendance`, `training_reminder_filter` | eigene Zeilen | eigene Zeilen |
 | `club_events` | aktive Mitglieder, auch Gäste | Organisator und Admin |
 | `event_participations` | aktive Mitglieder | **niemand direkt** — nur `rpc_set_event_participation` oder der Link |

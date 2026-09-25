@@ -80,6 +80,18 @@ vi.mock('../../src/lib/supabaseClient', () => ({
   APP_URL: 'http://localhost:5173',
 }));
 
+// Die Seite braucht die Rolle: Der Administrator sieht und verwaltet alle Spiele.
+vi.mock('../../src/features/auth/session', () => ({
+  useSession: () => ({
+    session: null,
+    profile: { id: 'p-admin', first_name: 'Anna', full_name: 'Anna Admin', status: 'active' },
+    role: 'admin',
+    loading: false,
+    previousLoginAt: null,
+  }),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 import GamesPage from '../../src/features/matches/GamesPage';
 import { ToastProvider } from '../../src/components/ui';
 import {

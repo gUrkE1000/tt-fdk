@@ -12,6 +12,7 @@ import {
   Dialog,
   FormField,
   Input,
+  PasswordInput,
   Select,
   useToast,
 } from '../../components/ui';
@@ -196,12 +197,12 @@ export default function ProfileTab({ profile }: { profile: Profile }) {
             <div className="grid gap-3 sm:grid-cols-2">
               <FormField label="Neues Passwort" error={passwordForm.formState.errors.password?.message}>
                 {(p) => (
-                  <Input {...p} {...passwordForm.register('password')} type="password" autoComplete="new-password" />
+                  <PasswordInput {...p} {...passwordForm.register('password')} autoComplete="new-password" />
                 )}
               </FormField>
               <FormField label="Wiederholen" error={passwordForm.formState.errors.confirm?.message}>
                 {(p) => (
-                  <Input {...p} {...passwordForm.register('confirm')} type="password" autoComplete="new-password" />
+                  <PasswordInput {...p} {...passwordForm.register('confirm')} autoComplete="new-password" />
                 )}
               </FormField>
             </div>

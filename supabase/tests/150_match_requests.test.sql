@@ -10,10 +10,12 @@ SELECT plan(24);
 -- ============================================================ Sichtbarkeit
 DO $$ BEGIN PERFORM tests.login_as('22222222-1111-0000-0000-000000000009'); END $$;
 
+-- Seit der Rückmeldungsrunde vom 25.09.2026 sehen alle spielenden Mitglieder alle
+-- Spiele. „Dazugehören" (can_see_match) regelt weiter Zusage, Fahrdienst, Angebot.
 SELECT is(
-    (SELECT count(*) FROM public.matches)::int,
+    (SELECT count(*) FROM public.matches WHERE public.can_see_match(id))::int,
     0,
-    'Wer zu keiner Mannschaft gehört, sieht kein Spiel'
+    'Wer zu keiner Mannschaft gehört, gehört zu keinem Spiel'
 );
 
 DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000001'); END $$;
@@ -99,9 +101,9 @@ SELECT is(
 DO $$ BEGIN PERFORM tests.login_as('22222222-1111-0000-0000-000000000009'); END $$;
 
 SELECT is(
-    (SELECT count(*) FROM public.matches)::int,
+    (SELECT count(*) FROM public.matches WHERE public.can_see_match(id))::int,
     2,
-    'und sieht genau die Spiele, für die er gefragt ist'
+    'und gehört genau zu den Spielen, für die er gefragt ist'
 );
 
 SELECT lives_ok(
@@ -138,9 +140,9 @@ SELECT throws_ok(
 DO $$ BEGIN PERFORM tests.login_as('22222222-1111-0000-0000-000000000009'); END $$;
 
 SELECT is(
-    (SELECT count(*) FROM public.matches)::int,
+    (SELECT count(*) FROM public.matches WHERE public.can_see_match(id))::int,
     1,
-    'Nach dem Zurückziehen ist das Spiel wieder unsichtbar'
+    'Nach dem Zurückziehen gehört er nicht mehr zu dem Spiel'
 );
 
 -- ============================================================ Ich hätte Zeit
