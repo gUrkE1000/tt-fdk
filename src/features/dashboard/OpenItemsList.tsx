@@ -23,7 +23,7 @@ import {
   type Participation,
 } from '../matches/api';
 import { useCanManageMatch } from '../matches/canManage';
-import { useMatchesWithoutRequests } from '../matches/requests';
+import { REQUEST_WINDOW_DAYS, useMatchesWithoutRequests } from '../matches/requests';
 import { eventPath, matchPath, trainingPath } from '../../lib/paths';
 import MatchDialogs, { type OpenMatchDialog } from '../matches/MatchDialogs';
 import { useTeams } from '../teams/api';
@@ -121,6 +121,9 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
             {unrequested.length === 1
               ? 'Für 1 Spiel ist noch niemand angefragt'
               : `Für ${unrequested.length} Spiele ist noch niemand angefragt`}
+          </span>
+          <span className="text-xs text-gray-500">
+            in den nächsten {REQUEST_WINDOW_DAYS / 7} Wochen
           </span>
         </div>
         <ul className="space-y-1.5">

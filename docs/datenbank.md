@@ -136,6 +136,24 @@ Person eine Zeile in `match_participations` bekommt (angefragt oder aufgestellt)
 ein Trigger das Angebot. Lesen dürfen die Person selbst, die Mannschaftsführung und der
 Admin.
 
+### Nachrichten an die Mannschaftsführung
+
+Seit alle Mannschaften auf „von Hand" stehen, meldet die Ersatzkette nichts mehr. Die
+Mannschaftsführung erfährt deshalb auf zwei anderen Wegen, was sie tun muss
+(Migration `leader_notifications`):
+
+- **Absage:** Der Trigger `match_participations_notify_declined` schickt `match_declined`,
+  wenn ein Spieler selbst absagt — in der App (`source = 'self'`) oder über den Link
+  (`'link'`). Die Nachricht nennt die Bemerkung und den Stand der Zusagen gegen
+  `required_players`. Keine Nachricht, wenn der Mannschaftsführer selbst jemanden auf
+  Absage setzt, wenn schon abgesagt war, oder wenn das Spiel vorbei oder abgesagt ist.
+- **Neue Spiele gesammelt:** `notify_match_created` legt `match_players_needed` mit
+  zehn Minuten Verzögerung (`match_batch_delay()`) an. Kommt in der Zeit ein weiteres
+  Spiel, wird die noch nicht verschickte Nachricht (`status = 'pending'`) gelöscht und mit
+  allen Spielen neu angelegt; `match_batch_payload(uuid[])` baut Betreff, Liste und Link
+  (ein Spiel: `/match/<id>`, mehrere: `/my-games`). Was der Versand schon beansprucht hat,
+  bleibt unberührt.
+
 ### `matches`
 
 `dtstart` und `dtend` sind **generierte Spalten** aus `*_override` und `*_external`. Der
