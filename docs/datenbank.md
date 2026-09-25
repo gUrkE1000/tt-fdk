@@ -525,6 +525,7 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `enqueue_training_reminder(uuid, uuid)` | Was der Erinnerungslauf je Termin und Person ausführt |
 | `notify_training_cancelled(uuid, date, date, text, bool)` | Meldet einen Ausfall — einmal für den ganzen Zeitraum, nicht je Tag |
 | `check_trainers_cancelled()` | Trigger: sagen alle Trainer ab, sagt sich der Termin selbst ab |
+| `add_creator_as_trainer()` | Trigger: Legt ein Trainer ein Training an, leitet er es (beim Admin nicht) |
 | `event_payload(uuid)` | Werte für die Vorlage eines Vereinstermins, samt Antwortlink |
 | `apply_event_answer(uuid, uuid, text, int, source)` | Zu- oder Absage; prüft Anmeldefrist, Teilnehmergrenze und Zeitpunkt |
 | `rpc_set_event_participation(uuid, status, int)` | Dasselbe für den Angemeldeten |

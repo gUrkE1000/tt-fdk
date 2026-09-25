@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -19,6 +19,7 @@ import {
 import type { MemberSummary as Member, GroupWithMembers } from '../members/api';
 import type { Venue } from '../venues/api';
 import { todayInBerlin } from '../../lib/dates';
+import { useSession } from '../auth/session';
 import {
   useCreateTraining,
   useSaveTrainingPeople,
@@ -69,6 +70,7 @@ export default function TrainingDialog({
   groups,
 }: TrainingDialogProps) {
   const { toast } = useToast();
+  const { profile, role } = useSession();
   const createTraining = useCreateTraining();
   const updateTraining = useUpdateTraining();
   const savePeople = useSaveTrainingPeople();
@@ -78,14 +80,27 @@ export default function TrainingDialog({
     defaultValues: EMPTY_TRAINING,
   });
 
+  // Schlägt nach dem Anlegen das Eintragen der Personen fehl, steht das Training schon.
+  // Ein zweiter Klick auf „Speichern" ändert dann dieses, statt ein weiteres anzulegen.
+  const createdId = useRef<string | null>(null);
+
+  const ownTrainerId = role !== 'admin' ? (profile?.id ?? null) : null;
+
   useEffect(() => {
     if (!open) return;
+    createdId.current = null;
     form.reset(
       training
         ? toFormValues(training)
-        : { ...EMPTY_TRAINING, startDate: todayInBerlin() },
+        : {
+            ...EMPTY_TRAINING,
+            startDate: todayInBerlin(),
+            // Ein Trainer legt sein eigenes Training an; die Datenbank trägt ihn ohnehin
+            // als Trainer ein. Der Administrator legt Trainings für andere an.
+            trainerIds: ownTrainerId ? [ownTrainerId] : [],
+          },
     );
-  }, [open, training, form]);
+  }, [open, training, form, ownTrainerId]);
 
   async function onSubmit(values: TrainingValues) {
     const row = {
@@ -113,9 +128,11 @@ export default function TrainingDialog({
     };
 
     try {
-      const id = training
-        ? (await updateTraining.mutateAsync({ id: training.id, values: row }), training.id)
+      const existingId = training?.id ?? createdId.current;
+      const id = existingId
+        ? (await updateTraining.mutateAsync({ id: existingId, values: row }), existingId)
         : await createTraining.mutateAsync(row);
+      createdId.current = training ? null : id;
 
       await savePeople.mutateAsync({
         trainingId: id,

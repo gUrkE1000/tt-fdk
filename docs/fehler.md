@@ -8,6 +8,54 @@ Gemeldete, noch offene Fehler stehen unter [Offen](#offen).
 
 ---
 
+## F-8 · „Training anlegen" scheitert, Trainer verlieren beim Speichern ihr Training
+
+**Gemeldet** 25.09.2026, „beim Training eintragen klappt irgendwas nicht".
+**Schwere** hoch — kein neues Training ließ sich anlegen; ein Trainer, der sein Training
+bearbeitete, war danach nicht mehr dessen Trainer.
+**Behoben** 25.09.2026.
+
+### Bild
+
+„Planung → Training anlegen → Speichern" meldet „new row violates row-level security
+policy for table "trainings"" — auch als Administrator. Bearbeitet ein Trainer sein
+eigenes Training, kommt dieselbe Meldung für `training_trainers`, und das Training steht
+danach ohne ihn als Trainer da.
+
+### Ursache
+
+Zwei Fehler, die sich gegenseitig verdeckten:
+
+1. Der Dialog legt mit `.insert(…).select('id')` an, PostgREST schickt daraus
+   `INSERT … RETURNING`. Dabei prüft PostgreSQL auch die Lese-Policy — am neuen
+   Datensatz, *bevor* er in der Tabelle steht. `trainings_select` fragte
+   `can_see_training(id)`, und die Funktion sucht das Training per id in der Tabelle.
+   Sie fand es nicht, also scheiterte jedes Anlegen.
+2. Trainer, Zuordnung und Statistikgruppen wurden „erst alles löschen, dann neu
+   schreiben" gespeichert. Die Schreib-Policies fragen `trains(training_id)`, und das
+   steht in `training_trainers`. Ein Trainer löschte also zuerst sich selbst und durfte
+   danach nichts mehr eintragen. Bei einem neu angelegten Training war er ohnehin noch
+   nicht Trainer und durfte gar nichts eintragen.
+
+Die Frontend-Tests liefen gegen eine Attrappe ohne RLS, die pgTAP-Tests legten Trainings
+nur ohne `RETURNING` und nie als Trainer mit anschließender Zuordnung an.
+
+### Behebung
+
+- Migration `20261103000000_training_create.sql`: `trainings_select` prüft die Spalten
+  der Zeile selbst (Mitglied, kein Gast, oder offen) und fragt `can_see_training` nur
+  noch für Gäste. Ein Trigger trägt einen Trainer, der ein Training anlegt, als dessen
+  Trainer ein; beim Administrator bleibt die Liste leer.
+- `replaceRows` (`src/features/trainings/api.ts`) ergänzt erst fehlende Zeilen und
+  entfernt danach nur die überzähligen. Die Trainer werden zuletzt geschrieben.
+- Der Dialog belegt beim Trainer das Feld „Trainer" mit ihm selbst vor und legt bei
+  einem zweiten Klick auf „Speichern" nach einem Fehler kein zweites Training an.
+
+Abgesichert in `supabase/tests/160_training_create.test.sql` und
+`tests/features/trainings.test.tsx` (Trainingsdialog).
+
+---
+
 ## F-7 · „Spieler verwalten" und „Aufstellung teilen" tun nichts
 
 **Gemeldet** 23.09.2026, Spiel am 08.10., als Mannschaftsführer unter „Meine Spiele".
