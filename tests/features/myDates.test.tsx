@@ -311,12 +311,28 @@ describe('SubscribeDialog', () => {
     );
   });
 
-  it('nennt Anleitungen für die gängigen Kalender', async () => {
+  it('erklärt Schritt für Schritt die gängigen Kalender — auch Samsung', async () => {
     renderPage();
     await userEvent.click(await screen.findByRole('button', { name: /Kalender abonnieren/ }));
 
-    expect(await screen.findByRole('link', { name: 'Google Kalender' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Outlook' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Apple Kalender' })).toBeInTheDocument();
+    for (const label of ['iPhone / iPad', 'Samsung Kalender', 'Google Kalender / Android', 'Outlook']) {
+      expect(await screen.findByText(label)).toBeInTheDocument();
+    }
+
+    await userEvent.click(screen.getByText('Samsung Kalender'));
+    expect(screen.getByText(/kann den Link nicht selbst abonnieren/)).toBeVisible();
+    expect(screen.getByText(/Konto synchronisieren → „Kalender“ einschalten/)).toBeVisible();
+  });
+
+  it('öffnet den Link auf Apple-Geräten direkt in der Kalender-App', async () => {
+    renderPage();
+    await userEvent.click(await screen.findByRole('button', { name: /Kalender abonnieren/ }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: /In Kalender-App öffnen/ })).toHaveAttribute(
+        'href',
+        'webcal://localhost:54321/functions/v1/calendar-feed?token=11111111-2222-3333-4444-555555555555',
+      ),
+    );
   });
 });

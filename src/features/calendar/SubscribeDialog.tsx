@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Check, Copy, RefreshCw } from 'lucide-react';
-import { Button, Checkbox, Dialog, Input, useToast } from '../../components/ui';
+import { CalendarPlus, Check, Copy, RefreshCw } from 'lucide-react';
+import { Button, buttonClasses, Checkbox, Dialog, Input, useToast } from '../../components/ui';
 import { FUNCTIONS_URL, supabase } from '../../lib/supabaseClient';
 
 export interface SubscribeDialogProps {
@@ -8,18 +8,55 @@ export interface SubscribeDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const HOWTO: { label: string; href: string }[] = [
+export interface CalendarGuide {
+  label: string;
+  steps: string[];
+  /** Offizielle Hilfeseite, falls es eine gibt. */
+  href?: string;
+}
+
+/**
+ * Schritt für Schritt je Kalender. Der Samsung Kalender kann einen Abo-Link nicht
+ * selbst einlesen — der Weg führt über ein Google-Konto, das auf dem Handy
+ * eingerichtet ist.
+ */
+export const GUIDES: CalendarGuide[] = [
   {
-    label: 'Google Kalender',
+    label: 'iPhone / iPad',
+    steps: [
+      'Tippe oben auf „In Kalender-App öffnen“ — oder:',
+      'Einstellungen → Kalender → Accounts → Account hinzufügen → Andere → „Kalenderabo hinzufügen“.',
+      'Den kopierten Link einfügen, „Weiter“ und „Sichern“.',
+    ],
+    href: 'https://support.apple.com/de-de/102301',
+  },
+  {
+    label: 'Samsung Kalender',
+    steps: [
+      'Der Samsung Kalender kann den Link nicht selbst abonnieren — das geht über Google.',
+      'Am Computer calendar.google.com öffnen, mit dem Google-Konto, das auch auf dem Handy eingerichtet ist.',
+      'Links bei „Weitere Kalender“ auf + → „Per URL“ → Link einfügen → „Kalender hinzufügen“.',
+      'Am Handy: Einstellungen → Konten und Sicherung → Konten verwalten → dein Google-Konto → Konto synchronisieren → „Kalender“ einschalten.',
+      'Im Samsung Kalender: Menü (☰) → Kalender verwalten → unter dem Google-Konto den neuen Kalender einschalten.',
+      'Taucht er nicht auf: in der Google-Kalender-App → Einstellungen → den Kalender antippen → „Synchronisieren“ einschalten.',
+    ],
+  },
+  {
+    label: 'Google Kalender / Android',
+    steps: [
+      'Am Computer calendar.google.com öffnen (in der Handy-App geht das Abonnieren nicht).',
+      'Links bei „Weitere Kalender“ auf + → „Per URL“ → Link einfügen → „Kalender hinzufügen“.',
+      'Der Kalender erscheint danach auch in der Handy-App.',
+    ],
     href: 'https://support.google.com/calendar/answer/37100',
   },
   {
     label: 'Outlook',
+    steps: [
+      'Im Kalender: „Kalender hinzufügen“ → „Aus dem Internet abonnieren“.',
+      'Den Link einfügen, einen Namen vergeben und „Importieren“.',
+    ],
     href: 'https://support.microsoft.com/de-de/office/cff1429c-5af6-41ec-a5b4-74f2c278e98c',
-  },
-  {
-    label: 'Apple Kalender',
-    href: 'https://support.apple.com/de-de/guide/calendar/icl1022/mac',
   },
 ];
 
@@ -81,6 +118,8 @@ export default function SubscribeDialog({ open, onOpenChange }: SubscribeDialogP
   }
 
   const link = token ? `${FUNCTIONS_URL}/calendar-feed?token=${token}` : '';
+  // webcal:// öffnet auf iPhone, iPad und Mac direkt den Abo-Dialog der Kalender-App.
+  const webcal = link.replace(/^https?:\/\//, 'webcal://');
 
   async function copy() {
     try {
@@ -125,8 +164,9 @@ export default function SubscribeDialog({ open, onOpenChange }: SubscribeDialogP
             <li>jede Hallensperrung, ganztägig.</li>
           </ul>
           <p>
-            Abgesagte Spiele bleiben als „fällt aus" stehen. Der Kalender aktualisiert sich
-            etwa stündlich von selbst.
+            Abgesagte Spiele bleiben als „fällt aus" stehen. Änderungen kommen von selbst
+            nach — wie schnell, bestimmt dein Kalender: Apple und Outlook etwa stündlich,
+            Google (und damit Samsung) oft erst nach einigen Stunden.
           </p>
         </div>
 
@@ -148,24 +188,40 @@ export default function SubscribeDialog({ open, onOpenChange }: SubscribeDialogP
             )}
             {copied ? 'Kopiert' : 'Kopieren'}
           </Button>
+          {link && (
+            <a className={buttonClasses({ variant: 'ghost' })} href={webcal}>
+              <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+              In Kalender-App öffnen
+            </a>
+          )}
         </div>
 
         <div>
           <p className="mb-1 text-sm font-semibold text-gray-900">Anleitungen</p>
-          <ul className="flex flex-wrap gap-3 text-sm">
-            {HOWTO.map((entry) => (
-              <li key={entry.label}>
-                <a
-                  className="text-primary underline"
-                  href={entry.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {entry.label}
-                </a>
-              </li>
+          <div className="space-y-1.5">
+            {GUIDES.map((guide) => (
+              <details key={guide.label} className="rounded-xl border border-gray-200 px-3 py-2">
+                <summary className="cursor-pointer text-sm font-semibold text-gray-800">
+                  {guide.label}
+                </summary>
+                <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-gray-600">
+                  {guide.steps.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
+                {guide.href && (
+                  <a
+                    className="mt-2 inline-block text-sm text-primary underline"
+                    href={guide.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Offizielle Anleitung
+                  </a>
+                )}
+              </details>
             ))}
-          </ul>
+          </div>
         </div>
 
         <div className="rounded-xl bg-gray-50 p-3">

@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import Podium from '../components/icons/Podium';
 import TableTennis from '../components/icons/TableTennis';
 import {
   LayoutDashboard,
@@ -47,7 +48,7 @@ export const NAV: NavSection[] = [
     section: null,
     items: [
       { to: '/', label: 'Übersicht', icon: LayoutDashboard, roles: [], primary: true },
-      { to: '/my-games', label: 'Meine Spiele', icon: TableTennis, roles: [], primary: true },
+      { to: '/my-games', label: 'Meine Spiele', icon: Podium, roles: [], primary: true },
       { to: '/my-dates', label: 'Meine Termine', icon: CalendarCheck, roles: [] },
       { to: '/notifications', label: 'Mitteilungen', icon: Inbox, roles: [] },
     ],

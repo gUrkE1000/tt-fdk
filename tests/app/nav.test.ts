@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { NAV, visibleNav, primaryNav, labelForPath, type Role } from '../../src/app/nav';
+import Podium from '../../src/components/icons/Podium';
+import TableTennis from '../../src/components/icons/TableTennis';
 
 const ALL_ROLES: Role[] = ['admin', 'team_leader', 'trainer', 'organizer', 'member', 'guest'];
 
@@ -104,5 +106,14 @@ describe('NAV-Struktur', () => {
         expect(ALL_ROLES).toContain(role);
       }
     }
+  });
+});
+
+describe('Symbole', () => {
+  const item = (to: string) => NAV.flatMap((section) => section.items).find((entry) => entry.to === to);
+
+  it('zeigt bei „Meine Spiele" das Siegerpodest, bei „Trainings" den Schläger', () => {
+    expect(item('/my-games')?.icon).toBe(Podium);
+    expect(item('/trainings')?.icon).toBe(TableTennis);
   });
 });

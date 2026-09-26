@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import TableTennis from '../../components/icons/TableTennis';
+import Podium from '../../components/icons/Podium';
 import {
   EmptyState,
   ErrorState,
@@ -100,7 +100,7 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
   if (mine.length === 0) {
     return (
       <EmptyState
-        icon={TableTennis}
+        icon={Podium}
         title={empty?.title ?? (scope === 'past' ? 'Noch keine vergangenen Spiele' : 'Keine offenen Spiele')}
         description={
           empty?.description ??
