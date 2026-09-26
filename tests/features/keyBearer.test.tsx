@@ -4,7 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import type { KeyRow, SessionKeys } from '../../src/features/keys/api';
+import type { SessionKeys } from '../../src/features/keys/api';
 import type { MemberSummary } from '../../src/features/members/api';
 import type { TrainingSession, TrainingWithPeople } from '../../src/features/trainings/api';
 
@@ -62,10 +62,7 @@ vi.mock('../../src/features/auth/session', () => ({
   SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-import KeyBearerRow, {
-  bearerOptions,
-  holdersForVenue,
-} from '../../src/features/trainings/KeyBearerRow';
+import KeyBearerRow, { bearerOptions } from '../../src/features/trainings/KeyBearerRow';
 import { ToastProvider } from '../../src/components/ui';
 
 const inTwoDays = new Date(Date.now() + 2 * 86_400_000);
@@ -84,31 +81,14 @@ const training = {
   trainerIds: ['p-trainer'],
 } as unknown as TrainingWithPeople;
 
-function keyRow(extra: Partial<KeyRow>): KeyRow {
-  return {
-    id: 'k',
-    name: 'Hallenschlüssel',
-    venue_id: 'v-1',
-    venue_name: 'Sporthalle',
-    responsible_id: 'p-x',
-    responsible_name: 'X',
-    holder_id: null,
-    holder_name: null,
-    no_forwarding: false,
-    active: true,
-    may_hand_over: false,
-    ...extra,
-  } as KeyRow;
-}
-
 function sessionKeys(extra: Partial<SessionKeys> = {}): SessionKeys {
   return {
     session_id: 's-1',
-    has_key_holder: false,
-    holder_name: null,
     has_bearer: false,
     bearer_id: null,
     bearer_name: null,
+    duty_id: null,
+    duty_name: null,
     ...extra,
   } as SessionKeys;
 }
@@ -134,14 +114,9 @@ beforeEach(() => {
   state.profileId = 'p-me';
   state.role = 'member';
   state.tables = {
-    v_keys: [
-      keyRow({ id: 'k-1', holder_id: 'p-anna', holder_name: 'Anna' }),
-      keyRow({ id: 'k-2', holder_id: 'p-anna', holder_name: 'Anna' }),
-      keyRow({ id: 'k-3', holder_id: 'p-bert', holder_name: 'Bert', venue_id: 'v-2' }),
-    ],
     profiles: [
       { id: 'p-me', full_name: 'Ich', status: 'active', deleted_at: null },
-      { id: 'p-anna', full_name: 'Anna', status: 'active', deleted_at: null },
+      { id: 'p-anna', full_name: 'Anna', status: 'active', deleted_at: null, key_service: true },
       { id: 'p-zora', full_name: 'Zora', status: 'active', deleted_at: null },
     ],
   };
@@ -149,33 +124,16 @@ beforeEach(() => {
 
 // ---------------------------------------------------------------- reine Logik
 
-describe('holdersForVenue', () => {
-  it('nennt jeden Inhaber eines Schlüssels für die Halle einmal', () => {
-    const keys = [
-      keyRow({ id: 'a', holder_id: 'p-1', holder_name: 'Eins' }),
-      keyRow({ id: 'b', holder_id: 'p-1', holder_name: 'Eins' }),
-      keyRow({ id: 'c', holder_id: 'p-2', holder_name: 'Zwei', venue_id: 'v-2' }),
-      keyRow({ id: 'd', holder_id: 'p-3', holder_name: 'Drei', active: false }),
-      keyRow({ id: 'e', holder_id: null }),
-    ];
-    expect(holdersForVenue(keys, 'v-1').map((key) => key.holder_id)).toEqual(['p-1']);
-  });
-
-  it('kennt ohne Ort niemanden', () => {
-    expect(holdersForVenue([keyRow({ holder_id: 'p-1' })], null)).toEqual([]);
-  });
-});
-
 describe('bearerOptions', () => {
-  it('stellt die Schlüsselinhaber voran und lässt Inaktive weg', () => {
+  it('stellt den Schlüsseldienst voran und lässt Inaktive weg', () => {
     const members = [
-      { id: 'p-z', full_name: 'Zora', status: 'active', deleted_at: null },
+      { id: 'p-z', full_name: 'Zora', status: 'active', deleted_at: null, key_service: true },
       { id: 'p-b', full_name: 'Bert', status: 'active', deleted_at: null },
       { id: 'p-a', full_name: 'Anna', status: 'active', deleted_at: null },
       { id: 'p-x', full_name: 'Xaver', status: 'pending_approval', deleted_at: null },
     ] as MemberSummary[];
-    expect(bearerOptions(members, new Set(['p-z']))).toEqual([
-      { value: 'p-z', label: 'Zora · hat einen Schlüssel' },
+    expect(bearerOptions(members)).toEqual([
+      { value: 'p-z', label: 'Zora · Schlüsseldienst' },
       { value: 'p-a', label: 'Anna' },
       { value: 'p-b', label: 'Bert' },
     ]);
@@ -185,10 +143,9 @@ describe('bearerOptions', () => {
 // ---------------------------------------------------------------- Oberfläche
 
 describe('KeyBearerRow', () => {
-  it('zeigt, dass noch niemand den Schlüssel bringt, und wer einen hat', async () => {
+  it('zeigt, dass noch niemand den Schlüssel bringt', async () => {
     renderRow(sessionKeys());
-    expect(await screen.findByText(/Noch niemand bringt den Schlüssel/)).toBeInTheDocument();
-    expect(await screen.findByText(/Einen Schlüssel für die Halle haben: Anna\./)).toBeInTheDocument();
+    expect(await screen.findByText('Noch niemand bringt den Schlüssel.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Jemanden eintragen/ })).toBeNull();
   });
 
@@ -231,7 +188,7 @@ describe('KeyBearerRow', () => {
     renderRow(sessionKeys());
     await userEvent.click(await screen.findByRole('button', { name: /Jemanden eintragen/ }));
     const select = await screen.findByRole('combobox', { name: 'Wer bringt den Schlüssel?' });
-    await screen.findByRole('option', { name: 'Anna · hat einen Schlüssel' });
+    await screen.findByRole('option', { name: 'Anna · Schlüsseldienst' });
     await userEvent.selectOptions(select, 'p-zora');
     await waitFor(() =>
       expect(state.rpcCalls).toContainEqual({

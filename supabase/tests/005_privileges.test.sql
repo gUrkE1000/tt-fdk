@@ -35,7 +35,7 @@ SELECT is_empty(
               'is_playing_member', 'can_see_absences', 'leads_team', 'leads_match',
               'trains', 'trains_session', 'can_see_training', 'may_see_training_roster',
               'may_see_session_roster', 'may_join_training', 'is_poll_target',
-              'may_see_poll_results', 'may_hand_over_key', 'can_see_message_object',
+              'may_see_poll_results', 'can_see_message_object',
               'may_see_training_statistics', 'berlin_today', 'valid_email_list',
               'belongs_to_team', 'can_see_match',
               -- Sichten rufen sie mit den Rechten des Aufrufers

@@ -2,8 +2,11 @@
 //
 //   GET <functions>/calendar-feed?token=<uuid>
 //
-// Liefert die **zugesagten** Termine eines Mitglieds als ICS. Nur zugesagte: Ein
-// Kalendereintrag heißt „da bin ich", nicht „das findet statt".
+// Liefert als ICS, was ins private Kalenderprogramm gehört (Vereinsentscheidung
+// 26.09.2026): die Heim- und Auswärtsspiele der eigenen Mannschaften und Spiele mit
+// Anfrage, jede Hallensperre — und auf Wunsch die eigenen Trainings. Welche Einträge
+// das sind, rechnet `calendar_feed_items()` in der Datenbank; hier wird nur geholt
+// und formatiert.
 //
 // Der Token ist ein Dauerausweis — ein Kalenderprogramm kann sich nicht anmelden. Er
 // ist deshalb ein Zufallswert, für niemanden über die API lesbar und jederzeit neu
@@ -12,15 +15,13 @@
 import { createClient } from '../_shared/supabase.ts';
 import { fetchAllPages } from '../_shared/guards.ts';
 import { buildIcs, type IcsEntry } from '../_shared/ics.ts';
+import { toIcsEntry, type FeedItem } from '../_shared/calendarFeed.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
 };
-
-/** Zusagen. „Später" ist auch eine Zusage; „unsicher" und „nein" sind keine. */
-const ATTENDING = new Set(['yes', 'late']);
 
 Deno.serve(async (request: Request): Promise<Response> => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -47,11 +48,12 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
   const { data: tokenRow } = await admin
     .from('calendar_tokens')
-    .select('profile_id')
+    .select('profile_id, include_trainings')
     .eq('token', token)
     .maybeSingle();
 
-  const profileId = (tokenRow as { profile_id?: string } | null)?.profile_id;
+  const subscription = tokenRow as { profile_id?: string; include_trainings?: boolean } | null;
+  const profileId = subscription?.profile_id;
   // Ein unbekannter Token bekommt dieselbe Antwort wie ein fremder: 404, ohne Hinweis
   // darauf, ob es ihn gibt.
   if (!profileId) return new Response('not_found', { status: 404, headers: CORS });
@@ -70,43 +72,24 @@ Deno.serve(async (request: Request): Promise<Response> => {
   // Ein Jahr zurück, damit der Kalender auch die jüngste Vergangenheit zeigt.
   const from = new Date(Date.now() - 365 * 86_400_000).toISOString();
 
-  // Blättern: Ein Jahr Training, Spiele und Termine kommt leicht über 1000 Zeilen.
+  // Blättern: Ein Jahr Spiele und Trainings kommt leicht über 1000 Zeilen.
   let rows: unknown[];
   try {
     rows = await fetchAllPages((start, end) =>
       admin
-        .from('v_my_upcoming')
-        .select('kind, id, starts_at, ends_at, title, location, my_status, active')
-        .eq('profile_id', profileId)
-        .gte('starts_at', from)
-        .order('starts_at')
-        .order('id')
+        .rpc('calendar_feed_items', {
+          p_profile_id: profileId,
+          p_since: from,
+          p_include_trainings: subscription?.include_trainings === true,
+        })
         .range(start, end),
     );
   } catch (error) {
-    console.error('v_my_upcoming:', error instanceof Error ? error.message : error);
+    console.error('calendar_feed_items:', error instanceof Error ? error.message : error);
     return new Response('unavailable', { status: 503, headers: CORS });
   }
 
-  const entries: IcsEntry[] = (rows as {
-    kind: string;
-    id: string;
-    starts_at: string;
-    ends_at: string | null;
-    title: string;
-    location: string | null;
-    my_status: string;
-    active: boolean;
-  }[])
-    .filter((row) => row.active && ATTENDING.has(row.my_status))
-    .map((row) => ({
-      // Stabil über Läufe hinweg: Art und ID des Objekts, nichts Zufälliges.
-      uid: `${row.kind}-${row.id}@vereinsplaner`,
-      title: row.title,
-      startsAt: row.starts_at,
-      endsAt: row.ends_at,
-      location: row.location,
-    }));
+  const entries: IcsEntry[] = (rows as FeedItem[]).map(toIcsEntry);
 
   const { data: settings } = await admin
     .from('club_settings')

@@ -13,6 +13,7 @@ const state = {
   tables: {} as Record<string, Row[]>,
   rpcCalls: [] as { name: string; args: unknown }[],
   token: '11111111-2222-3333-4444-555555555555',
+  includeTrainings: false,
 };
 
 function makeBuilder(table: string) {
@@ -34,6 +35,16 @@ vi.mock('../../src/lib/supabaseClient', () => ({
       state.rpcCalls.push({ name, args });
       if (name === 'rpc_reset_calendar_token') {
         state.token = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+      }
+      if (name === 'rpc_my_calendar_subscription') {
+        return Promise.resolve({
+          data: { token: state.token, include_trainings: state.includeTrainings },
+          error: null,
+        });
+      }
+      if (name === 'rpc_set_calendar_trainings') {
+        state.includeTrainings = (args as { p_include: boolean }).p_include;
+        return Promise.resolve({ data: null, error: null });
       }
       return Promise.resolve({ data: state.token, error: null });
     },
@@ -75,6 +86,7 @@ function renderPage(path = '/my-dates?tab=attending') {
 beforeEach(() => {
   vi.clearAllMocks();
   state.token = '11111111-2222-3333-4444-555555555555';
+  state.includeTrainings = false;
   state.rpcCalls = [];
   state.tables = {
     v_my_upcoming: [
@@ -249,16 +261,40 @@ describe('SubscribeDialog', () => {
         'http://localhost:54321/functions/v1/calendar-feed?token=11111111-2222-3333-4444-555555555555',
       ),
     );
-    expect(state.rpcCalls.some((call) => call.name === 'rpc_my_calendar_token')).toBe(true);
+    expect(state.rpcCalls.some((call) => call.name === 'rpc_my_calendar_subscription')).toBe(true);
   });
 
-  it('sagt, was der Link bedeutet', async () => {
+  it('sagt, was drin ist und was der Link bedeutet', async () => {
     renderPage();
     await userEvent.click(await screen.findByRole('button', { name: /Kalender abonnieren/ }));
 
     expect(
-      await screen.findByText(/Wer den Link hat, sieht deine zugesagten Termine/),
+      await screen.findByText(/die Heim- und Auswärtsspiele deiner Mannschaften/),
     ).toBeInTheDocument();
+    expect(screen.getByText(/jede Hallensperrung, ganztägig/)).toBeInTheDocument();
+    expect(screen.getByText(/Wer den Link hat, sieht diese Termine/)).toBeInTheDocument();
+  });
+
+  it('nimmt auf Wunsch die Trainings mit ins Abo — ohne neuen Link', async () => {
+    renderPage();
+    await userEvent.click(await screen.findByRole('button', { name: /Kalender abonnieren/ }));
+
+    const box = await screen.findByRole('checkbox', { name: /Auch meine Trainings abonnieren/ });
+    await waitFor(() => expect(box).not.toBeDisabled());
+    expect(box).not.toBeChecked();
+
+    await userEvent.click(box);
+
+    await waitFor(() =>
+      expect(state.rpcCalls).toContainEqual({
+        name: 'rpc_set_calendar_trainings',
+        args: { p_include: true },
+      }),
+    );
+    expect(box).toBeChecked();
+    expect((screen.getByLabelText('Kalender-Link') as HTMLInputElement).value).toContain(
+      '11111111-2222-3333-4444-555555555555',
+    );
   });
 
   it('erzeugt auf Wunsch einen neuen Link', async () => {

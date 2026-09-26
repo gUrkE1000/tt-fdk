@@ -101,7 +101,7 @@ export const NAV: NavSection[] = [
     items: [
       { to: '/players', label: 'Mitglieder', icon: UserCog, roles: ['admin'] },
       { to: '/club', label: 'Verein', icon: Settings, roles: ['admin'] },
-      { to: '/venues', label: 'Orte & Schlüssel', icon: MapPin, roles: ['admin'] },
+      { to: '/venues', label: 'Orte & Schlüsseldienst', icon: MapPin, roles: ['admin'] },
     ],
   },
 ];

@@ -90,16 +90,19 @@ export interface Database {
           profile_id: string;
           token: string;
           created_at: string;
+          include_trainings: boolean;
         };
         Insert: {
           profile_id: string;
           token?: string;
           created_at?: string;
+          include_trainings?: boolean;
         };
         Update: {
           profile_id?: string;
           token?: string;
           created_at?: string;
+          include_trainings?: boolean;
         };
         Relationships: [
           {
@@ -439,123 +442,6 @@ export interface Database {
           {
             foreignKeyName: "key_duty_weekdays_profile_id_fkey";
             columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      key_handovers: {
-        Row: {
-          id: string;
-          key_id: string;
-          from_profile_id: string | null;
-          to_profile_id: string | null;
-          recorded_by: string | null;
-          note: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          key_id: string;
-          from_profile_id?: string | null;
-          to_profile_id?: string | null;
-          recorded_by?: string | null;
-          note?: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          key_id?: string;
-          from_profile_id?: string | null;
-          to_profile_id?: string | null;
-          recorded_by?: string | null;
-          note?: string;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "key_handovers_key_id_fkey";
-            columns: ["key_id"];
-            isOneToOne: false;
-            referencedRelation: "keys";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "key_handovers_from_profile_id_fkey";
-            columns: ["from_profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "key_handovers_to_profile_id_fkey";
-            columns: ["to_profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "key_handovers_recorded_by_fkey";
-            columns: ["recorded_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      keys: {
-        Row: {
-          id: string;
-          name: string;
-          venue_id: string | null;
-          responsible_id: string;
-          holder_id: string | null;
-          no_forwarding: boolean;
-          active: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          venue_id?: string | null;
-          responsible_id: string;
-          holder_id?: string | null;
-          no_forwarding?: boolean;
-          active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          venue_id?: string | null;
-          responsible_id?: string;
-          holder_id?: string | null;
-          no_forwarding?: boolean;
-          active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "keys_venue_id_fkey";
-            columns: ["venue_id"];
-            isOneToOne: false;
-            referencedRelation: "venues";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "keys_responsible_id_fkey";
-            columns: ["responsible_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "keys_holder_id_fkey";
-            columns: ["holder_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
@@ -2425,22 +2311,6 @@ export interface Database {
         };
         Relationships: [];
       };
-      v_keys: {
-        Row: {
-          id: string | null;
-          name: string | null;
-          venue_id: string | null;
-          venue_name: string | null;
-          responsible_id: string | null;
-          responsible_name: string | null;
-          holder_id: string | null;
-          holder_name: string | null;
-          no_forwarding: boolean | null;
-          active: boolean | null;
-          may_hand_over: boolean | null;
-        };
-        Relationships: [];
-      };
       v_match_lineup_status: {
         Row: {
           match_id: string | null;
@@ -2593,8 +2463,6 @@ export interface Database {
       v_session_keys: {
         Row: {
           session_id: string | null;
-          has_key_holder: boolean | null;
-          holder_name: string | null;
           has_bearer: boolean | null;
           bearer_id: string | null;
           bearer_name: string | null;
@@ -2719,10 +2587,6 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
-      may_hand_over_key: {
-        Args: { [key: string]: unknown };
-        Returns: unknown;
-      };
       may_join_training: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -2791,12 +2655,12 @@ export interface Database {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
-      rpc_hand_over_key: {
+      rpc_manage_player: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
-      rpc_manage_player: {
-        Args: { [key: string]: unknown };
+      rpc_my_calendar_subscription: {
+        Args: Record<string, never>;
         Returns: unknown;
       };
       rpc_my_calendar_token: {
@@ -2829,6 +2693,10 @@ export interface Database {
       };
       rpc_run_retention: {
         Args: Record<string, never>;
+        Returns: unknown;
+      };
+      rpc_set_calendar_trainings: {
+        Args: { [key: string]: unknown };
         Returns: unknown;
       };
       rpc_set_event_participation: {

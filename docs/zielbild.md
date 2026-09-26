@@ -50,7 +50,7 @@ Mein Profil · Magic-Link-Login · PWA mit Push-Glocke · Einladung per E-Mail/L
 
 **Stufe B — Soll (hoher Nutzen, geringer Aufwand).** Nach Stufe A, vor Go-live wünschenswert.
 
-Schlüsselverwaltung mit Übergabe · Nachrichten am Termin (Spiel/Training/Vereinstermin) · Vereinsneuigkeiten ·
+~~Schlüsselverwaltung mit Übergabe~~ (entfallen 26.09.2026, ersetzt durch den Schlüsseldienst) · Nachrichten am Termin (Spiel/Training/Vereinstermin) · Vereinsneuigkeiten ·
 Dateien · Excel-Import/-Update der Mitglieder · Ämter (Vereinsrollen) mit Kontaktdaten-Seite · Automatische
 Trainingszusagen · NuScore-Code/PIN am Spiel (manuell; PDF-Import optional) · Statistik
 Trainingsbeteiligung · „Anmelden als" (Eltern/Kind) · QTTR-Pflege im Profil.

@@ -234,6 +234,14 @@ export interface IcsEntry {
   endsAt?: string | null;
   location?: string | null;
   description?: string | null;
+  /**
+   * Ganztägig (Hallensperre): `startsAt`/`endsAt` sind Mitternacht deutscher Zeit, das
+   * Ende ausschließlich. Geschrieben wird dann ein reines Datum, sonst zeigte ein
+   * Kalender in einer anderen Zeitzone den Tag verschoben an.
+   */
+  allDay?: boolean;
+  /** Abgesagt: bleibt im Kalender, aber als STATUS:CANCELLED. */
+  cancelled?: boolean;
 }
 
 /**
@@ -272,18 +280,27 @@ export function buildIcs(
     const declaredEnd = entry.endsAt ? new Date(entry.endsAt) : null;
     const endIsUsable =
       declaredEnd !== null && !Number.isNaN(declaredEnd.getTime()) && declaredEnd > start;
-    const end = endIsUsable
-      ? (declaredEnd as Date)
-      : new Date(start.getTime() + DEFAULT_DURATION_MS);
 
-    lines.push(
-      'BEGIN:VEVENT',
-      `UID:${entry.uid}`,
-      `DTSTAMP:${stamp}`,
-      `DTSTART:${formatIcsDate(start)}`,
-      `DTEND:${formatIcsDate(end)}`,
-      `SUMMARY:${escapeIcsText(entry.title)}`,
-    );
+    lines.push('BEGIN:VEVENT', `UID:${entry.uid}`, `DTSTAMP:${stamp}`);
+
+    if (entry.allDay) {
+      const firstDay = berlinDate(start);
+      const lastDayExclusive = endIsUsable ? berlinDate(declaredEnd as Date) : '';
+      lines.push(
+        `DTSTART;VALUE=DATE:${firstDay}`,
+        `DTEND;VALUE=DATE:${
+          lastDayExclusive > firstDay ? lastDayExclusive : nextIcsDay(firstDay)
+        }`,
+      );
+    } else {
+      const end = endIsUsable
+        ? (declaredEnd as Date)
+        : new Date(start.getTime() + DEFAULT_DURATION_MS);
+      lines.push(`DTSTART:${formatIcsDate(start)}`, `DTEND:${formatIcsDate(end)}`);
+    }
+
+    lines.push(`SUMMARY:${escapeIcsText(entry.title)}`);
+    if (entry.cancelled) lines.push('STATUS:CANCELLED');
 
     if (entry.location) lines.push(`LOCATION:${escapeIcsText(entry.location)}`);
     if (entry.description) lines.push(`DESCRIPTION:${escapeIcsText(entry.description)}`);
@@ -296,6 +313,20 @@ export function buildIcs(
   // CRLF, und auch die letzte Zeile bekommt einen. Manche Kalenderprogramme sind da
   // streng und zeigen sonst gar nichts an.
   return `${lines.flatMap(foldIcsLine).join('\r\n')}\r\n`;
+}
+
+/** `20261005` — der Kalendertag in deutscher Zeit. */
+export function berlinDate(value: Date): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' })
+    .format(value)
+    .replace(/-/g, '');
+}
+
+/** Der Folgetag eines `YYYYMMDD`. */
+function nextIcsDay(day: string): string {
+  const date = new Date(`${day.slice(0, 4)}-${day.slice(4, 6)}-${day.slice(6, 8)}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10).replace(/-/g, '');
 }
 
 /** `20261005T170000Z` — UTC, ohne Trennzeichen, ohne Millisekunden. */

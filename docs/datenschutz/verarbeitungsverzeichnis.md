@@ -59,8 +59,8 @@ und wird niemandem sonst angezeigt — auch nicht dem Administrator.
 | Abwesenheiten | Zeitraum und ein privater Grund | `absences`; der Grund ist nur für die Person selbst sichtbar |
 | Kommunikation | Betreff und Text verschickter Benachrichtigungen, Nachrichten an Terminen | `notifications`, `object_messages` |
 | Endgeräte | Push-Endpunkt, Verschlüsselungsschlüssel, Browserkennung | `push_subscriptions`; nur nach ausdrücklicher Einwilligung |
-| Abo-Token | Zufallsschlüssel für den persönlichen Kalender-Feed | `calendar_tokens` |
-| Ämter und Schlüssel | Vereinsamt, Besitz und Übergabe von Hallenschlüsseln | `club_roles`, `keys`, `key_handovers` |
+| Abo-Token | Zufallsschlüssel für den persönlichen Kalender-Feed, Schalter „Trainings mitabonnieren“ | `calendar_tokens` |
+| Ämter und Schlüsseldienst | Vereinsamt, Schlüsseldienst (fester Wochentag, Vertretung), wer zum Training den Schlüssel bringt | `club_roles`, `profiles.key_service`, `key_duty_weekdays`, `key_duty_overrides`, `training_session_keys` |
 | Statistik | Anwesenheit je Trainingstermin | abgeleitet aus `training_attendance` |
 
 ## 6. Kategorien von Empfängern
@@ -139,8 +139,8 @@ nach Art. 32 DSGVO
 
 **Nachvollziehbarkeit**
 
-- Änderungen an Aufstellungen werden protokolliert (`match_changes`), ebenso jede
-  Schlüsselübergabe (`key_handovers`) und jeder Versandversuch (`notifications`).
+- Änderungen an Aufstellungen werden protokolliert (`match_changes`), ebenso jeder
+  Versandversuch (`notifications`).
 
 ## 10. Betroffenenrechte
 

@@ -293,8 +293,6 @@ describe('Schlüsseldienst am Trainingstermin', () => {
   const keys = (extra: Partial<SessionKeys>) =>
     ({
       session_id: 's-1',
-      has_key_holder: false,
-      holder_name: null,
       has_bearer: false,
       bearer_id: null,
       bearer_name: null,

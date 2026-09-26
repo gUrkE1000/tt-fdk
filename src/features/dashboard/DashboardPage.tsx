@@ -12,7 +12,7 @@ import { useSessionAssignees, useTrainings, useTrainingSessions } from '../train
 import { isMySession, openTrainings } from '../trainings/schemas';
 import SessionsTab from '../trainings/SessionsTab';
 import OpenTrainingsList from '../trainings/OpenTrainingsList';
-import MyKeysTab from '../keys/MyKeysTab';
+import KeyDutyPanel from '../keys/KeyDutyPanel';
 import SubstituteBanner from '../substitutes/SubstituteBanner';
 import CountdownTile, { countdownLabel } from './CountdownTile';
 import OpenItemsList from './OpenItemsList';
@@ -232,11 +232,10 @@ export default function DashboardPage() {
               </Suspense>
             ),
           },
-          {
-            value: 'keys',
-            label: 'Schlüssel',
-            content: <MyKeysTab />,
-          },
+          // Nur für den Schlüsseldienst (und den Admin): die eigenen Tage und Vertretungen.
+          ...(profile?.key_service || role === 'admin'
+            ? [{ value: 'keys', label: 'Schlüsseldienst', content: <KeyDutyPanel /> }]
+            : []),
           {
             value: 'open-trainings',
             label: `Offene Trainings (${openTrainingCount})`,
