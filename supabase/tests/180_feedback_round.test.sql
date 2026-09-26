@@ -181,14 +181,6 @@ SELECT throws_ok(
     'Den Schlüsseldienst gibt man sich nicht selbst'
 );
 
-SELECT throws_ok(
-    $$ INSERT INTO public.key_duty_weekdays (weekday, profile_id)
-       VALUES (1, '22222222-1111-0000-0000-000000000001') $$,
-    '42501',
-    NULL,
-    'Die festen Tage vergibt nur der Administrator'
-);
-
 DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000001'); END $$;
 
 UPDATE public.profiles SET key_service = true
@@ -200,6 +192,18 @@ SELECT lives_ok(
                                      WHERE id = '77777777-0000-0000-0000-000000000001'))::smallint,
                '22222222-1111-0000-0000-000000000001') $$,
     'Der Administrator gibt Spieler 01 den Wochentag des nächsten Trainings'
+);
+
+DO $$ BEGIN PERFORM tests.login_as('22222222-1111-0000-0000-000000000001'); END $$;
+
+-- Erst jetzt hat Spieler 01 Schlüsseldienst — so prüft der Fall die Rechte und nicht
+-- die Regel, dass nur Schlüsseldienst einen Wochentag bekommt.
+SELECT throws_ok(
+    $$ INSERT INTO public.key_duty_weekdays (weekday, profile_id)
+       VALUES (1, '22222222-1111-0000-0000-000000000001') $$,
+    '42501',
+    NULL,
+    'Die festen Tage vergibt nur der Administrator'
 );
 
 DO $$ BEGIN PERFORM tests.login_as('22222222-1111-0000-0000-000000000003'); END $$;

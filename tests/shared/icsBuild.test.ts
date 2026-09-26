@@ -6,6 +6,7 @@ import {
   parseIcs,
   type IcsEntry,
 } from '../../supabase/functions/_shared/ics';
+import { toIcsEntry } from '../../supabase/functions/_shared/calendarFeed';
 
 const NOW = new Date('2026-09-18T08:00:00Z');
 
@@ -198,5 +199,69 @@ describe('buildIcs und parseIcs zusammen', () => {
     const [parsed] = parseIcs(build([entry({ title })]));
 
     expect(parsed.summary).toBe(title);
+  });
+});
+
+// ------------------------------------------------------------------ ganztägig, abgesagt
+
+describe('buildIcs — Hallensperre und Absage', () => {
+  it('schreibt eine ganztägige Sperre als reines Datum, Ende ausschließlich', () => {
+    const ics = build([
+      entry({
+        uid: 'venue-blocked-c1@vereinsplaner',
+        title: 'Halle gesperrt: Sporthalle',
+        // Mitternacht deutscher Zeit (Sommerzeit) = 22:00 UTC am Vortag
+        startsAt: '2026-10-02T22:00:00Z',
+        endsAt: '2026-10-04T22:00:00Z',
+        allDay: true,
+      }),
+    ]);
+    expect(ics).toContain('DTSTART;VALUE=DATE:20261003\r\n');
+    expect(ics).toContain('DTEND;VALUE=DATE:20261005\r\n');
+    expect(ics).not.toContain('DTSTART:2026');
+  });
+
+  it('macht aus einer ganztägigen Sperre ohne Ende genau einen Tag', () => {
+    const ics = build([
+      entry({ startsAt: '2026-12-30T23:00:00Z', endsAt: null, allDay: true }),
+    ]);
+    expect(ics).toContain('DTSTART;VALUE=DATE:20261231\r\n');
+    expect(ics).toContain('DTEND;VALUE=DATE:20270101\r\n');
+  });
+
+  it('lässt einen abgesagten Termin mit STATUS:CANCELLED stehen', () => {
+    const ics = build([entry({ title: '1. Herren – TTC (Heim) – fällt aus', cancelled: true })]);
+    expect(ics).toContain('STATUS:CANCELLED\r\n');
+    expect(ics).toContain('SUMMARY:1. Herren – TTC (Heim) – fällt aus\r\n');
+  });
+
+  it('schreibt ohne Absage keinen Status', () => {
+    expect(build([entry()])).not.toContain('STATUS:');
+  });
+});
+
+// ------------------------------------------------------------------ Abo-Zeilen
+
+
+describe('toIcsEntry', () => {
+  it('übernimmt eine Zeile aus calendar_feed_items mit stabiler UID', () => {
+    const entry = toIcsEntry({
+      uid: 'match-m1',
+      kind: 'match',
+      starts_at: '2026-10-05T17:00:00Z',
+      ends_at: '2026-10-05T21:00:00Z',
+      all_day: false,
+      title: '1. Herren – TTC (Heim)',
+      location: 'Sporthalle, Turnstraße 5, 12345 Musterstadt',
+      description: 'Deine Rückmeldung: Zusage',
+      cancelled: false,
+    });
+
+    expect(entry.uid).toBe('match-m1@vereinsplaner');
+    expect(entry.allDay).toBe(false);
+
+    const ics = build([entry]);
+    expect(ics).toContain('UID:match-m1@vereinsplaner\r\n');
+    expect(ics).toContain('DESCRIPTION:Deine Rückmeldung: Zusage\r\n');
   });
 });

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Check, Copy, RefreshCw } from 'lucide-react';
-import { Button, Dialog, Input, useToast } from '../../components/ui';
+import { Button, Checkbox, Dialog, Input, useToast } from '../../components/ui';
 import { FUNCTIONS_URL, supabase } from '../../lib/supabaseClient';
 
 export interface SubscribeDialogProps {
@@ -26,14 +26,20 @@ const HOWTO: { label: string; href: string }[] = [
 /**
  * Das Kalender-Abo.
  *
- * Der Link ist ein Dauerausweis: Wer ihn hat, liest die zugesagten Termine — ein
+ * Inhalt (Migration calendar_subscription): die Heim- und Auswärtsspiele der eigenen
+ * Mannschaften und Spiele mit Anfrage, jede Hallensperre — und auf Wunsch die eigenen
+ * Trainings. Der Schalter wirkt auf denselben Link; man muss nicht neu abonnieren.
+ *
+ * Der Link ist ein Dauerausweis: Wer ihn hat, liest diese Termine — ein
  * Kalenderprogramm kann sich nicht anmelden. Deshalb steht der Knopf „Link neu erzeugen"
  * gleichberechtigt daneben und nicht in einer Ecke.
  */
 export default function SubscribeDialog({ open, onOpenChange }: SubscribeDialogProps) {
   const { toast } = useToast();
   const [token, setToken] = useState<string | null>(null);
+  const [trainings, setTrainings] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -42,13 +48,37 @@ export default function SubscribeDialog({ open, onOpenChange }: SubscribeDialogP
     setCopied(false);
     setLoading(true);
     void supabase
-      .rpc('rpc_my_calendar_token')
+      .rpc('rpc_my_calendar_subscription')
       .then(({ data, error }) => {
-        if (error) toast(error.message, 'error');
-        else setToken(data as unknown as string);
+        if (error) {
+          toast(error.message, 'error');
+        } else {
+          const subscription = data as unknown as { token: string; include_trainings: boolean };
+          setToken(subscription.token);
+          setTrainings(subscription.include_trainings === true);
+        }
         setLoading(false);
       });
   }, [open, toast]);
+
+  async function toggleTrainings(value: boolean) {
+    setSaving(true);
+    setTrainings(value);
+    const { error } = await supabase.rpc('rpc_set_calendar_trainings', { p_include: value });
+    setSaving(false);
+
+    if (error) {
+      setTrainings(!value);
+      toast(error.message, 'error');
+      return;
+    }
+    toast(
+      value
+        ? 'Deine Trainings kommen mit ins Abo'
+        : 'Trainings sind nicht mehr im Abo',
+      'success',
+    );
+  }
 
   const link = token ? `${FUNCTIONS_URL}/calendar-feed?token=${token}` : '';
 
@@ -85,11 +115,28 @@ export default function SubscribeDialog({ open, onOpenChange }: SubscribeDialogP
       footer={<Button onClick={() => onOpenChange(false)}>Schließen</Button>}
     >
       <div className="space-y-4">
-        <p className="text-sm text-gray-600">
-          Kopiere diesen Link und trage ihn in deinem Kalenderprogramm als Abo ein. Dort
-          erscheinen dann alle Termine, zu denen du zugesagt hast — Spiele, Trainings und
-          Vereinstermine. Der Kalender aktualisiert sich etwa stündlich von selbst.
-        </p>
+        <div className="space-y-2 text-sm text-gray-600">
+          <p>
+            Kopiere diesen Link und trage ihn in deinem Kalenderprogramm als Abo ein. Dort
+            erscheinen dann:
+          </p>
+          <ul className="list-disc space-y-0.5 pl-5">
+            <li>die Heim- und Auswärtsspiele deiner Mannschaften — und Spiele, zu denen du angefragt bist,</li>
+            <li>jede Hallensperrung, ganztägig.</li>
+          </ul>
+          <p>
+            Abgesagte Spiele bleiben als „fällt aus" stehen. Der Kalender aktualisiert sich
+            etwa stündlich von selbst.
+          </p>
+        </div>
+
+        <Checkbox
+          checked={trainings}
+          disabled={loading || saving}
+          onCheckedChange={(value) => void toggleTrainings(value)}
+          label="Auch meine Trainings abonnieren"
+          hint="Offene Trainings, Trainings, denen du zugeordnet bist oder die du leitest. Gilt für denselben Link — du musst nicht neu abonnieren."
+        />
 
         <div className="flex flex-wrap gap-2">
           <Input readOnly value={link} aria-label="Kalender-Link" className="min-w-[12rem] flex-1" />
@@ -123,7 +170,7 @@ export default function SubscribeDialog({ open, onOpenChange }: SubscribeDialogP
 
         <div className="rounded-xl bg-gray-50 p-3">
           <p className="text-sm text-gray-600">
-            Wer den Link hat, sieht deine zugesagten Termine — auch ohne Anmeldung.
+            Wer den Link hat, sieht diese Termine — auch ohne Anmeldung.
             Versehentlich weitergegeben? Dann erzeuge einen neuen; der alte funktioniert
             danach nicht mehr.
           </p>

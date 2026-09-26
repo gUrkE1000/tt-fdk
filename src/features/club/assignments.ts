@@ -1,7 +1,7 @@
 /**
  * Die Zuordnungsspalten der Vereinsübersicht (Bestandsaufnahme I).
  *
- * Training, Mannschaft, Ersatz und Schlüssel je Mitglied — vier Listen, die alle
+ * Training, Mannschaft, Ersatz und Schlüsseldienst je Mitglied — vier Listen, die alle
  * dieselbe Form haben: „welche Objekte nennen diese Person?". Als reine Funktion,
  * weil die Tabelle sonst in jeder Zelle über alle Trainings und Mannschaften
  * iterieren würde: bei 80 Mitgliedern und 6 Mannschaften sind das fast 500
@@ -12,21 +12,22 @@ export interface Assignments {
   trainings: string[];
   teams: string[];
   substituteFor: string[];
-  keys: string[];
+  /** Feste Wochentage im Schlüsseldienst, z. B. „Montag". */
+  keyDuty: string[];
 }
 
 export const NO_ASSIGNMENTS: Assignments = {
   trainings: [],
   teams: [],
   substituteFor: [],
-  keys: [],
+  keyDuty: [],
 };
 
 export interface AssignmentSources {
   trainings: readonly { name: string; memberIds: readonly string[] }[];
   teams: readonly { name: string; regularIds: readonly string[]; substituteIds: readonly string[] }[];
-  /** Nur Schlüssel, die gerade bei jemandem liegen. */
-  keys: readonly { name: string | null; holder_id?: string | null }[];
+  /** Feste Wochentage des Schlüsseldienstes. */
+  keyDuty: readonly { weekday: string; profile_id: string }[];
 }
 
 export function memberAssignments(sources: AssignmentSources): Map<string, Assignments> {
@@ -35,7 +36,7 @@ export function memberAssignments(sources: AssignmentSources): Map<string, Assig
   const entry = (id: string): Assignments => {
     const existing = result.get(id);
     if (existing) return existing;
-    const created: Assignments = { trainings: [], teams: [], substituteFor: [], keys: [] };
+    const created: Assignments = { trainings: [], teams: [], substituteFor: [], keyDuty: [] };
     result.set(id, created);
     return created;
   };
@@ -49,8 +50,8 @@ export function memberAssignments(sources: AssignmentSources): Map<string, Assig
     for (const id of team.substituteIds) entry(id).substituteFor.push(team.name);
   }
 
-  for (const key of sources.keys) {
-    if (key.holder_id && key.name) entry(key.holder_id).keys.push(key.name);
+  for (const duty of sources.keyDuty) {
+    entry(duty.profile_id).keyDuty.push(duty.weekday);
   }
 
   return result;

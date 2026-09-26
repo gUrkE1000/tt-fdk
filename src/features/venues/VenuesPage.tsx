@@ -14,7 +14,6 @@ import {
 import { useSetVenueActive, useVenues, type Venue } from './api';
 import { formatVenueAddress } from './schemas';
 import VenueDialog from './VenueDialog';
-import KeysPanel from '../keys/KeysPanel';
 import KeyDutyPanel from '../keys/KeyDutyPanel';
 
 export default function VenuesPage() {
@@ -59,7 +58,7 @@ export default function VenuesPage() {
     <div className="space-y-8">
       <div>
         <PageHeader
-          title="Orte & Schlüssel"
+          title="Orte & Schlüsseldienst"
           description="Hallen und Räume, in denen gespielt und trainiert wird."
           actions={
             <Button
@@ -128,8 +127,6 @@ export default function VenuesPage() {
           }
         />
       </div>
-
-      <KeysPanel />
 
       <section>
         <PageHeader

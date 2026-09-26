@@ -157,5 +157,11 @@ Kein Aufwand. Der Nachteil bleibt: nach der Antwort führt der Link ins Leere.
 
 ## Erledigt
 
+- **Schlüsselverwaltung** (wer welchen Schlüssel hat, Übergaben) — entfernt am
+  26.09.2026. Es bleiben der Schlüsseldienst (fester Wochentag, Vertretung für einen Tag)
+  und „wer bringt den Schlüssel" am Trainingstermin.
+- **Kalender-Abo** — seit 26.09.2026: Heim- und Auswärtsspiele der eigenen Mannschaften
+  und Spiele mit Anfrage (unabhängig von der Antwort), jede Hallensperre, auf Wunsch die
+  eigenen Trainings. Vorher: nur zugesagte Termine.
 - **E-1** · Wer darf Spieltermine sehen und sich eintragen? — entschieden am 24.09.2026,
   „Sehen" am 25.09.2026 wieder für alle geöffnet, siehe oben.

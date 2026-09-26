@@ -4,7 +4,8 @@ import { Layers, Users } from 'lucide-react';
 import { formatDate } from '../../lib/dates';
 import { roleLabel } from '../../lib/labels';
 import { useAdminMembers, useGroups, type GroupWithMembers, type Member } from '../members/api';
-import { useKeys } from '../keys/api';
+import { useKeyDutyWeekdays } from '../keys/dutyApi';
+import { weekdayLabel } from '../trainings/schemas';
 import { useTeams } from '../teams/api';
 import { useTrainings } from '../trainings/api';
 import { assignmentText, memberAssignments, NO_ASSIGNMENTS } from './assignments';
@@ -13,16 +14,17 @@ import { assignmentText, memberAssignments, NO_ASSIGNMENTS } from './assignments
  * Die Vereinsübersicht des TT-Planers (Bestandsaufnahme I): eine Tabelle aller Mitglieder
  * mit ihren Zuordnungen, darunter die Gruppen.
  *
- * Training, Mannschaft, Ersatz und Schlüssel stehen für jedes Mitglied nebeneinander.
- * Genau das ist der Zweck der Seite: Sie beantwortet Fragen, für die man sonst vier
- * Listen öffnen müsste — etwa „wer hat einen Schlüssel und trainiert donnerstags?".
+ * Training, Mannschaft, Ersatz und Schlüsseldienst stehen für jedes Mitglied
+ * nebeneinander. Genau das ist der Zweck der Seite: Sie beantwortet Fragen, für die man
+ * sonst vier Listen öffnen müsste — etwa „wer schließt montags auf und trainiert
+ * donnerstags?".
  */
 export default function ClubOverviewTab() {
   const members = useAdminMembers();
   const groups = useGroups();
   const trainings = useTrainings();
   const teams = useTeams();
-  const keys = useKeys();
+  const keyDuty = useKeyDutyWeekdays();
 
   const rows = members.data ?? [];
 
@@ -31,9 +33,12 @@ export default function ClubOverviewTab() {
       memberAssignments({
         trainings: trainings.data ?? [],
         teams: teams.data ?? [],
-        keys: keys.data ?? [],
+        keyDuty: (keyDuty.data ?? []).map((entry) => ({
+          weekday: weekdayLabel(entry.weekday),
+          profile_id: entry.profile_id,
+        })),
       }),
-    [trainings.data, teams.data, keys.data],
+    [trainings.data, teams.data, keyDuty.data],
   );
 
   const forMember = (id: string) => assignments.get(id) ?? NO_ASSIGNMENTS;
@@ -79,9 +84,9 @@ export default function ClubOverviewTab() {
               cell: (member: Member) => assignmentText(forMember(member.id).substituteFor),
             },
             {
-              key: 'keys',
-              header: 'Schlüssel',
-              cell: (member: Member) => assignmentText(forMember(member.id).keys),
+              key: 'keyDuty',
+              header: 'Schlüsseldienst',
+              cell: (member: Member) => assignmentText(forMember(member.id).keyDuty),
             },
           ]}
           rows={rows}

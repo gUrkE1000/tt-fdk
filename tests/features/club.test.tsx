@@ -352,10 +352,10 @@ describe('VenuesPage', () => {
     expect(state.updates[0]).toEqual({ table: 'venues', values: { active: false } });
   });
 
-  it('führt die Schlüssel unter den Orten', async () => {
+  it('führt den Schlüsseldienst unter den Orten — ohne Schlüsselverwaltung', async () => {
     renderPage(<VenuesPage />);
-    expect(await screen.findByRole('heading', { name: 'Schlüssel' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Schlüssel anlegen/ })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Schlüsseldienst' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Schlüssel anlegen/ })).toBeNull();
   });
 });
 

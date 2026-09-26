@@ -3,7 +3,7 @@ import { KeyRound } from 'lucide-react';
 import { Button, Select, useToast } from '../../components/ui';
 import { useSession } from '../auth/session';
 import { useMembers, type MemberSummary } from '../members/api';
-import { useKeys, useSetSessionKeyBearer, type KeyRow, type SessionKeys } from '../keys/api';
+import { useSetSessionKeyBearer, type SessionKeys } from '../keys/api';
 import type { TrainingSession, TrainingWithPeople } from './api';
 
 export interface KeyBearerRowProps {
@@ -13,37 +13,22 @@ export interface KeyBearerRowProps {
   profileId: string | null;
 }
 
-/** Wer laut Schlüsselverwaltung einen Schlüssel für die Halle des Trainings hat. */
-export function holdersForVenue(keys: KeyRow[], venueId: string | null | undefined): KeyRow[] {
-  if (!venueId) return [];
-  const seen = new Set<string>();
-  return keys.filter((key) => {
-    if (!key.active || key.venue_id !== venueId || !key.holder_id) return false;
-    if (seen.has(key.holder_id)) return false;
-    seen.add(key.holder_id);
-    return true;
-  });
-}
-
 /**
- * Wen der Trainer eintragen kann: erst, wer einen Schlüssel für die Halle hat, dann
- * alle übrigen aktiven Mitglieder.
+ * Wen der Trainer eintragen kann: erst, wer Schlüsseldienst hat, dann alle übrigen
+ * aktiven Mitglieder, jeweils nach Namen.
  */
-export function bearerOptions(
-  members: MemberSummary[],
-  holderIds: Set<string>,
-): { value: string; label: string }[] {
+export function bearerOptions(members: MemberSummary[]): { value: string; label: string }[] {
   const active = members.filter((member) => member.status === 'active' && !member.deleted_at);
   const byName = (a: MemberSummary, b: MemberSummary) =>
     (a.full_name ?? '').localeCompare(b.full_name ?? '', 'de');
 
   return [
     ...active
-      .filter((member) => holderIds.has(member.id))
+      .filter((member) => member.key_service)
       .sort(byName)
-      .map((member) => ({ value: member.id, label: `${member.full_name ?? ''} · hat einen Schlüssel` })),
+      .map((member) => ({ value: member.id, label: `${member.full_name ?? ''} · Schlüsseldienst` })),
     ...active
-      .filter((member) => !holderIds.has(member.id))
+      .filter((member) => !member.key_service)
       .sort(byName)
       .map((member) => ({ value: member.id, label: member.full_name ?? '' })),
   ];
@@ -53,30 +38,25 @@ export function bearerOptions(
  * Die Schlüsselzeile eines Trainingstermins: wer den Hallenschlüssel bringt.
  *
  * Man trägt sich selbst ein („Ich bringe den Schlüssel"); Trainer und Admin tragen
- * jemanden ein oder ändern den Eintrag. Ist niemand eingetragen, nennt die Zeile, wer
- * laut Schlüsselverwaltung einen Schlüssel für die Halle hat.
+ * jemanden ein oder ändern den Eintrag. Hat an dem Tag jemand Schlüsseldienst, steht
+ * das an seiner Stelle.
  */
 export default function KeyBearerRow({ session, training, keys, profileId }: KeyBearerRowProps) {
   const { toast } = useToast();
   const { role } = useSession();
   const setBearer = useSetSessionKeyBearer();
-  const allKeys = useKeys();
   const [picking, setPicking] = useState(false);
 
   const isManager =
     role === 'admin' || (profileId !== null && (training?.trainerIds ?? []).includes(profileId));
   const members = useMembers();
 
-  const holders = useMemo(
-    () => holdersForVenue(allKeys.data ?? [], training?.venue_id),
-    [allKeys.data, training?.venue_id],
-  );
   const options = useMemo(
     () =>
       isManager
-        ? bearerOptions(members.data ?? [], new Set(holders.map((key) => key.holder_id!)))
+        ? bearerOptions(members.data ?? [])
         : [],
-    [isManager, members.data, holders],
+    [isManager, members.data],
   );
 
   const ended = new Date(session.ends_at ?? session.starts_at) <= new Date();
@@ -172,7 +152,6 @@ export default function KeyBearerRow({ session, training, keys, profileId }: Key
     );
   }
 
-  const holderNames = holders.map((key) => key.holder_name).filter(Boolean);
 
   return (
     <div className="space-y-2 rounded-xl bg-status-late-soft p-2.5 text-sm text-status-late">
@@ -180,9 +159,6 @@ export default function KeyBearerRow({ session, training, keys, profileId }: Key
         <KeyRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
         <span>
           {ended ? 'Niemand war für den Schlüssel eingetragen.' : 'Noch niemand bringt den Schlüssel.'}
-          {!ended && holderNames.length > 0 && (
-            <> Einen Schlüssel für die Halle haben: {holderNames.join(', ')}.</>
-          )}
         </span>
       </p>
       {canAct && !picking && (

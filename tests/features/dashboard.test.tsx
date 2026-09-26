@@ -414,7 +414,8 @@ describe('DashboardPage', () => {
     expect(screen.queryByRole('tab', { name: /^Spiele/ })).toBeNull();
     expect(screen.getByRole('tab', { name: 'Offene Trainings (1)' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Kalender' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Schlüssel' })).toBeInTheDocument();
+    // Den Reiter „Schlüsseldienst" sehen nur Schlüsseldienst und Administrator.
+    expect(screen.queryByRole('tab', { name: 'Schlüsseldienst' })).toBeNull();
   });
 
   it('verlinkt die Quicklinks nach außen', async () => {
@@ -441,7 +442,10 @@ describe('DashboardPage', () => {
   });
 
   it('öffnet über ?tab= direkt einen Reiter', async () => {
+    state.role = 'admin';
     renderPage('/?tab=keys');
-    expect(await screen.findByRole('tab', { name: 'Schlüssel', selected: true })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('tab', { name: 'Schlüsseldienst', selected: true }),
+    ).toBeInTheDocument();
   });
 });

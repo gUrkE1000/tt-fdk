@@ -216,7 +216,7 @@ export default function MemberDialog({
           checked={form.watch('keyService')}
           onCheckedChange={(value) => form.setValue('keyService', value)}
           label="Schlüsseldienst"
-          hint="Schließt die Halle auf und zu. Die festen Wochentage vergibst du unter „Orte & Schlüssel“."
+          hint="Schließt die Halle auf und zu. Die festen Wochentage vergibst du unter „Orte & Schlüsseldienst“."
         />
         <Checkbox
           checked={form.watch('contactVisible')}

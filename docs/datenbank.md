@@ -5,7 +5,7 @@ dieses Dokument erklärt, warum etwas so aussieht.
 
 Stand: Verein, Mitglieder, Ränge, Gruppen, Orte, Abwesenheiten, Mannschaften, Spiele,
 Beteiligung, Benachrichtigungen (E-Mail und Push), Training, Vereinstermine, Umfragen,
-Kalender, ICS-Abo, die Betriebssicht, die Schlüsselverwaltung, die Ämter, die Neuigkeiten und die
+Kalender, ICS-Abo, die Betriebssicht, den Schlüsseldienst, die Ämter, die Neuigkeiten und die
 Nachrichten am Termin. Es fehlen noch die übrigen Stufe-B-Tabellen (Phase 9).
 
 Die Baseline `20261001000000_schema_v2.sql` ist eingefroren; jede Änderung danach ist eine
@@ -267,23 +267,18 @@ Ein Amt kann mehrere Inhaber haben und ein Mitglied mehrere Ämter — beides is
 normal. `duties` ist ein Textfeld-Array, damit die Tätigkeiten einzeln bleiben und sich
 einzeln anzeigen lassen.
 
-### `keys`, `key_handovers`
+### Schlüsselverwaltung (entfernt)
 
-Hallenschlüssel und ihr Weg. Der aktuelle Inhaber steht als Spalte an `keys`, das
-Protokoll daneben in `key_handovers` — die Spalte ist die Antwort, das Protokoll die
-Begründung. Läge die Antwort nur im Protokoll, hinge sie an einer Sortierung, und zwei
-Übergaben in derselben Sekunde hätten den Schlüssel an die falsche Person gegeben.
+`keys`, `key_handovers`, `v_keys`, `rpc_hand_over_key` und `may_hand_over_key` gibt es seit
+Migration `20261107000000_remove_key_management` nicht mehr (Vereinsentscheidung
+26.09.2026). Wer die Halle auf- und zuschließt, regelt der Schlüsseldienst; wer zu einem
+Training den Schlüssel bringt, `training_session_keys`.
 
-Geschrieben wird `holder_id` ausschließlich von `rpc_hand_over_key`. Wer weitergeben
-darf, sagt `may_hand_over_key()`: der aktuelle Inhaber (außer bei `no_forwarding`), der
-Verantwortliche und der Administrator. Die letzten beiden immer — sonst wäre ein
-Schlüssel bei einem ausgetretenen Mitglied für immer verloren.
-
-`v_session_keys` beantwortet die Frage der Trainingskarte („kommt jemand mit Schlüssel?").
-Wie `v_session_counts` bewusst **ohne** `security_invoker`: Die Antwort muss stimmen, auch
-wenn die Teilnehmerliste verborgen ist. Der **Name** hängt dagegen an
-`may_see_session_roster` — sonst verriete der Hinweis bei einem inkognito geführten
-Training genau das, was Inkognito verbergen soll.
+`v_session_keys` beantwortet die Fragen der Trainingskarte: wer den Schlüssel bringt
+(`has_bearer`, `bearer_id`, `bearer_name`) und wer an dem Tag Schlüsseldienst hat
+(`duty_id`, `duty_name`). Bewusst **ohne** `security_invoker`; der **Name** des
+Schlüsselbringers hängt an `may_see_session_roster` — sonst verriete er bei einem
+inkognito geführten Training genau das, was Inkognito verbergen soll.
 
 ### `training_session_keys`, `training_key_reminders`
 
@@ -298,8 +293,8 @@ abgeleitet (Migration `training_key_bearer`). Gilt für jedes Training;
 - Sagt der Eingetragene ab (`training_attendance.status = 'no'`), trägt ein Trigger ihn aus.
 - `enqueue_key_reminders()` (aus dem Erinnerungslauf) schickt den Trainern einmal je
   Termin `training_key_missing`, wenn der Termin in den nächsten 24 Stunden liegt und
-  niemand eingetragen ist; die Nachricht nennt, wer laut `keys` einen Schlüssel für die
-  Halle hat. `training_key_reminders` merkt sich das; Austragen setzt es zurück.
+  niemand eingetragen und kein Schlüsseldienst eingeteilt ist. `training_key_reminders`
+  merkt sich das; Austragen setzt es zurück.
 - Gelesen wird über `v_session_keys` (`has_bearer`, `bearer_id`, `bearer_name`). Die Tabelle
   selbst ist für `authenticated` gesperrt; der Name steht nur, wo die Teilnehmerliste
   sichtbar ist, oder für einen selbst.
@@ -432,10 +427,26 @@ Stimme immer heraus, auch bei verborgenen Ergebnissen. Zusammen mit
 
 ### `calendar_tokens`
 
-Der Abo-Link je Mitglied. Er ist ein **Dauerausweis**: Wer ihn hat, liest die zugesagten
-Termine, denn ein Kalenderprogramm kann sich nicht anmelden. Die Tabelle hat deshalb
-**keine einzige Policy** — herausgegeben wird der Token nur an den Eigentümer, über
-`rpc_my_calendar_token()`. `rpc_reset_calendar_token()` macht den alten wertlos.
+Der Abo-Link je Mitglied. Er ist ein **Dauerausweis**: Wer ihn hat, liest die Termine
+dieses Mitglieds, denn ein Kalenderprogramm kann sich nicht anmelden. Die Tabelle hat
+deshalb **keine einzige Policy** — herausgegeben wird der Token nur an den Eigentümer,
+über `rpc_my_calendar_subscription()` (Token und Schalter `include_trainings`).
+`rpc_set_calendar_trainings(bool)` setzt den Schalter, `rpc_reset_calendar_token()` macht
+den alten Link wertlos.
+
+Was im Abo steht, rechnet `calendar_feed_items(profile, since, include_trainings)`
+(Migration `20261107000001_calendar_subscription`, nur `service_role`; die Edge Function
+`calendar-feed` holt und formatiert):
+
+- die Heim- und Auswärtsspiele der eigenen Mannschaften (Stamm, Ersatz,
+  Mannschaftsführung) und Spiele mit Anfrage — unabhängig von der Antwort, mit
+  „(Heim)"/„(Auswärts)", Rückmeldung und Link in der Beschreibung;
+- jede Hallensperre, ganztägig;
+- mit Schalter die eigenen Trainings (Trainer, zugeordnet, offen, beim Systemtraining
+  zugeteilt).
+
+Abgesagte Spiele und ausgefallene Trainings bleiben mit `STATUS:CANCELLED` und „fällt aus"
+im Titel stehen. Vereinstermine gehören nicht ins Abo.
 
 ### Schlüsseldienst: `key_duty_weekdays`, `key_duty_overrides`
 
@@ -452,6 +463,13 @@ denen die Halle gebraucht wird (Training findet statt oder Heimspiel), mit der P
 `v_session_keys` zeigt am Trainingstermin `duty_id`/`duty_name`; an einem Tag mit
 Schlüsseldienst entfällt die Erinnerung „Noch niemand bringt den Schlüssel".
 
+Seit Migration `20261106000000_key_duty_followups`: `v_key_duty_dates` trägt die Zeit der
+Hallenbelegung (`starts_at`/`ends_at`, erste bis letzte Belegung des Tages), und der
+eigene Schlüsseldienst steht in `v_my_upcoming` (Art `key_duty`, Status `yes`) — damit in
+„Meine Termine" (nicht im Kalender-Abo, das rechnet `calendar_feed_items`). Einen festen Wochentag bekommt nur, wer
+Schlüsseldienst hat (Trigger); wird das Kennzeichen entfernt oder das Konto gelöscht,
+fallen Wochentage und künftige Vertretungen weg.
+
 ### Systemtraining: `training_session_participants`
 
 `trainings.is_system` (nie offen, ein Trigger setzt `is_open = false`): Teilnehmer werden
@@ -465,7 +483,10 @@ benachrichtigt.
 `club_default_venue()`: der in den Vereinsdaten gewählte Standardort, sonst die einzige
 aktive Halle. Ein Training oder Heimspiel ohne eigenen Ort findet dort statt — eine
 Hallensperre sagt es mit ab (Training) bzw. meldet der Mannschaftsführung
-`match_venue_blocked` (Heimspiel: muss verlegt werden, wird nicht abgesagt).
+`match_venue_blocked` (Heimspiel: muss verlegt werden, wird nicht abgesagt). Die Nachricht kommt
+auch, wenn ein Heimspiel erst später in eine gesperrte Halle gerät — neu importiert,
+verlegt, zum Heimspiel gemacht oder in die Halle gelegt (Trigger auf `matches`), aber je
+Spiel nur einmal, solange es in der Sperre bleibt.
 
 ### `private.cron_config`
 
@@ -600,7 +621,7 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `is_poll_target(uuid)`, `may_see_poll_results(uuid)` | Ist der Angemeldete gemeint, und darf er die Auszählung sehen? |
 | `rpc_vote_poll(uuid[])`, `rpc_retract_poll_vote(uuid)` | Abstimmen und die eigene Stimme zurückziehen |
 | `is_playing_member()` | Aktives Mitglied, das kein Gast ist — die Grenze des Spielbetriebs |
-| `rpc_my_calendar_token()`, `rpc_reset_calendar_token()` | Den eigenen Abo-Link holen oder neu erzeugen |
+| `rpc_my_calendar_subscription()`, `rpc_set_calendar_trainings(bool)`, `rpc_reset_calendar_token()` | Den eigenen Abo-Link und den Trainings-Schalter holen, den Schalter setzen, den Link neu erzeugen |
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |
@@ -652,8 +673,6 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `object_messages` | wer den Termin sieht | wer den Termin sieht; ändern/löschen nur die eigene (Admin jede) |
 | `news` | aktive Mitglieder ab `published_at` | Admin, Organisator |
 | `club_roles`, `club_role_members` | aktive Mitglieder | Admin |
-| `keys` | aktive Mitglieder | Admin (Inhaber nur über `rpc_hand_over_key`) |
-| `key_handovers` | aktive Mitglieder | niemand direkt |
 | `profiles` | eigene Zeile immer; Admin alles, auch Gelöschte; sonst aktive Mitglieder. Ein Gast sieht nur Admins und Trainer | eigene Zeile oder Admin; Spaltenschutz per Trigger |
 | `absences` | eigene Zeilen; Admin, Trainer und Mannschaftsführer die Zeiträume aller | eigene Zeilen oder Admin |
 | `member_rankings` | aktive Mitglieder | Admin |
@@ -688,7 +707,7 @@ nicht einfach registrieren, und der Verein behält die Kontrolle darüber, wer M
 | `event_participations` | aktive Mitglieder | **niemand direkt** — nur `rpc_set_event_participation` oder der Link |
 | `polls`, `poll_targets`, `poll_options` | wer gemeint ist, dazu Organisator und Admin | Organisator und Admin |
 | `poll_votes` | eigene Stimme immer; fremde nur bei offenen Ergebnissen | **niemand direkt** — nur `rpc_vote_poll` |
-| `calendar_tokens` | **niemand** | niemand — nur über die beiden RPCs |
+| `calendar_tokens` | **niemand** | niemand — nur über die RPCs |
 
 `service_role` (Edge Functions) umgeht RLS — das ist gewollt und der Grund, warum der
 `service_role`-Schlüssel niemals ins Frontend gehört.

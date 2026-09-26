@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import { todayInBerlin } from '../../lib/dates';
-import { useClubSettings } from '../club/api';
 import { useTrainingCancellations, type TrainingCancellation } from '../trainings/api';
-import { useVenues } from '../venues/api';
+import { useDefaultVenueId } from '../venues/defaultVenue';
 import type { MatchRow } from './api';
 
 /**
@@ -15,17 +14,6 @@ import type { MatchRow } from './api';
  * Ein Heimspiel ohne eigenen Ort — der Normalfall beim Import aus click-TT — findet im
  * Standardort statt. Dieselbe Regel wie `club_default_venue()` in der Datenbank.
  */
-
-export function defaultVenueId(
-  settingValue: string | null | undefined,
-  venues: readonly { id: string; active: boolean }[],
-): string | null {
-  const chosen = (settingValue ?? '').trim();
-  if (chosen !== '' && venues.some((venue) => venue.id === chosen)) return chosen;
-
-  const active = venues.filter((venue) => venue.active);
-  return active.length === 1 ? active[0].id : null;
-}
 
 export function findVenueBlock(
   match: Pick<MatchRow, 'is_home' | 'venue_id' | 'dtstart' | 'active'>,
@@ -50,13 +38,11 @@ export function useVenueBlockFor(): (
   match: Pick<MatchRow, 'is_home' | 'venue_id' | 'dtstart' | 'active'>,
 ) => TrainingCancellation | null {
   const cancellations = useTrainingCancellations();
-  const settings = useClubSettings();
-  const venues = useVenues();
+  const fallback = useDefaultVenueId();
 
   return useMemo(() => {
     const blocks = (cancellations.data ?? []).filter((entry) => entry.venue_id !== null);
-    const fallback = defaultVenueId(settings.data?.default_venue_id, venues.data ?? []);
     return (match) =>
       (findVenueBlock(match, blocks, fallback) as TrainingCancellation | null) ?? null;
-  }, [cancellations.data, settings.data, venues.data]);
+  }, [cancellations.data, fallback]);
 }

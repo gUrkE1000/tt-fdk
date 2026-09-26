@@ -24,6 +24,7 @@ const KIND_LABELS: Record<string, string> = {
   match: 'Spiel',
   training: 'Training',
   event: 'Vereinstermin',
+  key_duty: 'Schlüsseldienst',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -110,7 +111,7 @@ export default function MyDatesPage() {
     <div>
       <PageHeader
         title="Meine Termine"
-        description="Spiele, Trainings und Vereinstermine — wo du noch antworten solltest und wozu du dich gemeldet hast."
+        description="Spiele, Trainings, Vereinstermine und dein Schlüsseldienst — wo du noch antworten solltest und wozu du dich gemeldet hast."
         actions={
           <Button variant="primary" onClick={() => setSubscribeOpen(true)}>
             <Rss className="h-4 w-4" aria-hidden="true" />

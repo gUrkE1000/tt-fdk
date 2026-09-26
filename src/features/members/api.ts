@@ -325,4 +325,7 @@ function invalidateMembers(queryClient: ReturnType<typeof useQueryClient>) {
   void queryClient.invalidateQueries({ queryKey: queryKeys.members.all });
   // Das eigene Profil steckt in der Sitzung und muss ebenfalls neu geladen werden.
   void queryClient.invalidateQueries({ queryKey: ['profile'] });
+  // Ohne Kennzeichen oder mit gelöschtem Konto fallen Schlüsseldienst-Tage weg
+  // (Trigger `clear_key_duty_on_leave`).
+  void queryClient.invalidateQueries({ queryKey: ['key-duty'] });
 }

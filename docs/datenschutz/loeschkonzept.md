@@ -94,7 +94,6 @@ Bewusst, mit Begründung:
 | Mitgliedsdaten im laufenden Mitgliedsverhältnis | Grundlage der Vereinsmitgliedschaft. Wer austritt, löscht sein Konto oder der Administrator tut es — dann greift die 30-Tage-Frist. |
 | Vergangene Spiele, Trainingstermine, Vereinstermine | Vereinsgeschichte ohne besonderen Personenbezug. Die *Rückmeldungen* daran verschwinden mit dem jeweiligen Mitglied. |
 | Vereinsneuigkeiten | Redaktioneller Inhalt; der Verfasser wird bei dessen Löschung auf „unbekannt" gesetzt (`ON DELETE SET NULL`). |
-| Schlüsselprotokoll (`key_handovers`) | Wer zuletzt einen Hallenschlüssel hatte, muss nachvollziehbar bleiben, solange der Schlüssel existiert. Namen verschwinden mit dem Mitglied. |
 | Vereinseinstellungen, Orte, Mannschaften | Kein Personenbezug. |
 | Feiertage und Schulferien | Kein Personenbezug. |
 
