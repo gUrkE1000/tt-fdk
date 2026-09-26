@@ -5,10 +5,12 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import deLocale from '@fullcalendar/core/locales/de';
-import { Checkbox } from '../../components/ui';
+import { Rss } from 'lucide-react';
+import { Button, Checkbox } from '../../components/ui';
 import { cn } from '../../lib/cn';
 import { useIsCompact } from '../../lib/useIsCompact';
 import { useCalendarItems } from './api';
+import SubscribeDialog from './SubscribeDialog';
 import {
   CATEGORIES,
   DEFAULT_CALENDAR_FILTERS,
@@ -30,6 +32,7 @@ export default function PlanningTab() {
   const items = useCalendarItems();
   const compact = useIsCompact();
   const [filters, setFilters] = useState<CalendarFilters>(DEFAULT_CALENDAR_FILTERS);
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
   const navigate = useNavigate();
 
   const events = useMemo(
@@ -39,33 +42,42 @@ export default function PlanningTab() {
 
   return (
     <div className="space-y-3">
-      <div
-        role="group"
-        aria-label="Welche Termine"
-        className="inline-flex rounded-xl border border-gray-300 bg-white p-0.5"
-      >
-        {(
-          [
-            [false, 'Alle Termine'],
-            [true, 'Für mich relevant'],
-          ] as const
-        ).map(([mineOnly, label]) => (
-          <button
-            key={label}
-            type="button"
-            aria-pressed={filters.mineOnly === mineOnly}
-            onClick={() => setFilters({ ...filters, mineOnly })}
-            className={cn(
-              'min-h-touch rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
-              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
-              filters.mineOnly === mineOnly
-                ? 'bg-primary text-white'
-                : 'text-gray-600 hover:bg-gray-50',
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div
+          role="group"
+          aria-label="Welche Termine"
+          className="inline-flex rounded-xl border border-gray-300 bg-white p-0.5"
+        >
+          {(
+            [
+              [false, 'Alle Termine'],
+              [true, 'Für mich relevant'],
+            ] as const
+          ).map(([mineOnly, label]) => (
+            <button
+              key={label}
+              type="button"
+              aria-pressed={filters.mineOnly === mineOnly}
+              onClick={() => setFilters({ ...filters, mineOnly })}
+              className={cn(
+                'min-h-touch rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+                filters.mineOnly === mineOnly
+                  ? 'bg-primary text-white'
+                  : 'text-gray-600 hover:bg-gray-50',
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Dieselbe Frage stellt sich hier wie unter „Meine Termine": Wie kommen die
+            Termine in den eigenen Kalender? */}
+        <Button size="sm" onClick={() => setSubscribeOpen(true)}>
+          <Rss className="h-4 w-4" aria-hidden="true" />
+          Kalender abonnieren
+        </Button>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -183,6 +195,8 @@ export default function PlanningTab() {
           noEventsText="In diesem Zeitraum steht nichts an."
         />
       </div>
+
+      <SubscribeDialog open={subscribeOpen} onOpenChange={setSubscribeOpen} />
     </div>
   );
 }
