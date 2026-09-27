@@ -86,7 +86,7 @@ const part = (profileId: string, response: string): Participation =>
 
 const names: Record<string, string> = { 'p-a': 'Anna', 'p-b': 'Bernd', 'p-c': 'Carla' };
 
-function renderCard(participations: Participation[]) {
+function renderCard(participations: Participation[], canManage = false) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
@@ -100,6 +100,7 @@ function renderCard(participations: Participation[]) {
             volunteers={[]}
             nameOf={(id) => names[id] ?? ''}
             profileId="p-a"
+            canManage={canManage}
           />
         </MemoryRouter>
       </ToastProvider>
@@ -108,6 +109,16 @@ function renderCard(participations: Participation[]) {
 }
 
 describe('GameCard', () => {
+  it('bietet das Fahren an, wer angefragt ist', () => {
+    renderCard([part('p-a', 'yes')]);
+    expect(screen.getByRole('button', { name: 'Ich kann fahren' })).toBeInTheDocument();
+  });
+
+  it('nicht aber dem Verwalter eines Spiels, das nicht seins ist', () => {
+    renderCard([part('p-b', 'yes')], true);
+    expect(screen.queryByRole('button', { name: 'Ich kann fahren' })).not.toBeInTheDocument();
+  });
+
   it('zeigt, wer zu-, ab- oder noch nicht geantwortet hat', async () => {
     renderCard([part('p-a', 'yes'), part('p-b', 'no'), part('p-c', 'none')]);
 

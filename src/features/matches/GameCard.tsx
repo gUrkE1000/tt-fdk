@@ -281,7 +281,9 @@ export default function GameCard({
           />
         )}
 
-        {profileId && !finished && involved && (
+        {/* Fahren trägt nur ein, wer mitspielt oder zur Mannschaft gehört — nicht der
+            Administrator bei jedem Spiel des Vereins, nur weil er es verwalten darf. */}
+        {profileId && !finished && (mine !== null || inTeam) && (
           <VolunteerToggles
             matchId={match.id}
             profileId={profileId}
