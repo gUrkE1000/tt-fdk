@@ -19,8 +19,9 @@ Leerlisten, sofortige Antworten, Offline-Stand auf dem Gerät, Daten ab 30 Tagen
 Seiten und große Bibliotheken werden nachgeladen (Hauptpaket 1,87 MB → 816 KB).
 
 Noch nicht eingeladen ist jemand: Was davor zu erledigen ist, steht in
-[docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md). Nicht gebaut sind
-9.4 (Dateien), 9.7 (NuScore-PDF) und 9.10 („Anmelden als"); keines davon blockiert.
+[docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md). Nicht gebaut ist
+9.7 (nuScore-Codes und -PINs aus dem PDF einlesen; von Hand eintragen geht); 9.4 (Dateien)
+und 9.10 („Anmelden als") sind gestrichen.
 
 ## Loslegen
 
