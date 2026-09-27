@@ -372,6 +372,11 @@ export default function SessionCard({
                           onChange={(event) => setComment(event.target.value)}
                           placeholder="Komme erst gegen 19:30"
                         />
+                        {/* Andere sehen die Bemerkung. Gesundheitsdaten (Art. 9 DSGVO) gehören nicht
+                            hinein — ein „kann nicht" genügt als Absagegrund. */}
+                        <p className="mt-1.5 text-xs text-gray-500">
+                          Andere Mitglieder können das lesen. Bitte keine Gesundheitsangaben.
+                        </p>
                         {!mine && (
                           <p className="mt-1.5 text-xs text-gray-500">
                             Wähle danach, ob du dabei bist — die Bemerkung wird mitgespeichert.

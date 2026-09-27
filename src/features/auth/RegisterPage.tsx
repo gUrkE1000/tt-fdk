@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { MailCheck, ShieldX, WifiOff } from 'lucide-react';
 import {
   Button,
+  Checkbox,
   EmptyState,
   FormField,
   Input,
@@ -69,6 +70,8 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({ resolver: zodResolver(registerSchema) });
 
@@ -242,6 +245,21 @@ export default function RegisterPage() {
               <PasswordInput {...p} {...register('password')} autoComplete="new-password" />
             )}
           </FormField>
+
+          <div>
+            <Checkbox
+              checked={watch('ageConfirmed') === true}
+              onCheckedChange={(checked) =>
+                setValue('ageConfirmed', (checked || undefined) as true, { shouldValidate: true })
+              }
+              label="Ich bin mindestens 16 Jahre alt oder meine Eltern sind einverstanden."
+            />
+            {errors.ageConfirmed && (
+              <p className="mt-1 text-xs text-danger" role="alert">
+                {errors.ageConfirmed.message}
+              </p>
+            )}
+          </div>
 
           <Button type="submit" variant="primary" block loading={isSubmitting}>
             Registrieren

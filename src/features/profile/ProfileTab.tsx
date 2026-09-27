@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Download, Trash2 } from 'lucide-react';
 import {
   Button,
   Card,
@@ -27,6 +27,8 @@ import {
 } from './schemas';
 import { signOut } from '../auth/api';
 import ThemeToggle from './ThemeToggle';
+import { buildDataExport, exportFileName } from './dataExport';
+import { downloadBlob } from '../members/workbook';
 
 const GENDER_OPTIONS = Object.entries(GENDER_LABELS).map(([value, label]) => ({ value, label }));
 
@@ -34,6 +36,25 @@ export default function ProfileTab({ profile }: { profile: Profile }) {
   const { toast } = useToast();
   const updateProfile = useUpdateMyProfile();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  async function downloadMyData() {
+    setExporting(true);
+    try {
+      const data = await buildDataExport(profile.id);
+      downloadBlob(
+        new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
+        exportFileName(),
+      );
+      if (data.nicht_lesbar.length > 0) {
+        toast(`Nicht alles ließ sich lesen: ${data.nicht_lesbar.join(', ')}`, 'error');
+      }
+    } catch (error) {
+      toast(error instanceof Error ? error.message : 'Export fehlgeschlagen', 'error');
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const form = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
@@ -215,12 +236,29 @@ export default function ProfileTab({ profile }: { profile: Profile }) {
 
       <Card>
         <CardHeader>
+          <h3 className="font-bold text-gray-900">Meine Daten</h3>
+        </CardHeader>
+        <CardBody className="space-y-3">
+          <p className="text-sm text-gray-600">
+            Alles, was über dich gespeichert ist — Profil, Rückmeldungen, Abwesenheiten,
+            Benachrichtigungen —, als JSON-Datei. So steht es auch im Datenschutzhinweis.
+          </p>
+          <Button loading={exporting} onClick={() => void downloadMyData()}>
+            <Download className="h-4 w-4" aria-hidden="true" />
+            Meine Daten herunterladen
+          </Button>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <h3 className="font-bold text-danger">Konto löschen</h3>
         </CardHeader>
         <CardBody className="space-y-3">
           <p className="text-sm text-gray-600">
-            Dein Zugang wird gesperrt und dein Profil aus allen Listen entfernt. Vergangene
-            Spiele und Aufstellungen bleiben für den Verein nachvollziehbar.
+            Dein Zugang wird sofort gesperrt und dein Profil aus allen Listen entfernt. Nach
+            30 Tagen wird alles endgültig gelöscht — auch deine Rückmeldungen. Soll es
+            sofort passieren, sag dem Administrator Bescheid.
           </p>
           <Button variant="danger" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="h-4 w-4" aria-hidden="true" />

@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 const signInWithOtp = vi.fn();
 const signInWithPassword = vi.fn();
 const resetPasswordForEmail = vi.fn();
+const signUp = vi.fn();
 const rpc = vi.fn();
 
 vi.mock('../../src/lib/supabaseClient', () => ({
@@ -19,7 +20,7 @@ vi.mock('../../src/lib/supabaseClient', () => ({
       resetPasswordForEmail: (...args: unknown[]) => resetPasswordForEmail(...args),
       getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
       onAuthStateChange: vi.fn().mockReturnValue({ subscription: { unsubscribe: vi.fn() } }),
-      signUp: vi.fn(),
+      signUp: (...args: unknown[]) => signUp(...args),
       signOut: vi.fn(),
     },
     rpc: (...args: unknown[]) => rpc(...args),
@@ -200,6 +201,34 @@ describe('RegisterPage', () => {
 
     expect(await screen.findByRole('button', { name: 'Registrieren' })).toBeInTheDocument();
     expect(screen.getByLabelText(/Vorname/)).toBeInTheDocument();
+  });
+
+  it('verlangt die Bestätigung von Alter oder Einverständnis der Eltern', async () => {
+    answerRpc((name) =>
+      name === 'rpc_validate_registration_code'
+        ? json(true)
+        : json([{ club_name: 'TTC Musterstadt' }]),
+    );
+    signUp.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+
+    renderWithProviders(<RegisterPage />, '/register/TESTCODE');
+    await user.type(await screen.findByLabelText(/Vorname/), 'Lea');
+    await user.type(screen.getByLabelText(/Nachname/), 'Lang');
+    await user.type(screen.getByLabelText(/E-Mail-Adresse/), 'lea@example.org');
+    await user.click(screen.getByRole('button', { name: 'Registrieren' }));
+
+    expect(await screen.findByText(/mindestens 16 bist oder deine Eltern/)).toBeInTheDocument();
+    expect(signUp).not.toHaveBeenCalled();
+
+    await user.click(screen.getByText(/Ich bin mindestens 16 Jahre alt/));
+    await user.click(screen.getByRole('button', { name: 'Registrieren' }));
+
+    await waitFor(() => expect(signUp).toHaveBeenCalledTimes(1));
+    const data = signUp.mock.calls[0][0].options.data;
+    expect(data).toMatchObject({ first_name: 'Lea', consent_age_confirmed: true });
+    // Nachweis nach Art. 7 Abs. 1 DSGVO: mit Zeitpunkt.
+    expect(Date.parse(data.consent_at)).not.toBeNaN();
   });
 
   /*

@@ -231,6 +231,8 @@ export interface RegisterInput {
   email: string;
   password?: string;
   registrationCode: string;
+  /** Mindestens 16 oder mit Einverständnis der Eltern (Art. 8 DSGVO). */
+  ageConfirmed: boolean;
 }
 
 /**
@@ -249,6 +251,10 @@ export async function registerWithCode(input: RegisterInput): Promise<void> {
         first_name: input.firstName.trim(),
         last_name: input.lastName.trim(),
         registration_code: input.registrationCode,
+        // Nachweis nach Art. 7 Abs. 1 DSGVO: wann und wozu zugestimmt wurde. Liegt in
+        // den Metadaten des Kontos bei Supabase Auth, nicht in der Profiltabelle.
+        consent_at: new Date().toISOString(),
+        consent_age_confirmed: input.ageConfirmed,
       },
     },
   });

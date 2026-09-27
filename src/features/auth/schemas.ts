@@ -21,5 +21,10 @@ export const registerSchema = z.object({
     .min(8, 'Mindestens 8 Zeichen')
     .optional()
     .or(z.literal('')),
+  // Art. 8 DSGVO: Die Anwendung stützt sich auf Einwilligung. Unter 16 braucht es die
+  // der Eltern — bestätigt wird das hier, nachgewiesen in den Metadaten des Kontos.
+  ageConfirmed: z.literal(true, {
+    message: 'Bitte bestätige, dass du mindestens 16 bist oder deine Eltern einverstanden sind',
+  }),
 });
 export type RegisterValues = z.infer<typeof registerSchema>;
