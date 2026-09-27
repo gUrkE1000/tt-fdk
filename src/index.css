@@ -8,7 +8,9 @@
  * Als RGB-Tripel ohne Funktionsklammern, weil Tailwind sie in `rgb(… / <alpha-value>)`
  * einsetzt — nur so funktionieren Transparenzen wie `bg-gray-900/40` weiter.
  *
- * Hell sind es exakt die Werte von vorher (Tailwind-Standardpalette). Dunkel ist die
+ * Hell: die obersten drei Stufen (50/100/200) sind gegenüber der Tailwind-Standardpalette
+ * etwas abgedunkelt, damit Karten (bg-white) auf dem Seitenhintergrund (bg-gray-50) klar
+ * erkennbar sind. Der Rest (300–900) entspricht weiterhin Tailwind-Standard. Dunkel ist die
  * Skala gespiegelt: Was hell der hellste Hintergrund war, ist dunkel der dunkelste.
  * Dadurch ergibt `text-gray-900 auf bg-white` in beiden Modi hellen Text auf dunklem
  * beziehungsweise dunklen Text auf hellem Grund, ohne dass eine Komponente etwas davon
@@ -23,9 +25,9 @@
 :root {
   --surface: 255 255 255;
 
-  --gray-50: 249 250 251;
-  --gray-100: 243 244 246;
-  --gray-200: 229 231 235;
+  --gray-50: 232 236 242;   /* abgedunkelt ggü. Tailwind #f9fafb → deutlicherer Kontrast zu bg-white */
+  --gray-100: 222 226 232;  /* angepasst, damit die Skala 50 > 100 > 200 monoton bleibt */
+  --gray-200: 211 215 221;  /* angepasst, damit die Skala 50 > 100 > 200 monoton bleibt */
   --gray-300: 209 213 219;
   --gray-400: 156 163 175;
   --gray-500: 107 114 128;
