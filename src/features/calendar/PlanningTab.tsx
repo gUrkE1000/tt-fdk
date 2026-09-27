@@ -99,8 +99,8 @@ export default function PlanningTab() {
           value={filters.mineOnly}
           onChange={(mineOnly) => setFilters({ ...filters, mineOnly })}
           options={[
-            [false, 'Alle Termine'],
             [true, 'Für mich relevant'],
+            [false, 'Alle Termine'],
           ]}
         />
 

@@ -1,7 +1,7 @@
 -- Spielverlegung: Umfrage starten, abstimmen, anwenden.
 
 BEGIN;
-SELECT plan(19);
+SELECT plan(21);
 
 DELETE FROM public.notifications;
 DELETE FROM public.action_tokens;
@@ -111,6 +111,30 @@ SELECT is(
     false,
     'mit dem neuen Wert'
 );
+
+-- ============================================================ nicht dabei
+-- Ein Spieler der 3. Mannschaft gehört nicht zum Spiel der 1. …
+DO $$ BEGIN PERFORM tests.login_as('22222222-1111-0000-0000-000000000003'); END $$;
+
+SELECT throws_ok(
+    $$ SELECT public.rpc_vote_reschedule((SELECT id FROM public.reschedule_polls LIMIT 1), 0, true) $$,
+    '42501',
+    NULL,
+    'Wer nicht zum Spiel gehört, stimmt nicht ab'
+);
+
+-- … und die Administratorin auch nicht, wenn sie nicht in der Mannschaft wäre. Hier
+-- spielt sie in der 1. — also darf sie.
+DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000001'); END $$;
+
+SELECT is(
+    public.rpc_vote_reschedule((SELECT id FROM public.reschedule_polls LIMIT 1), 1, true) ->> 'status',
+    'ok',
+    'Wer in der Mannschaft spielt, stimmt ab'
+);
+
+DO $$ BEGIN PERFORM tests.as_service_role(); END $$;
+DELETE FROM public.reschedule_votes WHERE profile_id = '22222222-0000-0000-0000-000000000001';
 
 -- ============================================================ Ergebnis
 DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000006'); END $$;

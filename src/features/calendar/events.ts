@@ -54,7 +54,8 @@ export interface CalendarFilters {
   homeOnly: boolean;
   /**
    * „Für mich relevant": nur, was einen selbst betrifft (Spalte `mine` der Sicht).
-   * Standard ist der ganze Verein.
+   * Das ist der Standard, für alle Rollen; den ganzen Verein schaltet man bewusst dazu.
+   * Sehen darf jedes Mitglied alles — ändern, verlegen oder abstimmen nur, wer dazugehört.
    */
   mineOnly: boolean;
 }
@@ -62,7 +63,7 @@ export interface CalendarFilters {
 export const DEFAULT_CALENDAR_FILTERS: CalendarFilters = {
   kinds: ALL_KINDS,
   homeOnly: false,
-  mineOnly: false,
+  mineOnly: true,
 };
 
 export interface DisplayEvent {
