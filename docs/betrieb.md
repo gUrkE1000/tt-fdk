@@ -305,6 +305,25 @@ vorhandene Profil nur für ein eingeladenes oder bestätigtes Konto und setzt es
 `active`. Ein E-Mail-Link von der Anmeldeseite hilft hier nicht — die legt bewusst keine
 Konten an.
 
+## 8a. Konto auf Wunsch sofort löschen
+
+„Konto löschen" sperrt sofort; endgültig entfernt der nächtliche Lauf nach 30 Tagen
+(`run_retention`). Bittet jemand um sofortige Löschung — oder widerspricht der Frist
+nach Art. 21 —, im Supabase-Dashboard unter *SQL Editor*:
+
+```sql
+-- Erst nachsehen, wen es trifft.
+SELECT id, full_name, email, deleted_at FROM public.profiles WHERE email = 'person@example.org';
+
+-- Dann löschen: das Profil (mit allen Rückmeldungen, Rängen, Kader …) und den Zugang.
+DELETE FROM public.profiles WHERE id = '<id von oben>';
+DELETE FROM auth.users      WHERE id = '<id von oben>';
+```
+
+Die Anfrage ist innerhalb eines Monats zu erledigen (Art. 12 Abs. 3 DSGVO). In den
+verschlüsselten Sicherungen steht die Person danach noch bis zu 90 Tage — das sagt der
+Datenschutzhinweis so.
+
 ## 9. Sicherung
 
 Supabase sichert im Free-Tarif nichts, was sich zurückspielen ließe. Deshalb

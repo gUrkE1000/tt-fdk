@@ -156,7 +156,7 @@ export default function AbsencesTab({ profileId }: { profileId: string }) {
           </div>
           <FormField
             label="Kommentar"
-            hint="Nur für dich sichtbar."
+            hint="Nur für dich sichtbar. Bitte keine Gesundheitsangaben — „Urlaub“ oder „privat“ genügt."
             error={form.formState.errors.comment?.message}
           >
             {(p) => <Textarea {...p} {...form.register('comment')} rows={2} />}

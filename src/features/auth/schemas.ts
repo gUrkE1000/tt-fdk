@@ -21,5 +21,7 @@ export const registerSchema = z.object({
     .min(8, 'Mindestens 8 Zeichen')
     .optional()
     .or(z.literal('')),
+  // Nur Volljährige: Bestätigt wird das hier, nachgewiesen in den Metadaten des Kontos.
+  ageConfirmed: z.literal(true, { message: 'Die Anwendung ist nur für Volljährige' }),
 });
 export type RegisterValues = z.infer<typeof registerSchema>;

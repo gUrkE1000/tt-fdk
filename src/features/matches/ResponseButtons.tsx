@@ -141,6 +141,11 @@ export default function ResponseButtons({
                 onChange={(event) => setComment(event.target.value)}
                 placeholder="Komme etwas später"
               />
+              {/* Andere sehen die Bemerkung. Gesundheitsdaten (Art. 9 DSGVO) gehören nicht
+                  hinein — ein „kann nicht" genügt als Absagegrund. */}
+              <p className="mt-1.5 text-xs text-gray-500">
+                Andere Mitglieder können das lesen. Bitte keine Gesundheitsangaben.
+              </p>
               {current === 'none' && (
                 <p className="mt-1.5 text-xs text-gray-500">
                   Wähle danach Zusage, Unsicher oder Absage — die Bemerkung wird mitgespeichert.

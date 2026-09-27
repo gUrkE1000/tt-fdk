@@ -8,230 +8,113 @@
 <meta name="color-scheme" content="only light">
 <title>Datenschutzhinweis</title>
 <!--
-  Datenschutzhinweis, ausgeliefert unter /datenschutz.html.
+  Datenschutzhinweis (Art. 13 DSGVO), ausgeliefert unter /datenschutz.html — bewusst knapp:
+  die Pflichtangaben, sonst nichts. Einzelne HTML-Datei ohne Abhängigkeiten, damit sie auch
+  lesbar ist, wenn die Anwendung nicht lädt.
 
-  Diese Datei liegt in `public/` und wird beim Bauen unverändert nach `dist/` kopiert.
-  Bewusst eine einzelne HTML-Datei ohne Abhängigkeiten: Ein Rechtstext muss auch dann
-  lesbar sein, wenn die Anwendung selbst nicht lädt.
+  FASSUNG FÜR DIE ERPROBUNGSPHASE: Verantwortlich ist eine Privatperson, Grundlage der
+  Nutzung ist die Einwilligung (lit. a); Protokolle, Versandverlauf, Sicherungen und die
+  30-Tage-Frist nach Löschung stehen auf berechtigtem Interesse (lit. f). Nur Volljährige
+  (die Registrierung fragt es ab) — damit entfällt Art. 8.
 
-  ACHTUNG — dies ist die FASSUNG FÜR DIE ERPROBUNGSPHASE.
+  Fakten dahinter (Stand 27.09.2026): Auslieferung über GitHub Pages (IP-Protokolle,
+  GitHub DPF-zertifiziert); Supabase in Frankfurt, API-Protokolle höchstens 7 Tage;
+  Resend DPF-zertifiziert plus Standardvertragsklauseln; Spielplan serverseitig
+  (sync-calendars), die CSP erlaubt dem Browser nur die eigene Seite und Supabase.
 
-  Verantwortlicher ist eine Privatperson, nicht der Verein. Das ist kein Provisorium,
-  sondern die zutreffende Aussage, solange Supabase-Projekt, Domain und Resend-Konto auf
-  eine Privatperson laufen und der Verein nichts beschlossen hat.
-
-  Daraus folgt inhaltlich mehr als ein anderer Name im ersten Absatz:
-    * Rechtsgrundlage ist die EINWILLIGUNG der Teilnehmenden (Art. 6 Abs. 1 lit. a),
-      nicht das Mitgliedschaftsverhältnis (lit. b) — zwischen den Teilnehmenden und einer
-      Privatperson besteht kein solches.
-    * Die Teilnahme ist freiwillig und jederzeit widerrufbar, mit sofortiger Löschung.
-    * Der Betreiber hat technischen Zugriff auf die Datenbank. Das steht hier, weil es
-      stimmt — und weil es der Unterschied zwischen Vertrauen und Behauptung ist.
-
-  SOBALD DER VEREIN ÜBERNIMMT, ist diese Datei zu ersetzen: Verantwortlicher wird der
-  Verein, Rechtsgrundlage wird das Mitgliedschaftsverhältnis, die Erprobungs-Abschnitte
-  fallen weg. Die Vorlage dafür steht in docs/datenschutz/datenschutzhinweis.md; die
-  Angaben des Vereins stehen in der Git-Historie dieser Datei (Commit d06d514).
+  SOBALD DER VEREIN ÜBERNIMMT, ist diese Datei zu ersetzen (Vorlage:
+  docs/datenschutz/datenschutzhinweis.md).
 -->
 <style>
-  :root {
-    --bg: #ffffff; --fg: #1f2937; --muted: #6b7280;
-    --rule: #e5e7eb; --accent: #0d9488; --note-bg: #f0fdfa; --note-rule: #99f6e4;
-  }
+  :root { --bg: #ffffff; --fg: #1f2937; --muted: #6b7280; --rule: #e5e7eb; --accent: #0d9488; }
   * { box-sizing: border-box; }
   body {
     margin: 0; padding: 2rem 1rem 4rem;
     background: var(--bg); color: var(--fg);
-    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
   main { max-width: 42rem; margin: 0 auto; }
-  h1 { font-size: 1.75rem; line-height: 1.25; margin: 0 0 .25rem; }
-  h2 { font-size: 1.2rem; margin: 2.25rem 0 .5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
-  h2:first-of-type { border-top: 0; padding-top: 0; }
-  p, li { margin: .6rem 0; }
+  h1 { font-size: 1.6rem; margin: 0 0 1.5rem; }
+  h2 { font-size: 1.05rem; margin: 1.75rem 0 .35rem; }
+  p, li { margin: .4rem 0; }
   ul { padding-left: 1.25rem; }
   a { color: var(--accent); }
-  .lead { color: var(--muted); margin-bottom: 2rem; }
-  .hinweis {
-    background: var(--note-bg); border: 1px solid var(--note-rule);
-    border-radius: .75rem; padding: 1rem 1.25rem; margin: 2rem 0;
-  }
-  .hinweis p:first-child { margin-top: 0; }
-  .hinweis p:last-child { margin-bottom: 0; }
-  footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .9rem; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .9rem; }
 </style>
 </head>
 <body>
 <main>
 
   <h1>Datenschutzhinweis</h1>
-  <p class="lead">für die Erprobung des Vereinsplaners</p>
 
-  <div class="hinweis">
-    <p>
-      <strong>Das hier ist ein Versuch, noch kein Vereinsangebot.</strong> Der Vereinsplaner
-      wird gerade erprobt. Verantwortlich dafür bin <strong>ich persönlich</strong> —
-      <em>nicht</em> der TSV Feldkirchen. Der Verein hat darüber nichts beschlossen und
-      trägt dafür keine Verantwortung.
-    </p>
-    <p>
-      Deine Teilnahme ist deshalb <strong>freiwillig</strong>, und du kannst sie jederzeit
-      beenden. Ein Satz genügt, dann sind deine Daten weg.
-    </p>
-  </div>
-
-  <h2>Wer ich bin</h2>
+  <h2>Verantwortlich</h2>
   <p>
-    Verantwortlich im Sinne der Datenschutz-Grundverordnung:
-    <strong>Jan Pawlikowski</strong>,
+    Jan Pawlikowski, Johann-Sebastian-Bach-Straße 1, 85622 Feldkirchen,
     <a href="mailto:jan08.p@gmail.com">jan08.p@gmail.com</a>.
-  </p>
-  <p>
-    Ich betreibe die Anwendung als Privatperson auf eigene Rechnung: Datenbank, Domain und
-    E-Mail-Versand laufen auf meine Konten. <strong>Es steht kein Verein und keine Firma
-    dahinter</strong>, und es wird damit kein Geld verdient.
+    Privates, nicht kommerzielles Erprobungsprojekt — kein Angebot des TSV Feldkirchen.
   </p>
 
-  <h2>Warum es das gibt</h2>
-  <p>
-    Die Tischtennis-Abteilung nutzt bisher ein kostenpflichtiges Fremdprodukt. Ich probiere
-    aus, ob eine eigene Anwendung dasselbe kann. Wenn das gelingt und der Verein sie
-    übernehmen will, wird der Verein der Verantwortliche — dann erfährst du davon und
-    dieser Text wird ersetzt. Bis dahin ist es mein privates Vorhaben.
-  </p>
-
-  <h2>Welche Daten über dich gespeichert werden</h2>
-  <p>
-    <strong>Damit die Anwendung funktioniert:</strong> Vor- und Nachname, deine
-    E-Mail-Adresse. Je nachdem, was eingetragen wird, außerdem: Geburtsdatum, Geschlecht,
-    Mitgliedsnummer, Telefonnummern, QTTR-Wert und Ränge, Mannschaft und Trainings.
-  </p>
-  <p>
-    <strong>Weil du sie benutzt:</strong> Deine Rückmeldungen zu Spielen, Trainings und
-    Terminen, ob du fahren kannst oder etwas mitbringst, deine Abwesenheiten, deine
-    Nachrichten an Terminen, deine Stimme bei Umfragen, wann du dich zuletzt angemeldet
-    hast.
-  </p>
-  <p>
-    <strong>Nur, wenn du es einschaltest:</strong> Ob deine Kontaktdaten für andere
-    Teilnehmende sichtbar sind, ob dein Geburtstag im Kalender steht, ob du Mitteilungen
-    aufs Handy bekommst. Das stellst du unter <em>Mein Profil</em> ein und kannst es
-    jederzeit ändern.
-  </p>
-  <p>
-    <strong>Was nicht passiert:</strong> Es wird nicht verfolgt, was du dir ansiehst. Keine
-    Analysedienste, keine Werbung, keine Weitergabe an Dritte, keine Cookies außer dem, der
-    dich angemeldet hält.
-  </p>
-  <p>
-    <strong>Auf deinem Gerät:</strong> Damit die App auch ohne Empfang etwas zeigt, legt sie
-    den zuletzt geladenen Stand — Termine, Rückmeldungen, Namen — im Speicher deines Browsers
-    ab. Nur auf deinem Gerät, nur für dich. Er wird beim Abmelden gelöscht und nach einer
-    Woche ohne Nutzung verworfen.
-  </p>
-
-  <h2>Auf welcher Grundlage</h2>
-  <p>
-    Auf deiner <strong>Einwilligung</strong> (Art. 6 Abs. 1 lit. a DSGVO). Du hast zugesagt,
-    die Anwendung auszuprobieren — mehr ist es nicht. Zwischen dir und mir besteht kein
-    Vertrag und kein Mitgliedschaftsverhältnis, das eine andere Grundlage tragen würde.
-  </p>
-  <p>
-    <strong>Du kannst die Einwilligung jederzeit widerrufen</strong>, ohne Begründung und
-    ohne Nachteil. Schreib mir, oder lösch dein Konto selbst unter
-    <em>Mein Profil → Profil &amp; Zugang löschen</em>.
-  </p>
-
-  <h2>Wer deine Daten sieht</h2>
-  <p>
-    <strong>Die anderen Teilnehmenden</strong> sehen deinen Namen und deine Rückmeldungen zu
-    Terminen, an denen ihr gemeinsam beteiligt seid. Deine Kontaktdaten und deinen
-    Geburtstag sehen sie <strong>nur, wenn du das eingeschaltet hast.</strong>
-  </p>
-  <p>
-    Den Grund, den du bei einer Abwesenheit einträgst, zeigt die Anwendung
-    <strong>niemandem</strong> außer dir — auch keinem Administrator. Andere sehen nur, dass
-    du in diesem Zeitraum nicht kannst.
-  </p>
-  <p>
-    <strong>Ich als Betreiber</strong> habe technisch Zugriff auf die Datenbank und könnte
-    dort alles lesen, auch den Abwesenheitsgrund. Das steht hier, weil es stimmt: Wer einen
-    Dienst betreibt, kommt an die Daten. Ich sehe sie mir nicht an — außer wenn ich einen
-    Fehler suchen muss, und dann nur so weit, wie es dafür nötig ist.
-  </p>
-  <p><strong>Zwei Dienstleister</strong> sind beteiligt:</p>
+  <h2>Daten, Zwecke, Rechtsgrundlagen</h2>
   <ul>
     <li>
-      <strong>Supabase</strong> betreibt Datenbank und Anmeldung. Die Daten liegen in
-      Frankfurt am Main.
+      <strong>Nutzung der Anwendung</strong> (Konto, Profilangaben, Rückmeldungen,
+      Abwesenheiten, Nachrichten, Benachrichtigungen): auf Grundlage deiner Einwilligung
+      (Art. 6 Abs. 1 lit. a DSGVO). Die Angaben sind freiwillig; ohne Name und E-Mail-Adresse
+      ist kein Konto möglich.
     </li>
     <li>
-      <strong>Resend</strong> verschickt die E-Mails. Dorthin geht nur, was in der
-      jeweiligen E-Mail steht — kein Zugriff auf die Datenbank. Die Verarbeitung findet in
-      den USA statt.
+      <strong>Betrieb und Sicherheit</strong> (Server-Protokolle mit IP-Adresse, Verlauf
+      verschickter Benachrichtigungen, Sicherungskopien, Nachweis der Einwilligung):
+      auf Grundlage meines berechtigten Interesses an einem sicheren, nachvollziehbaren
+      Betrieb (Art. 6 Abs. 1 lit. f DSGVO).
     </li>
   </ul>
   <p>
-    Wenn du Mitteilungen aufs Handy erlaubst, geht ein verschlüsselter Datenblock über den
-    Push-Dienst deines Browserherstellers (Google, Apple oder Mozilla). Den Inhalt kann
-    dieser Dienst nicht lesen.
-  </p>
-  <p>
-    <strong>An den Tischtennisverband geht nichts.</strong> Der Spielplan wird von dort
-    <em>gelesen</em>, es wird nichts hingeschickt.
+    Im Browser werden nur Anmeldung, App-Dateien und der zuletzt geladene Stand gespeichert,
+    weil die Anwendung sonst nicht funktioniert (§ 25 Abs. 2 Nr. 2 TDDDG). Keine Cookies,
+    kein Tracking, keine automatisierten Entscheidungen.
   </p>
 
-  <h2>Wie lange</h2>
+  <h2>Empfänger</h2>
+  <ul>
+    <li>andere Teilnehmende: Name und Rückmeldungen; Kontaktdaten und Geburtstag nur, wenn
+        du es freigibst;</li>
+    <li>Supabase (Datenbank und Anmeldung, Server in Frankfurt) und Resend (E-Mail-Versand,
+        USA) als Auftragsverarbeiter;</li>
+    <li>GitHub (USA) liefert die Anwendung aus und protokolliert dabei IP-Adressen in eigener
+        Verantwortung;</li>
+    <li>bei Mitteilungen aufs Handy der Push-Dienst deines Browserherstellers (Inhalt
+        verschlüsselt);</li>
+    <li>Google Drive für Sicherungskopien, verschlüsselt — Google kann den Inhalt nicht lesen.</li>
+  </ul>
   <p>
-    Solange du mitmachst. Wenn du aufhörst oder dein Konto löschst, ist es sofort für alle
-    unsichtbar und wird nach <strong>30 Tagen vollständig entfernt</strong> — automatisch.
-    Die 30 Tage sind eine Frist für den Fall, dass du es dir anders überlegst.
+    Übermittlungen in die USA erfolgen auf Grundlage des EU-US Data Privacy Framework bzw. der
+    EU-Standardvertragsklauseln. An den Tischtennisverband werden keine Daten übermittelt.
   </p>
+
+  <h2>Speicherdauer</h2>
   <p>
-    Wenn die Erprobung endet, ohne dass der Verein übernimmt, <strong>lösche ich
-    alles</strong> — Datenbank, Sicherungen, Konten.
-  </p>
-  <p>
-    Verschickte Benachrichtigungen werden ein Jahr aufbewahrt, damit die Frage „ich habe nie
-    eine Mail bekommen" beantwortbar bleibt. Abwesenheiten verschwinden zwei Jahre nach
-    Ablauf. In Sicherungskopien bleibst du bis zu 90 Tage länger enthalten; das lässt sich
-    nicht vermeiden, wenn man Sicherungen haben will.
+    Solange du mitmachst. Nach einer Löschung ist dein Konto sofort gesperrt und wird nach
+    30 Tagen endgültig entfernt, auf Wunsch sofort. Server-Protokolle höchstens 7 Tage,
+    Benachrichtigungen 1 Jahr, Abwesenheiten 2 Jahre nach Ablauf, Sicherungskopien 90 Tage.
   </p>
 
   <h2>Deine Rechte</h2>
-  <p>Du kannst jederzeit:</p>
-  <ul>
-    <li><strong>sehen und ändern</strong>, was über dich gespeichert ist — unter <em>Mein Profil</em>;</li>
-    <li><strong>eine Kopie verlangen</strong> — schreib mir, du bekommst sie als Datei;</li>
-    <li><strong>alles löschen lassen</strong> — unter <em>Mein Profil → Profil &amp; Zugang löschen</em>
-        oder mit einer Nachricht an mich;</li>
-    <li><strong>deine Einwilligung widerrufen</strong> — jederzeit, ohne Begründung;</li>
-    <li><strong>entscheiden, worüber du benachrichtigt wirst</strong> — unter
-        <em>Mein Profil → Benachrichtigungen</em>, je Ereignis und je Kanal;</li>
-    <li><strong>dich beschweren</strong> bei der zuständigen Aufsichtsbehörde: Bayerisches
-        Landesamt für Datenschutzaufsicht (BayLDA), Postfach 1349, 91504 Ansbach,
-        <a href="mailto:poststelle@lda.bayern.de">poststelle@lda.bayern.de</a>.</li>
-  </ul>
-  <p>Wenn du etwas davon nicht findest oder es nicht klappt, schreib mir einfach.</p>
-
-  <h2>Jugendliche</h2>
   <p>
-    Wer unter 16 ist, sollte hier nur mit Einverständnis der Eltern mitmachen. Wenn du
-    unsicher bist, frag lieber nach — und wenn Eltern wollen, dass die Daten ihres Kindes
-    verschwinden, genügt eine Nachricht an mich.
+    Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung
+    und Datenübertragbarkeit (Export unter <em>Mein Profil → Meine Daten herunterladen</em>).
+    Deine Einwilligung kannst du jederzeit mit Wirkung für die Zukunft widerrufen; der
+    Verarbeitung aufgrund berechtigten Interesses kannst du widersprechen. Außerdem hast du
+    das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren.
   </p>
 
-  <h2>Änderungen</h2>
-  <p>
-    Wenn sich an der Anwendung etwas ändert, das für diesen Hinweis wichtig ist, wird er
-    aktualisiert und die Teilnehmenden werden darauf hingewiesen. Insbesondere dann, wenn
-    der Verein die Anwendung übernimmt.
-  </p>
+  <h2>Mindestalter</h2>
+  <p>Die Anwendung ist nur für Volljährige.</p>
 
   <footer>
-    Stand: 19. September 2026 · Erprobungsfassung ·
+    Stand: 27. September 2026 ·
     <a href="impressum.html">Impressum</a> ·
-    <a href="/">Zurück zum Vereinsplaner</a>
+    <a href="./">Zurück zum Vereinsplaner</a>
   </footer>
 
 </main>
