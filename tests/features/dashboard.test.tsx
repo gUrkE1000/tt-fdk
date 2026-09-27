@@ -425,6 +425,12 @@ describe('DashboardPage', () => {
     expect(link).toHaveAttribute('target', '_blank');
   });
 
+  it('führt von „Offen für dich" zu den offenen Terminen', async () => {
+    renderPage();
+    const link = await screen.findByRole('link', { name: /Offen für dich/ });
+    expect(link).toHaveAttribute('href', '/my-dates?tab=open');
+  });
+
   it('zeigt einem Mitglied keine offenen Rückmeldungen', async () => {
     renderPage();
     await screen.findByText('In 3 Tagen');

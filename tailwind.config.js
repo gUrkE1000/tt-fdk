@@ -14,6 +14,8 @@
  * `<alpha-value>` muss dabei stehen bleiben, sonst funktionieren `bg-gray-900/40` und
  * ähnliche Transparenzen nicht mehr.
  */
+import defaultTheme from 'tailwindcss/defaultTheme';
+
 const token = (name) => `rgb(var(--${name}) / <alpha-value>)`;
 
 /** @type {import('tailwindcss').Config} */
@@ -22,6 +24,11 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      // Hausschrift, Herleitung in src/index.css. Dahinter die Systemschriften, falls
+      // die Datei (noch) nicht geladen ist.
+      fontFamily: {
+        sans: ['"Source Sans 3 Variable"', ...defaultTheme.fontFamily.sans],
+      },
       colors: {
         // Flächen und Schrift. Dieselben Namen wie in Tailwind, damit der
         // vorhandene Code unverändert bleibt — nur die Werte hängen jetzt am Modus.
