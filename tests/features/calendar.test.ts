@@ -92,16 +92,18 @@ describe('toDisplayEvents', () => {
     ]);
   });
 
-  it('zeigt standardmäßig alles, „Für mich relevant" nur das Eigene', () => {
+  it('zeigt standardmäßig nur das Eigene, „Alle Termine" den ganzen Verein', () => {
     const items = [
       item({ kind: 'match', id: 'm-own', mine: true }),
       item({ kind: 'match', id: 'm-other', mine: false }),
     ];
 
-    expect(toDisplayEvents(items, DEFAULT_CALENDAR_FILTERS)).toHaveLength(2);
-    expect(
-      toDisplayEvents(items, { ...DEFAULT_CALENDAR_FILTERS, mineOnly: true }).map((e) => e.id),
-    ).toEqual(['match:m-own']);
+    expect(toDisplayEvents(items, DEFAULT_CALENDAR_FILTERS).map((e) => e.id)).toEqual([
+      'match:m-own',
+    ]);
+    expect(toDisplayEvents(items, { ...DEFAULT_CALENDAR_FILTERS, mineOnly: false })).toHaveLength(
+      2,
+    );
   });
 
   it('zeichnet eine Hallensperre rot und zusätzlich als Fläche über den Tag', () => {
