@@ -52,14 +52,20 @@
 }
 
 .dark {
-  /* Nicht reines Schwarz: Auf OLED-Bildschirmen flimmert der Übergang zu echtem
-     Schwarz beim Scrollen, und Schatten verschwinden darin spurlos. */
-  --surface: 24 27 33;
+  /*
+   * Blau-Dunkles Dark-Mode-Schema (Option C):
+   * Der Hintergrund hat einen deutlichen Blau-Tint, der mit dem Teal-Akzent harmoniert.
+   * Karten (surface) heben sich durch Elevation über den Hintergrund ab — der Seitengrund
+   * ist deutlich dunkler als die Karten, anders als das frühere "Wells"-Muster.
+   * Die oberen vier Graustufen (50–300) tragen den Blau-Tint, ab 400 aufwärts bleibt
+   * die Skala neutral damit Text lesbar bleibt.
+   */
+  --surface: 25 29 46;        /* #191d2e – blaue Karten, deutlich über dem Hintergrund */
 
-  --gray-50: 31 35 42;
-  --gray-100: 39 44 52;
-  --gray-200: 51 57 67;
-  --gray-300: 71 79 92;
+  --gray-50:  11 13 24;       /* #0b0d18 – sehr dunkler Seitengrund */
+  --gray-100: 31 36 56;       /* #1f2438 – leichte Elevation, Hover-Flächen */
+  --gray-200: 46 52 74;       /* #2e344a – Rahmen und Trennlinien */
+  --gray-300: 67 75 100;      /* #434b64 – stärkere Rahmen */
   --gray-400: 120 130 146;
   --gray-500: 156 165 180;
   --gray-600: 187 194 206;
