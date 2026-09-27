@@ -140,6 +140,17 @@
   }
 }
 
+@layer utilities {
+  /* Wischbare Zeilen (Filter-Chips) ohne Scrollbalken — der Anschnitt zeigt, dass es weitergeht. */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer components {
   /*
    * Fließtext aus dem Rich-Text-Editor (Vereinstermine, später Neuigkeiten).
@@ -226,14 +237,48 @@
   @apply text-gray-700;
 }
 
+/*
+ * Das Monatsraster ruhiger: Die Karte drumherum ist schon der Rahmen, ein zweiter um
+ * das Raster zeichnet nur eine Doppellinie. Die Wochentage klein und in Versalien wie
+ * eine Beschriftung, nicht wie eine Tabellenüberschrift.
+ */
+.fc .fc-scrollgrid {
+  border-width: 0;
+}
+
+.fc-theme-standard .fc-scrollgrid > tbody > tr > td,
+.fc-theme-standard .fc-scrollgrid > thead > tr > th {
+  border-right-width: 0;
+}
+
+.fc .fc-col-header-cell {
+  @apply bg-gray-50;
+}
+
+.fc .fc-col-header-cell-cushion {
+  @apply py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500;
+}
+
+.fc .fc-daygrid-day-number {
+  @apply m-1 flex h-6 min-w-6 items-center justify-center rounded-full p-0 text-xs font-semibold tabular-nums;
+}
+
+.fc .fc-day-other .fc-daygrid-day-top {
+  @apply opacity-40;
+}
+
 .fc .fc-timegrid-slot-label-cushion,
 .fc .fc-list-event-time {
   @apply text-gray-500;
 }
 
-/* „Heute" ist im dunklen Modus sonst ein greller Block. */
+/* „Heute" ist im dunklen Modus sonst ein greller Block. Die Zahl im Kreis genügt. */
 .fc .fc-day-today {
-  @apply bg-primary-soft;
+  @apply bg-primary-soft/60;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  @apply bg-primary text-white;
 }
 
 .fc .fc-list-empty {
