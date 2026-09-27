@@ -87,12 +87,14 @@ SELECT throws_ok(
     'Zwei Ersatzspieler auf demselben Rang gibt es nicht'
 );
 
-UPDATE public.teams SET name = 'Erste' WHERE id = '44444444-0000-0000-0000-000000000001';
+-- Die eigene Mannschaft ändert der Mannschaftsführer selbst (Migration
+-- team_leader_teams), eine fremde nicht.
+UPDATE public.teams SET name = 'Dritte' WHERE id = '44444444-0000-0000-0000-000000000003';
 
 SELECT is(
-    (SELECT name FROM public.teams WHERE id = '44444444-0000-0000-0000-000000000001'),
-    '1. Herren',
-    'Die Mannschaft selbst ändert nur der Administrator'
+    (SELECT name FROM public.teams WHERE id = '44444444-0000-0000-0000-000000000003'),
+    '3. Herren',
+    'Eine fremde Mannschaft ändert der Mannschaftsführer nicht'
 );
 
 SELECT lives_ok(

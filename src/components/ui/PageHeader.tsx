@@ -16,7 +16,16 @@ export default function PageHeader({ title, description, actions, className }: P
         <h2 className="text-xl font-bold text-gray-900">{title}</h2>
         {description && <p className="mt-0.5 text-sm text-gray-500">{description}</p>}
       </div>
-      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+      {/*
+        `max-w-full`: Ohne Obergrenze ist der Bereich so breit wie alle Buttons zusammen und
+        läuft am Telefon über den Rand, statt umzubrechen. Unterhalb von `sm` füllen die
+        Buttons die Zeile, zwei nebeneinander oder untereinander, wie es passt.
+      */}
+      {actions && (
+        <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2 max-sm:w-full max-sm:[&>*]:grow">
+          {actions}
+        </div>
+      )}
     </div>
   );
 }

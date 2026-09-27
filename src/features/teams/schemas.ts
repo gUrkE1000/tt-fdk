@@ -165,3 +165,12 @@ export function leaderMismatches(
       .map(name),
   };
 }
+
+/**
+ * Ist das Löschen bestätigt? Der eingetippte Name muss passen; Groß- und Kleinschreibung
+ * und Leerzeichen an den Rändern zählen nicht — es geht um Absicht, nicht um Tippgenauigkeit.
+ */
+export function isDeleteConfirmed(input: string, teamName: string): boolean {
+  const normalize = (value: string) => value.trim().toLocaleLowerCase('de');
+  return normalize(input) !== '' && normalize(input) === normalize(teamName);
+}

@@ -49,9 +49,10 @@ export interface TeamDialogProps {
 
 export default function TeamDialog({ open, onOpenChange, team, members }: TeamDialogProps) {
   const { toast } = useToast();
-  // Stammdaten, Einstellungen und die Führung pflegt nur der Administrator (RLS auf
-  // `teams` und `team_leaders`); der Mannschaftsführer pflegt den Kader.
-  const { role } = useSession();
+  // Wer eine Mannschaft führt, legt nur der Administrator fest (RLS auf `team_leaders`).
+  // Mannschaftsführer legen Mannschaften an — und führen sie dann automatisch — und
+  // ändern die, die sie führen (Migration team_leader_teams).
+  const { profile, role } = useSession();
   const isAdmin = role === 'admin';
   const createTeam = useCreateTeam();
   const updateTeam = useUpdateTeam();
@@ -92,13 +93,9 @@ export default function TeamDialog({ open, onOpenChange, team, members }: TeamDi
     };
 
     try {
-      // Für den Mannschaftsführer liefe das Ändern der Mannschaft still ins Leere (RLS
-      // filtert die Zeile weg, ohne Fehler) — also gar nicht erst versuchen.
-      const id = !team
-        ? await createTeam.mutateAsync(row)
-        : isAdmin
-          ? (await updateTeam.mutateAsync({ id: team.id, values: row }), team.id)
-          : team.id;
+      const id = team
+        ? (await updateTeam.mutateAsync({ id: team.id, values: row }), team.id)
+        : await createTeam.mutateAsync(row);
 
       await saveRoster.mutateAsync({
         teamId: id,
@@ -122,12 +119,6 @@ export default function TeamDialog({ open, onOpenChange, team, members }: TeamDi
 
   const basics = (
     <div className="space-y-4">
-      {!isAdmin && (
-        <p className="rounded-xl bg-gray-50 p-3 text-sm text-gray-600">
-          Als Mannschaftsführer speicherst du hier den Kader. Stammdaten, Einstellungen und
-          die Mannschaftsführung ändert der Administrator.
-        </p>
-      )}
       <div className="grid gap-3 sm:grid-cols-2">
         <FormField label="Name" required error={form.formState.errors.name?.message}>
           {(p) => <Input {...p} {...form.register('name')} placeholder="1. Herren" />}
@@ -170,7 +161,9 @@ export default function TeamDialog({ open, onOpenChange, team, members }: TeamDi
           hint={
             isAdmin
               ? 'Nur wer hier steht, verwaltet die Spiele dieser Mannschaft — die Benutzerrolle allein reicht nicht.'
-              : 'Wer die Mannschaft führt, legt der Administrator fest.'
+              : team
+                ? 'Wer die Mannschaft führt, legt der Administrator fest.'
+                : 'Du führst die Mannschaft, sobald du sie anlegst. Weitere trägt der Administrator ein.'
           }
         >
           {(p) => (
@@ -178,7 +171,9 @@ export default function TeamDialog({ open, onOpenChange, team, members }: TeamDi
               {...p}
               disabled={!isAdmin}
               people={people}
-              value={form.watch('leaderIds')}
+              value={
+                isAdmin || team || !profile ? form.watch('leaderIds') : [profile.id]
+              }
               onChange={(value) => form.setValue('leaderIds', value)}
               placeholder="Niemand zugeordnet"
             />

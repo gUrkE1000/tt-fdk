@@ -9,7 +9,9 @@ import {
   CardBody,
   Dialog,
   EmptyState,
+  FormField,
   IconButton,
+  Input,
   PageHeader,
   Table,
   useToast,
@@ -18,12 +20,12 @@ import { rankingTypeLabel } from '../../lib/labels';
 import { useSession } from '../auth/session';
 import { useMembers } from '../members/api';
 import { useDeleteTeam, useTeams, type TeamWithRoster } from './api';
-import { leaderMismatches, teamSubtitle } from './schemas';
+import { isDeleteConfirmed, leaderMismatches, teamSubtitle } from './schemas';
 import TeamDialog from './TeamDialog';
 
 export default function TeamsPage() {
   const { toast } = useToast();
-  const { role } = useSession();
+  const { profile, role } = useSession();
   const teams = useTeams();
   const members = useMembers();
   const deleteTeam = useDeleteTeam();
@@ -31,6 +33,7 @@ export default function TeamsPage() {
   const [editing, setEditing] = useState<TeamWithRoster | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [toDelete, setToDelete] = useState<TeamWithRoster | null>(null);
+  const [confirmName, setConfirmName] = useState('');
 
   const memberList = members.data ?? [];
   const nameOf = (id: string) =>
@@ -42,34 +45,46 @@ export default function TeamsPage() {
       ? leaderMismatches(teams.data, members.data)
       : { withoutTeam: [], withoutRole: [] };
 
+  // Bearbeiten: der Administrator jede Mannschaft, der Mannschaftsführer die, die er
+  // führt. Löschen darf jeder Mannschaftsführer jede — dafür mit Namensbestätigung.
+  const mayEdit = (team: TeamWithRoster) =>
+    role === 'admin' || (profile?.id != null && team.leaderIds.includes(profile.id));
+
+  function askDelete(team: TeamWithRoster | null) {
+    setConfirmName('');
+    setToDelete(team);
+  }
+
   async function onDeleteConfirmed() {
-    if (!toDelete) return;
+    if (!toDelete || !isDeleteConfirmed(confirmName, toDelete.name)) return;
     try {
       await deleteTeam.mutateAsync(toDelete.id);
       toast(`${toDelete.name} wurde gelöscht`, 'success');
     } catch (error) {
       toast(error instanceof Error ? error.message : 'Löschen fehlgeschlagen', 'error');
     } finally {
-      setToDelete(null);
+      askDelete(null);
     }
   }
 
   function actions(team: TeamWithRoster) {
     return (
       <div className="flex items-center justify-end gap-1">
-        <IconButton
-          icon={Pencil}
-          label={`${team.name} bearbeiten`}
-          onClick={() => {
-            setEditing(team);
-            setDialogOpen(true);
-          }}
-        />
+        {mayEdit(team) && (
+          <IconButton
+            icon={Pencil}
+            label={`${team.name} bearbeiten`}
+            onClick={() => {
+              setEditing(team);
+              setDialogOpen(true);
+            }}
+          />
+        )}
         <IconButton
           icon={Trash2}
           label={`${team.name} löschen`}
           tone="danger"
-          onClick={() => setToDelete(team)}
+          onClick={() => askDelete(team)}
         />
       </div>
     );
@@ -203,21 +218,45 @@ export default function TeamsPage() {
 
       <Dialog
         open={toDelete !== null}
-        onOpenChange={(open) => !open && setToDelete(null)}
+        onOpenChange={(open) => !open && askDelete(null)}
         title={`${toDelete?.name ?? 'Mannschaft'} löschen?`}
         footer={
           <>
-            <Button onClick={() => setToDelete(null)}>Abbrechen</Button>
-            <Button variant="danger" onClick={() => void onDeleteConfirmed()}>
-              Löschen
+            <Button onClick={() => askDelete(null)}>Abbrechen</Button>
+            <Button
+              variant="danger"
+              disabled={!toDelete || !isDeleteConfirmed(confirmName, toDelete.name)}
+              loading={deleteTeam.isPending}
+              onClick={() => void onDeleteConfirmed()}
+            >
+              Endgültig löschen
             </Button>
           </>
         }
       >
-        <p className="text-sm text-gray-600">
-          Mit der Mannschaft verschwinden auch ihre Spieltermine und alle Rückmeldungen dazu.
-          Soll die Mannschaft nur nicht mehr auftauchen, setze sie stattdessen auf „inaktiv“.
-        </p>
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">
+            Mit der Mannschaft verschwinden auch ihre Spieltermine und alle Rückmeldungen dazu.
+            Das lässt sich nicht rückgängig machen. Soll die Mannschaft nur nicht mehr
+            auftauchen, setze sie stattdessen auf „inaktiv“.
+          </p>
+          {/* Ein Tipp daneben genügt nicht: Mannschaftsführer dürfen jede Mannschaft löschen,
+              also soll niemand die falsche erwischen, weil der Finger verrutscht ist. */}
+          <FormField label={`Zum Bestätigen „${toDelete?.name ?? ''}“ eingeben`}>
+            {(p) => (
+              <Input
+                {...p}
+                value={confirmName}
+                onChange={(event) => setConfirmName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') void onDeleteConfirmed();
+                }}
+                autoComplete="off"
+                placeholder={toDelete?.name}
+              />
+            )}
+          </FormField>
+        </div>
       </Dialog>
     </div>
   );

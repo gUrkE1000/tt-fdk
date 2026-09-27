@@ -69,8 +69,11 @@ export function useUpdateTeam() {
 
   return useMutation({
     mutationFn: async ({ id, values }: { id: string; values: UpdateDto<'teams'> }) => {
-      const { error } = await supabase.from('teams').update(values).eq('id', id);
+      const { data, error } = await supabase.from('teams').update(values).eq('id', id).select('id');
       if (error) throw error;
+      // Ohne Recht filtert die RLS die Zeile weg, ohne Fehler — sonst hieße es
+      // „gespeichert", und nichts wäre geändert.
+      if (!data?.length) throw new Error('Diese Mannschaft darfst du nicht ändern.');
     },
     onSuccess: () => invalidateTeams(queryClient),
   });
@@ -81,8 +84,9 @@ export function useDeleteTeam() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('teams').delete().eq('id', id);
+      const { data, error } = await supabase.from('teams').delete().eq('id', id).select('id');
       if (error) throw error;
+      if (!data?.length) throw new Error('Diese Mannschaft darfst du nicht löschen.');
     },
     onSuccess: () => invalidateTeams(queryClient),
   });

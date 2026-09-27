@@ -32,12 +32,19 @@ function makeBuilder(table: string) {
     },
     update: (values: unknown) => {
       state.updates.push({ table, values });
-      return { eq: () => Promise.resolve({ error: null }) };
+      return {
+        eq: (_column: string, value: unknown) => ({
+          select: () => Promise.resolve({ data: [{ id: value }], error: null }),
+        }),
+      };
     },
     delete: () => ({
       eq: (_column: string, value: unknown) => {
         state.deletes.push({ table, value });
-        return Promise.resolve({ error: null });
+        const result = { data: [{ id: value }], error: null };
+        return Object.assign(Promise.resolve(result), {
+          select: () => Promise.resolve(result),
+        });
       },
     }),
     then: (resolve: (value: { data: Row[]; error: null }) => unknown) =>
@@ -75,6 +82,7 @@ import PlayersManagementPage from '../../src/features/teams/PlayersManagementPag
 import { ToastProvider } from '../../src/components/ui';
 import {
   EMPTY_TEAM,
+  isDeleteConfirmed,
   leaderMismatches,
   parseLeagues,
   teamSchema,
@@ -213,6 +221,18 @@ describe('Mannschafts-Schema', () => {
 
 // ------------------------------------------------------------------ Oberfläche
 
+describe('isDeleteConfirmed', () => {
+  it('verlangt den Namen der Mannschaft', () => {
+    expect(isDeleteConfirmed('', '1. Herren')).toBe(false);
+    expect(isDeleteConfirmed('2. Herren', '1. Herren')).toBe(false);
+    expect(isDeleteConfirmed('1. Herren', '1. Herren')).toBe(true);
+  });
+
+  it('sieht über Groß- und Kleinschreibung und Randleerzeichen hinweg', () => {
+    expect(isDeleteConfirmed('  1. herren ', '1. Herren')).toBe(true);
+  });
+});
+
 describe('leaderMismatches', () => {
   const teams = [{ leaderIds: ['p-meik', 'p-tina'] }];
   const members = [
@@ -339,7 +359,7 @@ describe('TeamsPage', () => {
     expect(await screen.findByText(/Ohne Mannschaft: Meik Mannschaft/)).toBeInTheDocument();
   });
 
-  it('verlangt vor dem Löschen eine Bestätigung', async () => {
+  it('löscht erst, wenn der Name der Mannschaft eingetippt ist', async () => {
     renderPage(<TeamsPage />);
     await screen.findAllByText('1. Herren');
 
@@ -349,8 +369,34 @@ describe('TeamsPage', () => {
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByText(/verschwinden auch ihre Spieltermine/)).toBeInTheDocument();
 
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }));
+    const confirm = within(dialog).getByRole('button', { name: 'Endgültig löschen' });
+    expect(confirm).toBeDisabled();
+
+    const field = within(dialog).getByLabelText(/Zum Bestätigen/);
+    await userEvent.type(field, '2. Herren');
+    expect(confirm).toBeDisabled();
+
+    await userEvent.clear(field);
+    await userEvent.type(field, '1. Herren');
+    expect(confirm).toBeEnabled();
+
+    await userEvent.click(confirm);
     await waitFor(() => expect(state.deletes).toEqual([{ table: 'teams', value: 't-1' }]));
+  });
+
+  it('fragt nach dem Abbrechen wieder von vorn', async () => {
+    renderPage(<TeamsPage />);
+    await screen.findAllByText('1. Herren');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /1\. Herren löschen/ })[0]);
+    let dialog = await screen.findByRole('dialog');
+    await userEvent.type(within(dialog).getByLabelText(/Zum Bestätigen/), '1. Herren');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Abbrechen' }));
+
+    await userEvent.click(screen.getAllByRole('button', { name: /1\. Herren löschen/ })[0]);
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByLabelText(/Zum Bestätigen/)).toHaveValue('');
+    expect(within(dialog).getByRole('button', { name: 'Endgültig löschen' })).toBeDisabled();
   });
 });
 
@@ -360,7 +406,7 @@ describe('TeamsPage als Mannschaftsführer', () => {
     session.profileId = 'p-meik';
   });
 
-  it('speichert nur den Kader und lässt Mannschaft und Führung stehen', async () => {
+  it('ändert die eigene Mannschaft, lässt die Führung aber stehen', async () => {
     renderPage(<TeamsPage />);
     await screen.findAllByText('1. Herren');
 
@@ -371,11 +417,38 @@ describe('TeamsPage als Mannschaftsführer', () => {
     await waitFor(() =>
       expect(state.inserts.some((entry) => entry.table === 'team_members')).toBe(true),
     );
-    // Beides verbietet die RLS dem Mannschaftsführer. Früher löschte das Speichern
+    expect(state.updates.map((entry) => entry.table)).toEqual(['teams']);
+    // Die Führung verbietet die RLS dem Mannschaftsführer. Früher löschte das Speichern
     // erst den Kader und scheiterte dann an der Führung — der Kader war weg.
-    expect(state.updates).toHaveLength(0);
     expect(state.deletes.map((entry) => entry.table)).toEqual(['team_members']);
     expect(state.inserts.map((entry) => entry.table)).toEqual(['team_members']);
+  });
+
+  it('bearbeitet keine fremde Mannschaft, darf sie aber löschen', async () => {
+    session.profileId = 'p-mara';
+    renderPage(<TeamsPage />);
+    await screen.findAllByText('1. Herren');
+
+    expect(screen.queryByRole('button', { name: /1\. Herren bearbeiten/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /1\. Herren löschen/ })).not.toHaveLength(0);
+  });
+
+  it('legt eine Mannschaft an, ohne die Führung zu schreiben', async () => {
+    renderPage(<TeamsPage />);
+    await screen.findAllByText('1. Herren');
+
+    await userEvent.click(screen.getByRole('button', { name: /Mannschaft anlegen/ }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/Du führst die Mannschaft, sobald du sie anlegst/)).toBeInTheDocument();
+
+    await userEvent.type(within(dialog).getByLabelText(/^Name/), 'Damen');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Speichern' }));
+
+    // Die Führung trägt die Datenbank beim Anlegen selbst ein (Trigger teams_creator_leads).
+    await waitFor(() =>
+      expect(state.inserts.map((entry) => entry.table)).toEqual(['teams']),
+    );
+    expect(state.deletes.map((entry) => entry.table)).toEqual(['team_members']);
   });
 
   it('zeigt keinen Hinweis zur Rollenzuordnung', async () => {

@@ -391,7 +391,7 @@ Sechs Benutzerrollen wie im TT-Planer. Was „Organisator" darf, ist dort undoku
 | Alles lesen (Mitglieder, Termine, Spiele) | ja | ja | ja | ja | ja | nur eigene Trainings/Termine |
 | Kontaktdaten anderer sehen | ja | nur bei `contact_visible` | dito | dito | dito | nein |
 | Eigene Rückmeldungen/Abwesenheiten/Profil/Benachrichtigungen | ja | ja | ja | ja | ja | ja |
-| Mannschaften anlegen/bearbeiten/löschen, Kader | ja | Kader nur eigener Teams | nein | nein | nein | nein |
+| Mannschaften anlegen/bearbeiten/löschen, Kader | ja | anlegen und löschen (Löschen mit Namensbestätigung); bearbeiten und Kader nur eigener Teams; wer anlegt, führt die Mannschaft (27.09.2026) | nein | nein | nein | nein |
 | Spieler verwalten, Ersatzanfragen, Aufstellung teilen, Spielverlegung | ja | eigene Teams | nein | nein | nein | nein |
 | Spieltermine anlegen/importieren/bearbeiten | ja | eigene Teams | nein | nein | nein | nein |
 | Trainings anlegen/bearbeiten, Ausfälle, Mitglieder zuweisen | ja | nein | eigene Trainings | nein | nein | nein |

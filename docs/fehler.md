@@ -48,8 +48,10 @@ der Führung. Ergebnis: leerer Kader und eine Fehlermeldung.
   (`leaderMismatches`).
 - `useSaveRoster` fasst die Führung nur an, wenn `leaderIds` übergeben wird, und zwar vor
   dem Kader. *Mannschaften bearbeiten* übergibt sie nie, der Dialog nur für den
-  Administrator. Für den Mannschaftsführer ist das Feld „Mannschaftsführer" gesperrt, und
-  der Dialog versucht die Mannschaftsdaten gar nicht erst zu ändern.
+  Administrator. Für den Mannschaftsführer ist das Feld „Mannschaftsführer" gesperrt.
+  Ändern und Löschen melden jetzt einen Fehler, wenn die RLS die Zeile still wegfiltert,
+  statt „gespeichert" zu sagen. Seit `team_leader_teams` dürfen Mannschaftsführer
+  Mannschaften anlegen, löschen und die eigenen bearbeiten.
 
 ---
 

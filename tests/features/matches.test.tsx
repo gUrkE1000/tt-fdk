@@ -38,7 +38,10 @@ function makeBuilder(table: string) {
     },
     update: (values: unknown) => {
       state.updates.push({ table, values });
-      return { eq: () => Promise.resolve({ error: null }) };
+      const result = { data: [{ id: 'geaendert' }], error: null };
+      return {
+        eq: () => Object.assign(Promise.resolve(result), { select: () => Promise.resolve(result) }),
+      };
     },
     delete: () => chain,
     then: (resolve: (value: { data: Row[]; error: null }) => unknown) =>
