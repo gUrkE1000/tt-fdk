@@ -723,7 +723,7 @@ vorweg, was sonst zurückgefragt oder falsch geraten wird:
 KONTEXT — Vereinsplaner (Tischtennisverein, ~80 Mitglieder)
 
 Stack:
-- Frontend: React 18 + TypeScript (strict) + Vite 5 + Tailwind, ausgeliefert
+- Frontend: React 18 + TypeScript (strict) + Vite 8 + Tailwind, ausgeliefert
   über GitHub Pages als PWA (vite-plugin-pwa, injectManifest)
 - Backend: Supabase Cloud, Region Frankfurt
   - PostgreSQL 15/16, 31 Migrationen, Row Level Security auf JEDER Tabelle
