@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Pencil, Plus, Trash2, Users, SlidersHorizontal } from 'lucide-react';
+import { FileUp, Pencil, Plus, Trash2, Users, SlidersHorizontal } from 'lucide-react';
 import {
   Badge,
   Button,
@@ -15,10 +15,12 @@ import {
   useToast,
 } from '../../components/ui';
 import { rankingTypeLabel } from '../../lib/labels';
+import { useSession } from '../auth/session';
 import { useMembers } from '../members/api';
 import { useDeleteTeam, useTeams, type TeamWithRoster } from './api';
 import { teamSubtitle } from './schemas';
 import TeamDialog from './TeamDialog';
+import MeldungImportDialog from './MeldungImportDialog';
 
 export default function TeamsPage() {
   const { toast } = useToast();
@@ -29,6 +31,8 @@ export default function TeamsPage() {
   const [editing, setEditing] = useState<TeamWithRoster | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [toDelete, setToDelete] = useState<TeamWithRoster | null>(null);
+  const [meldungOpen, setMeldungOpen] = useState(false);
+  const { role } = useSession();
 
   const memberList = members.data ?? [];
   const nameOf = (id: string) =>
@@ -103,6 +107,14 @@ export default function TeamsPage() {
               <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
               Mannschaften bearbeiten
             </Link>
+            {/* Legt Mannschaften an und schreibt Ränge und QTTR — beides darf nur der
+                Administrator. */}
+            {role === 'admin' && (
+              <Button onClick={() => setMeldungOpen(true)}>
+                <FileUp className="h-4 w-4" aria-hidden="true" />
+                Aus Mannschaftsmeldung
+              </Button>
+            )}
             <Button
               variant="primary"
               onClick={() => {
@@ -166,6 +178,8 @@ export default function TeamsPage() {
           />
         }
       />
+
+      <MeldungImportDialog open={meldungOpen} onOpenChange={setMeldungOpen} />
 
       <TeamDialog
         open={dialogOpen}

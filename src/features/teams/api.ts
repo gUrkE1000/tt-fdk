@@ -108,48 +108,51 @@ export function useSaveRoster() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: RosterInput) => {
-      const dropLeaders = await supabase
-        .from('team_leaders')
-        .delete()
-        .eq('team_id', input.teamId);
-      if (dropLeaders.error) throw dropLeaders.error;
-
-      const dropMembers = await supabase
-        .from('team_members')
-        .delete()
-        .eq('team_id', input.teamId);
-      if (dropMembers.error) throw dropMembers.error;
-
-      if (input.leaderIds.length > 0) {
-        const { error } = await supabase
-          .from('team_leaders')
-          .insert(input.leaderIds.map((id) => ({ team_id: input.teamId, profile_id: id })));
-        if (error) throw error;
-      }
-
-      const rows = [
-        ...input.regularIds.map((id) => ({
-          team_id: input.teamId,
-          profile_id: id,
-          kind: 'regular' as const,
-          rank: null,
-        })),
-        ...input.substituteIds.map((id, index) => ({
-          team_id: input.teamId,
-          profile_id: id,
-          kind: 'substitute' as const,
-          rank: index + 1,
-        })),
-      ];
-
-      if (rows.length > 0) {
-        const { error } = await supabase.from('team_members').insert(rows);
-        if (error) throw error;
-      }
-    },
+    mutationFn: saveRoster,
     onSuccess: () => invalidateTeams(queryClient),
   });
+}
+
+/** Wie {@link useSaveRoster}, ohne Hook — für Abläufe, die mehrere Kader schreiben. */
+export async function saveRoster(input: RosterInput): Promise<void> {
+  const dropLeaders = await supabase
+    .from('team_leaders')
+    .delete()
+    .eq('team_id', input.teamId);
+  if (dropLeaders.error) throw dropLeaders.error;
+
+  const dropMembers = await supabase
+    .from('team_members')
+    .delete()
+    .eq('team_id', input.teamId);
+  if (dropMembers.error) throw dropMembers.error;
+
+  if (input.leaderIds.length > 0) {
+    const { error } = await supabase
+      .from('team_leaders')
+      .insert(input.leaderIds.map((id) => ({ team_id: input.teamId, profile_id: id })));
+    if (error) throw error;
+  }
+
+  const rows = [
+    ...input.regularIds.map((id) => ({
+      team_id: input.teamId,
+      profile_id: id,
+      kind: 'regular' as const,
+      rank: null,
+    })),
+    ...input.substituteIds.map((id, index) => ({
+      team_id: input.teamId,
+      profile_id: id,
+      kind: 'substitute' as const,
+      rank: index + 1,
+    })),
+  ];
+
+  if (rows.length > 0) {
+    const { error } = await supabase.from('team_members').insert(rows);
+    if (error) throw error;
+  }
 }
 
 function invalidateTeams(queryClient: ReturnType<typeof useQueryClient>) {

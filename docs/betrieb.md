@@ -234,6 +234,27 @@ SELECT t.name, s.session_date, s.cancel_reason
 | Termine in den Schulferien | Schulferien fehlen in `holidays`, oder das Training hat den Schalter nicht | Abschnitt 7; sonst Trainingsdialog |
 | Termine zur alten Uhrzeit nach einer Änderung | Der Sofort-Anstoß kam nicht durch | Einmal von Hand anstoßen: `SELECT private.trigger_generate_training_sessions();` |
 
+## 6a. Neue Halbserie: Mannschaftsmeldung übernehmen
+
+Zweimal im Jahr (Vorrunde, Rückrunde) gibt click-TT die **Mannschaftsmeldung** als PDF
+heraus (Vereinszugang → Downloads, nu.Dokument 011b). Unter *Mannschaften → Aus
+Mannschaftsmeldung* (nur Administrator) wird daraus:
+
+- je Mannschaft: angelegt oder aktualisiert — Größe (4er/6er), Liga, Mannschaftsnummer.
+  Wiedererkannt wird eine vorhandene Mannschaft an Altersklasse und Nummer, ersatzweise
+  am Namen; ihr Name bleibt, wie er ist.
+- der **Kader**: die ersten Spieler als Stammspieler (so viele, wie die Mannschaft groß
+  ist), alle weiteren als Ersatz in der Reihenfolge der Meldung. Der bisherige Kader der
+  Mannschaft wird dabei ersetzt.
+- die **Ränge** (1.1, 1.2 …) und die **Mannschaftsführung**, wenn sie eindeutig ein
+  Mitglied ist.
+- auf Wunsch die **QTTR-Werte** und das Entfernen alter Ränge derselben Altersklasse.
+
+Zugeordnet wird über Vor- und Nachname. Wer in der Meldung steht, aber nicht als Mitglied
+angelegt ist (oder anders geschrieben), erscheint in der Vorschau rot und kommt nicht in
+den Kader — erst unter *Mitglieder* anlegen oder den Namen korrigieren, dann die Meldung
+noch einmal einlesen. Kontaktdaten aus der PDF werden nicht übernommen.
+
 ## 7. Feiertage und Schulferien nachladen
 
 **Einmal im Jahr, im Herbst.** Die Trainingsplanung überspringt Feiertage und Schulferien

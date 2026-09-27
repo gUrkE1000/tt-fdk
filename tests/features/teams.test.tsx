@@ -58,6 +58,18 @@ vi.mock('../../src/lib/supabaseClient', () => ({
   APP_URL: 'http://localhost:5173',
 }));
 
+// Die Seite braucht die Rolle: Den Import der Mannschaftsmeldung sieht nur der Administrator.
+vi.mock('../../src/features/auth/session', () => ({
+  useSession: () => ({
+    session: null,
+    profile: { id: 'p-admin', first_name: 'Anna', full_name: 'Anna Admin', status: 'active' },
+    role: 'admin',
+    loading: false,
+    previousLoginAt: null,
+  }),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 import TeamsPage from '../../src/features/teams/TeamsPage';
 import PlayersManagementPage from '../../src/features/teams/PlayersManagementPage';
 import { ToastProvider } from '../../src/components/ui';
