@@ -15,6 +15,7 @@ import {
 } from '../../components/ui';
 import { lastStep, registerWithCode, usePublicClubInfo, validateRegistrationCode } from './api';
 import { registerSchema, type RegisterValues } from './schemas';
+import LegalFooter, { legalLinks } from '../../app/layout/LegalFooter';
 
 /**
  * Selbstregistrierung über den Vereinslink oder QR-Code (/register/:code).
@@ -46,7 +47,7 @@ export default function RegisterPage() {
     steht erst im Formular, und das gibt es ohnehin nicht ohne gültigen Code.
   */
   const clubInfo = usePublicClubInfo(!codeCheck.isPending);
-  const privacyUrl = clubInfo.data?.privacy_url?.trim() ?? '';
+  const privacyUrl = legalLinks(clubInfo.data).privacy;
 
   /*
     Letzter Riegel, und diesmal außerhalb der Abfrage.
@@ -192,7 +193,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 sm:p-8">
         <div className="mb-6 text-center">
           <span className="text-4xl" aria-hidden="true">
@@ -252,22 +253,21 @@ export default function RegisterPage() {
             über dem Knopf und nicht als Häkchen: Eine Kenntnisnahme abzuhaken ist
             keine Einwilligung und täuscht nur eine vor.
           */}
-          {privacyUrl !== '' && (
-            <p className="text-center text-xs text-gray-500">
-              Mit der Registrierung nimmst du unseren{' '}
-              <a
-                href={privacyUrl}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="font-semibold text-primary underline-offset-2 hover:underline"
-              >
-                Datenschutzhinweis
-              </a>{' '}
-              zur Kenntnis.
-            </p>
-          )}
+          <p className="text-center text-xs text-gray-500">
+            Mit der Registrierung nimmst du unseren{' '}
+            <a
+              href={privacyUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="font-semibold text-primary underline-offset-2 hover:underline"
+            >
+              Datenschutzhinweis
+            </a>{' '}
+            zur Kenntnis.
+          </p>
         </form>
       </div>
+      <LegalFooter className="mt-2" enabled={!codeCheck.isPending} />
     </div>
   );
 }

@@ -56,24 +56,41 @@ describe('LegalFooter', () => {
     renderFooter();
 
     const privacy = await screen.findByRole('link', { name: 'Datenschutz' });
-    expect(privacy).toHaveAttribute('href', 'https://ttc.example.org/datenschutz');
+    // Bis die Vereinsdaten da sind, steht die mitgelieferte Seite da.
+    await waitFor(() =>
+      expect(privacy).toHaveAttribute('href', 'https://ttc.example.org/datenschutz'),
+    );
     expect(privacy).toHaveAttribute('target', '_blank');
-    expect(screen.getByRole('link', { name: 'Impressum' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Impressum' })).toHaveAttribute(
+      'href',
+      'https://ttc.example.org/impressum',
+    );
   });
 
-  it('zeigt nur, was hinterlegt ist', async () => {
+  it('nimmt für das, was fehlt, die mitgelieferte Seite', async () => {
     state.info = { club_name: 'TTC', club_short_name: 'TTC', privacy_url: 'https://x.org/d' };
     renderFooter();
 
-    expect(await screen.findByRole('link', { name: 'Datenschutz' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Impressum' })).toBeNull();
+    const privacy = await screen.findByRole('link', { name: 'Datenschutz' });
+    await waitFor(() => expect(privacy).toHaveAttribute('href', 'https://x.org/d'));
+    expect(screen.getByRole('link', { name: 'Impressum' })).toHaveAttribute(
+      'href',
+      '/impressum.html',
+    );
   });
 
-  it('bietet keine toten Links an', async () => {
-    // Solange nichts hinterlegt ist, ist eine leere Fußzeile ehrlicher als ein Link ins Nichts.
+  it('verlinkt ohne Eintrag die Seiten, die die Anwendung mitbringt', async () => {
+    // Die Anmeldeseite soll nie ohne Datenschutzhinweis und Impressum dastehen.
     state.info = { club_name: 'TTC', club_short_name: 'TTC', privacy_url: '  ', imprint_url: '' };
-    const { container } = renderFooter();
+    renderFooter();
 
-    await waitFor(() => expect(container.querySelector('footer')).toBeNull());
+    expect(await screen.findByRole('link', { name: 'Datenschutz' })).toHaveAttribute(
+      'href',
+      '/datenschutz.html',
+    );
+    expect(screen.getByRole('link', { name: 'Impressum' })).toHaveAttribute(
+      'href',
+      '/impressum.html',
+    );
   });
 });

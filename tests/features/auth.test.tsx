@@ -101,6 +101,18 @@ describe('LoginPage', () => {
     expect(await screen.findByText('TTC Musterstadt')).toBeInTheDocument();
   });
 
+  it('verlinkt Datenschutz und Impressum schon vor der Anmeldung', async () => {
+    renderWithProviders(<LoginPage />, '/login');
+    expect(await screen.findByRole('link', { name: 'Impressum' })).toHaveAttribute(
+      'href',
+      '/impressum.html',
+    );
+    expect(screen.getByRole('link', { name: 'Datenschutz' })).toHaveAttribute(
+      'href',
+      '/datenschutz.html',
+    );
+  });
+
   it('startet mit der Anmeldung per E-Mail-Link', () => {
     renderWithProviders(<LoginPage />, '/login');
     expect(screen.getByRole('button', { name: 'Link senden' })).toBeInTheDocument();
