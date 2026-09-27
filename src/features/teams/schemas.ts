@@ -132,3 +132,36 @@ export function parseLeagues(value: string): string[] {
     .map((entry) => entry.trim())
     .filter(Boolean);
 }
+
+export interface LeaderMismatches {
+  /** Rolle „Mannschaftsführer", aber an keiner Mannschaft eingetragen: sieht unter „Spieltermine" nichts. */
+  withoutTeam: string[];
+  /** An einer Mannschaft eingetragen, aber ohne passende Rolle: kommt nicht auf „Spieltermine". */
+  withoutRole: string[];
+}
+
+/**
+ * Wer Mannschaftsführer ist, steht an zwei Stellen: die Benutzerrolle öffnet die Seiten
+ * „Mannschaften" und „Spieltermine", die Zuordnung an der Mannschaft (`team_leaders`)
+ * entscheidet, welche Spiele er dort verwaltet. Passt beides nicht zusammen, fehlt ihm
+ * entweder die Seite oder ihr Inhalt — und niemand merkt es, bis er fragt.
+ */
+export function leaderMismatches(
+  teams: readonly { leaderIds: readonly string[] }[],
+  members: readonly { id: string; full_name: string | null; role: string | null }[],
+): LeaderMismatches {
+  const leading = new Set(teams.flatMap((team) => team.leaderIds));
+  const name = (member: { full_name: string | null }) => member.full_name ?? 'Unbekannt';
+
+  return {
+    withoutTeam: members
+      .filter((member) => member.role === 'team_leader' && !leading.has(member.id))
+      .map(name),
+    withoutRole: members
+      .filter(
+        (member) =>
+          leading.has(member.id) && member.role !== 'team_leader' && member.role !== 'admin',
+      )
+      .map(name),
+  };
+}

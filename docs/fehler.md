@@ -8,6 +8,51 @@ Gemeldete, noch offene Fehler stehen unter [Offen](#offen).
 
 ---
 
+## F-10 · Mannschaftsführer sieht die Spiele seiner Mannschaft nicht
+
+**Gemeldet** 27.09.2026 mit dem Testkonto „ASA" (Rolle Mannschaftsführer).
+**Schwere** hoch — Mannschaftsführer ohne Arbeitsliste; beim Speichern des Kaders ging
+der Kader verloren.
+**Behoben** 27.09.2026 (Oberfläche). Das Testkonto selbst braucht die Zuordnung an der
+Mannschaft, siehe unten.
+
+### Bild
+
+Unter *Spieltermine* bleibt die Liste leer, obwohl das Konto die Rolle
+„Mannschaftsführer" hat.
+
+### Ursache
+
+Mannschaftsführer ist man an zwei Stellen:
+
+1. **Benutzerrolle** (`profiles.role = 'team_leader'`, unter *Mitglieder*). Sie öffnet nur
+   die Seiten *Mannschaften* und *Spieltermine*.
+2. **Zuordnung an der Mannschaft** (`team_leaders`, Feld „Mannschaftsführer" im
+   Mannschaftsdialog). Nur sie entscheidet, welche Spiele man dort sieht und verwaltet —
+   in *Spieltermine*, an der Spielkarte, in „Für mich relevant" im Kalender, im
+   Kalender-Abo und in der Datenbank (`leads_team`, `leads_match`).
+
+Mit der Rolle allein ist die Liste leer, ohne jeden Hinweis.
+
+Dabei fiel ein zweiter Fehler auf: Speicherte ein Mannschaftsführer seinen Kader (Dialog
+oder *Mannschaften bearbeiten*), löschte `useSaveRoster` erst die Führung (RLS: nur
+Admin — lief still ins Leere), dann den Kader (erlaubt) und scheiterte beim Wiedereintragen
+der Führung. Ergebnis: leerer Kader und eine Fehlermeldung.
+
+### Behebung
+
+- *Spieltermine* sagt einem Mannschaftsführer ohne Zuordnung, woran es liegt und wer es
+  ändert.
+- *Mannschaften* zeigt dem Administrator, wer die Rolle hat, aber an keiner Mannschaft
+  steht — und umgekehrt, wer an einer Mannschaft steht, aber die Rolle nicht hat
+  (`leaderMismatches`).
+- `useSaveRoster` fasst die Führung nur an, wenn `leaderIds` übergeben wird, und zwar vor
+  dem Kader. *Mannschaften bearbeiten* übergibt sie nie, der Dialog nur für den
+  Administrator. Für den Mannschaftsführer ist das Feld „Mannschaftsführer" gesperrt, und
+  der Dialog versucht die Mannschaftsdaten gar nicht erst zu ändern.
+
+---
+
 ## F-9 · „Supabase ausrollen" scheitert an `schema_migrations_pkey`
 
 **Aufgefallen** 25.09.2026 beim Ausrollen von PR #9.

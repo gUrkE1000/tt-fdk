@@ -81,11 +81,13 @@ vi.mock('../../src/lib/supabaseClient', () => ({
 }));
 
 // Die Seite braucht die Rolle: Der Administrator sieht und verwaltet alle Spiele.
+const session = { role: 'admin' as string, profileId: 'p-admin' };
+
 vi.mock('../../src/features/auth/session', () => ({
   useSession: () => ({
     session: null,
-    profile: { id: 'p-admin', first_name: 'Anna', full_name: 'Anna Admin', status: 'active' },
-    role: 'admin',
+    profile: { id: session.profileId, first_name: 'Anna', full_name: 'Anna Admin', status: 'active' },
+    role: session.role,
     loading: false,
     previousLoginAt: null,
   }),
@@ -190,6 +192,8 @@ afterAll(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  session.role = 'admin';
+  session.profileId = 'p-admin';
   state.tables = {
     matches: [homeMatch, awayMatch, movedMatch] as unknown as Row[],
     // Die Zusagen zählt die Abfrage selbst aus — deshalb hier echte Zeilen statt
@@ -335,6 +339,30 @@ describe('validateCalendarUrl', () => {
 });
 
 // ------------------------------------------------------------------ Oberfläche
+
+describe('GamesPage als Mannschaftsführer', () => {
+  beforeEach(() => {
+    session.role = 'team_leader';
+    session.profileId = 'p-asa';
+  });
+
+  it('zeigt nur die Spiele der eigenen Mannschaft', async () => {
+    state.tables.team_leaders = [{ team_id: 't-2', profile_id: 'p-asa' }];
+    renderPage();
+
+    expect(await screen.findAllByText(/TSV Beispieldorf/)).not.toHaveLength(0);
+    expect(screen.queryByText(/TTC Nachbarstadt/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/keiner Mannschaft als Mannschaftsführer/)).not.toBeInTheDocument();
+  });
+
+  it('erklärt die leere Liste, wenn er an keiner Mannschaft eingetragen ist', async () => {
+    renderPage();
+
+    expect(
+      await screen.findByText(/keiner Mannschaft als Mannschaftsführer zugeordnet/),
+    ).toBeInTheDocument();
+  });
+});
 
 describe('GamesPage', () => {
   it('trennt offene von beendeten Terminen', async () => {

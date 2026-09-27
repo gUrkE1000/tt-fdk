@@ -79,16 +79,26 @@ export default function GamesPage() {
   // Alle Mitglieder sehen alle Spiele (Rückmeldung 25.09.2026). Diese Seite ist aber die
   // Arbeitsliste: Der Administrator verwaltet jede Mannschaft, der Mannschaftsführer
   // seine eigenen.
+  const led = useMemo(
+    () =>
+      new Set(
+        teamList
+          .filter((team) => profile?.id != null && team.leaderIds.includes(profile.id))
+          .map((team) => team.id),
+      ),
+    [teamList, profile?.id],
+  );
+
   const scoped = useMemo(() => {
     const all = matches.data ?? [];
     if (role === 'admin') return all;
-    const led = new Set(
-      teamList
-        .filter((team) => profile?.id != null && team.leaderIds.includes(profile.id))
-        .map((team) => team.id),
-    );
     return all.filter((match) => led.has(match.team_id));
-  }, [matches.data, role, teamList, profile?.id]);
+  }, [matches.data, role, led]);
+
+  // Die Benutzerrolle „Mannschaftsführer" öffnet diese Seite, welche Spiele darauf
+  // stehen, entscheidet aber die Zuordnung an der Mannschaft. Fehlt sie, bliebe die
+  // Liste kommentarlos leer.
+  const leadsNothing = role !== 'admin' && teams.isSuccess && led.size === 0;
 
   const visible = useMemo(
     () => filterMatches(scoped, filters, rankingTypes),
@@ -180,6 +190,14 @@ export default function GamesPage() {
           </>
         }
       />
+
+      {leadsNothing && (
+        <div role="status" className="mb-4 rounded-xl bg-status-late-soft p-3 text-sm text-gray-900">
+          <strong>Du bist noch keiner Mannschaft als Mannschaftsführer zugeordnet.</strong>{' '}
+          Deshalb steht hier kein Spiel. Der Administrator trägt dich unter „Mannschaften“ bei
+          deiner Mannschaft im Feld „Mannschaftsführer“ ein.
+        </div>
+      )}
 
       <FilterBar
         search={filters.search}

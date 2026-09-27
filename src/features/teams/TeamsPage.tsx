@@ -15,13 +15,15 @@ import {
   useToast,
 } from '../../components/ui';
 import { rankingTypeLabel } from '../../lib/labels';
+import { useSession } from '../auth/session';
 import { useMembers } from '../members/api';
 import { useDeleteTeam, useTeams, type TeamWithRoster } from './api';
-import { teamSubtitle } from './schemas';
+import { leaderMismatches, teamSubtitle } from './schemas';
 import TeamDialog from './TeamDialog';
 
 export default function TeamsPage() {
   const { toast } = useToast();
+  const { role } = useSession();
   const teams = useTeams();
   const members = useMembers();
   const deleteTeam = useDeleteTeam();
@@ -33,6 +35,12 @@ export default function TeamsPage() {
   const memberList = members.data ?? [];
   const nameOf = (id: string) =>
     memberList.find((member) => member.id === id)?.full_name ?? 'Unbekannt';
+
+  // Nur der Administrator kann Rolle und Zuordnung angleichen — nur er bekommt den Hinweis.
+  const mismatches =
+    role === 'admin' && teams.data && members.data
+      ? leaderMismatches(teams.data, members.data)
+      : { withoutTeam: [], withoutRole: [] };
 
   async function onDeleteConfirmed() {
     if (!toDelete) return;
@@ -116,6 +124,25 @@ export default function TeamsPage() {
           </>
         }
       />
+
+      {(mismatches.withoutTeam.length > 0 || mismatches.withoutRole.length > 0) && (
+        <div role="status" className="mb-4 space-y-1 rounded-xl bg-status-late-soft p-3 text-sm text-gray-900">
+          {mismatches.withoutTeam.length > 0 && (
+            <p>
+              <strong>Ohne Mannschaft: {mismatches.withoutTeam.join(', ')}.</strong> Die Rolle
+              „Mannschaftsführer“ allein zeigt keine Spiele — trage sie bei ihrer Mannschaft im
+              Feld „Mannschaftsführer“ ein.
+            </p>
+          )}
+          {mismatches.withoutRole.length > 0 && (
+            <p>
+              <strong>Ohne Rolle: {mismatches.withoutRole.join(', ')}.</strong> Sie führen eine
+              Mannschaft, kommen ohne die Rolle „Mannschaftsführer“ aber nicht auf
+              „Spieltermine“. Die Rolle stellst du unter „Mitglieder“ ein.
+            </p>
+          )}
+        </div>
+      )}
 
       <Table
         columns={[

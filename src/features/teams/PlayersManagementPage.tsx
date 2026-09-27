@@ -72,9 +72,9 @@ export default function PlayersManagementPage() {
           continue;
         }
 
+        // Ohne `leaderIds`: Hier wird nur der Kader verteilt, die Führung bleibt stehen.
         await saveRoster.mutateAsync({
           teamId: team.id,
-          leaderIds: team.leaderIds,
           regularIds: draft.regularIds,
           substituteIds: draft.substituteIds,
         });

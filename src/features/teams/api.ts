@@ -90,7 +90,12 @@ export function useDeleteTeam() {
 
 export interface RosterInput {
   teamId: string;
-  leaderIds: string[];
+  /**
+   * Fehlt das Feld, bleibt die Führung, wie sie ist. Wer eine Mannschaft führt,
+   * entscheidet nur der Administrator (RLS auf `team_leaders`) — ein Mannschaftsführer,
+   * der seinen Kader speichert, darf die Tabelle nicht einmal anfassen.
+   */
+  leaderIds?: string[];
   regularIds: string[];
   /** Reihenfolge ist die Aussage: Index 0 bekommt Ersatzrang 1. */
   substituteIds: string[];
@@ -103,30 +108,36 @@ export interface RosterInput {
  * Zeilen weg, dann die neuen. Sonst stolpert der Trigger, der nicht mehr Stammspieler als
  * Mannschaftsgröße zulässt, über einen Zwischenstand, in dem alte und neue Spieler
  * gleichzeitig eingetragen sind.
+ *
+ * Die Führung zuerst: Scheitert sie an der RLS, ist der Kader noch unangetastet. Früher
+ * lief das Löschen der Führung für einen Mannschaftsführer ins Leere, der Kader war weg,
+ * und erst das Wiedereintragen der Führung scheiterte — mit leerem Kader als Ergebnis.
  */
 export function useSaveRoster() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (input: RosterInput) => {
-      const dropLeaders = await supabase
-        .from('team_leaders')
-        .delete()
-        .eq('team_id', input.teamId);
-      if (dropLeaders.error) throw dropLeaders.error;
+      if (input.leaderIds) {
+        const dropLeaders = await supabase
+          .from('team_leaders')
+          .delete()
+          .eq('team_id', input.teamId);
+        if (dropLeaders.error) throw dropLeaders.error;
+
+        if (input.leaderIds.length > 0) {
+          const { error } = await supabase
+            .from('team_leaders')
+            .insert(input.leaderIds.map((id) => ({ team_id: input.teamId, profile_id: id })));
+          if (error) throw error;
+        }
+      }
 
       const dropMembers = await supabase
         .from('team_members')
         .delete()
         .eq('team_id', input.teamId);
       if (dropMembers.error) throw dropMembers.error;
-
-      if (input.leaderIds.length > 0) {
-        const { error } = await supabase
-          .from('team_leaders')
-          .insert(input.leaderIds.map((id) => ({ team_id: input.teamId, profile_id: id })));
-        if (error) throw error;
-      }
 
       const rows = [
         ...input.regularIds.map((id) => ({

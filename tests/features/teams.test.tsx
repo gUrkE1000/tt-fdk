@@ -58,11 +58,24 @@ vi.mock('../../src/lib/supabaseClient', () => ({
   APP_URL: 'http://localhost:5173',
 }));
 
+const session = { role: 'admin' as string, profileId: 'p-admin' };
+
+vi.mock('../../src/features/auth/session', () => ({
+  useSession: () => ({
+    session: null,
+    profile: { id: session.profileId, status: 'active' },
+    role: session.role,
+    loading: false,
+    previousLoginAt: null,
+  }),
+}));
+
 import TeamsPage from '../../src/features/teams/TeamsPage';
 import PlayersManagementPage from '../../src/features/teams/PlayersManagementPage';
 import { ToastProvider } from '../../src/components/ui';
 import {
   EMPTY_TEAM,
+  leaderMismatches,
   parseLeagues,
   teamSchema,
   teamSubtitle,
@@ -110,6 +123,8 @@ function renderPage(ui: React.ReactElement) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  session.role = 'admin';
+  session.profileId = 'p-admin';
   state.tables = {
     teams: [team],
     team_leaders: [{ team_id: 't-1', profile_id: 'p-meik' }],
@@ -120,10 +135,10 @@ beforeEach(() => {
       { team_id: 't-1', profile_id: 'p-olaf', kind: 'substitute', rank: 1 },
     ],
     profiles: [
-      { id: 'p-tina', full_name: 'Tina Trainerin', qttr: 1710, deleted_at: null },
-      { id: 'p-meik', full_name: 'Meik Mannschaft', qttr: 1680, deleted_at: null },
-      { id: 'p-theo', full_name: 'Theo Trainer', qttr: 1530, deleted_at: null },
-      { id: 'p-olaf', full_name: 'Olaf Organisator', qttr: 1450, deleted_at: null },
+      { id: 'p-tina', full_name: 'Tina Trainerin', qttr: 1710, deleted_at: null, role: 'trainer' },
+      { id: 'p-meik', full_name: 'Meik Mannschaft', qttr: 1680, deleted_at: null, role: 'team_leader' },
+      { id: 'p-theo', full_name: 'Theo Trainer', qttr: 1530, deleted_at: null, role: 'trainer' },
+      { id: 'p-olaf', full_name: 'Olaf Organisator', qttr: 1450, deleted_at: null, role: 'organizer' },
     ],
   };
   state.inserts = [];
@@ -197,6 +212,30 @@ describe('Mannschafts-Schema', () => {
 });
 
 // ------------------------------------------------------------------ Oberfläche
+
+describe('leaderMismatches', () => {
+  const teams = [{ leaderIds: ['p-meik', 'p-tina'] }];
+  const members = [
+    { id: 'p-meik', full_name: 'Meik Mannschaft', role: 'team_leader' },
+    { id: 'p-asa', full_name: 'Asa Test', role: 'team_leader' },
+    { id: 'p-tina', full_name: 'Tina Trainerin', role: 'trainer' },
+    { id: 'p-anna', full_name: 'Anna Admin', role: 'admin' },
+  ];
+
+  it('findet Mannschaftsführer ohne Mannschaft und Eingetragene ohne Rolle', () => {
+    expect(leaderMismatches(teams, members)).toEqual({
+      withoutTeam: ['Asa Test'],
+      withoutRole: ['Tina Trainerin'],
+    });
+  });
+
+  it('lässt den Administrator als Mannschaftsführer gelten', () => {
+    expect(leaderMismatches([{ leaderIds: ['p-anna'] }], members.slice(3))).toEqual({
+      withoutTeam: [],
+      withoutRole: [],
+    });
+  });
+});
 
 describe('TeamsPage', () => {
   it('zeigt Mannschaft, Führung und Kaderzahlen', async () => {
@@ -293,6 +332,13 @@ describe('TeamsPage', () => {
     ]);
   });
 
+  it('nennt Mannschaftsführer, die an keiner Mannschaft eingetragen sind', async () => {
+    state.tables.team_leaders = [];
+    renderPage(<TeamsPage />);
+
+    expect(await screen.findByText(/Ohne Mannschaft: Meik Mannschaft/)).toBeInTheDocument();
+  });
+
   it('verlangt vor dem Löschen eine Bestätigung', async () => {
     renderPage(<TeamsPage />);
     await screen.findAllByText('1. Herren');
@@ -305,6 +351,39 @@ describe('TeamsPage', () => {
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }));
     await waitFor(() => expect(state.deletes).toEqual([{ table: 'teams', value: 't-1' }]));
+  });
+});
+
+describe('TeamsPage als Mannschaftsführer', () => {
+  beforeEach(() => {
+    session.role = 'team_leader';
+    session.profileId = 'p-meik';
+  });
+
+  it('speichert nur den Kader und lässt Mannschaft und Führung stehen', async () => {
+    renderPage(<TeamsPage />);
+    await screen.findAllByText('1. Herren');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /1\. Herren bearbeiten/ })[0]);
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Speichern' }));
+
+    await waitFor(() =>
+      expect(state.inserts.some((entry) => entry.table === 'team_members')).toBe(true),
+    );
+    // Beides verbietet die RLS dem Mannschaftsführer. Früher löschte das Speichern
+    // erst den Kader und scheiterte dann an der Führung — der Kader war weg.
+    expect(state.updates).toHaveLength(0);
+    expect(state.deletes.map((entry) => entry.table)).toEqual(['team_members']);
+    expect(state.inserts.map((entry) => entry.table)).toEqual(['team_members']);
+  });
+
+  it('zeigt keinen Hinweis zur Rollenzuordnung', async () => {
+    state.tables.team_leaders = [];
+    renderPage(<TeamsPage />);
+    await screen.findAllByText('1. Herren');
+
+    expect(screen.queryByText(/Ohne Mannschaft/)).not.toBeInTheDocument();
   });
 });
 
