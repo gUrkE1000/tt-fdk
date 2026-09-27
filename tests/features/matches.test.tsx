@@ -207,7 +207,11 @@ beforeEach(() => {
       { id: 't-1', name: '1. Herren', size: 4, ranking_type: 'men', color: '#000', active: true, sort_order: 1 },
       { id: 't-2', name: 'Damen', size: 4, ranking_type: 'women', color: '#000', active: true, sort_order: 2 },
     ],
-    team_leaders: [],
+    // Die Seite beginnt bei den eigenen Mannschaften; hier führt Anna beide.
+    team_leaders: [
+      { team_id: 't-1', profile_id: 'p-admin' },
+      { team_id: 't-2', profile_id: 'p-admin' },
+    ],
     team_members: [],
     venues: [{ id: 'v-1', name: 'Sporthalle Musterstadt', active: true, training_only: false }],
     profiles: [],
@@ -216,6 +220,7 @@ beforeEach(() => {
   state.updates = [];
   state.deleted = [];
   state.invocations = [];
+  window.localStorage.clear();
 });
 
 // ------------------------------------------------------------------ Filterlogik
@@ -337,6 +342,38 @@ describe('validateCalendarUrl', () => {
 // ------------------------------------------------------------------ Oberfläche
 
 describe('GamesPage', () => {
+  it('zeigt einem Administrator zuerst nur die Mannschaften, die er führt', async () => {
+    state.tables.team_leaders = [{ team_id: 't-1', profile_id: 'p-admin' }];
+    renderPage();
+
+    expect(await screen.findAllByText('TTC Nachbarstadt')).not.toHaveLength(0);
+    expect(screen.queryByText('TSV Beispieldorf')).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ganzer Verein' }));
+    expect(await screen.findAllByText('TSV Beispieldorf')).not.toHaveLength(0);
+  });
+
+  it('merkt sich „Ganzer Verein" auf dem Gerät', async () => {
+    state.tables.team_leaders = [{ team_id: 't-1', profile_id: 'p-admin' }];
+    window.localStorage.setItem('vp.games.scope', 'club');
+    renderPage();
+
+    expect(await screen.findAllByText('TSV Beispieldorf')).not.toHaveLength(0);
+    expect(screen.getByRole('button', { name: 'Ganzer Verein' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('führt einen Administrator ohne Mannschaft zum ganzen Verein', async () => {
+    state.tables.team_leaders = [];
+    renderPage();
+
+    expect(await screen.findByText('Du führst keine Mannschaft')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Ganzen Verein anzeigen' }));
+    expect(await screen.findAllByText('TSV Beispieldorf')).not.toHaveLength(0);
+  });
+
   it('trennt offene von beendeten Terminen', async () => {
     renderPage();
 

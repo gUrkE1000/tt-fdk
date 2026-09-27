@@ -38,6 +38,8 @@ export { default as StatTile } from './StatTile';
 export type { StatTileProps } from './StatTile';
 
 export { default as Tabs } from './Tabs';
+export { default as Segmented } from './Segmented';
+export type { SegmentedProps } from './Segmented';
 export type { TabsProps, TabDefinition } from './Tabs';
 
 export { default as Dialog } from './Dialog';
