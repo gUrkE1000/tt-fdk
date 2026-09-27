@@ -169,9 +169,9 @@ Functions). Beide müssen übereinstimmen.
 
 *Verein → Betrieb → Einstellungen → Rechtliches*
 
-Die Registrierungsseite und die Fußzeile verlinken beides. Fehlen die Adressen, **erfährt
-niemand, was mit seinen Daten passiert** — und die Anwendung verschweigt es, weil sie
-nichts zu verlinken hat.
+Anmeldeseite, Registrierung und Fußzeile verlinken beides. Ohne eingetragene Adressen
+gelten die Seiten, die die Anwendung mitbringt (`/datenschutz.html`, `/impressum.html`);
+eingetragene Adressen haben Vorrang.
 
 **Erprobungsphase (privat betrieben):** Beide Seiten liegen fertig in der Anwendung —
 `public/datenschutz.html` und `public/impressum.html`. Einzutragen sind

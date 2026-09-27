@@ -17,6 +17,7 @@ import {
   type PasswordLoginValues,
 } from './schemas';
 import { useSession } from './session';
+import LegalFooter from '../../app/layout/LegalFooter';
 
 function MagicLinkForm() {
   const { toast } = useToast();
@@ -192,7 +193,7 @@ export default function LoginPage() {
   if (!loading && session) return <Navigate to="/" replace />;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 sm:p-8">
         <div className="mb-6 text-center">
           <span className="text-4xl" aria-hidden="true">
@@ -212,6 +213,7 @@ export default function LoginPage() {
           ]}
         />
       </div>
+      <LegalFooter className="mt-2" />
     </div>
   );
 }
