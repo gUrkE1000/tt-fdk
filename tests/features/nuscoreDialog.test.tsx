@@ -101,7 +101,7 @@ describe('NuscoreImportDialog', () => {
 
     state.pdfLines = ['Sa. 10.10.2026 18:30 TSV Feldkirchen II TTC Kirchheim 7EXU-XFZU-F8S4'];
     await user.upload(screen.getByLabelText('Spiel-Codes (PDF)'), pdf('codes.pdf'));
-    expect(await screen.findByText('7EXU-XFZU-F8S4')).toBeInTheDocument();
+    expect(await screen.findByText('7EXUXFZUF8S4')).toBeInTheDocument();
 
     state.pdfLines = [
       'Sa. 10.10.2026 18:30 TSV Feldkirchen II TTC Kirchheim 4711',
@@ -118,7 +118,7 @@ describe('NuscoreImportDialog', () => {
     await waitFor(() => expect(state.updates).toHaveLength(2));
     expect(state.updates).toEqual(
       expect.arrayContaining([
-        { id: 'm-1', values: { nuscore_code: '7EXU-XFZU-F8S4', nuscore_pin: '4711' } },
+        { id: 'm-1', values: { nuscore_code: '7EXUXFZUF8S4', nuscore_pin: '4711' } },
         { id: 'm-2', values: { nuscore_pin: '0815' } },
       ]),
     );

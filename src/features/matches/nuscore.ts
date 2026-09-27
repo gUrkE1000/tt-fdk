@@ -33,17 +33,26 @@ const DATE = /\b(\d{1,2})\.(\d{1,2})\.(\d{4}|\d{2})\b/;
 const TIME = /\b([01]?\d|2[0-3])[:.]([0-5]\d)\b(?!\.\d)/;
 
 /**
- * Drei Viererblöcke: „7EXU-XFZU-F8S4". Mit Bindestrich eindeutig; mit Leerzeichen oder
- * ganz ohne Trennung nur, wenn Ziffern darin stehen — sonst hielte der Leser drei kurze
+ * Der Spiel-Code: zwölf Zeichen aus Großbuchstaben und Ziffern. click-TT druckt ihn am
+ * Stück ans Zeilenende („W67J9WUPW75L"), nuScore nimmt ihn genauso — so wird er auch
+ * gespeichert. Mit Bindestrichen oder Leerzeichen geschrieben („W67J-9WUP-W75L") wird er
+ * ebenfalls erkannt und ohne Trennzeichen übernommen.
+ *
+ * Steht der Block am Ende der Zeile, gilt er in jedem Fall als Code. Irgendwo in der
+ * Zeile nur, wenn er Buchstaben und Ziffern mischt — sonst hielte der Leser drei kurze
  * Wörter eines Vereinsnamens für einen Code.
  */
+const CODE_TRAILING = /\b([A-Z0-9]{12})\s*$/;
 const CODE_HYPHEN = /\b([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})\b/;
 const CODE_LOOSE = /\b([A-Z0-9]{4}) ?([A-Z0-9]{4}) ?([A-Z0-9]{4})\b/g;
 
 function findCode(text: string): string | null {
+  const trailing = text.match(CODE_TRAILING);
+  if (trailing) return trailing[1];
+
   const upper = text.toUpperCase();
   const hyphen = upper.match(CODE_HYPHEN);
-  if (hyphen) return `${hyphen[1]}-${hyphen[2]}-${hyphen[3]}`;
+  if (hyphen) return hyphen[1] + hyphen[2] + hyphen[3];
 
   // Ohne Datum und Uhrzeit: Sonst würde „2026" zum ersten Block.
   const rest = upper
@@ -51,13 +60,13 @@ function findCode(text: string): string | null {
     .replace(new RegExp(TIME.source, 'g'), ' ');
   for (const loose of rest.matchAll(CODE_LOOSE)) {
     const joined = loose[1] + loose[2] + loose[3];
-    if (/\d/.test(joined) && /[A-Z]/.test(joined)) return `${loose[1]}-${loose[2]}-${loose[3]}`;
+    if (/\d/.test(joined) && /[A-Z]/.test(joined)) return joined;
   }
   return null;
 }
 
 /** Ein PIN mit Beschriftung: „PIN: 4711", „Spiel-PIN 4711". */
-const LABELLED_PIN = /PIN\s*:?\s*([A-Z0-9]{4,10})\b/i;
+const LABELLED_PIN = /PIN\s*:?\s*([A-Z0-9]{4,12})\b/i;
 
 /**
  * Aus Textzeilen werden Einträge: Jeder beginnt mit einer Zeile, die ein Datum trägt;
@@ -88,7 +97,10 @@ function isoDate(match: RegExpMatchArray): string | null {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-/** Der PIN ist der letzte Block aus Ziffern und Großbuchstaben, der kein Datum ist. */
+/**
+ * Der PIN ist der letzte Block aus Ziffern und Großbuchstaben, der kein Datum und keine
+ * Uhrzeit ist — in der click-TT-Liste steht der Wert wie beim Code am Zeilenende.
+ */
 function findPin(text: string): string | null {
   const labelled = text.match(LABELLED_PIN);
   if (labelled) return labelled[1].toUpperCase();
@@ -98,7 +110,7 @@ function findPin(text: string): string | null {
     .replace(new RegExp(CODE_HYPHEN.source, 'g'), ' ')
     .replace(new RegExp(DATE.source, 'g'), ' ')
     .replace(new RegExp(TIME.source, 'g'), ' ');
-  const tokens = rest.split(/[\s|;,]+/).filter((token) => /^[A-Z0-9]{4,10}$/.test(token));
+  const tokens = rest.split(/[\s|;,]+/).filter((token) => /^[A-Z0-9]{4,12}$/.test(token));
   // Mit mindestens einer Ziffer: „TTSV" oder „HERREN" in Großbuchstaben ist kein PIN.
   const candidates = tokens.filter((token) => /\d/.test(token));
   return candidates.length > 0 ? candidates[candidates.length - 1] : null;

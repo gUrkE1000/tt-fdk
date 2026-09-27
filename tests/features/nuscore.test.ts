@@ -49,12 +49,67 @@ describe('splitRecords', () => {
   });
 });
 
+// Aufbau der echten click-TT-Liste „Spiel-Erfassungs-Codes" (nu.Dokument 018), wie
+// pdfjs sie liest — mit erfundenen Codes: Echte Codes öffnen den Spielbericht.
+const CLICK_TT_CODES = [
+  'TSV Feldkirchen',
+  'Erwachsene II',
+  'Spiel-Erfassungs-Codes',
+  'Verwendung der Spielcodes',
+  'Die Spielcodes sind erforderlich, um die Spielberichte in nuScore zu laden und zu erfassen.',
+  'Codetabelle',
+  'Datum, Uhrzeit (Lokal) Heimmannschaft Gastmannschaft Spiel-Code',
+  'Mo. 26.10.2026 20:00 (1) TSV Feldkirchen II TSV Ebersberg AB12CD34EF56',
+  'Mo. 23.11.2026 20:00 (1) TSV Feldkirchen II TSV Zorneding 1920 II QWERTZUIOPAS',
+  'Mo. 18.01.2027 20:00 (1) TSV Feldkirchen II TV 1895 Markt Schwaben 9Z8Y7X6W5V4U',
+  'nu .Dokument 018, erstellt am 26.09.2026 19:16 | Seite 1 von 1',
+];
+
+describe('parseNuscoreList mit der click-TT-Liste', () => {
+  it('liest jede Spielzeile, übergeht Kopf und Fußzeile', () => {
+    expect(
+      parseNuscoreList(CLICK_TT_CODES, 'code').map(({ date, time, value }) => [date, time, value]),
+    ).toEqual([
+      ['2026-10-26', '20:00', 'AB12CD34EF56'],
+      // Nur Buchstaben — steht am Zeilenende, also der Code.
+      ['2026-11-23', '20:00', 'QWERTZUIOPAS'],
+      ['2027-01-18', '20:00', '9Z8Y7X6W5V4U'],
+    ]);
+  });
+
+  it('ordnet über das Datum den Heimspielen zu', () => {
+    const plan = planNuscoreImport(parseNuscoreList(CLICK_TT_CODES, 'code'), [
+      match({ id: 'eb', dtstart: '2026-10-26T19:00:00Z', opponent: 'TSV Ebersberg' }),
+      match({ id: 'zo', dtstart: '2026-11-23T19:00:00Z', opponent: 'TSV Zorneding 1920 II' }),
+      match({ id: 'ms', dtstart: '2027-01-18T19:00:00Z', opponent: 'TV 1895 Markt Schwaben' }),
+    ]);
+    expect(plan.unassigned).toEqual([]);
+    expect(plan.assignments.map((item) => [item.matchId, item.code])).toEqual([
+      ['eb', 'AB12CD34EF56'],
+      ['zo', 'QWERTZUIOPAS'],
+      ['ms', '9Z8Y7X6W5V4U'],
+    ]);
+  });
+
+  it('nimmt aus einer PIN-Liste desselben Aufbaus den Wert am Zeilenende', () => {
+    const entries = parseNuscoreList(
+      [
+        'Datum, Uhrzeit (Lokal) Heimmannschaft Gastmannschaft Spiel-PIN',
+        'Mo. 23.11.2026 20:00 (1) TSV Feldkirchen II TSV Zorneding 1920 II 4821',
+        'Do. 03.12.2026 19:45 (1) TSV Zorneding 1920 II TSV Feldkirchen II 7310',
+      ],
+      'pin',
+    );
+    expect(entries.map((entry) => entry.value)).toEqual(['4821', '7310']);
+  });
+});
+
 describe('parseNuscoreList', () => {
-  it('liest Datum, Uhrzeit und Code', () => {
+  it('liest Datum, Uhrzeit und Code und lässt die Bindestriche weg', () => {
     const entries = parseNuscoreList(CODES, 'code');
     expect(entries.map(({ date, time, value }) => ({ date, time, value }))).toEqual([
-      { date: '2026-10-10', time: '18:30', value: '7EXU-XFZU-F8S4' },
-      { date: '2026-10-23', time: '20:00', value: 'A2BC-D3EF-G4HJ' },
+      { date: '2026-10-10', time: '18:30', value: '7EXUXFZUF8S4' },
+      { date: '2026-10-23', time: '20:00', value: 'A2BCD3EFG4HJ' },
     ]);
   });
 
@@ -92,9 +147,9 @@ describe('parseNuscoreList', () => {
 
   it('erkennt Codes mit Leerzeichen oder ohne Trennung', () => {
     expect(parseNuscoreList(['12.10.2026 7exu xfzu f8s4'], 'code')[0].value).toBe(
-      '7EXU-XFZU-F8S4',
+      '7EXUXFZUF8S4',
     );
-    expect(parseNuscoreList(['12.10.2026 7EXUXFZUF8S4'], 'code')[0].value).toBe('7EXU-XFZU-F8S4');
+    expect(parseNuscoreList(['12.10.2026 7EXUXFZUF8S4'], 'code')[0].value).toBe('7EXUXFZUF8S4');
   });
 
   it('hält drei kurze Wörter nicht für einen Code', () => {
@@ -118,9 +173,9 @@ describe('planNuscoreImport', () => {
 
     expect(plan.unassigned).toEqual([]);
     expect(plan.assignments).toEqual([
-      { matchId: 'm-1', code: '7EXU-XFZU-F8S4', pin: '4711' },
+      { matchId: 'm-1', code: '7EXUXFZUF8S4', pin: '4711' },
       { matchId: 'm-2', code: null, pin: '0815' },
-      { matchId: 'm-3', code: 'A2BC-D3EF-G4HJ', pin: null },
+      { matchId: 'm-3', code: 'A2BCD3EFG4HJ', pin: null },
     ]);
   });
 

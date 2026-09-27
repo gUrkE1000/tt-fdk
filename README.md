@@ -21,7 +21,7 @@ Seiten und große Bibliotheken werden nachgeladen (Hauptpaket 1,87 MB → 816 KB
 Noch nicht eingeladen ist jemand: Was davor zu erledigen ist, steht in
 [docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md). 9.4 (Dateien) und
 9.10 („Anmelden als") sind gestrichen. Der nuScore-Import (9.7, *Spieltermine → Codes &
-PINs*) ist ohne echte click-TT-PDF gebaut — mit der ersten echten Liste einmal prüfen.
+PINs*) ist mit der echten Code-Liste aus click-TT geprüft; eine echte PIN-Liste noch nicht.
 
 ## Loslegen
 

@@ -677,7 +677,7 @@ Vom ausführenden Agenten gepflegt.
 | 9.2 Nachrichten am Termin | erledigt | 18.09.2026 | Sichtbarkeit erbt vom Termin; Faden lädt erst beim Aufklappen |
 | 9.9 Trainingsstatistik | erledigt | 18.09.2026 | „nicht gemeldet" bleibt von „abgesagt" getrennt; Menüpunkt jetzt für alle |
 | 9.11 Dark Mode | erledigt | 18.09.2026 | über Farb-Variablen statt `dark:`-Varianten; im Browser geprüft |
-| 9.7 NuScore Codes & PINs Import | erledigt | 27.09.2026 | Ohne echte click-TT-PDF gebaut: Der Leser verlässt sich nicht auf Spalten, sondern auf Datum, Wertform und Gegner; Vorschau vor dem Speichern; eingefügter Text als Rückweg. Mit der ersten echten Liste prüfen |
+| 9.7 NuScore Codes & PINs Import | erledigt | 27.09.2026 | Mit der echten Code-Liste (nu.Dokument 018) geprüft: 12 Zeichen am Zeilenende, ohne Bindestriche. Der Leser verlässt sich nicht auf Spalten, sondern auf Datum, Wertform und Gegner; Vorschau vor dem Speichern; eingefügter Text als Rückweg. Die PIN-Liste ist noch ungesehen |
 | 9.x übrige Stufe B | erledigt | 27.09.2026 | 9.4 Dateien, 9.8 Arbeitszeiten und 9.10 „Anmelden als" gestrichen |
 | 10.1 Datenschutz-Unterlagen | erledigt | 18.09.2026 | dabei aufgefallen: die versprochene Löschung nach 30 Tagen fand nie statt |
 | 10.2 Datenübernahme | vorbereitet | 18.09.2026 | `docs/migration.md`; ausführbar erst mit Supabase-Projekt und echter TT-Planer-Datei |
