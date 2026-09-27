@@ -631,7 +631,7 @@ verlinkt und ohne ihn verschweigt, was mit den Daten passiert.
 | 5.2 | **AV-Vertrag mit Resend** abschließen; vorher Data-Privacy-Framework-Status prüfen | Vorstand | 1 Tag |
 | 5.3 | **Datenschutzhinweis** fertigstellen: Platzhalter in `docs/datenschutz/datenschutzhinweis.md` füllen, veröffentlichen | Vorstand | 1 Woche |
 | 5.4 | Die **URL** unter *Verein → Betrieb → Einstellungen* eintragen | Administrator | 2 min |
-| 5.5 | **Impressum** verlinken | Vorstand | 5 min |
+| 5.5 | **Impressum** verlinken (in der Erprobung: `<App-Adresse>/impressum.html`, danach das der Vereinswebsite) | Vorstand | 5 min |
 | 5.6 | `docs/datenschutz/verarbeitungsverzeichnis.md` in die Vereinsunterlagen | Vorstand | — |
 | 5.7 | Unterlagen **prüfen lassen** | Vorstand | variabel |
 
@@ -723,7 +723,7 @@ vorweg, was sonst zurückgefragt oder falsch geraten wird:
 KONTEXT — Vereinsplaner (Tischtennisverein, ~80 Mitglieder)
 
 Stack:
-- Frontend: React 18 + TypeScript (strict) + Vite 5 + Tailwind, ausgeliefert
+- Frontend: React 18 + TypeScript (strict) + Vite 8 + Tailwind, ausgeliefert
   über GitHub Pages als PWA (vite-plugin-pwa, injectManifest)
 - Backend: Supabase Cloud, Region Frankfurt
   - PostgreSQL 15/16, 31 Migrationen, Row Level Security auf JEDER Tabelle

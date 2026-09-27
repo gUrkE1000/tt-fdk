@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Download, Plus, SlidersHorizontal, Trash2 } from 'lucide-react';
+import { Download, KeyRound, Plus, SlidersHorizontal, Trash2 } from 'lucide-react';
 import {
   Button,
   Dialog,
@@ -31,6 +31,7 @@ import {
 import GameTable from './GameTable';
 import GameDialog from './GameDialog';
 import ImportDialog from './ImportDialog';
+import NuscoreImportDialog from './NuscoreImportDialog';
 import ManagePlayersDialog from './ManagePlayersDialog';
 import ShareLineupDialog from './ShareLineupDialog';
 import RescheduleDialog from './RescheduleDialog';
@@ -50,6 +51,7 @@ export default function GamesPage() {
   const [editing, setEditing] = useState<MatchRow | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [nuscoreOpen, setNuscoreOpen] = useState(false);
   const [toDelete, setToDelete] = useState<MatchRow[] | null>(null);
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const [managing, setManaging] = useState<MatchRow | null>(null);
@@ -89,6 +91,15 @@ export default function GamesPage() {
     );
     return all.filter((match) => led.has(match.team_id));
   }, [matches.data, role, teamList, profile?.id]);
+
+  // Codes und PINs nur für Mannschaften, deren Spiele man auch ändern darf.
+  const managedTeams = useMemo(
+    () =>
+      role === 'admin'
+        ? teamList
+        : teamList.filter((team) => profile?.id != null && team.leaderIds.includes(profile.id)),
+    [role, teamList, profile?.id],
+  );
 
   const visible = useMemo(
     () => filterMatches(scoped, filters, rankingTypes),
@@ -166,6 +177,10 @@ export default function GamesPage() {
             <Button onClick={() => setImportOpen(true)}>
               <Download className="h-4 w-4" aria-hidden="true" />
               Spiele importieren
+            </Button>
+            <Button onClick={() => setNuscoreOpen(true)}>
+              <KeyRound className="h-4 w-4" aria-hidden="true" />
+              Codes &amp; PINs
             </Button>
             <Button
               variant="primary"
@@ -352,6 +367,12 @@ export default function GamesPage() {
       />
 
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} teams={teamList} />
+      <NuscoreImportDialog
+        open={nuscoreOpen}
+        onOpenChange={setNuscoreOpen}
+        teams={managedTeams}
+        matches={scoped}
+      />
 
       <ManagePlayersDialog
         open={managing !== null}

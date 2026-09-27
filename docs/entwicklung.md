@@ -253,5 +253,19 @@ wird**. `exceljs` ruft `uuidv4()` an zwei Stellen ohne jedes Argument auf
 `npm audit fix --force` würde `exceljs` auf 3.4.0 zurückstufen — eine Hauptversion
 zurück, um eine Lücke zu schließen, die nicht erreichbar ist.
 
-**Die Befunde zu `vitest` und `esbuild`** betreffen den Entwicklungsserver und werden mit
-dem nächsten Vitest-Sprung mitgenommen.
+**Vite 8 und Vitest 5 seit 27.09.2026** — der Sprung von Vite 5 und Vitest 1 hat die
+Befunde zu `vitest` und `esbuild` im Entwicklungsserver mitgenommen. Vite braucht dafür
+`@vitejs/plugin-react` 6 (Babel entfällt) und Vitest ≥ 3; Node muss mindestens 22.12 sein.
+npm konnte den Peer-Konflikt im alten Lockfile nicht auflösen, das Lockfile wurde deshalb
+neu aufgelöst — alle übrigen Änderungen darin lagen innerhalb der erlaubten Bereiche.
+
+**FullCalendar bleibt auf 6.x** — 7.0 ist eine Neuentwicklung: Klassennamen sind
+minifiziert (`.fc-classic-a` statt `.fc-daygrid-event`), das Aussehen kommt aus
+Theme-Plugins mit eigenen CSS-Variablen, `temporal-polyfill` ist Pflicht, und
+`daygrid`/`list`/`timegrid` gibt es nur noch als Unterpfade von `@fullcalendar/react`.
+Alle Kalender-Anpassungen in `src/index.css` (Farben, Dark Mode, Sperren, Absagen,
+Mobil-Layout) müssten neu geschrieben und im Browser abgenommen werden, ohne dass die
+Mitglieder etwas davon hätten. 6.1.21 erschien im Juni 2026 und wird weiter gepflegt.
+`.github/dependabot.yml` ignoriert deshalb Hauptversionen von `@fullcalendar/*`.
+Umsteigen, wenn 6.x keine Sicherheitskorrekturen mehr bekommt — dann alle fünf Pakete in
+einem Schritt.

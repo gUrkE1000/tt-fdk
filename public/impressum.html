@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<!-- Immer hell, wie die Anwendung in der Voreinstellung. -->
+<meta name="color-scheme" content="only light">
+<title>Impressum</title>
+<!--
+  Impressum, ausgeliefert unter /impressum.html.
+
+  Wie datenschutz.html: eine einzelne HTML-Datei in `public/`, ohne Abhängigkeiten, damit
+  sie auch lesbar ist, wenn die Anwendung selbst nicht lädt.
+
+  ACHTUNG — dies ist die FASSUNG FÜR DIE ERPROBUNGSPHASE. Anbieter ist eine
+  Privatperson (§ 18 Abs. 1 MStV: Name und Anschrift). Ein privates, nicht kommerzielles
+  Angebot fällt nicht unter die Impressumspflicht des § 5 DDG; die Angaben stehen hier
+  trotzdem, weil die Anmeldeseite öffentlich erreichbar ist.
+
+  SOBALD DER VEREIN ÜBERNIMMT, ist diese Datei zu ersetzen oder zu löschen und unter
+  Verein → Betrieb → Einstellungen → Rechtliches das Impressum der Vereinswebsite
+  einzutragen.
+-->
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2937; --muted: #6b7280;
+    --rule: #e5e7eb; --accent: #0d9488; --note-bg: #f0fdfa; --note-rule: #99f6e4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2rem 1rem 4rem;
+    background: var(--bg); color: var(--fg);
+    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 42rem; margin: 0 auto; }
+  h1 { font-size: 1.75rem; line-height: 1.25; margin: 0 0 .25rem; }
+  h2 { font-size: 1.2rem; margin: 2.25rem 0 .5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
+  h2:first-of-type { border-top: 0; padding-top: 0; }
+  p { margin: .6rem 0; }
+  address { font-style: normal; }
+  a { color: var(--accent); }
+  .lead { color: var(--muted); margin-bottom: 2rem; }
+  .hinweis {
+    background: var(--note-bg); border: 1px solid var(--note-rule);
+    border-radius: .75rem; padding: 1rem 1.25rem; margin: 2rem 0;
+  }
+  .hinweis p:first-child { margin-top: 0; }
+  .hinweis p:last-child { margin-bottom: 0; }
+  footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+
+  <h1>Impressum</h1>
+  <p class="lead">für die Erprobung des Vereinsplaners</p>
+
+  <h2>Anbieter</h2>
+  <address>
+    <strong>Jan Pawlikowski</strong><br>
+    Johann-Sebastian-Bach-Straße 1<br>
+    85622 Feldkirchen
+  </address>
+  <p>
+    E-Mail: <a href="mailto:jan08.p@gmail.com">jan08.p@gmail.com</a>
+  </p>
+
+  <div class="hinweis">
+    <p>
+      Der Vereinsplaner ist ein <strong>privates, nicht kommerzielles Vorhaben</strong> in
+      der Erprobung. Er ist <strong>kein Angebot des TSV Feldkirchen</strong>; der Verein
+      hat darüber nichts beschlossen und trägt dafür keine Verantwortung.
+    </p>
+  </div>
+
+  <h2>Datenschutz</h2>
+  <p>
+    Welche Daten gespeichert werden und welche Rechte du hast, steht im
+    <a href="datenschutz.html">Datenschutzhinweis</a>.
+  </p>
+
+  <footer>
+    Stand: 27. September 2026 · Erprobungsfassung ·
+    <a href="./">Zurück zum Vereinsplaner</a>
+  </footer>
+
+</main>
+</body>
+</html>

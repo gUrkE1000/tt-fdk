@@ -49,6 +49,20 @@ describe('buildPushMessage', () => {
     expect(buildPushMessage(row).data.url).toBe('https://verein.example.org/r/abc');
   });
 
+  it('führt zur Seite des Termins statt zum Antwort-Link', () => {
+    // Die Seite gilt auch nach der Antwort noch; der Antwort-Link nur einmal.
+    const message = buildPushMessage({
+      ...row,
+      payload: { ...row.payload, page: 'https://verein.example.org/match/m-1' },
+    });
+    expect(message.data.url).toBe('https://verein.example.org/match/m-1');
+  });
+
+  it('übergeht eine leere Seitenadresse', () => {
+    const message = buildPushMessage({ ...row, payload: { ...row.payload, page: '' } });
+    expect(message.data.url).toBe('https://verein.example.org/r/abc');
+  });
+
   it('führt ohne Link zur Startseite', () => {
     const message = buildPushMessage({ ...row, payload: {} }, 'https://verein.example.org');
     expect(message.data.url).toBe('https://verein.example.org');

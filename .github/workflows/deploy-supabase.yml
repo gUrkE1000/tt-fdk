@@ -34,7 +34,7 @@ jobs:
         with:
           # Dieselbe Version wie devDependencies.supabase im package-lock.json. `latest`
           # hieße: jedes Ausrollen mit einer anderen CLI, ohne dass es jemand merkt.
-          version: 2.117.0
+          version: 2.118.0
 
       # Fehlt ein Secret, meldet die CLI nur „required flag(s) not set" und lässt offen,
       # welches. Deshalb hier zuerst nachsehen und den Namen nennen.

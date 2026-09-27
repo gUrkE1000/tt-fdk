@@ -173,6 +173,11 @@ Die Registrierungsseite und die Fußzeile verlinken beides. Fehlen die Adressen,
 niemand, was mit seinen Daten passiert** — und die Anwendung verschweigt es, weil sie
 nichts zu verlinken hat.
 
+**Erprobungsphase (privat betrieben):** Beide Seiten liegen fertig in der Anwendung —
+`public/datenschutz.html` und `public/impressum.html`. Einzutragen sind
+`<App-Adresse>/datenschutz.html` und `<App-Adresse>/impressum.html`. Die Schritte
+darunter gelten, sobald der Verein übernimmt.
+
 **Vorher zu tun:**
 
 1. `docs/datenschutz/datenschutzhinweis.md` — Platzhalter in eckigen Klammern füllen

@@ -567,13 +567,13 @@ Jede Aufgabe eigenständig; Reihenfolge frei nach Nutzen. Kurzform, gleiche Ansp
 | 9.1 | Schlüsselverwaltung | Tabellen `keys`, `key_handovers`; `/venues` Abschnitt Schlüssel mit Feldern aus Bestandsaufnahme F; Dashboard-Tab „Schlüssel" mit Übergabe (nur aktueller Inhaber, nicht bei `no_forwarding`); Spalte Schlüssel in Vereinsübersicht; Trainings-Schlüsselwarnung aktiv | `Schluesselverwaltung` |
 | 9.2 | Nachrichten am Termin | `object_messages`; Thread-Panel auf Spiel-/Trainings-/Terminkarte („Nachrichten (n)"); Notification `object_message` an Beteiligte | `Nachrichten am Termin` |
 | 9.3 | Vereinsneuigkeiten | `news`; `/club` Tab Neuigkeiten (anlegen, organizer/admin), `/my-club` Tab Neuigkeiten; keine Benachrichtigung (wie TT-Planer) | `Vereinsneuigkeiten` |
-| 9.4 | Dateien | Supabase Storage Bucket `club-files` (privat), Tabelle `files`, Upload/Download in `/club` und `/my-club`, Anhänge an Vereinsterminen | `Dateien` |
+| ~~9.4~~ | ~~Dateien~~ | **Gestrichen** (Vereinsentscheidung 27.09.2026 — wird nicht gebraucht). Nummer bleibt vergeben. | — |
 | 9.5 | Excel-Import/-Update | `xlsx`-Paket; Vorlage herunterladen, Import (Spalten wie Bestandsaufnahme G), Update (Export → Bearbeiten → Upload); neue Mitglieder erhalten Einladung | `Excel-Import und -Update der Mitglieder` |
 | 9.6 | Ämter (Vereinsrollen) | `club_roles`, `club_role_members`; `/club` Tab Ämter mit Name, Beschreibung, Tätigkeiten (ohne Inventar-/Bekleidung-Checkboxen — beide Module sind gestrichen); Zuweisung im Ämter-Dialog; `/my-club` Rollen & Kontaktdaten zeigt Ämter | `Aemter` |
 | 9.7 | NuScore Codes & PINs Import | PDF-Parser (`pdfjs-dist`) für die click-TT-PDFs; Dialog Einzeln/Mehrfach wie Bestandsaufnahme D; Code/PIN auf der Karte für Aufstellung sichtbar | `NuScore Codes und PINs` |
 | ~~9.8~~ | ~~Arbeitszeiten~~ | **Gestrichen** (Vereinsentscheidung 17.09.2026). Nummer bleibt vergeben, damit Verweise stabil bleiben. | — |
 | 9.9 | Statistik Trainingsbeteiligung | `/statistics`: Widget je Training (Zusagen/Absagen/Abwesenheiten, Zeitraum, CSV) + Top 10 (12 Monate), Sichtbarkeit nach `statistics_visibility` | `Trainingsstatistik` |
-| 9.10 | Anmelden als (Eltern) | `login_delegations`; Profilmenü „Anmelden als …"; Sitzung wechselt Profil-Kontext (RPC-seitig `acting_profile_id` im JWT-Claim via Custom Claims Hook) | `Anmelden als` |
+| ~~9.10~~ | ~~Anmelden als (Eltern)~~ | **Gestrichen** (Vereinsentscheidung 27.09.2026). Eltern bekommen Nachrichten weiter über die Kopie-Adressen (`emails_copies`). Nummer bleibt vergeben. | — |
 | 9.11 | Dark Mode | `dark:`-Varianten der Tokens, Umschalter im Profil | `Dark Mode` |
 
 ---
@@ -677,7 +677,8 @@ Vom ausführenden Agenten gepflegt.
 | 9.2 Nachrichten am Termin | erledigt | 18.09.2026 | Sichtbarkeit erbt vom Termin; Faden lädt erst beim Aufklappen |
 | 9.9 Trainingsstatistik | erledigt | 18.09.2026 | „nicht gemeldet" bleibt von „abgesagt" getrennt; Menüpunkt jetzt für alle |
 | 9.11 Dark Mode | erledigt | 18.09.2026 | über Farb-Variablen statt `dark:`-Varianten; im Browser geprüft |
-| 9.x übrige Stufe B | offen | | 9.8 Arbeitszeiten gestrichen; 9.4/9.7/9.10 warten auf das Supabase-Projekt |
+| 9.7 NuScore Codes & PINs Import | erledigt | 27.09.2026 | Mit der echten Code-Liste (nu.Dokument 018) geprüft: 12 Zeichen am Zeilenende, ohne Bindestriche. Der Leser verlässt sich nicht auf Spalten, sondern auf Datum, Wertform und Gegner; Vorschau vor dem Speichern; eingefügter Text als Rückweg. Die PIN-Liste ist noch ungesehen |
+| 9.x übrige Stufe B | erledigt | 27.09.2026 | 9.4 Dateien, 9.8 Arbeitszeiten und 9.10 „Anmelden als" gestrichen |
 | 10.1 Datenschutz-Unterlagen | erledigt | 18.09.2026 | dabei aufgefallen: die versprochene Löschung nach 30 Tagen fand nie statt |
 | 10.2 Datenübernahme | vorbereitet | 18.09.2026 | `docs/migration.md`; ausführbar erst mit Supabase-Projekt und echter TT-Planer-Datei |
 | 10.3 Parallelbetrieb | vorbereitet | 18.09.2026 | `docs/parallelbetrieb.md`: Z1–Z11 als Nachweistabellen, Feedback als Umfrage plus Nachrichtenfaden |

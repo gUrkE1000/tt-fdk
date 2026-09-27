@@ -33,10 +33,14 @@ export function mergeHistory(rows: HistoryRow[]): HistoryEntry[] {
 
   for (const row of rows) {
     const key = `${row.type}|${row.subject}|${row.scheduled_for}`;
-    const link =
+    // Die Seite des Termins vor dem Antwort-Link: Der gilt nur einmal (Entscheidung E-2).
+    const payload =
       row.payload && typeof row.payload === 'object' && !Array.isArray(row.payload)
-        ? ((row.payload as Record<string, unknown>).link as string | undefined) ?? null
-        : null;
+        ? (row.payload as Record<string, unknown>)
+        : {};
+    const link = [payload.page, payload.link].find(
+      (value): value is string => typeof value === 'string' && value !== '',
+    );
     const channel = row.channel as 'push' | 'email';
 
     const existing = byKey.get(key);
@@ -51,7 +55,7 @@ export function mergeHistory(rows: HistoryRow[]): HistoryEntry[] {
       subject: row.subject,
       body: row.body_text,
       at: row.scheduled_for,
-      link: typeof link === 'string' && link !== '' ? link : null,
+      link: link ?? null,
       channels: [channel],
     });
   }

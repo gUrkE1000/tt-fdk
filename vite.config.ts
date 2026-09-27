@@ -88,6 +88,9 @@ export default defineConfig(({ command, mode }) => ({
             injectRegister: false,
             injectManifest: {
               globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+              // pdfjs braucht nur, wer nuScore-Codes einliest (9.7) — und das geht nur
+              // online. Vorab gespeichert kostete es jedes Gerät knapp 500 KB.
+              globIgnores: ['**/pdf-*.js', '**/pdf.worker*'],
             },
             manifest: {
               name: 'Vereinsplaner',
