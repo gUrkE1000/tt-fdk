@@ -253,7 +253,9 @@ export default function GameCard({
           </p>
         )}
 
-        {involved && <RescheduleVotePanel matchId={match.id} />}
+        {/* Abstimmen, wann man kann, ist Sache der Spieler. Wer das Spiel nur verwaltet,
+            sieht das Ergebnis beim Verlegen. */}
+        {(mine !== null || inTeam) && <RescheduleVotePanel matchId={match.id} />}
 
         {profileId && mine === null && inTeam && (
           <OfferButton
