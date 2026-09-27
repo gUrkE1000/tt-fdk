@@ -60,9 +60,9 @@ export default function DashboardPage() {
   const nextVenue = (venues.data ?? []).find((venue) => venue.id === countdown.next?.venue_id);
 
   /**
-   * Der Administrator sieht alle Mannschaften, der Mannschaftsführer nur seine. Ein
-   * Trainer bekommt die Kachel gar nicht — Rückmeldungen zu Spielen sind nicht seine
-   * Baustelle.
+   * Nur für Mannschaftsführer, und nur für die eigenen Mannschaften — auch wenn der
+   * Mannschaftsführer zugleich Administrator ist. Eine Zahl über den ganzen Verein
+   * brachte niemandem etwas: Nachfassen kann nur, wer die Mannschaft führt.
    */
   const leaderTeamIds = useMemo(
     () =>
@@ -74,16 +74,11 @@ export default function DashboardPage() {
     [teams.data, profileId],
   );
 
-  const showOpenResponses = role === 'admin' || leaderTeamIds.size > 0;
+  const showOpenResponses = leaderTeamIds.size > 0;
 
   const openResponses = useMemo(
-    () =>
-      countOpenResponses(
-        matches.data ?? [],
-        participations.data ?? [],
-        role === 'admin' ? null : leaderTeamIds,
-      ),
-    [matches.data, participations.data, role, leaderTeamIds],
+    () => countOpenResponses(matches.data ?? [], participations.data ?? [], leaderTeamIds),
+    [matches.data, participations.data, leaderTeamIds],
   );
 
   // Ohne useMemo wäre `?? []` bei jedem Rendern ein neues Array — und jedes useMemo,
@@ -193,12 +188,10 @@ export default function DashboardPage() {
             value={openResponses.players}
             hint={
               openResponses.players === 0
-                ? role === 'admin'
-                  ? 'Alle Angefragten haben geantwortet'
-                  : 'Alle Angefragten deiner Mannschaften haben geantwortet'
+                ? 'Alle Angefragten deiner Mannschaften haben geantwortet'
                 : `Angefragte bei ${openResponses.matches} ${
                     openResponses.matches === 1 ? 'Spiel' : 'Spielen'
-                  }${role === 'admin' ? ' im Verein' : ' deiner Mannschaften'}`
+                  } deiner Mannschaften`
             }
             icon={MessageSquareWarning}
             tone={openResponses.players > 0 ? 'warning' : 'success'}
