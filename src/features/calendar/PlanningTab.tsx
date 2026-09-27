@@ -1,15 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import listPlugin from '@fullcalendar/list';
 import deLocale from '@fullcalendar/core/locales/de';
-import { Rss } from 'lucide-react';
-import { Button, Checkbox } from '../../components/ui';
+import { addMonths, format } from 'date-fns';
+import { de } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight, Home, Rss } from 'lucide-react';
+import { Button, ErrorState, IconButton, LoadingState } from '../../components/ui';
 import { cn } from '../../lib/cn';
+import { toBerlin } from '../../lib/dates';
 import { useIsCompact } from '../../lib/useIsCompact';
 import { useCalendarItems } from './api';
+import AgendaList from './AgendaList';
 import SubscribeDialog from './SubscribeDialog';
 import {
   CATEGORIES,
@@ -21,12 +24,19 @@ import {
   type CalendarFilters,
 } from './events';
 
+type CalendarView = 'list' | 'dayGridMonth' | 'timeGridWeek';
+
 /**
  * Der Vereinskalender.
  *
  * Die Kategorien sind Chips zum Ein- und Ausblenden, wie im TT-Planer. Was sie zeigen,
  * rechnet `toDisplayEvents` — die Kalender-Bibliothek bekommt fertige Einträge und
  * kennt keine Regel des Vereins.
+ *
+ * Die Kopfleiste (Monat, Pfeile, Ansicht) ist eine eigene und nicht die von
+ * FullCalendar: Die Liste ist keine FullCalendar-Ansicht mehr (siehe `AgendaList`), und
+ * die Schaltflächen der Bibliothek sahen neben dem Rest der App aus wie aus einem
+ * anderen Programm.
  */
 export default function PlanningTab() {
   const items = useCalendarItems();
@@ -34,43 +44,65 @@ export default function PlanningTab() {
   const [filters, setFilters] = useState<CalendarFilters>(DEFAULT_CALENDAR_FILTERS);
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const navigate = useNavigate();
+  const calendarRef = useRef<FullCalendar>(null);
+
+  /*
+    Am Telefon ist die **Liste** die Startansicht. Ein Monatsraster mit sieben Spalten
+    zeigt auf 360 Pixeln von jedem Termin einen Streifen und sonst nichts; die Liste zeigt
+    Uhrzeit, Titel und Art. Die **Wochenansicht** gibt es dort nicht: Sieben Spalten mal
+    vierundzwanzig Stunden sind auf dem Telefon nicht knapp, sondern unbrauchbar.
+  */
+  const [chosenView, setChosenView] = useState<CalendarView | null>(null);
+  const view: CalendarView =
+    chosenView === 'timeGridWeek' && compact ? 'list' : (chosenView ?? (compact ? 'list' : 'dayGridMonth'));
+
+  /** Ein Tag im gezeigten Zeitraum; die Liste zeigt dessen Monat. */
+  const [anchor, setAnchor] = useState(() => new Date());
+  /** Die Überschrift, die FullCalendar für Monat und Woche selbst ausrechnet. */
+  const [gridTitle, setGridTitle] = useState('');
 
   const events = useMemo(
     () => toDisplayEvents(items.data ?? [], filters),
     [items.data, filters],
   );
 
+  const month = format(toBerlin(anchor), 'yyyy-MM');
+  const title =
+    view === 'list' || !gridTitle ? format(toBerlin(anchor), 'MMMM yyyy', { locale: de }) : gridTitle;
+
+  function step(direction: -1 | 1) {
+    if (view === 'list') {
+      setAnchor((current) => addMonths(current, direction));
+      return;
+    }
+    const api = calendarRef.current?.getApi();
+    if (direction < 0) api?.prev();
+    else api?.next();
+  }
+
+  function goToday() {
+    if (view === 'list') setAnchor(new Date());
+    else calendarRef.current?.getApi().today();
+  }
+
+  const views: [CalendarView, string][] = [
+    ['list', 'Liste'],
+    ['dayGridMonth', 'Monat'],
+    ...(compact ? [] : ([['timeGridWeek', 'Woche']] as [CalendarView, string][])),
+  ];
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div
-          role="group"
-          aria-label="Welche Termine"
-          className="inline-flex rounded-xl border border-gray-300 bg-white p-0.5"
-        >
-          {(
-            [
-              [false, 'Alle Termine'],
-              [true, 'Für mich relevant'],
-            ] as const
-          ).map(([mineOnly, label]) => (
-            <button
-              key={label}
-              type="button"
-              aria-pressed={filters.mineOnly === mineOnly}
-              onClick={() => setFilters({ ...filters, mineOnly })}
-              className={cn(
-                'min-h-touch rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
-                filters.mineOnly === mineOnly
-                  ? 'bg-primary text-white'
-                  : 'text-gray-600 hover:bg-gray-50',
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          label="Welche Termine"
+          value={filters.mineOnly}
+          onChange={(mineOnly) => setFilters({ ...filters, mineOnly })}
+          options={[
+            [false, 'Alle Termine'],
+            [true, 'Für mich relevant'],
+          ]}
+        />
 
         {/* Dieselbe Frage stellt sich hier wie unter „Meine Termine": Wie kommen die
             Termine in den eigenen Kalender? */}
@@ -80,123 +112,226 @@ export default function PlanningTab() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      {/*
+        Am Telefon eine Zeile zum Wischen statt zweier Zeilen voller Chips: Die Filter
+        sind Nebensache, die Termine darunter die Hauptsache.
+      */}
+      <div
+        role="group"
+        aria-label="Kategorien"
+        className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 scrollbar-none sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+      >
         {CATEGORIES.map((category) => {
           const active = filters.kinds.includes(category.kind);
           return (
-            <button
+            <FilterChip
               key={category.kind}
-              type="button"
-              aria-pressed={active}
+              active={active}
               onClick={() => setFilters(toggleKind(filters, category.kind))}
-              className={cn(
-                'inline-flex min-h-touch items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
-                active ? 'border-transparent text-white' : 'border-gray-300 bg-white text-gray-500',
-              )}
-              style={active ? { backgroundColor: category.color } : undefined}
+              tint={category.color}
             >
               <span
                 aria-hidden="true"
-                className="inline-block h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: active ? 'rgba(255,255,255,.8)' : category.color }}
+                className="inline-block h-2.5 w-2.5 shrink-0 rounded-full border-2"
+                style={{
+                  borderColor: category.color,
+                  backgroundColor: active ? category.color : 'transparent',
+                }}
               />
               {category.label}
-            </button>
+            </FilterChip>
           );
         })}
+
+        <span aria-hidden="true" className="my-1.5 w-px shrink-0 bg-gray-200" />
+
+        <FilterChip
+          active={filters.homeOnly}
+          onClick={() => setFilters({ ...filters, homeOnly: !filters.homeOnly })}
+          title="Betrifft nur Spiele; alles andere bleibt sichtbar."
+        >
+          <Home className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          Nur Heimspiele
+        </FilterChip>
       </div>
 
-      <Checkbox
-        checked={filters.homeOnly}
-        onCheckedChange={(value) => setFilters({ ...filters, homeOnly: value })}
-        label="Nur Heimspiele anzeigen"
-        hint="Betrifft nur Spiele; alles andere bleibt sichtbar."
-      />
-
-      <div className="rounded-2xl border border-gray-200 bg-white p-2">
-        {/*
-          Am Telefon ist der Kalender ein anderer, nicht nur ein schmalerer:
-
-          - Die **Liste** ist die Startansicht. Ein Monatsraster mit sieben Spalten zeigt
-            auf 360 Pixeln von jedem Termin einen Punkt und sonst nichts; die Liste zeigt
-            Datum, Uhrzeit und Titel.
-          - Die **Wochenansicht** entfällt. Sieben Spalten mal vierundzwanzig Stunden sind
-            dort nicht knapp, sondern unbrauchbar — auf dem Bildschirm stand am Ende
-            „00 Uhr" bis „03 Uhr" und sonst nichts.
-          - Die **Wochennummern** entfallen: eine ganze Spalte für eine Zahl, die niemand
-            am Telefon sucht.
-          - `today` entfällt aus der Leiste, weil sie sonst über den Titel läuft — genau
-            das war auf dem Bildschirm zu sehen. Der Weg zurück führt über die Pfeile.
-
-          `key` erzwingt einen Neuaufbau beim Wechsel der Breite: FullCalendar übernimmt
-          eine geänderte `initialView` sonst nicht.
-        */}
-        <FullCalendar
-          key={compact ? 'schmal' : 'breit'}
-          plugins={[dayGridPlugin, timeGridPlugin, listPlugin]}
-          locale={deLocale}
-          initialView={compact ? 'listMonth' : 'dayGridMonth'}
-          headerToolbar={
-            compact
-              ? { left: 'prev,next', center: 'title', right: 'listMonth,dayGridMonth' }
-              : {
-                  left: 'prev,next today',
-                  center: 'title',
-                  right: 'dayGridMonth,timeGridWeek,listMonth',
-                }
-          }
-          buttonText={{
-            today: 'Heute',
-            month: 'Monat',
-            week: 'Woche',
-            list: 'Liste',
-          }}
-          weekNumbers={!compact}
-          weekNumberFormat={{ week: 'numeric' }}
-          firstDay={1}
-          height="auto"
-          // Im Hochformat sonst überhohe Zeilen: das Raster war höher als der Bildschirm.
-          aspectRatio={compact ? 0.9 : 1.35}
-          dayMaxEvents={compact ? 2 : false}
-          /*
-            Ein Termin ist ein farbiger Block, kein Punkt.
-
-            FullCalendar zeichnet Termine mit Uhrzeit im Monatsraster als Punkt, Uhrzeit
-            und Titel — in dieser Reihenfolge. In einer Spalte von fünfzig Pixeln bleibt
-            davon „● 20 Uhr" übrig und der Titel wird abgeschnitten. Man sieht dann, dass
-            etwas ist, aber nicht was, und das ist die unbrauchbarste Hälfte der Auskunft.
-
-            Als Block trägt der Eintrag die Farbe seiner Kategorie und beginnt mit dem
-            Titel. Am Telefon fällt die Uhrzeit ganz weg: „Erwachsene IV" sagt mehr als
-            „20 Uhr", und beides passt dort nicht nebeneinander. In der Listenansicht
-            steht die Uhrzeit ohnehin in einer eigenen Spalte.
-          */
-          eventDisplay="block"
-          displayEventTime={!compact}
-          eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
-          eventClassNames={(arg) => [
-            ...(arg.event.extendedProps.cancelled === true ? ['vp-event-cancelled'] : []),
-            ...(arg.event.extendedProps.kind === 'venue_blocked' && arg.event.display !== 'background'
-              ? ['vp-event-blocked']
-              : []),
-            ...(detailPath(arg.event.extendedProps.kind as CalendarKind) ? ['cursor-pointer'] : []),
-          ]}
-          eventClick={(arg) => {
-            const path = detailPath(
-              arg.event.extendedProps.kind as CalendarKind,
-              arg.event.extendedProps.targetId as string,
-            );
-            if (!path) return;
-            arg.jsEvent.preventDefault();
-            navigate(path);
-          }}
-          events={events}
-          noEventsText="In diesem Zeitraum steht nichts an."
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h2 className="min-w-0 flex-1 truncate text-xl font-bold capitalize text-gray-900">
+          {title}
+        </h2>
+        <div className="flex items-center">
+          <Button size="sm" variant="ghost" onClick={goToday}>
+            Heute
+          </Button>
+          <IconButton icon={ChevronLeft} label="Zurück" onClick={() => step(-1)} />
+          <IconButton icon={ChevronRight} label="Weiter" onClick={() => step(1)} />
+        </div>
+        <Segmented
+          label="Ansicht"
+          value={view}
+          onChange={setChosenView}
+          options={views}
+          className={compact ? 'w-full' : undefined}
         />
       </div>
 
+      {items.isLoading ? (
+        <LoadingState />
+      ) : items.isError ? (
+        <ErrorState onRetry={() => void items.refetch()} />
+      ) : view === 'list' ? (
+        <AgendaList key={month} events={events} month={month} />
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+          {/*
+            `key` erzwingt einen Neuaufbau beim Wechsel von Ansicht oder Breite:
+            FullCalendar übernimmt eine geänderte `initialView` sonst nicht. Den Tag
+            bringt `initialDate` mit, so bleibt man beim Wechsel im selben Monat.
+          */}
+          <FullCalendar
+            key={`${view}:${compact ? 'schmal' : 'breit'}`}
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin]}
+            locale={deLocale}
+            initialView={view}
+            initialDate={anchor}
+            headerToolbar={false}
+            datesSet={(arg) => {
+              setGridTitle(arg.view.title);
+              // Mitte des Zeitraums: Im Monatsraster beginnt er oft im Vormonat.
+              const middle = new Date(
+                (arg.view.currentStart.getTime() + arg.view.currentEnd.getTime()) / 2,
+              );
+              setAnchor(middle);
+            }}
+            // Wochennummern kosten am Telefon eine ganze Spalte für eine Zahl, die dort
+            // niemand sucht.
+            weekNumbers={!compact}
+            weekNumberFormat={{ week: 'numeric' }}
+            firstDay={1}
+            height="auto"
+            // Im Hochformat sonst überhohe Zeilen: das Raster war höher als der Bildschirm.
+            aspectRatio={compact ? 0.9 : 1.35}
+            dayMaxEvents={compact ? 2 : false}
+            /*
+              Ein Termin ist ein farbiger Block, kein Punkt.
+
+              FullCalendar zeichnet Termine mit Uhrzeit im Monatsraster als Punkt, Uhrzeit
+              und Titel — in dieser Reihenfolge. In einer Spalte von fünfzig Pixeln bleibt
+              davon „● 20 Uhr" übrig und der Titel wird abgeschnitten. Als Block trägt der
+              Eintrag die Farbe seiner Kategorie und beginnt mit dem Titel. Am Telefon fällt
+              die Uhrzeit ganz weg: „Erwachsene IV" sagt mehr als „20 Uhr".
+            */
+            eventDisplay="block"
+            displayEventTime={!compact}
+            eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+            eventClassNames={(arg) => [
+              ...(arg.event.extendedProps.cancelled === true ? ['vp-event-cancelled'] : []),
+              ...(arg.event.extendedProps.kind === 'venue_blocked' && arg.event.display !== 'background'
+                ? ['vp-event-blocked']
+                : []),
+              ...(detailPath(arg.event.extendedProps.kind as CalendarKind) ? ['cursor-pointer'] : []),
+            ]}
+            eventClick={(arg) => {
+              const path = detailPath(
+                arg.event.extendedProps.kind as CalendarKind,
+                arg.event.extendedProps.targetId as string,
+              );
+              if (!path) return;
+              arg.jsEvent.preventDefault();
+              navigate(path);
+            }}
+            events={events}
+          />
+        </div>
+      )}
+
       <SubscribeDialog open={subscribeOpen} onOpenChange={setSubscribeOpen} />
     </div>
+  );
+}
+
+/** Umschalter aus zwei oder drei Schaltflächen, von denen genau eine gedrückt ist. */
+function Segmented<T extends string | boolean>({
+  label,
+  value,
+  onChange,
+  options,
+  className,
+}: {
+  label: string;
+  value: T;
+  onChange: (value: T) => void;
+  options: readonly (readonly [T, string])[];
+  className?: string;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className={cn('inline-flex rounded-xl bg-gray-100 p-1', className)}
+    >
+      {options.map(([option, text]) => (
+        <button
+          key={text}
+          type="button"
+          aria-pressed={value === option}
+          onClick={() => onChange(option)}
+          className={cn(
+            'min-h-9 flex-1 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
+            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+            value === option
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700',
+          )}
+        >
+          {text}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Ein Filter-Chip. Angewählt in der Farbe seiner Kategorie, aber nur als Hauch: Die
+ * kräftige Farbe gehört den Terminen, nicht den Schaltflächen darüber.
+ */
+function FilterChip({
+  active,
+  onClick,
+  tint,
+  title,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  /** Kategoriefarbe als Hex-Wert; ohne sie ist der angewählte Chip in der Hausfarbe. */
+  tint?: string;
+  title?: string;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      title={title}
+      className={cn(
+        // Sichtbar 36 Pixel hoch, die Trefferfläche reicht über `after` auf 44.
+        'relative inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-semibold transition-colors',
+        "after:absolute after:inset-x-0 after:-inset-y-1 after:content-['']",
+        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+        active
+          ? tint
+            ? 'text-gray-900'
+            : 'border-primary bg-primary-soft text-primary'
+          : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-700',
+      )}
+      style={
+        active && tint ? { borderColor: `${tint}66`, backgroundColor: `${tint}1F` } : undefined
+      }
+    >
+      {children}
+    </button>
   );
 }
