@@ -19,9 +19,9 @@ Leerlisten, sofortige Antworten, Offline-Stand auf dem Gerät, Daten ab 30 Tagen
 Seiten und große Bibliotheken werden nachgeladen (Hauptpaket 1,87 MB → 816 KB).
 
 Noch nicht eingeladen ist jemand: Was davor zu erledigen ist, steht in
-[docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md). Nicht gebaut ist
-9.7 (nuScore-Codes und -PINs aus dem PDF einlesen; von Hand eintragen geht); 9.4 (Dateien)
-und 9.10 („Anmelden als") sind gestrichen.
+[docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md). 9.4 (Dateien) und
+9.10 („Anmelden als") sind gestrichen. Der nuScore-Import (9.7, *Spieltermine → Codes &
+PINs*) ist ohne echte click-TT-PDF gebaut — mit der ersten echten Liste einmal prüfen.
 
 ## Loslegen
 
@@ -52,7 +52,7 @@ Im Entwicklungsmodus zeigt `/_design` alle Komponenten des Design-Systems.
 ## Stack
 
 React 18 · TypeScript · Vite · Tailwind · react-router · TanStack Query · react-hook-form +
-zod · Radix UI · FullCalendar · tiptap · @dnd-kit · exceljs · vite-plugin-pwa · Vitest ·
+zod · Radix UI · FullCalendar · tiptap · @dnd-kit · exceljs · pdfjs-dist · vite-plugin-pwa · Vitest ·
 Supabase (Postgres, Auth, RLS, Edge Functions) · pgTAP.
 
 ## Ordnerstruktur

@@ -179,6 +179,42 @@ export function useUpdateMatch() {
   });
 }
 
+/**
+ * nuScore-Code und -PIN für mehrere Spiele auf einmal (Aufgabe 9.7).
+ *
+ * Ein Aufruf je Spiel über dieselbe Tabelle wie der Spiel-Dialog — damit gelten dieselben
+ * Rechte: Der Mannschaftsführer schreibt in seine Spiele, der Administrator in alle.
+ * Scheitert eins, laufen die anderen trotzdem durch; gemeldet wird, wie viele.
+ */
+export function useSetNuscore() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      assignments: readonly { matchId: string; code: string | null; pin: string | null }[],
+    ): Promise<{ saved: number; failed: number }> => {
+      const results = await Promise.all(
+        assignments.map(async ({ matchId, code, pin }) => {
+          const values: UpdateDto<'matches'> = {};
+          if (code !== null) values.nuscore_code = code;
+          if (pin !== null) values.nuscore_pin = pin;
+          // Ohne Recht auf das Spiel meldet die Datenbank keinen Fehler, sondern ändert
+          // null Zeilen — gezählt wird deshalb, was zurückkommt.
+          const { data, error } = await supabase
+            .from('matches')
+            .update(values)
+            .eq('id', matchId)
+            .select('id');
+          return error === null && (data?.length ?? 0) === 1;
+        }),
+      );
+      const saved = results.filter(Boolean).length;
+      return { saved, failed: results.length - saved };
+    },
+    onSuccess: () => invalidateMatches(queryClient),
+  });
+}
+
 export function useDeleteMatches() {
   const queryClient = useQueryClient();
 
