@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Inbox, MessageSquareWarning } from 'lucide-react';
 import TableTennis from '../../components/icons/TableTennis';
 import { LoadingState, PageHeader, StatTile, Tabs } from '../../components/ui';
@@ -172,6 +172,7 @@ export default function DashboardPage() {
           }
           icon={Inbox}
           tone={openCount > 0 ? 'warning' : 'success'}
+          to="/my-dates?tab=open"
         />
 
         {nextTraining && (
@@ -187,26 +188,22 @@ export default function DashboardPage() {
             sondern die der angefragten Spieler in den eigenen Mannschaften. Früher hieß
             die Kachel „Offene Rückmeldungen" und wurde für die eigene Zahl gehalten. */}
         {showOpenResponses && (
-          <Link
+          <StatTile
+            label="Spieler ohne Antwort"
+            value={openResponses.players}
+            hint={
+              openResponses.players === 0
+                ? role === 'admin'
+                  ? 'Alle Angefragten haben geantwortet'
+                  : 'Alle Angefragten deiner Mannschaften haben geantwortet'
+                : `Angefragte bei ${openResponses.matches} ${
+                    openResponses.matches === 1 ? 'Spiel' : 'Spielen'
+                  }${role === 'admin' ? ' im Verein' : ' deiner Mannschaften'}`
+            }
+            icon={MessageSquareWarning}
+            tone={openResponses.players > 0 ? 'warning' : 'success'}
             to="/games"
-            className="block rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
-            <StatTile
-              label="Spieler ohne Antwort"
-              value={openResponses.players}
-              hint={
-                openResponses.players === 0
-                  ? role === 'admin'
-                    ? 'Alle Angefragten haben geantwortet'
-                    : 'Alle Angefragten deiner Mannschaften haben geantwortet'
-                  : `Angefragte bei ${openResponses.matches} ${
-                      openResponses.matches === 1 ? 'Spiel' : 'Spielen'
-                    }${role === 'admin' ? ' im Verein' : ' deiner Mannschaften'}`
-              }
-              icon={MessageSquareWarning}
-              tone={openResponses.players > 0 ? 'warning' : 'success'}
-            />
-          </Link>
+          />
         )}
       </div>
 
