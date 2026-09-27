@@ -11,6 +11,16 @@ updates:
       alle:
         patterns: ['*']
         update-types: [minor, patch]
+    ignore:
+      # FullCalendar 7 ist eine Neuentwicklung: minifizierte Klassennamen, Theming über
+      # eigene Theme-Plugins, temporal-polyfill als Pflicht. Die Kalender-Anpassungen in
+      # `src/index.css` (Farben, Dark Mode, Sperren, Absagen, Mobil) griffen danach alle
+      # nicht mehr, und `daygrid`, `list` und `timegrid` gibt es als 7 nur noch innerhalb
+      # von `@fullcalendar/react`. Einzelne Dependabot-PRs je Paket könnten das nie
+      # zusammenhängend umstellen. 6.x wird weiter gepflegt; der Umstieg ist eine eigene
+      # Aufgabe (siehe docs/entwicklung.md, „Abhängigkeiten").
+      - dependency-name: '@fullcalendar/*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
