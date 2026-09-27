@@ -203,7 +203,7 @@ describe('RegisterPage', () => {
     expect(screen.getByLabelText(/Vorname/)).toBeInTheDocument();
   });
 
-  it('verlangt die Bestätigung von Alter oder Einverständnis der Eltern', async () => {
+  it('verlangt die Bestätigung, volljährig zu sein', async () => {
     answerRpc((name) =>
       name === 'rpc_validate_registration_code'
         ? json(true)
@@ -218,15 +218,15 @@ describe('RegisterPage', () => {
     await user.type(screen.getByLabelText(/E-Mail-Adresse/), 'lea@example.org');
     await user.click(screen.getByRole('button', { name: 'Registrieren' }));
 
-    expect(await screen.findByText(/mindestens 16 bist oder deine Eltern/)).toBeInTheDocument();
+    expect(await screen.findByText('Die Anwendung ist nur für Volljährige')).toBeInTheDocument();
     expect(signUp).not.toHaveBeenCalled();
 
-    await user.click(screen.getByText(/Ich bin mindestens 16 Jahre alt/));
+    await user.click(screen.getByText('Ich bin mindestens 18 Jahre alt.'));
     await user.click(screen.getByRole('button', { name: 'Registrieren' }));
 
     await waitFor(() => expect(signUp).toHaveBeenCalledTimes(1));
     const data = signUp.mock.calls[0][0].options.data;
-    expect(data).toMatchObject({ first_name: 'Lea', consent_age_confirmed: true });
+    expect(data).toMatchObject({ first_name: 'Lea', consent_adult: true });
     // Nachweis nach Art. 7 Abs. 1 DSGVO: mit Zeitpunkt.
     expect(Date.parse(data.consent_at)).not.toBeNaN();
   });

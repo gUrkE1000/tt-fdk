@@ -252,7 +252,7 @@ export default function RegisterPage() {
               onCheckedChange={(checked) =>
                 setValue('ageConfirmed', (checked || undefined) as true, { shouldValidate: true })
               }
-              label="Ich bin mindestens 16 Jahre alt oder meine Eltern sind einverstanden."
+              label="Ich bin mindestens 18 Jahre alt."
             />
             {errors.ageConfirmed && (
               <p className="mt-1 text-xs text-danger" role="alert">

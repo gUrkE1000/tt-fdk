@@ -8,348 +8,111 @@
 <meta name="color-scheme" content="only light">
 <title>Datenschutzhinweis</title>
 <!--
-  Datenschutzhinweis, ausgeliefert unter /datenschutz.html.
+  Datenschutzhinweis (Art. 13 DSGVO), ausgeliefert unter /datenschutz.html — bewusst knapp:
+  die Pflichtangaben, sonst nichts. Einzelne HTML-Datei ohne Abhängigkeiten, damit sie auch
+  lesbar ist, wenn die Anwendung nicht lädt.
 
-  Diese Datei liegt in `public/` und wird beim Bauen unverändert nach `dist/` kopiert.
-  Bewusst eine einzelne HTML-Datei ohne Abhängigkeiten: Ein Rechtstext muss auch dann
-  lesbar sein, wenn die Anwendung selbst nicht lädt.
+  FASSUNG FÜR DIE ERPROBUNGSPHASE: Verantwortlich ist eine Privatperson, Grundlage der
+  Nutzung ist die Einwilligung (lit. a); Protokolle, Versandverlauf, Sicherungen und die
+  30-Tage-Frist nach Löschung stehen auf berechtigtem Interesse (lit. f). Nur Volljährige
+  (die Registrierung fragt es ab) — damit entfällt Art. 8.
 
-  ACHTUNG — dies ist die FASSUNG FÜR DIE ERPROBUNGSPHASE.
+  Fakten dahinter (Stand 27.09.2026): Auslieferung über GitHub Pages (IP-Protokolle,
+  GitHub DPF-zertifiziert); Supabase in Frankfurt, API-Protokolle höchstens 7 Tage;
+  Resend DPF-zertifiziert plus Standardvertragsklauseln; Spielplan serverseitig
+  (sync-calendars), die CSP erlaubt dem Browser nur die eigene Seite und Supabase.
 
-  Verantwortlicher ist eine Privatperson, nicht der Verein. Das ist kein Provisorium,
-  sondern die zutreffende Aussage, solange Supabase-Projekt, Domain und Resend-Konto auf
-  eine Privatperson laufen und der Verein nichts beschlossen hat.
-
-  Daraus folgt inhaltlich mehr als ein anderer Name im ersten Absatz:
-    * Rechtsgrundlage der App-Funktionen ist die EINWILLIGUNG der Teilnehmenden
-      (Art. 6 Abs. 1 lit. a), nicht das Mitgliedschaftsverhältnis (lit. b) — zwischen den
-      Teilnehmenden und einer Privatperson besteht kein solches. Was nicht an der
-      Einwilligung hängen kann (Server-Logs, Versandverlauf, Sicherungen, die Frist nach
-      einer Löschung), steht getrennt auf berechtigtem Interesse (lit. f) — mit
-      Widerspruchsrecht nach Art. 21.
-    * Die Teilnahme ist freiwillig und jederzeit widerrufbar, mit sofortiger Löschung.
-    * Der Betreiber hat technischen Zugriff auf die Datenbank. Das steht hier, weil es
-      stimmt — und weil es der Unterschied zwischen Vertrauen und Behauptung ist.
-
-  Fakten, auf denen der Text beruht (Stand 27.09.2026), damit sie nachprüfbar bleiben:
-    * Ausgeliefert wird die App über GitHub Pages; GitHub protokolliert die IP-Adressen
-      der Besucher und ist nach dem EU-US Data Privacy Framework zertifiziert.
-    * Resend ist DPF-zertifiziert; der AV-Vertrag enthält zusätzlich die
-      Standardvertragsklauseln.
-    * Supabase-Protokolle (API mit IP-Adresse) werden im Pro-Tarif 7 Tage gehalten, im
-      kostenlosen kürzer.
-    * Der Spielplan wird serverseitig abgerufen (Edge Function sync-calendars); die
-      Content-Security-Policy lässt Verbindungen des Browsers nur zur eigenen Seite und
-      zu Supabase zu.
-    * Die Einwilligung (Zeitpunkt, Altersbestätigung) steht in den Metadaten des Kontos
-      bei Supabase Auth (consent_at, consent_age_confirmed).
-
-  SOBALD DER VEREIN ÜBERNIMMT, ist diese Datei zu ersetzen: Verantwortlicher wird der
-  Verein, Rechtsgrundlage wird das Mitgliedschaftsverhältnis, die Erprobungs-Abschnitte
-  fallen weg. Die Vorlage dafür steht in docs/datenschutz/datenschutzhinweis.md; die
-  Angaben des Vereins stehen in der Git-Historie dieser Datei (Commit d06d514).
+  SOBALD DER VEREIN ÜBERNIMMT, ist diese Datei zu ersetzen (Vorlage:
+  docs/datenschutz/datenschutzhinweis.md).
 -->
 <style>
-  :root {
-    --bg: #ffffff; --fg: #1f2937; --muted: #6b7280;
-    --rule: #e5e7eb; --accent: #0d9488; --note-bg: #f0fdfa; --note-rule: #99f6e4;
-  }
+  :root { --bg: #ffffff; --fg: #1f2937; --muted: #6b7280; --rule: #e5e7eb; --accent: #0d9488; }
   * { box-sizing: border-box; }
   body {
     margin: 0; padding: 2rem 1rem 4rem;
     background: var(--bg); color: var(--fg);
-    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
   main { max-width: 42rem; margin: 0 auto; }
-  h1 { font-size: 1.75rem; line-height: 1.25; margin: 0 0 .25rem; }
-  h2 { font-size: 1.2rem; margin: 2.25rem 0 .5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
-  h2:first-of-type { border-top: 0; padding-top: 0; }
-  p, li { margin: .6rem 0; }
+  h1 { font-size: 1.6rem; margin: 0 0 1.5rem; }
+  h2 { font-size: 1.05rem; margin: 1.75rem 0 .35rem; }
+  p, li { margin: .4rem 0; }
   ul { padding-left: 1.25rem; }
   a { color: var(--accent); }
-  .lead { color: var(--muted); margin-bottom: 2rem; }
-  .hinweis {
-    background: var(--note-bg); border: 1px solid var(--note-rule);
-    border-radius: .75rem; padding: 1rem 1.25rem; margin: 2rem 0;
-  }
-  .hinweis p:first-child { margin-top: 0; }
-  .hinweis p:last-child { margin-bottom: 0; }
-  footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .9rem; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .9rem; }
 </style>
 </head>
 <body>
 <main>
 
   <h1>Datenschutzhinweis</h1>
-  <p class="lead">für die Erprobung des Vereinsplaners</p>
 
-  <div class="hinweis">
-    <p>
-      <strong>Das hier ist ein Versuch, noch kein Vereinsangebot.</strong> Der Vereinsplaner
-      wird gerade erprobt. Verantwortlich dafür bin <strong>ich persönlich</strong> —
-      <em>nicht</em> der TSV Feldkirchen. Der Verein hat darüber nichts beschlossen und
-      trägt dafür keine Verantwortung.
-    </p>
-    <p>
-      Deine Teilnahme ist deshalb <strong>freiwillig</strong>, und du kannst sie jederzeit
-      beenden. Ein Satz genügt, dann sind deine Daten weg.
-    </p>
-  </div>
-
-  <h2>Wer ich bin</h2>
+  <h2>Verantwortlich</h2>
   <p>
-    Verantwortlich im Sinne der Datenschutz-Grundverordnung (DSGVO):
-  </p>
-  <p>
-    <strong>Jan Pawlikowski</strong><br>
-    Johann-Sebastian-Bach-Straße 1<br>
-    85622 Feldkirchen<br>
-    <a href="mailto:jan08.p@gmail.com">jan08.p@gmail.com</a>
-  </p>
-  <p>
-    Ich betreibe die Anwendung als Privatperson auf eigene Rechnung: Datenbank, Domain und
-    E-Mail-Versand laufen auf meine Konten. <strong>Es steht kein Verein und keine Firma
-    dahinter</strong>, und es wird damit kein Geld verdient. Einen Datenschutzbeauftragten
-    gibt es nicht; er ist dafür nicht vorgeschrieben. Bei Fragen schreib mir direkt.
+    Jan Pawlikowski, Johann-Sebastian-Bach-Straße 1, 85622 Feldkirchen,
+    <a href="mailto:jan08.p@gmail.com">jan08.p@gmail.com</a>.
+    Privates, nicht kommerzielles Erprobungsprojekt — kein Angebot des TSV Feldkirchen.
   </p>
 
-  <h2>Warum es das gibt</h2>
-  <p>
-    Die Tischtennis-Abteilung nutzt bisher ein kostenpflichtiges Fremdprodukt. Ich probiere
-    aus, ob eine eigene Anwendung dasselbe kann. Wenn das gelingt und der Verein sie
-    übernehmen will, wird der Verein der Verantwortliche — dann erfährst du davon und
-    dieser Text wird ersetzt. Bis dahin ist es mein privates Vorhaben.
-  </p>
-
-  <h2>Welche Daten über dich gespeichert werden</h2>
-  <p>
-    <strong>Damit die Anwendung funktioniert:</strong> Vor- und Nachname, deine
-    E-Mail-Adresse. Je nachdem, was eingetragen wird, außerdem: Geburtsdatum, Geschlecht,
-    Mitgliedsnummer, Telefonnummern, QTTR-Wert und Ränge, Mannschaft und Trainings.
-  </p>
-  <p>
-    <strong>Weil du sie benutzt:</strong> Deine Rückmeldungen zu Spielen, Trainings und
-    Terminen samt Bemerkungen, ob du fahren kannst oder etwas mitbringst, deine
-    Abwesenheiten, deine Nachrichten an Terminen, deine Stimme bei Umfragen, wann du dich
-    zuletzt angemeldet hast, und welche Benachrichtigungen dir geschickt wurden.
-  </p>
-  <p>
-    <strong>Bei der Registrierung:</strong> wann du zugestimmt und dass du dein Alter
-    bestätigt hast (siehe „Jugendliche"). Das ist der Nachweis deiner Einwilligung.
-  </p>
-  <p>
-    <strong>Nur, wenn du es einschaltest:</strong> Ob deine Kontaktdaten für andere
-    Teilnehmende sichtbar sind, ob dein Geburtstag im Kalender steht, ob du Mitteilungen
-    aufs Handy bekommst. Das stellst du unter <em>Mein Profil</em> ein und kannst es
-    jederzeit ändern.
-  </p>
-  <p>
-    <strong>Bitte keine Gesundheitsangaben.</strong> Bemerkungen und Abwesenheiten sind
-    Freitext. Schreib dort nicht, dass oder woran du krank bist — „kann nicht" oder
-    „privat" genügt. Die Anwendung braucht solche Angaben nicht.
-  </p>
-  <p>
-    <strong>Was nicht passiert:</strong> Es wird nicht ausgewertet, was du dir ansiehst.
-    Keine Analysedienste, keine Werbung, kein Verkauf von Daten, keine automatisierten
-    Entscheidungen über dich.
-  </p>
-
-  <h2>Wofür und auf welcher Grundlage</h2>
-  <p>
-    <strong>Die Anwendung selbst</strong> — dein Konto, Rückmeldungen, Aufstellungen,
-    Benachrichtigungen und alle freiwilligen Angaben — beruht auf deiner
-    <strong>Einwilligung</strong> (Art. 6 Abs. 1 lit. a DSGVO). Du hast zugesagt, die
-    Anwendung auszuprobieren. Zwischen dir und mir besteht kein Vertrag und kein
-    Mitgliedschaftsverhältnis, das eine andere Grundlage tragen würde.
-  </p>
-  <p>
-    <strong>Einiges hängt nicht an deiner Einwilligung</strong>, sondern an meinem
-    berechtigten Interesse an einem sicheren, nachvollziehbaren Betrieb (Art. 6 Abs. 1
-    lit. f DSGVO):
-  </p>
-  <ul>
-    <li>die <strong>Protokolle der Server</strong> (siehe unten) — zur Abwehr von Angriffen
-        und zur Fehlersuche;</li>
-    <li>der <strong>Verlauf verschickter Benachrichtigungen</strong> — damit sich die Frage
-        „ich habe nie eine Mail bekommen" beantworten lässt;</li>
-    <li><strong>Sicherungskopien</strong> — damit bei einem Fehler oder Ausfall nicht alles
-        verloren ist;</li>
-    <li>die <strong>Frist von 30 Tagen</strong> nach einer Löschung (siehe „Wie lange") —
-        als Schutz vor versehentlichem oder fremdem Löschen.</li>
-  </ul>
-  <p>
-    Dagegen kannst du <strong>Widerspruch</strong> einlegen (siehe „Deine Rechte"). Den
-    Nachweis deiner Einwilligung bewahre ich auf, weil die DSGVO ihn verlangt (Art. 7
-    Abs. 1 in Verbindung mit Art. 6 Abs. 1 lit. c).
-  </p>
-  <p>
-    <strong>Du kannst die Einwilligung jederzeit widerrufen</strong>, ohne Begründung und
-    ohne Nachteil. Schreib mir, oder lösch dein Konto selbst unter
-    <em>Mein Profil → Profil &amp; Zugang löschen</em>. Was bis dahin geschehen ist, bleibt
-    rechtmäßig.
-  </p>
-  <p>
-    Deine Angaben sind freiwillig. Ohne Namen und E-Mail-Adresse lässt sich allerdings kein
-    Konto anlegen.
-  </p>
-
-  <h2>Wer deine Daten sieht</h2>
-  <p>
-    <strong>Die anderen Teilnehmenden</strong> sehen deinen Namen und deine Rückmeldungen
-    samt Bemerkungen zu Spielen und Trainings. Deine Kontaktdaten und deinen Geburtstag
-    sehen sie <strong>nur, wenn du das eingeschaltet hast.</strong>
-  </p>
-  <p>
-    Den Grund, den du bei einer Abwesenheit einträgst, zeigt die Anwendung
-    <strong>niemandem</strong> außer dir — auch keinem Administrator. Andere sehen nur, dass
-    du in diesem Zeitraum nicht kannst.
-  </p>
-  <p>
-    <strong>Ich als Betreiber</strong> habe technisch Zugriff auf die Datenbank und könnte
-    dort alles lesen, auch den Abwesenheitsgrund. Das steht hier, weil es stimmt: Wer einen
-    Dienst betreibt, kommt an die Daten. Ich sehe sie mir nicht an — außer wenn ich einen
-    Fehler suchen muss, und dann nur so weit, wie es dafür nötig ist.
-  </p>
-  <p>
-    <strong>An den Tischtennisverband geht nichts.</strong> Der Spielplan wird von meinem
-    Server bei der Verbandsplattform abgerufen. Dein Browser baut keine Verbindung dorthin
-    auf — die Anwendung lässt Verbindungen nur zu ihrer eigenen Seite und zur Datenbank zu.
-  </p>
-
-  <h2>Dienstleister, Server und Protokolle</h2>
-  <p>
-    Um dir die Anwendung zu zeigen, verarbeiten Server zwangsläufig deine
-    <strong>IP-Adresse</strong>, den Zeitpunkt, die aufgerufene Adresse und die Kennung
-    deines Browsers. Das geschieht bei diesen Anbietern:
-  </p>
+  <h2>Daten, Zwecke, Rechtsgrundlagen</h2>
   <ul>
     <li>
-      <strong>GitHub</strong> (GitHub, Inc., USA) liefert die Anwendung selbst aus — die
-      Seiten, die dein Browser lädt, auch die Anmeldeseite. GitHub protokolliert dabei die
-      IP-Adressen der Besucher zur Sicherheit seines Dienstes, in eigener Verantwortung und
-      nach seiner
-      <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement">Datenschutzerklärung</a>.
-      Die Übermittlung in die USA stützt sich auf das EU-US Data Privacy Framework, nach dem
-      GitHub zertifiziert ist.
+      <strong>Nutzung der Anwendung</strong> (Konto, Profilangaben, Rückmeldungen,
+      Abwesenheiten, Nachrichten, Benachrichtigungen): auf Grundlage deiner Einwilligung
+      (Art. 6 Abs. 1 lit. a DSGVO). Die Angaben sind freiwillig; ohne Name und E-Mail-Adresse
+      ist kein Konto möglich.
     </li>
     <li>
-      <strong>Supabase</strong> betreibt Datenbank und Anmeldung als mein
-      Auftragsverarbeiter. Die Daten liegen in <strong>Frankfurt am Main</strong>. Die
-      Server protokollieren Anfragen samt IP-Adresse für höchstens sieben Tage. Greift
-      Supabase (Sitz USA) im Rahmen von Betrieb und Support zu, gelten die
-      EU-Standardvertragsklauseln aus dem Auftragsverarbeitungsvertrag.
-    </li>
-    <li>
-      <strong>Resend</strong> (Resend, Inc., USA) verschickt die E-Mails, auch die
-      Anmeldelinks, als mein Auftragsverarbeiter. Dorthin geht nur, was in der jeweiligen
-      E-Mail steht — kein Zugriff auf die Datenbank. Resend ist nach dem EU-US Data Privacy
-      Framework zertifiziert; zusätzlich gelten die EU-Standardvertragsklauseln aus dem
-      Auftragsverarbeitungsvertrag.
+      <strong>Betrieb und Sicherheit</strong> (Server-Protokolle mit IP-Adresse, Verlauf
+      verschickter Benachrichtigungen, Sicherungskopien, Nachweis der Einwilligung):
+      auf Grundlage meines berechtigten Interesses an einem sicheren, nachvollziehbaren
+      Betrieb (Art. 6 Abs. 1 lit. f DSGVO).
     </li>
   </ul>
   <p>
-    <strong>Sicherungskopien</strong> der Datenbank werden wöchentlich
-    <strong>verschlüsselt</strong> erstellt und bei GitHub sowie in Google Drive abgelegt.
-    Den Schlüssel habe nur ich; die Anbieter können den Inhalt nicht lesen.
+    Im Browser werden nur Anmeldung, App-Dateien und der zuletzt geladene Stand gespeichert,
+    weil die Anwendung sonst nicht funktioniert (§ 25 Abs. 2 Nr. 2 TDDDG). Keine Cookies,
+    kein Tracking, keine automatisierten Entscheidungen.
   </p>
 
-  <h2>Mitteilungen aufs Handy</h2>
+  <h2>Empfänger</h2>
+  <ul>
+    <li>andere Teilnehmende: Name und Rückmeldungen; Kontaktdaten und Geburtstag nur, wenn
+        du es freigibst;</li>
+    <li>Supabase (Datenbank und Anmeldung, Server in Frankfurt) und Resend (E-Mail-Versand,
+        USA) als Auftragsverarbeiter;</li>
+    <li>GitHub (USA) liefert die Anwendung aus und protokolliert dabei IP-Adressen in eigener
+        Verantwortung;</li>
+    <li>bei Mitteilungen aufs Handy der Push-Dienst deines Browserherstellers (Inhalt
+        verschlüsselt);</li>
+    <li>Google Drive für Sicherungskopien, verschlüsselt — Google kann den Inhalt nicht lesen.</li>
+  </ul>
   <p>
-    Wenn du Mitteilungen aufs Handy erlaubst, erzeugt dein Browser eine
-    <strong>Geräteadresse mit Schlüssel</strong> beim Push-Dienst seines Herstellers
-    (Google, Apple, Mozilla oder Microsoft). Diese Adresse speichere ich, solange die
-    Mitteilungen eingeschaltet sind. Die Mitteilungen selbst sind verschlüsselt; der
-    Push-Dienst kann den Inhalt nicht lesen, sieht aber, dass eine Mitteilung an dein Gerät
-    geht.
-  </p>
-  <p>
-    Schaltest du die Mitteilungen unter <em>Mein Profil</em> aus, wird die Geräteadresse
-    sofort gelöscht. Entziehst du die Erlaubnis im Browser, löscht der nächste Versuch sie
-    automatisch.
-  </p>
-
-  <h2>Was auf deinem Gerät gespeichert wird</h2>
-  <p>
-    Die Anwendung speichert im Speicher deines Browsers nur, was sie für ihre Funktion
-    braucht: deine <strong>Anmeldung</strong>, damit du angemeldet bleibst, die
-    <strong>App-Dateien</strong>, damit sie in der Halle auch bei schlechtem Empfang
-    startet, und den <strong>zuletzt geladenen Stand</strong> — Termine, Rückmeldungen,
-    Namen —, damit sie ohne Empfang etwas zeigt. Er wird beim Abmelden gelöscht und nach
-    einer Woche ohne Nutzung verworfen.
-  </p>
-  <p>
-    Das ist für den Dienst, den du nutzen willst, unbedingt erforderlich (§ 25 Abs. 2
-    Nr. 2 TDDDG) und braucht deshalb keine eigene Zustimmung. Es gibt keine Cookies und
-    nichts, was dich über Besuche hinweg für andere Zwecke wiedererkennt.
+    Übermittlungen in die USA erfolgen auf Grundlage des EU-US Data Privacy Framework bzw. der
+    EU-Standardvertragsklauseln. An den Tischtennisverband werden keine Daten übermittelt.
   </p>
 
-  <h2>Wie lange</h2>
+  <h2>Speicherdauer</h2>
   <p>
-    Solange du mitmachst. <strong>Löschst du dein Konto</strong> oder widerrufst du deine
-    Einwilligung, ist dein Profil sofort gesperrt und für alle unsichtbar. Endgültig
-    entfernt wird alles nach <strong>30 Tagen</strong> — automatisch, einschließlich deiner
-    Rückmeldungen. Die Frist schützt vor versehentlichem oder fremdem Löschen; willst du es
-    <strong>sofort</strong>, schreib mir, dann lösche ich es sofort.
-  </p>
-  <p>
-    Wenn die Erprobung endet, ohne dass der Verein übernimmt, <strong>lösche ich
-    alles</strong> — Datenbank, Sicherungen, Konten.
-  </p>
-  <p>
-    Verschickte Benachrichtigungen werden ein Jahr aufbewahrt, Abwesenheiten verschwinden
-    zwei Jahre nach Ablauf. In Sicherungskopien bleibst du bis zu 90 Tage länger enthalten;
-    das lässt sich nicht vermeiden, wenn man Sicherungen haben will.
+    Solange du mitmachst. Nach einer Löschung ist dein Konto sofort gesperrt und wird nach
+    30 Tagen endgültig entfernt, auf Wunsch sofort. Server-Protokolle höchstens 7 Tage,
+    Benachrichtigungen 1 Jahr, Abwesenheiten 2 Jahre nach Ablauf, Sicherungskopien 90 Tage.
   </p>
 
   <h2>Deine Rechte</h2>
-  <p>Du kannst jederzeit:</p>
-  <ul>
-    <li><strong>Auskunft</strong> bekommen, was über dich gespeichert ist (Art. 15) — unter
-        <em>Mein Profil → Meine Daten herunterladen</em> sofort als Datei;</li>
-    <li><strong>berichtigen</strong>, was nicht stimmt (Art. 16) — unter
-        <em>Mein Profil</em> oder mit einer Nachricht an mich;</li>
-    <li><strong>löschen lassen</strong> (Art. 17) — unter
-        <em>Mein Profil → Profil &amp; Zugang löschen</em> oder mit einer Nachricht an mich;</li>
-    <li>die <strong>Verarbeitung einschränken</strong> lassen (Art. 18), etwa solange
-        geklärt wird, ob etwas stimmt;</li>
-    <li>deine Daten <strong>mitnehmen</strong> (Art. 20) — die Datei unter
-        <em>Meine Daten herunterladen</em> ist JSON, ein gängiges, maschinenlesbares
-        Format;</li>
-    <li><strong>widersprechen</strong> (Art. 21), soweit ich Daten auf Grundlage meines
-        berechtigten Interesses verarbeite (Protokolle, Versandverlauf, Sicherungen, die
-        30-Tage-Frist). Dann höre ich damit auf, außer es gibt zwingende Gründe, etwa einen
-        laufenden Angriff;</li>
-    <li>deine <strong>Einwilligung widerrufen</strong> (Art. 7 Abs. 3) — jederzeit, ohne
-        Begründung;</li>
-    <li><strong>entscheiden, worüber du benachrichtigt wirst</strong> — unter
-        <em>Mein Profil → Benachrichtigungen</em>, je Ereignis und je Kanal;</li>
-    <li><strong>dich beschweren</strong> (Art. 77) bei der zuständigen Aufsichtsbehörde:
-        Bayerisches Landesamt für Datenschutzaufsicht (BayLDA), Postfach 1349,
-        91504 Ansbach,
-        <a href="mailto:poststelle@lda.bayern.de">poststelle@lda.bayern.de</a>.</li>
-  </ul>
   <p>
-    Anfragen beantworte ich so schnell wie möglich, spätestens innerhalb eines Monats.
-    Wenn du etwas nicht findest oder es nicht klappt, schreib mir einfach.
+    Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung
+    und Datenübertragbarkeit (Export unter <em>Mein Profil → Meine Daten herunterladen</em>).
+    Deine Einwilligung kannst du jederzeit mit Wirkung für die Zukunft widerrufen; der
+    Verarbeitung aufgrund berechtigten Interesses kannst du widersprechen. Außerdem hast du
+    das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren.
   </p>
 
-  <h2>Jugendliche</h2>
-  <p>
-    Weil die Anwendung auf Einwilligung beruht, dürfen Jugendliche <strong>unter 16</strong>
-    nur mit Einverständnis ihrer Eltern mitmachen (Art. 8 DSGVO). Bei der Registrierung
-    wird das bestätigt; Konten schalte ich erst frei, wenn es für mich plausibel ist. Wenn
-    Eltern wollen, dass die Daten ihres Kindes verschwinden, genügt eine Nachricht an mich.
-  </p>
-
-  <h2>Änderungen</h2>
-  <p>
-    Wenn sich an der Anwendung etwas ändert, das für diesen Hinweis wichtig ist, wird er
-    aktualisiert und die Teilnehmenden werden darauf hingewiesen. Insbesondere dann, wenn
-    der Verein die Anwendung übernimmt.
-  </p>
+  <h2>Mindestalter</h2>
+  <p>Die Anwendung ist nur für Volljährige.</p>
 
   <footer>
-    Stand: 27. September 2026 · Erprobungsfassung ·
+    Stand: 27. September 2026 ·
     <a href="impressum.html">Impressum</a> ·
     <a href="./">Zurück zum Vereinsplaner</a>
   </footer>
