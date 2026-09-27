@@ -5,21 +5,34 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-function makeBuilder() {
+// Eine offene Terminumfrage zu m-1 — für die Frage, wer darüber abstimmen darf.
+const tables: Record<string, unknown[]> = {
+  reschedule_polls: [
+    {
+      id: 'poll-1',
+      match_id: 'm-1',
+      status: 'open',
+      options: ['2026-12-01T18:00:00Z'],
+      created_at: '2026-09-01T00:00:00Z',
+    },
+  ],
+};
+
+function makeBuilder(table: string) {
   const chain = {
     select: () => chain,
     order: () => chain,
     eq: () => chain,
     in: () => chain,
     then: (resolve: (value: { data: unknown[]; error: null }) => unknown) =>
-      resolve({ data: [], error: null }),
+      resolve({ data: tables[table] ?? [], error: null }),
   };
   return chain;
 }
 
 vi.mock('../../src/lib/supabaseClient', () => ({
   supabase: {
-    from: () => makeBuilder(),
+    from: (table: string) => makeBuilder(table),
     rpc: () => Promise.resolve({ data: null, error: null }),
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
@@ -86,7 +99,7 @@ const part = (profileId: string, response: string): Participation =>
 
 const names: Record<string, string> = { 'p-a': 'Anna', 'p-b': 'Bernd', 'p-c': 'Carla' };
 
-function renderCard(participations: Participation[]) {
+function renderCard(participations: Participation[], canManage = false) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
@@ -100,6 +113,7 @@ function renderCard(participations: Participation[]) {
             volunteers={[]}
             nameOf={(id) => names[id] ?? ''}
             profileId="p-a"
+            canManage={canManage}
           />
         </MemoryRouter>
       </ToastProvider>
@@ -108,6 +122,28 @@ function renderCard(participations: Participation[]) {
 }
 
 describe('GameCard', () => {
+  it('bietet das Fahren an, wer angefragt ist', () => {
+    renderCard([part('p-a', 'yes')]);
+    expect(screen.getByRole('button', { name: 'Ich kann fahren' })).toBeInTheDocument();
+  });
+
+  it('nicht aber dem Verwalter eines Spiels, das nicht seins ist', () => {
+    renderCard([part('p-b', 'yes')], true);
+    expect(screen.queryByRole('button', { name: 'Ich kann fahren' })).not.toBeInTheDocument();
+  });
+
+  it('lässt Angefragte über eine Verlegung abstimmen', async () => {
+    renderCard([part('p-a', 'yes')]);
+    expect(await screen.findByText(/Wann kannst du\?/)).toBeInTheDocument();
+  });
+
+  it('den Verwalter eines fremden Spiels nicht', async () => {
+    renderCard([part('p-b', 'yes')], true);
+    // Die Umfrage ist geladen, sobald die Karte steht; ein Tick reicht für react-query.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByText(/Wann kannst du\?/)).not.toBeInTheDocument();
+  });
+
   it('zeigt, wer zu-, ab- oder noch nicht geantwortet hat', async () => {
     renderCard([part('p-a', 'yes'), part('p-b', 'no'), part('p-c', 'none')]);
 

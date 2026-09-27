@@ -2559,6 +2559,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: unknown;
       };
+      is_my_match: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       is_my_training_session: {
         Args: { [key: string]: unknown };
         Returns: unknown;

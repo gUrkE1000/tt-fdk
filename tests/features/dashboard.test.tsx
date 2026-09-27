@@ -437,13 +437,44 @@ describe('DashboardPage', () => {
     expect(screen.queryByText('Spieler ohne Antwort')).toBeNull();
   });
 
-  it('zeigt dem Administrator die offenen Rückmeldungen', async () => {
+  it('zeigt einem Administrator ohne Mannschaft keine offenen Rückmeldungen', async () => {
     state.role = 'admin';
+    renderPage();
+    await screen.findByText('In 3 Tagen');
+    expect(screen.queryByText('Spieler ohne Antwort')).toBeNull();
+  });
+
+  it('zeigt dem Mannschaftsführer die offenen Rückmeldungen seiner Mannschaft', async () => {
+    // Auch als Administrator: Es zählt nur die Mannschaft, die er führt.
+    state.role = 'admin';
+    state.tables.team_leaders = [{ team_id: 't-1', profile_id: 'p-1' }];
+    state.tables.teams = [...state.tables.teams, { id: 't-2', name: '3. Herren', sort_order: 2 }];
+    state.tables.matches = [
+      ...state.tables.matches,
+      {
+        id: 'm-3',
+        team_id: 't-2',
+        opponent: 'TTC Anderswo',
+        dtstart: inThreeDays,
+        dtend: inThreeDays,
+        venue_id: 'v-1',
+        is_home: true,
+        active: true,
+        version: 1,
+        required_players: 6,
+      },
+    ];
+    state.tables.match_participations = [
+      ...state.tables.match_participations,
+      { match_id: 'm-3', profile_id: 'p-2', response: 'none', removed: false },
+    ];
     renderPage();
     // Nicht mit der eigenen Zahl („Offen für dich") zu verwechseln: Hier zählen die
     // Angefragten, die noch nicht geantwortet haben.
     expect(await screen.findByText('Spieler ohne Antwort')).toBeInTheDocument();
-    expect(await screen.findByText('Angefragte bei 2 Spielen im Verein')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Angefragte bei 2 Spielen deiner Mannschaften'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Spieler ohne Antwort/ })).toHaveAttribute('href', '/games');
   });
 

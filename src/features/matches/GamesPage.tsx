@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Download, KeyRound, Plus, SlidersHorizontal, Trash2 } from 'lucide-react';
+import { Download, KeyRound, Plus, SlidersHorizontal, Trash2, Users } from 'lucide-react';
 import {
   Button,
   Dialog,
+  EmptyState,
   FilterBar,
   PageHeader,
+  Segmented,
   Select,
   Tabs,
   useToast,
@@ -35,6 +37,30 @@ import NuscoreImportDialog from './NuscoreImportDialog';
 import ManagePlayersDialog from './ManagePlayersDialog';
 import ShareLineupDialog from './ShareLineupDialog';
 import RescheduleDialog from './RescheduleDialog';
+
+type Scope = 'mine' | 'club';
+
+const SCOPE_STORAGE_KEY = 'vp.games.scope';
+
+/**
+ * Die zuletzt gewählte Ansicht eines Administrators, je Gerät. `localStorage` kann
+ * werfen (privates Fenster, gesperrte Website-Daten) — dann gilt die Voreinstellung.
+ */
+function readScope(): Scope {
+  try {
+    return window.localStorage.getItem(SCOPE_STORAGE_KEY) === 'club' ? 'club' : 'mine';
+  } catch {
+    return 'mine';
+  }
+}
+
+function writeScope(scope: Scope) {
+  try {
+    window.localStorage.setItem(SCOPE_STORAGE_KEY, scope);
+  } catch {
+    // Nicht merken können ist kein Fehler: Beim nächsten Mal gilt wieder „Meine".
+  }
+}
 
 export default function GamesPage() {
   const { toast } = useToast();
@@ -78,19 +104,42 @@ export default function GamesPage() {
     [teamList],
   );
 
+  const ledTeamIds = useMemo(
+    () =>
+      new Set(
+        teamList
+          .filter((team) => profile?.id != null && team.leaderIds.includes(profile.id))
+          .map((team) => team.id),
+      ),
+    [teamList, profile?.id],
+  );
+
   // Alle Mitglieder sehen alle Spiele (Rückmeldung 25.09.2026). Diese Seite ist aber die
-  // Arbeitsliste: Der Administrator verwaltet jede Mannschaft, der Mannschaftsführer
-  // seine eigenen.
+  // Arbeitsliste, und die beginnt bei den eigenen Mannschaften — auch für einen
+  // Administrator, der selbst eine Mannschaft führt. Den ganzen Verein holt er sich mit
+  // einem Umschalter dazu; ein Mannschaftsführer verwaltet nur seine eigenen.
+  const isAdmin = role === 'admin';
+  const [scope, setScopeState] = useState<Scope>(readScope);
+  const wholeClub = isAdmin && scope === 'club';
+
+  function setScope(next: Scope) {
+    setScopeState(next);
+    writeScope(next);
+    // Eine gewählte fremde Mannschaft gibt es in „Meine Mannschaften" nicht.
+    setFilters((current) => ({ ...current, teamId: 'all' }));
+    setSelected([]);
+  }
+
+  const scopedTeams = useMemo(
+    () => (wholeClub ? teamList : teamList.filter((team) => ledTeamIds.has(team.id))),
+    [wholeClub, teamList, ledTeamIds],
+  );
+
   const scoped = useMemo(() => {
     const all = matches.data ?? [];
-    if (role === 'admin') return all;
-    const led = new Set(
-      teamList
-        .filter((team) => profile?.id != null && team.leaderIds.includes(profile.id))
-        .map((team) => team.id),
-    );
-    return all.filter((match) => led.has(match.team_id));
-  }, [matches.data, role, teamList, profile?.id]);
+    if (wholeClub) return all;
+    return all.filter((match) => ledTeamIds.has(match.team_id));
+  }, [matches.data, wholeClub, ledTeamIds]);
 
   // Codes und PINs nur für Mannschaften, deren Spiele man auch ändern darf.
   const managedTeams = useMemo(
@@ -196,6 +245,19 @@ export default function GamesPage() {
         }
       />
 
+      {isAdmin && (
+        <Segmented
+          label="Welche Spiele"
+          value={scope}
+          onChange={setScope}
+          options={[
+            ['mine', 'Meine Mannschaften'],
+            ['club', 'Ganzer Verein'],
+          ]}
+          className="mb-3"
+        />
+      )}
+
       <FilterBar
         search={filters.search}
         onSearchChange={(search) => setFilters({ ...filters, search })}
@@ -212,7 +274,7 @@ export default function GamesPage() {
           onChange={(event) => setFilters({ ...filters, teamId: event.target.value })}
           options={[
             { value: 'all', label: 'Alle Mannschaften' },
-            ...teamList.map((team) => ({ value: team.id, label: team.name })),
+            ...scopedTeams.map((team) => ({ value: team.id, label: team.name })),
           ]}
         />
         <input
@@ -342,22 +404,37 @@ export default function GamesPage() {
         </div>
       )}
 
-      <Tabs
-        tabs={[
-          {
-            value: 'open',
-            label: 'Offene Termine',
-            count: open.length,
-            content: table(open),
-          },
-          {
-            value: 'finished',
-            label: 'Beendete Termine',
-            count: finished.length,
-            content: table(finished),
-          },
-        ]}
-      />
+      {!wholeClub && teams.isSuccess && ledTeamIds.size === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="Du führst keine Mannschaft"
+          description="Hier stehen die Spiele der Mannschaften, die du führst."
+          action={
+            isAdmin ? (
+              <Button variant="primary" onClick={() => setScope('club')}>
+                Ganzen Verein anzeigen
+              </Button>
+            ) : undefined
+          }
+        />
+      ) : (
+        <Tabs
+          tabs={[
+            {
+              value: 'open',
+              label: 'Offene Termine',
+              count: open.length,
+              content: table(open),
+            },
+            {
+              value: 'finished',
+              label: 'Beendete Termine',
+              count: finished.length,
+              content: table(finished),
+            },
+          ]}
+        />
+      )}
 
       <GameDialog
         open={dialogOpen}
