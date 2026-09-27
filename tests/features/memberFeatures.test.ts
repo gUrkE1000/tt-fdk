@@ -88,6 +88,22 @@ describe('mergeHistory', () => {
     expect(entries[1].channels.sort()).toEqual(['email', 'push']);
     expect(entries[1].link).toBe('http://localhost:5173/r/abc');
   });
+
+  it('führt auf die Seite des Termins, wenn es eine gibt', () => {
+    // Der Antwort-Link gilt nur einmal; im Verlauf tippt man ihn oft zum zweiten Mal an.
+    const [entry] = mergeHistory([
+      {
+        ...row('1', 'push', '2026-10-01T10:00:00Z'),
+        payload: { link: 'http://localhost:5173/r/abc', page: 'http://localhost:5173/match/m-1' },
+      },
+    ]);
+    expect(entry.link).toBe('http://localhost:5173/match/m-1');
+  });
+
+  it('hat ohne Ziel keinen Link', () => {
+    const [entry] = mergeHistory([{ ...row('1', 'push', '2026-10-01T10:00:00Z'), payload: {} }]);
+    expect(entry.link).toBeNull();
+  });
 });
 
 describe('detailPath', () => {

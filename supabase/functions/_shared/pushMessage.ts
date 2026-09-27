@@ -39,8 +39,23 @@ export function truncateForPush(text: string, limit = PUSH_BODY_LIMIT): string {
   return `${flat.slice(0, limit - 1).trimEnd()}…`;
 }
 
+/**
+ * Wohin das Antippen führt: auf die Seite des Termins, sonst zum Link der Nachricht.
+ *
+ * Der Antwort-Link (`/r/…`) gilt einmal; wer die Nachricht ein zweites Mal antippt,
+ * stünde vor „schon geantwortet". Die Seite gilt immer, und in der installierten App
+ * ist man angemeldet und kann dort genauso antworten (Entscheidung E-2).
+ */
+export function notificationUrl(payload: Record<string, unknown>): string {
+  for (const key of ['page', 'link']) {
+    const value = payload[key];
+    if (typeof value === 'string' && value !== '') return value;
+  }
+  return '';
+}
+
 export function buildPushMessage(row: PushSource, fallbackUrl = '/'): PushMessage {
-  const link = typeof row.payload.link === 'string' ? row.payload.link : '';
+  const link = notificationUrl(row.payload);
 
   return {
     title: row.subject,

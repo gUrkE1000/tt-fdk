@@ -597,7 +597,7 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `rpc_set_lineup(uuid, jsonb)` | Aufstellung von Hand; sperrt die Automatik |
 | `rpc_unlock_lineup(uuid)` | Zurück zur Automatik |
 | `render_template(text, jsonb)` | Füllt `{{platzhalter}}`; unbekannte verschwinden, statt in der E-Mail zu landen |
-| `enqueue_notification(uuid, text, jsonb, bool, timestamptz)` | Die einzige Stelle, an der Benachrichtigungen entstehen |
+| `enqueue_notification(uuid, text, jsonb, bool, timestamptz)` | Die einzige Stelle, an der Benachrichtigungen entstehen. Trägt die Nutzlast `page` (Seite des Termins), führt ein Link ohne eigenes Ziel dorthin; neben einem Antwort-Link hängt sie „Ansehen: …“ an den Text (E-2) |
 | `rpc_answer_action_token(uuid, text)` | Antwort über den Link aus der E-Mail, ohne Anmeldung |
 | `apply_substitute_answer(uuid, uuid, text)` | Antwort auf eine Ersatzanfrage; nimmt die Person als Parameter, weil der Link keine Anmeldung hat |
 | `enqueue_substitute_request(...)`, `notify_chain_exhausted(uuid)` | Was der Hintergrundlauf der Ersatzkette ausführt |
@@ -614,7 +614,7 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `notify_training_cancelled(uuid, date, date, text, bool)` | Meldet einen Ausfall — einmal für den ganzen Zeitraum, nicht je Tag |
 | `check_trainers_cancelled()` | Trigger: sagen alle Trainer ab, sagt sich der Termin selbst ab |
 | `add_creator_as_trainer()` | Trigger: Legt ein Trainer ein Training an, leitet er es (beim Admin nicht) |
-| `event_payload(uuid)` | Werte für die Vorlage eines Vereinstermins, samt Antwortlink |
+| `event_payload(uuid)` | Werte für die Vorlage eines Vereinstermins, samt Antwortlink und `page`; ebenso `match_payload`, `training_payload` |
 | `apply_event_answer(uuid, uuid, text, int, source)` | Zu- oder Absage; prüft Anmeldefrist, Teilnehmergrenze und Zeitpunkt |
 | `rpc_set_event_participation(uuid, status, int)` | Dasselbe für den Angemeldeten |
 | `enqueue_event_reminder(uuid, uuid)` | Was der Erinnerungslauf je Termin und Zusagendem ausführt |

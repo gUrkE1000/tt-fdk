@@ -102,7 +102,23 @@ Kader — eine Zusage gilt als Angebot einzuspringen."
 
 **Aufgefallen** 24.09.2026, nachdem Spiele, Trainingstermine und Vereinstermine eigene
 Seiten bekommen haben (`/match/…`, `/training/…`, `/event/…`).
-**Stand** offen — zurückgestellt, erst sollen sich die neuen Seiten im Alltag bewähren.
+**Stand** **entschieden am 27.09.2026: Möglichkeit 1** — umgesetzt in
+`supabase/migrations/20261108000000_notification_page_links.sql`. Die Beschreibung unten
+ist der Stand vor der Entscheidung.
+
+### Entscheidung
+
+- **E-Mail:** Der Antwort-Link bleibt; darunter steht „Ansehen: …/match/<id>“ (bzw.
+  `/training/…`, `/event/…`). Eine zweite Zeile, keine Knöpfe — die Vorlagen bleiben
+  reiner Text. Die Zeile hängt `enqueue_notification` an, sobald die Nutzlast `page`
+  trägt und der Link nicht ohnehin dorthin führt.
+- **Push und Verlauf:** Antippen öffnet die Seite des Termins
+  (`_shared/pushMessage.ts`, `src/features/notifications/history.ts`).
+- **Ohne Antwort** (Ausfall, Nachricht am Termin, Ersatz gefunden …) führt der Link auf
+  die Seite statt auf die Startseite. Eigene Ziele (`/votes`, Neuigkeiten, „Meine
+  Spiele“ bei mehreren neuen Spielen) bleiben.
+- **Ausrollen:** „Supabase ausrollen“ mit Migrationen **und** Edge Functions — die
+  Push-Adresse setzt `process-notifications`.
 
 ### Wie es heute ist
 
@@ -165,3 +181,5 @@ Kein Aufwand. Der Nachteil bleibt: nach der Antwort führt der Link ins Leere.
   eigenen Trainings. Vorher: nur zugesagte Termine.
 - **E-1** · Wer darf Spieltermine sehen und sich eintragen? — entschieden am 24.09.2026,
   „Sehen" am 25.09.2026 wieder für alle geöffnet, siehe oben.
+- **E-2** · Wohin führen die Links in Benachrichtigungen? — entschieden am 27.09.2026:
+  Antwort-Link plus Link zur Terminseite, siehe oben.
