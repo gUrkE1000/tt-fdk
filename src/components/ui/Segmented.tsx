@@ -24,7 +24,7 @@ export default function Segmented<T extends string | boolean>({
     <div
       role="group"
       aria-label={label}
-      className={cn('inline-flex rounded-xl bg-gray-100 p-1', className)}
+      className={cn('inline-flex rounded-xl border border-gray-300 bg-white p-1', className)}
     >
       {options.map(([option, text]) => (
         <button
@@ -35,9 +35,11 @@ export default function Segmented<T extends string | boolean>({
           className={cn(
             'min-h-9 flex-1 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
             'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+            // Kräftig statt „weiß auf hellgrau": Auf dem Telefon im Freien war sonst nicht
+            // zu erkennen, welche Seite gewählt ist.
             value === option
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700',
+              ? 'bg-primary text-white shadow-sm'
+              : 'text-gray-700 hover:bg-gray-100',
           )}
         >
           {text}

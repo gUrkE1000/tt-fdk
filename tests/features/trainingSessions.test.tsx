@@ -317,6 +317,27 @@ describe('SessionsTab', () => {
     expect(await screen.findAllByText('Bitte Hallenschuhe mitbringen')).not.toHaveLength(0);
   });
 
+  it('beginnt mit dem Umschalter bei den eigenen Trainings und zeigt auf Wunsch alle', async () => {
+    state.tables.training_members = [{ training_id: 'tr-1', profile_id: 'p-01' }];
+    renderPage(<SessionsTab switchable />);
+
+    await screen.findAllByText('Erwachsenentraining');
+    expect(screen.queryByText('Jugendtraining')).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Alle Trainings' }));
+    expect(await screen.findByText('Jugendtraining')).toBeInTheDocument();
+  });
+
+  it('bietet bei einem fremden Training keine Zu- und Absage an', async () => {
+    // p-01 gehört nur zum Erwachsenentraining; das Jugendtraining ist geschlossen.
+    state.tables.training_members = [{ training_id: 'tr-1', profile_id: 'p-01' }];
+    renderPage(<SessionsTab />);
+
+    expect(await screen.findByText('Du gehörst nicht zu diesem Training.')).toBeInTheDocument();
+    // Nur der eigene offene Termin (s-1) hat Knöpfe.
+    expect(screen.getAllByRole('button', { name: 'Bin dabei' })).toHaveLength(1);
+  });
+
   it('zeigt mit „onlyMine“ nur Trainings, zu denen man gehört', async () => {
     state.tables.training_members = [{ training_id: 'tr-1', profile_id: 'p-01' }];
     renderPage(<SessionsTab onlyMine />);

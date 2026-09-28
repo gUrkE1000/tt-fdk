@@ -38,6 +38,7 @@ import {
 import type { SessionKeys } from '../keys/api';
 import KeyBearerRow from './KeyBearerRow';
 import SessionAssigneesPanel from './SessionAssigneesPanel';
+import { isMySession } from './schemas';
 
 const CHOICES: {
   value: AttendanceStatus;
@@ -100,17 +101,26 @@ export default function SessionCard({
   const setAttendance = useSetAttendance();
   const assignees = useSessionAssignees();
 
-  // Systemtraining: Zu- und absagen kann, wer diesem Termin zugeteilt ist — und der Trainer.
+  // Zu- und absagen kann, wer zum Training gehört: Trainer, Mitglieder eines
+  // geschlossenen Trainings, bei einem offenen alle, beim Systemtraining die dem Termin
+  // Zugeteilten. Dieselbe Regel wie in der Datenbank — sonst stünden bei fremden
+  // Trainings Knöpfe, die nur eine Fehlermeldung bringen. Wer schon geantwortet hat,
+  // kann seine Antwort immer ändern.
   const system = training?.is_system === true;
   const assigneeIds = (assignees.data ?? [])
     .filter((entry) => entry.session_id === session.id)
     .map((entry) => entry.profile_id);
-  const mayAnswer =
-    !system ||
-    (profileId !== null &&
-      (assigneeIds.includes(profileId) || (training?.trainerIds ?? []).includes(profileId)));
-
   const mine = participants.find((entry) => entry.profile_id === profileId) ?? null;
+  const mayAnswer =
+    profileId !== null &&
+    (mine !== null ||
+      isMySession(
+        session,
+        training,
+        profileId,
+        new Set(assigneeIds.includes(profileId) ? [session.id] : []),
+      ));
+
   const [guests, setGuests] = useState(mine?.guests ?? 0);
   const [comment, setComment] = useState(mine?.comment ?? '');
   const [commentOpen, setCommentOpen] = useState(false);
@@ -298,7 +308,9 @@ export default function SessionCard({
 
             {profileId && !mayAnswer && (
               <p className="text-sm text-gray-500">
-                Systemtraining: Teilnehmer teilt der Trainer je Termin zu.
+                {system
+                  ? 'Systemtraining: Teilnehmer teilt der Trainer je Termin zu.'
+                  : 'Du gehörst nicht zu diesem Training.'}
               </p>
             )}
 
