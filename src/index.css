@@ -94,38 +94,53 @@
   --status-no-soft: 255 241 242;
   --status-absent: 100 116 139;
   --status-absent-soft: 241 245 249;
+
+  /* Kalenderkategorien. Als fertige Farben statt RGB-Tripel: Sie gehen als Inline-Stil
+     an FullCalendar und die Chips, nicht durch Tailwind. */
+  --cat-training: #0f766e;
+  --cat-match: #1d4ed8;
+  --cat-event: #7c3aed;
+  --cat-key-duty: #b45309;
+  --cat-blocked: #dc2626;
 }
 
 .dark {
-  /* Nicht reines Schwarz: Auf OLED-Bildschirmen flimmert der Übergang zu echtem
-     Schwarz beim Scrollen, und Schatten verschwinden darin spurlos. */
-  --surface: 24 27 33;
+  /* GitHub Dark Dimmed (Entscheidung 28.09.2026): gedämpftes Blaugrau statt fast
+     Schwarz, Akzent in ruhigem Blau statt Neon-Türkis. Nicht reines Schwarz: Auf
+     OLED-Bildschirmen flimmert der Übergang zu echtem Schwarz beim Scrollen, und
+     Schatten verschwinden darin spurlos. */
+  --surface: 34 39 46;          /* #22272e */
 
-  --gray-50: 31 35 42;
-  --gray-100: 39 44 52;
-  --gray-200: 51 57 67;
-  --gray-300: 71 79 92;
-  --gray-400: 120 130 146;
-  --gray-500: 156 165 180;
-  --gray-600: 187 194 206;
-  --gray-700: 213 218 227;
-  --gray-800: 232 235 240;
-  --gray-900: 244 246 249;
+  --gray-50: 28 33 40;          /* #1c2128 */
+  --gray-100: 45 51 59;         /* #2d333b */
+  --gray-200: 68 76 86;         /* #444c56 */
+  --gray-300: 84 93 104;        /* #545d68 */
+  --gray-400: 99 110 123;       /* #636e7b */
+  --gray-500: 118 131 144;      /* #768390 */
+  --gray-600: 144 157 171;      /* #909dab */
+  --gray-700: 173 186 199;      /* #adbac7 */
+  --gray-800: 197 209 222;      /* #c5d1de */
+  --gray-900: 205 217 229;      /* #cdd9e5 */
 
-  /* Auf dunklem Grund braucht Teal mehr Helligkeit, sonst verschwindet es. */
-  --primary: 45 212 191;         /* teal-400 */
-  --primary-hover: 94 234 212;   /* teal-300 */
-  --primary-soft: 19 54 54;
-  --primary-border: 17 94 89;    /* teal-800 */
+  --primary: 83 155 245;         /* #539bf5 */
+  --primary-hover: 108 182 255;  /* #6cb6ff */
+  --primary-soft: 38 52 70;
+  --primary-border: 49 83 125;
 
-  --status-yes: 52 211 153;
-  --status-yes-soft: 6 47 38;
-  --status-late: 251 191 36;
-  --status-late-soft: 56 40 10;
-  --status-no: 251 113 133;
-  --status-no-soft: 60 18 28;
-  --status-absent: 148 163 184;
-  --status-absent-soft: 35 42 53;
+  --status-yes: 87 171 90;       /* #57ab5a */
+  --status-yes-soft: 37 53 42;
+  --status-late: 198 144 38;     /* #c69026 */
+  --status-late-soft: 58 49 32;
+  --status-no: 229 83 75;        /* #e5534b */
+  --status-no-soft: 66 38 40;
+  --status-absent: 118 131 144;
+  --status-absent-soft: 45 51 59;
+
+  --cat-training: #57ab5a;
+  --cat-match: #539bf5;
+  --cat-event: #986ee2;
+  --cat-key-duty: #cc6b2c;
+  --cat-blocked: #e5534b;
 }
 
 /* Eingabefelder und Datumsauswahl im Systemdunkel zeichnen. */
@@ -321,8 +336,10 @@
   @apply py-1 text-sm font-extrabold uppercase tracking-wide;
 }
 
+/* `!important`, weil FullCalendar die Kategoriefarbe als Inline-Stil setzt — ohne
+   stand der ganze Tag in vollem Rot statt als Hauch hinter den Terminen. */
 .fc .vp-day-blocked {
-  background-color: rgb(220 38 38 / 0.22);
+  background-color: color-mix(in srgb, var(--cat-blocked) 22%, transparent) !important;
   opacity: 1;
 }
 
