@@ -264,7 +264,7 @@ function FilterChip({
 }: {
   active: boolean;
   onClick: () => void;
-  /** Kategoriefarbe als Hex-Wert; ohne sie ist der angewählte Chip in der Hausfarbe. */
+  /** Kategoriefarbe (CSS-Farbe oder Variable); ohne sie ist der Chip in der Hausfarbe. */
   tint?: string;
   title?: string;
   children: ReactNode;
@@ -287,7 +287,12 @@ function FilterChip({
           : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-700',
       )}
       style={
-        active && tint ? { borderColor: `${tint}66`, backgroundColor: `${tint}1F` } : undefined
+        active && tint
+          ? {
+              borderColor: `color-mix(in srgb, ${tint} 40%, transparent)`,
+              backgroundColor: `color-mix(in srgb, ${tint} 12%, transparent)`,
+            }
+          : undefined
       }
     >
       {children}

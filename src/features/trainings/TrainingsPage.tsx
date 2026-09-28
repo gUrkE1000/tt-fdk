@@ -44,7 +44,7 @@ export default function TrainingsPage() {
 
       <Tabs
         tabs={[
-          { value: 'sessions', label: 'Termine', content: <SessionsTab /> },
+          { value: 'sessions', label: 'Termine', content: <SessionsTab switchable /> },
           { value: 'open', label: 'Offene Trainings', content: <OpenTrainingsList /> },
           { value: 'planning', label: 'Planung', content: <PlanningTab /> },
         ]}

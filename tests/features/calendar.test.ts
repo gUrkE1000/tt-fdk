@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   ALL_KINDS,
+  BLOCKED_COLOR,
   CATEGORIES,
   DEFAULT_CALENDAR_FILTERS,
   toDisplayEvents,
@@ -72,7 +73,7 @@ describe('toDisplayEvents', () => {
       [item({ kind: 'match', id: 'm-1', color: null, is_home: true })],
       DEFAULT_CALENDAR_FILTERS,
     );
-    expect(event.backgroundColor).toBe('#1D4ED8');
+    expect(event.backgroundColor).toBe('var(--cat-match)');
   });
 
   it('lässt „Nur Heimspiele" alles außer Auswärtsspielen stehen', () => {
@@ -114,7 +115,7 @@ describe('toDisplayEvents', () => {
 
     expect(events).toHaveLength(2);
     expect(events[0].title).toBe('⛔ Halle gesperrt');
-    expect(events[0].backgroundColor).toBe('#DC2626');
+    expect(events[0].backgroundColor).toBe(BLOCKED_COLOR);
     expect(events[0].classNames).toEqual(['vp-event-blocked']);
     expect(events[1].display).toBe('background');
   });

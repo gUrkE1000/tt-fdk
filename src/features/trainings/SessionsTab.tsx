@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { CalendarCheck } from 'lucide-react';
 import {
   EmptyState,
   ErrorState,
   LoadingState,
+  Segmented,
 } from '../../components/ui';
 import { queryStatus } from '../../lib/queryStatus';
 import { useSession } from '../auth/session';
@@ -24,6 +25,11 @@ import { isMySession } from './schemas';
 export interface SessionsTabProps {
   /** Nur die Termine dieses Mitglieds statt aller sichtbaren. */
   onlyMine?: boolean;
+  /**
+   * Mit Umschalter „Meine Trainings / Alle Trainings", Standard die eigenen — wie im
+   * Kalender. Sehen darf jedes Mitglied alle, zu- und absagen nur bei den eigenen.
+   */
+  switchable?: boolean;
 }
 
 /**
@@ -33,8 +39,10 @@ export interface SessionsTabProps {
  * Trainings, ein Mitglied alle. Die Oberfläche filtert nichts nach, sonst gäbe es zwei
  * Stellen, an denen dieselbe Regel steht.
  */
-export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
+export default function SessionsTab({ onlyMine = false, switchable = false }: SessionsTabProps) {
   const { profile } = useSession();
+  const [mineChosen, setMineChosen] = useState(true);
+  const mineOnly = onlyMine || (switchable && mineChosen);
   const sessions = useTrainingSessions();
   const trainings = useTrainings();
   // Ohne eigenen Ort steht der Standardort da — dort gilt auch eine Hallensperre.
@@ -56,7 +64,7 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
 
   const visible = useMemo(() => {
     const rows = sessions.data ?? [];
-    if (!onlyMine || !profile?.id) return rows;
+    if (!mineOnly || !profile?.id) return rows;
 
     const assigned = new Set(
       (assignees.data ?? [])
@@ -71,24 +79,44 @@ export default function SessionsTab({ onlyMine = false }: SessionsTabProps) {
         assigned,
       ),
     );
-  }, [sessions.data, onlyMine, profile?.id, trainingList, assignees.data]);
+  }, [sessions.data, mineOnly, profile?.id, trainingList, assignees.data]);
 
   const status = queryStatus(sessions, trainings);
   if (status.loading) return <LoadingState />;
   if (status.error) return <ErrorState onRetry={status.retry} />;
 
+  const toggle = switchable && (
+    <Segmented
+      label="Welche Trainings"
+      value={mineChosen}
+      onChange={setMineChosen}
+      options={[
+        [true, 'Meine Trainings'],
+        [false, 'Alle Trainings'],
+      ]}
+    />
+  );
+
   if (visible.length === 0) {
     return (
-      <EmptyState
-        icon={CalendarCheck}
-        title="Keine Trainingstermine"
-        description={`In den nächsten ${SESSION_WINDOW_DAYS} Tagen steht kein Training an, zu dem du gefragt bist.`}
-      />
+      <div className="space-y-3">
+        {toggle}
+        <EmptyState
+          icon={CalendarCheck}
+          title="Keine Trainingstermine"
+          description={
+            mineOnly
+              ? `In den nächsten ${SESSION_WINDOW_DAYS} Tagen steht kein Training an, zu dem du gefragt bist.`
+              : `In den nächsten ${SESSION_WINDOW_DAYS} Tagen steht kein Training an.`
+          }
+        />
+      </div>
     );
   }
 
   return (
     <div className="space-y-3">
+      {toggle}
       {visible.map((session) => {
         const training = trainingList.find((entry) => entry.id === session.training_id);
         return (

@@ -13,18 +13,19 @@ export interface CategoryDefinition {
 }
 
 /** Hallensperren sind rot und nicht zu übersehen — an diesen Tagen fällt alles aus. */
-export const BLOCKED_COLOR = '#DC2626';
+export const BLOCKED_COLOR = 'var(--cat-blocked)';
 
 /**
  * Die Kategorien des Kalenders in fester Reihenfolge — sie sind zugleich die Chips zum
- * Ein- und Ausblenden. Die Farben stehen hier als Werte und nicht als Tailwind-Klassen,
- * weil FullCalendar sie als Zeichenkette braucht.
+ * Ein- und Ausblenden. Die Farben stehen hier als Zeichenkette und nicht als
+ * Tailwind-Klassen, weil FullCalendar sie so braucht; als CSS-Variable, damit der
+ * dunkle Modus eigene Töne setzen kann (`src/index.css`).
  */
 export const CATEGORIES: readonly CategoryDefinition[] = [
-  { kind: 'training', label: 'Trainings', color: '#0F766E' },
-  { kind: 'match', label: 'Spiele', color: '#1D4ED8' },
-  { kind: 'event', label: 'Vereinstermine', color: '#7C3AED' },
-  { kind: 'key_duty', label: 'Schlüsseldienst', color: '#B45309' },
+  { kind: 'training', label: 'Trainings', color: 'var(--cat-training)' },
+  { kind: 'match', label: 'Spiele', color: 'var(--cat-match)' },
+  { kind: 'event', label: 'Vereinstermine', color: 'var(--cat-event)' },
+  { kind: 'key_duty', label: 'Schlüsseldienst', color: 'var(--cat-key-duty)' },
   { kind: 'venue_blocked', label: 'Halle gesperrt', color: BLOCKED_COLOR },
 ];
 
