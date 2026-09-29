@@ -2,7 +2,7 @@
 -- nicht unter „Offen für dich".
 
 BEGIN;
-SELECT plan(3);
+SELECT plan(5);
 
 DO $$ BEGIN PERFORM tests.as_service_role(); END $$;
 
@@ -46,6 +46,10 @@ SELECT is(
     1,
     'mit eingeschalteter Abfrage schon'
 );
+
+-- Dauerzusage und automatische Absage sind entfernt.
+SELECT hasnt_table('public', 'training_auto_attendance', 'Die Dauerzusage gibt es nicht mehr');
+SELECT hasnt_column('public', 'trainings', 'auto_cancel_no_trainers', 'die automatische Absage auch nicht');
 
 SELECT * FROM finish();
 ROLLBACK;

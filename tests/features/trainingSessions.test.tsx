@@ -104,7 +104,6 @@ const training = {
   skip_public_holidays: true,
   skip_school_holidays: false,
   hide_in_calendar: false,
-  auto_cancel_no_trainers: false,
   statistics_visibility: 'admins',
   active: true,
 };

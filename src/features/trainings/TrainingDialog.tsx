@@ -125,7 +125,6 @@ export default function TrainingDialog({
       skip_public_holidays: values.skipPublicHolidays,
       skip_school_holidays: values.skipSchoolHolidays,
       hide_in_calendar: values.hideInCalendar,
-      auto_cancel_no_trainers: values.autoCancelNoTrainers,
       statistics_visibility: values.statisticsVisibility,
       active: values.active,
     };
@@ -356,11 +355,6 @@ export default function TrainingDialog({
           onCheckedChange={(value) => form.setValue('hideInCalendar', value)}
           label="Training im Kalender nicht anzeigen"
         />
-        <Checkbox
-          checked={form.watch('autoCancelNoTrainers')}
-          onCheckedChange={(value) => form.setValue('autoCancelNoTrainers', value)}
-          label="Training automatisch absagen, wenn alle Trainer abgesagt haben"
-        />
       </div>
 
       {/* Im TT-Planer erscheint dieses Feld erst beim Bearbeiten — beim Anlegen gibt es
@@ -457,7 +451,6 @@ export function toFormValues(training: TrainingWithPeople): TrainingValues {
     skipPublicHolidays: training.skip_public_holidays,
     skipSchoolHolidays: training.skip_school_holidays,
     hideInCalendar: training.hide_in_calendar,
-    autoCancelNoTrainers: training.auto_cancel_no_trainers,
     statisticsVisibility: training.statistics_visibility,
     statisticsGroupIds: training.statisticsGroupIds,
     active: training.active,

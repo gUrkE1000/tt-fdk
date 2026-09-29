@@ -1704,45 +1704,6 @@ export interface Database {
           },
         ];
       };
-      training_auto_attendance: {
-        Row: {
-          profile_id: string;
-          training_id: string;
-          until_date: string;
-          late: boolean;
-          created_at: string;
-        };
-        Insert: {
-          profile_id: string;
-          training_id: string;
-          until_date: string;
-          late?: boolean;
-          created_at?: string;
-        };
-        Update: {
-          profile_id?: string;
-          training_id?: string;
-          until_date?: string;
-          late?: boolean;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "training_auto_attendance_profile_id_fkey";
-            columns: ["profile_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "training_auto_attendance_training_id_fkey";
-            columns: ["training_id"];
-            isOneToOne: false;
-            referencedRelation: "trainings";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       training_cancellations: {
         Row: {
           id: string;
@@ -2114,7 +2075,6 @@ export interface Database {
           skip_public_holidays: boolean;
           skip_school_holidays: boolean;
           hide_in_calendar: boolean;
-          auto_cancel_no_trainers: boolean;
           statistics_visibility: Database["public"]["Enums"]["statistics_visibility"];
           active: boolean;
           created_at: string;
@@ -2142,7 +2102,6 @@ export interface Database {
           skip_public_holidays?: boolean;
           skip_school_holidays?: boolean;
           hide_in_calendar?: boolean;
-          auto_cancel_no_trainers?: boolean;
           statistics_visibility?: Database["public"]["Enums"]["statistics_visibility"];
           active?: boolean;
           created_at?: string;
@@ -2170,7 +2129,6 @@ export interface Database {
           skip_public_holidays?: boolean;
           skip_school_holidays?: boolean;
           hide_in_calendar?: boolean;
-          auto_cancel_no_trainers?: boolean;
           statistics_visibility?: Database["public"]["Enums"]["statistics_visibility"];
           active?: boolean;
           created_at?: string;
