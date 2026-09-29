@@ -54,7 +54,7 @@ vi.mock('../../src/features/auth/session', () => ({
 
 import GameCard from '../../src/features/matches/GameCard';
 import { ToastProvider } from '../../src/components/ui';
-import type { MatchRow, Participation } from '../../src/features/matches/api';
+import type { MatchRow, Participation, Volunteer } from '../../src/features/matches/api';
 import type { Venue } from '../../src/features/venues/api';
 
 const future = new Date(Date.now() + 5 * 86_400_000).toISOString();
@@ -97,20 +97,37 @@ const part = (profileId: string, response: string): Participation =>
     comment: '',
   }) as unknown as Participation;
 
-const names: Record<string, string> = { 'p-a': 'Anna', 'p-b': 'Bernd', 'p-c': 'Carla' };
+const names: Record<string, string> = {
+  'p-a': 'Anna',
+  'p-b': 'Bernd',
+  'p-c': 'Carla',
+  'p-d': 'Adam Pichler',
+  'p-e': 'Anna-Lena Schmidt-Wittgenstein',
+};
 
-function renderCard(participations: Participation[], canManage = false) {
+const inLineup = (profileId: string, position: number): Participation =>
+  ({ ...part(profileId, 'yes'), lineup_position: position }) as Participation;
+
+const volunteer = (profileId: string, kind: 'driver' | 'direct'): Volunteer =>
+  ({ match_id: 'm-1', profile_id: profileId, kind }) as unknown as Volunteer;
+
+function renderCard(
+  participations: Participation[],
+  canManage = false,
+  volunteers: Volunteer[] = [],
+  isHome = true,
+) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <ToastProvider>
         <MemoryRouter>
           <GameCard
-            match={match}
+            match={{ ...match, is_home: isHome }}
             team={undefined}
             venue={venue}
             participations={participations}
-            volunteers={[]}
+            volunteers={volunteers}
             nameOf={(id) => names[id] ?? ''}
             profileId="p-a"
             canManage={canManage}
@@ -169,6 +186,39 @@ describe('GameCard', () => {
     expect(screen.getByRole('link', { name: /Route/ })).toHaveAttribute(
       'href',
       expect.stringContaining('google.com/maps/search/?api=1&query=Turnstra'),
+    );
+  });
+
+  it('zeigt die Aufstellung mit Vorname und Nachnamen-Initiale', () => {
+    renderCard([part('p-a', 'yes'), inLineup('p-d', 1), inLineup('p-e', 2)]);
+    const lineup = screen.getByRole('list', { name: 'Aufstellung' });
+    expect(lineup).toHaveTextContent('Adam P.');
+    expect(lineup).toHaveTextContent('Anna-Lena S.');
+    expect(screen.getByText('Adam P.')).toHaveAttribute('title', 'Adam Pichler');
+  });
+
+  it('nennt, wer fährt und wer direkt zur Halle fährt', () => {
+    renderCard(
+      [part('p-a', 'yes')],
+      false,
+      [volunteer('p-d', 'driver'), volunteer('p-e', 'driver'), volunteer('p-b', 'direct')],
+      false,
+    );
+    expect(screen.getByText(/Fahrer:/).parentElement).toHaveTextContent(
+      'Fahrer: Adam P., Anna-Lena S.',
+    );
+    expect(screen.getByText(/Direkt zur Halle:/).parentElement).toHaveTextContent(
+      'Direkt zur Halle: Bernd',
+    );
+  });
+
+  it('zählt Fahrer ohne bekannten Namen mit, statt sie zu verschweigen', () => {
+    renderCard([part('p-a', 'yes')], false, [
+      volunteer('p-d', 'driver'),
+      volunteer('p-unbekannt', 'driver'),
+    ]);
+    expect(screen.getByText(/Fahrer:/).parentElement).toHaveTextContent(
+      'Fahrer: Adam P., 1 weitere',
     );
   });
 });
