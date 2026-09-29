@@ -6,6 +6,8 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'childre
   className?: string;
   /** Farbiger Streifen links, z. B. die Mannschaftsfarbe an einer Spielkarte. */
   accentColor?: string | null;
+  /** Sprungziel, z. B. für Links aus der Suche (`#poll-…`). */
+  id?: string;
 }
 
 export function Card({ children, className, accentColor, ...rest }: CardProps) {

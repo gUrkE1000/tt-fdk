@@ -43,7 +43,13 @@ export default function MyClubPage() {
         value={search.get('tab') ?? 'members'}
         onValueChange={(value) => setSearch({ tab: value }, { replace: true })}
         tabs={[
-          { value: 'members', label: 'Mitglieder', content: <MembersDirectory /> },
+          {
+            value: 'members',
+            label: 'Mitglieder',
+            // Neu aufgebaut, wenn die Suche einen anderen Namen mitbringt — auch wenn man
+            // schon auf dieser Seite ist.
+            content: <MembersDirectory key={search.get('q') ?? ''} />,
+          },
           { value: 'contacts', label: 'Rollen & Kontaktdaten', content: <Contacts /> },
           { value: 'trainings', label: 'Trainings', content: <ClubTrainingsTab /> },
           { value: 'events', label: 'Vereinstermine', content: <ClubEventsTab /> },
@@ -87,7 +93,10 @@ function ClubTrainingsTab() {
 
 function MembersDirectory() {
   const directory = useDirectory();
-  const [search, setSearch] = useState('');
+  // Vorbelegt aus der Adresse: Ein Treffer der globalen Suche landet hier als
+  // /my-club?tab=members&q=<Name>.
+  const [params] = useSearchParams();
+  const [search, setSearch] = useState(params.get('q') ?? '');
 
   const rows = useMemo(
     () => searchDirectory(directory.data ?? [], search),

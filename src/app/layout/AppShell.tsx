@@ -13,6 +13,8 @@ import UpdatePrompt from '../../features/notifications/UpdatePrompt';
 import BellButton from '../../features/notifications/BellButton';
 import { useOpenCount } from '../../features/dashboard/openItems';
 import ConnectionBanner from './ConnectionBanner';
+import SearchLauncher from '../../features/search/SearchDialog';
+import { useScrollToHash } from './useScrollToHash';
 import { LoadingState } from '../../components/ui';
 import DetailSheet from '../detail/DetailSheet';
 import { useScrollToFocus } from '../detail/useScrollToFocus';
@@ -44,6 +46,10 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
 
   // Nach dem Einstieg über eine Benachrichtigung: die Liste zum Termin scrollen.
   useScrollToFocus();
+
+  // Links auf eine Stelle der Seite (/votes#poll-…, aus der Suche) springen dorthin,
+  // sobald die Daten geladen sind.
+  useScrollToHash();
 
   // Beim Seitenwechsel schließt der Drawer, sonst bliebe er nach einem Klick offen.
   useEffect(() => {
@@ -98,6 +104,7 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
           actions={
             headerActions ?? (
               <>
+                <SearchLauncher />
                 <BellButton />
                 <ProfileMenu />
               </>

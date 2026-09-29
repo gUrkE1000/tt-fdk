@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
 import { queryKeys } from '../../lib/queryKeys';
 import type { ViewRow } from '../../lib/database.types';
+import { matchesSearch } from '../../lib/search';
 
 export type DirectoryEntry = ViewRow<'v_members_directory'>;
 
@@ -25,11 +26,12 @@ export function useDirectory() {
   });
 }
 
-/** Sucht über Namen; leere Eingabe lässt alles durch. */
+/**
+ * Sucht über Namen; leere Eingabe lässt alles durch. Dieselbe Normalisierung wie die
+ * globale Suche: „mueller" findet „Müller", die Reihenfolge der Wörter ist egal.
+ */
 export function searchDirectory(entries: DirectoryEntry[], search: string): DirectoryEntry[] {
-  const needle = search.trim().toLowerCase();
-  if (!needle) return entries;
-  return entries.filter((entry) => (entry.full_name ?? '').toLowerCase().includes(needle));
+  return entries.filter((entry) => matchesSearch([entry.full_name], search));
 }
 
 /** Ansprechpartner: Admins, Trainer und Mannschaftsführer, in dieser Reihenfolge. */

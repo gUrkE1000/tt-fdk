@@ -26,6 +26,7 @@ const TeamsPage = lazy(() => import('../features/teams/TeamsPage'));
 const PlayersManagementPage = lazy(() => import('../features/teams/PlayersManagementPage'));
 const GamesPage = lazy(() => import('../features/matches/GamesPage'));
 const MyGamesPage = lazy(() => import('../features/matches/MyGamesPage'));
+const SearchPage = lazy(() => import('../features/search/SearchPage'));
 const TrainingsPage = lazy(() => import('../features/trainings/TrainingsPage'));
 const CancellationsPage = lazy(() => import('../features/trainings/CancellationsPage'));
 const EventsPage = lazy(() => import('../features/events/EventsPage'));
@@ -96,6 +97,8 @@ export const router = createBrowserRouter([
           { path: 'profile', element: <ProfilePage /> },
           { path: 'mobile-app', element: <MobileAppPage /> },
           { path: 'notifications', element: <NotificationsPage /> },
+          // Die Suche findet, was die Datenbank dem Aufrufer zeigt — keine Rollenprüfung hier.
+          { path: 'search', element: <SearchPage /> },
 
           // Ohne Rollenprüfung: Ob jemand eine Trainingsstatistik sieht, hängt am
           // Training (`statistics_visibility`), nicht an seiner Rolle. Ein Mitglied
