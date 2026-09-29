@@ -213,7 +213,7 @@ async function doTrainingReminders(admin: SupabaseClient, now: Date): Promise<nu
     await Promise.all([
       admin
         .from('trainings')
-        .select('id, reminder_hours, is_open, active')
+        .select('id, reminder_hours, is_open, active, collect_attendance')
         .in('id', trainingIds),
       admin.from('training_members').select('training_id, profile_id').in('training_id', trainingIds),
       admin.from('training_attendance').select('session_id, profile_id').in('session_id', sessionIds),
@@ -234,7 +234,12 @@ async function doTrainingReminders(admin: SupabaseClient, now: Date): Promise<nu
       reminder_hours: number;
       is_open: boolean;
       active: boolean;
-    }[]).map((row) => [row.id, row]),
+      collect_attendance: boolean;
+    }[])
+      // Die Erinnerung fragt nach Zu- oder Absage. Ein Training, das nicht danach fragt,
+      // erinnert deshalb auch nicht.
+      .filter((row) => row.collect_attendance)
+      .map((row) => [row.id, row]),
   );
 
   const activeProfiles = ((profileRows ?? []) as {

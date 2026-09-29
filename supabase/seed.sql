@@ -203,22 +203,23 @@ ON CONFLICT (match_id, profile_id) DO NOTHING;
 
 -- ----------------------------------------------------------------- Trainings
 -- Drei Trainings, die die drei Sichtbarkeitsfälle abdecken: ein normales mit
--- Zuordnung, ein offenes (auch für Gäste) und ein inkognito geführtes.
+-- Zuordnung, ein offenes (auch für Gäste) und ein inkognito geführtes. Die ersten
+-- beiden fragen nach Rückmeldungen, das offene nicht (der Standard).
 INSERT INTO public.trainings
     (id, name, type, weekday, time_start, time_end, venue_id, rhythm, start_date,
-     reminder_hours, max_participants, is_open, is_incognito, active)
+     reminder_hours, max_participants, is_open, is_incognito, collect_attendance, active)
 VALUES
     ('66666666-0000-0000-0000-000000000001', 'Erwachsenentraining', 'adults', 2,
      '19:00', '21:00', '11111111-0000-0000-0000-000000000001', 'weekly',
-     CURRENT_DATE - 60, 5, NULL, false, false, true),
+     CURRENT_DATE - 60, 5, NULL, false, false, true, true),
 
     ('66666666-0000-0000-0000-000000000002', 'Jugendtraining', 'youth', 4,
      '17:00', '18:30', '11111111-0000-0000-0000-000000000002', 'weekly',
-     CURRENT_DATE - 60, 24, 4, false, true, true),
+     CURRENT_DATE - 60, 24, 4, false, true, true, true),
 
     ('66666666-0000-0000-0000-000000000003', 'Offenes Training', 'adults', 6,
      '10:00', '12:00', '11111111-0000-0000-0000-000000000001', 'biweekly',
-     CURRENT_DATE - 60, 5, NULL, true, false, true)
+     CURRENT_DATE - 60, 5, NULL, true, false, false, true)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.training_trainers (training_id, profile_id) VALUES

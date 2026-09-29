@@ -1,7 +1,7 @@
 // Trainingstermine erzeugen (Aufgabe 6.3).
 //
 // Läuft täglich um 03:00 UTC und zusätzlich direkt nach jeder Änderung an einem Training
-// (Trigger mit pg_net). Er materialisiert acht Wochen im Voraus: aus der Regel
+// (Trigger mit pg_net). Er materialisiert ein Jahr im Voraus: aus der Regel
 // „dienstags 19 Uhr, zweiwöchentlich" werden Zeilen, an denen Rückmeldungen hängen können.
 //
 // Gelöscht wird dabei nie. Ein Termin, den es nicht mehr geben soll, wird abgesagt —
@@ -9,7 +9,7 @@
 // und ohne Datenbank vollständig getestet. Hier bleibt das Holen und das Ausführen.
 
 import { authorize, corsHeaders, environment, json, readBody, type SupabaseClient } from '../_shared/http.ts';
-import { berlinToday } from '../_shared/guards.ts';
+import { berlinToday, fetchAllPages } from '../_shared/guards.ts';
 import {
   HORIZON_DAYS,
   addDays,
@@ -52,7 +52,6 @@ interface Result {
   cancelled: number;
   uncancelled: number;
   rescheduled: number;
-  autoAttendance: number;
 }
 
 async function generate(
@@ -66,7 +65,6 @@ async function generate(
     cancelled: 0,
     uncancelled: 0,
     rescheduled: 0,
-    autoAttendance: 0,
   };
 
   let query = admin
@@ -141,17 +139,11 @@ async function generate(
           })),
           { onConflict: 'training_id,session_date', ignoreDuplicates: true },
         )
-        .select('id, session_date, cancelled');
+        .select('id');
 
       if (insertError) console.error(`training_sessions ${row.id}:`, insertError.message);
 
-      const rows = (inserted ?? []) as {
-        id: string;
-        session_date: string;
-        cancelled: boolean;
-      }[];
-      result.created += rows.length;
-      result.autoAttendance += await applyAutoAttendance(admin, row.id, rows);
+      result.created += (inserted ?? []).length;
     }
 
     for (const entry of plan.cancel) {
@@ -259,16 +251,24 @@ async function loadSessions(
   to: string,
   trainingIds: string[],
 ): Promise<Map<string, ExistingSession[]>> {
-  const { data } = await admin
-    .from('training_sessions')
-    .select('id, training_id, session_date, starts_at, ends_at, cancelled, cancellation_id')
-    .in('training_id', trainingIds)
-    .gte('session_date', from)
-    .lte('session_date', to);
+  // Ein Jahr mal alle Trainings sind schnell mehr als die 1000 Zeilen, die PostgREST
+  // je Anfrage liefert. Ein abgeschnittener Rest fehlte hier still — und für die
+  // fehlenden Tage hielte der Planer Absagen und Verschiebungen für unnötig.
+  const data = await fetchAllPages((rangeFrom, rangeTo) =>
+    admin
+      .from('training_sessions')
+      .select('id, training_id, session_date, starts_at, ends_at, cancelled, cancellation_id')
+      .in('training_id', trainingIds)
+      .gte('session_date', from)
+      .lte('session_date', to)
+      .order('training_id')
+      .order('session_date')
+      .range(rangeFrom, rangeTo),
+  );
 
   const byTraining = new Map<string, ExistingSession[]>();
 
-  for (const row of (data ?? []) as {
+  for (const row of data as {
     id: string;
     training_id: string;
     session_date: string;
@@ -292,50 +292,4 @@ async function loadSessions(
   }
 
   return byTraining;
-}
-
-/**
- * Automatische Zusagen (Aufgabe 6.7).
- *
- * Wer regelmäßig kommt, sagt einmal bis zu einem Datum zu und wird danach nicht mehr
- * gefragt. Gesetzt wird das beim Anlegen des Termins — später ändern kann es jeder
- * jederzeit selbst.
- */
-async function applyAutoAttendance(
-  admin: SupabaseClient,
-  trainingId: string,
-  sessions: readonly { id: string; session_date: string; cancelled: boolean }[],
-): Promise<number> {
-  const open = sessions.filter((session) => !session.cancelled);
-  if (open.length === 0) return 0;
-
-  const { data } = await admin
-    .from('training_auto_attendance')
-    .select('profile_id, until_date, late')
-    .eq('training_id', trainingId);
-
-  const entries = (data ?? []) as { profile_id: string; until_date: string; late: boolean }[];
-  if (entries.length === 0) return 0;
-
-  const rows = open.flatMap((session) =>
-    entries
-      .filter((entry) => entry.until_date >= session.session_date)
-      .map((entry) => ({
-        session_id: session.id,
-        profile_id: entry.profile_id,
-        status: entry.late ? 'late' : 'yes',
-        guests: 0,
-        source: 'auto',
-      })),
-  );
-
-  if (rows.length === 0) return 0;
-
-  // `ignoreDuplicates`: eine von Hand gesetzte Rückmeldung wiegt schwerer als die
-  // Dauerzusage und darf nicht überschrieben werden.
-  const { error } = await admin
-    .from('training_attendance')
-    .upsert(rows, { onConflict: 'session_id,profile_id', ignoreDuplicates: true });
-
-  return error ? 0 : rows.length;
 }

@@ -226,7 +226,7 @@ training_auto_attendance(profile_id, training_id, until_date, late bool) PK
 holidays(id, bundesland char(2), kind enum(public, school), name, start_date, end_date)
 ```
 
-Sessions werden **materialisiert**: ein Job erzeugt täglich alle Sessions bis 8 Wochen im Voraus aus
+Sessions werden **materialisiert**: ein Job erzeugt täglich alle Sessions bis ein Jahr im Voraus aus
 `trainings` (Rhythmus ab `start_date`), überspringt Feiertage/Ferien laut Flags und markiert Sessions in
 `training_cancellations`-Zeiträumen als `cancelled`. Bereits existierende Sessions werden nie gelöscht, nur
 aktualisiert (Teilnahmen bleiben erhalten).
@@ -360,7 +360,7 @@ Sync: liefert click-TT später dtstart_external = dtstart_override → override 
 ### 4.4 Training
 
 ```
-Session-Erzeugung täglich: für jedes aktive Training alle Termine bis heute+56 Tage nach Rhythmus ab start_date
+Session-Erzeugung täglich: für jedes aktive Training alle Termine bis heute+365 Tage nach Rhythmus ab start_date
    – Feiertag (holidays.kind=public, bundesland) und skip_public_holidays → keine Session
    – Schulferien (kind=school) und skip_school_holidays → keine Session
    – innerhalb training_cancellations (training_id oder venue_id passend) → Session cancelled mit reason

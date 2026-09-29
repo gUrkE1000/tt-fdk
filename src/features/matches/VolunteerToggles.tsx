@@ -1,12 +1,15 @@
 import { Car, Navigation } from 'lucide-react';
 import { useToast } from '../../components/ui';
 import { cn } from '../../lib/cn';
+import { getShortName } from '../../lib/names';
 import { useToggleVolunteer, type Volunteer } from './api';
 
 export interface VolunteerTogglesProps {
   matchId: string;
   profileId: string;
   volunteers: Volunteer[];
+  /** Name zu einer Profil-ID; angezeigt wird Vorname und Nachnamen-Initiale. */
+  nameOf?: (profileId: string) => string;
   /** „Ich fahre direkt" gibt es nur bei Auswärtsspielen. */
   isHome?: boolean;
   /** Die Mannschaft kann den Fahrdienst ausblenden (Bestandsaufnahme C). */
@@ -28,6 +31,7 @@ export default function VolunteerToggles({
   matchId,
   profileId,
   volunteers,
+  nameOf,
   isHome,
   hidden,
 }: VolunteerTogglesProps) {
@@ -43,6 +47,17 @@ export default function VolunteerToggles({
   const drivers = volunteers.filter((entry) => entry.kind === 'driver');
   const direct = volunteers.filter((entry) => entry.kind === 'direct');
 
+  // Namen, soweit bekannt; wer (noch) keinen hat, zählt als „weitere" — sonst stünde
+  // die Zeile leer da, solange die Mitgliederliste lädt.
+  function namesOf(entries: Volunteer[]): string {
+    const names = entries
+      .map((entry) => getShortName(nameOf?.(entry.profile_id) ?? ''))
+      .filter(Boolean);
+    const unnamed = entries.length - names.length;
+    if (unnamed > 0) names.push(names.length > 0 ? `${unnamed} weitere` : String(unnamed));
+    return names.join(', ');
+  }
+
   async function flip(kind: 'driver' | 'direct', on: boolean) {
     try {
       await toggle.mutateAsync({ matchId, profileId, kind, on });
@@ -51,10 +66,10 @@ export default function VolunteerToggles({
     }
   }
 
-  const summary = [
-    drivers.length > 0 ? (drivers.length === 1 ? '1 Fahrer' : `${drivers.length} Fahrer`) : null,
-    direct.length > 0 ? `${direct.length} ${direct.length === 1 ? 'fährt' : 'fahren'} direkt` : null,
-  ].filter(Boolean);
+  const lines = [
+    { label: 'Fahrer', entries: drivers },
+    { label: 'Direkt zur Halle', entries: direct },
+  ].filter((line) => line.entries.length > 0);
 
   return (
     <div className="space-y-1">
@@ -77,7 +92,11 @@ export default function VolunteerToggles({
         )}
       </div>
 
-      {summary.length > 0 && <p className="text-xs text-gray-500">{summary.join(' · ')} eingetragen</p>}
+      {lines.map(({ label, entries }) => (
+        <p key={label} className="break-words text-xs text-gray-500">
+          <span className="font-semibold text-gray-700">{label}:</span> {namesOf(entries)}
+        </p>
+      ))}
     </div>
   );
 }

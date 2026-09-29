@@ -4,7 +4,6 @@ import { useSession } from '../auth/session';
 import ProfileTab from './ProfileTab';
 import AbsencesTab from './AbsencesTab';
 import NotificationsTab from './NotificationsTab';
-import AutoAttendanceTab from './AutoAttendanceTab';
 
 export default function ProfilePage() {
   const { profile } = useSession();
@@ -30,11 +29,6 @@ export default function ProfilePage() {
             value: 'notifications',
             label: 'Benachrichtigungen',
             content: <NotificationsTab profile={profile} />,
-          },
-          {
-            value: 'auto-attendance',
-            label: 'Automatische Trainingszusagen',
-            content: <AutoAttendanceTab profileId={profile.id} />,
           },
         ]}
       />

@@ -4,6 +4,7 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
+  PagedList,
   Segmented,
 } from '../../components/ui';
 import { queryStatus } from '../../lib/queryStatus';
@@ -117,24 +118,26 @@ export default function SessionsTab({ onlyMine = false, switchable = false }: Se
   return (
     <div className="space-y-3">
       {toggle}
-      {visible.map((session) => {
-        const training = trainingList.find((entry) => entry.id === session.training_id);
-        return (
-          <SessionCard
-            key={session.id}
-            session={session}
-            training={training}
-            venue={venueOf(training?.venue_id)}
-            participants={(participants.data ?? []).filter(
-              (entry) => entry.session_id === session.id,
-            )}
-            counts={(counts.data ?? []).find((entry) => entry.session_id === session.id)}
-            profileId={profile?.id ?? null}
-            nameOf={nameOf}
-            keys={(sessionKeys.data ?? []).find((entry) => entry.session_id === session.id)}
-          />
-        );
-      })}
+      <PagedList items={visible} resetKey={mineOnly}>
+        {(session) => {
+          const training = trainingList.find((entry) => entry.id === session.training_id);
+          return (
+            <SessionCard
+              key={session.id}
+              session={session}
+              training={training}
+              venue={venueOf(training?.venue_id)}
+              participants={(participants.data ?? []).filter(
+                (entry) => entry.session_id === session.id,
+              )}
+              counts={(counts.data ?? []).find((entry) => entry.session_id === session.id)}
+              profileId={profile?.id ?? null}
+              nameOf={nameOf}
+              keys={(sessionKeys.data ?? []).find((entry) => entry.session_id === session.id)}
+            />
+          );
+        }}
+      </PagedList>
     </div>
   );
 }

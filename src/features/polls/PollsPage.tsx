@@ -5,6 +5,7 @@ import {
   Dialog,
   EmptyState,
   PageHeader,
+  PagedList,
   Tabs,
   useToast,
   ErrorState,
@@ -68,8 +69,8 @@ export default function PollsPage() {
     }
 
     return (
-      <div className="space-y-3">
-        {rows.map((poll) => (
+      <PagedList items={rows}>
+        {(poll) => (
           <PollCard
             key={poll.id}
             poll={poll}
@@ -83,8 +84,8 @@ export default function PollsPage() {
             }}
             onDelete={() => setToDelete(poll)}
           />
-        ))}
-      </div>
+        )}
+      </PagedList>
     );
   }
 

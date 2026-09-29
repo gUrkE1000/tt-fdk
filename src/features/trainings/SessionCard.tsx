@@ -107,6 +107,8 @@ export default function SessionCard({
   // Trainings Knöpfe, die nur eine Fehlermeldung bringen. Wer schon geantwortet hat,
   // kann seine Antwort immer ändern.
   const system = training?.is_system === true;
+  // Ohne Abfrage gibt es weder Knöpfe noch Teilnehmerzahl — man kommt einfach.
+  const asks = training?.collect_attendance === true;
   const assigneeIds = (assignees.data ?? [])
     .filter((entry) => entry.session_id === session.id)
     .map((entry) => entry.profile_id);
@@ -252,7 +254,7 @@ export default function SessionCard({
           </p>
         ) : (
           <>
-            {counts ? (
+            {!asks ? null : counts ? (
               <div>
                 <span className="text-sm font-semibold tabular-nums text-gray-900">
                   {max === null
@@ -306,7 +308,7 @@ export default function SessionCard({
               />
             )}
 
-            {profileId && !mayAnswer && (
+            {asks && profileId && !mayAnswer && (
               <p className="text-sm text-gray-500">
                 {system
                   ? 'Systemtraining: Teilnehmer teilt der Trainer je Termin zu.'
@@ -314,7 +316,7 @@ export default function SessionCard({
               </p>
             )}
 
-            {profileId && mayAnswer && (
+            {asks && profileId && mayAnswer && (
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-1.5">
                   {CHOICES.map((choice) => {

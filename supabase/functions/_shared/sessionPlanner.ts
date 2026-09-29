@@ -112,8 +112,17 @@ export interface SessionPlan {
   reschedule: RescheduleAction[];
 }
 
-/** Acht Wochen im Voraus — so weit plant ein Verein, weiter interessiert niemanden. */
-export const HORIZON_DAYS = 56;
+/**
+ * Ein Jahr im Voraus.
+ *
+ * Früher acht Wochen. Am Ende des Fensters hörten im Kalender die Trainings auf — und mit
+ * ihnen der Schlüsseldienst, der an den Trainingstagen hängt. Für die Mitglieder sah das
+ * aus wie ein Ende „an zufälligen Tagen". Ein Jahr reicht über jede Saison hinaus.
+ *
+ * Wo es um Antworten geht, bleibt der Blick kurz: `v_open_participations` fragt nur nach
+ * Trainings der nächsten acht Wochen, die Erinnerungen schauen zwei Wochen voraus.
+ */
+export const HORIZON_DAYS = 365;
 
 export const REASON_PUBLIC_HOLIDAY = 'Feiertag';
 export const REASON_SCHOOL_HOLIDAY = 'Schulferien';

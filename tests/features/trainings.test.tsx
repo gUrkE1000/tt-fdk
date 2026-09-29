@@ -116,11 +116,11 @@ const training = {
   is_open: false,
   trainer_invites_only: false,
   is_incognito: false,
+  collect_attendance: true,
   requires_key_owner: false,
   skip_public_holidays: true,
   skip_school_holidays: false,
   hide_in_calendar: false,
-  auto_cancel_no_trainers: false,
   statistics_visibility: 'admins',
   active: true,
   created_at: '2026-01-01T00:00:00Z',
@@ -503,6 +503,8 @@ describe('Trainingsdialog', () => {
     expect(values.reminder_hours).toBe(5);
     expect(values.skip_public_holidays).toBe(true);
     expect(values.time_end).toBeNull();
+    // Beim Training fragt standardmäßig niemand nach Zu- oder Absage.
+    expect(values.collect_attendance).toBe(false);
   });
 
   it('trägt Personen nach, statt erst alle zu löschen', async () => {

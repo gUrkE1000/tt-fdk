@@ -1,7 +1,7 @@
 -- Benachrichtigungen rund ums Training: Ausfall, automatische Absage, offene Antworten.
 
 BEGIN;
-SELECT plan(15);
+SELECT plan(10);
 
 -- Der Seed löst beim Anlegen von Spielen schon Benachrichtigungen aus. Gezählt wird
 -- hier nur, was in diesem Test entsteht.
@@ -81,20 +81,16 @@ SELECT is(
 
 DELETE FROM public.notifications;
 
--- ============================================================ Automatische Absage
--- Das Jugendtraining bekommt den Schalter und einen zweiten Trainer.
-UPDATE public.trainings SET auto_cancel_no_trainers = true
- WHERE id = '66666666-0000-0000-0000-000000000002';
-
+-- ============================================================ Keine automatische Absage
+-- Die automatische Absage ist entfernt (20261114000000): Sagen alle Trainer ab,
+-- bleibt der Termin stehen, bis ihn jemand über einen Ausfall absagt.
 INSERT INTO public.training_trainers (training_id, profile_id)
 VALUES ('66666666-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000003');
 
 DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000004'); END $$;
-
-SELECT lives_ok(
-    $$ SELECT public.rpc_set_training_attendance('77777777-0000-0000-0000-000000000004', 'no') $$,
-    'Der erste Trainer sagt ab'
-);
+SELECT public.rpc_set_training_attendance('77777777-0000-0000-0000-000000000004', 'no');
+DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000003'); END $$;
+SELECT public.rpc_set_training_attendance('77777777-0000-0000-0000-000000000004', 'no');
 
 DO $$ BEGIN PERFORM tests.as_service_role(); END $$;
 
@@ -102,35 +98,7 @@ SELECT is(
     (SELECT cancelled FROM public.training_sessions
       WHERE id = '77777777-0000-0000-0000-000000000004'),
     false,
-    'Solange ein Trainer noch kann, findet das Training statt'
-);
-
-DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000003'); END $$;
-
-SELECT lives_ok(
-    $$ SELECT public.rpc_set_training_attendance('77777777-0000-0000-0000-000000000004', 'no') $$,
-    'Der zweite Trainer sagt auch ab'
-);
-
-DO $$ BEGIN PERFORM tests.as_service_role(); END $$;
-
-SELECT is(
-    (SELECT cancelled FROM public.training_sessions
-      WHERE id = '77777777-0000-0000-0000-000000000004'),
-    true,
-    'Dann sagt sich der Termin selbst ab'
-);
-
-SELECT is(
-    (SELECT cancel_reason FROM public.training_sessions
-      WHERE id = '77777777-0000-0000-0000-000000000004'),
-    'Alle Trainer haben abgesagt.',
-    'und nennt den Grund'
-);
-
-SELECT ok(
-    (SELECT count(*) FROM public.notifications WHERE type = 'training_cancelled')::int > 0,
-    'Die Zugeordneten erfahren davon'
+    'Sagen alle Trainer ab, findet das Training trotzdem statt'
 );
 
 -- ============================================================ Offene Rückmeldungen
