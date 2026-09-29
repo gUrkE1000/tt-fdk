@@ -1,16 +1,17 @@
-import type { ReactNode } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 
-export interface CardProps {
+export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'className'> {
   children: ReactNode;
   className?: string;
   /** Farbiger Streifen links, z. B. die Mannschaftsfarbe an einer Spielkarte. */
   accentColor?: string | null;
 }
 
-export function Card({ children, className, accentColor }: CardProps) {
+export function Card({ children, className, accentColor, ...rest }: CardProps) {
   return (
     <div
+      {...rest}
       className={cn(
         'relative overflow-hidden rounded-2xl border border-gray-200 bg-white',
         className,

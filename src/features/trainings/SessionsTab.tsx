@@ -22,6 +22,7 @@ import {
 import SessionCard from './SessionCard';
 import { useSessionKeys } from '../keys/api';
 import { isMySession } from './schemas';
+import { useFocusedId } from '../../app/detail/useDetail';
 
 export interface SessionsTabProps {
   /** Nur die Termine dieses Mitglieds statt aller sichtbaren. */
@@ -53,6 +54,8 @@ export default function SessionsTab({ onlyMine = false, switchable = false }: Se
   const counts = useSessionCounts();
   const sessionKeys = useSessionKeys();
   const assignees = useSessionAssignees();
+  // Der Termin aus einer Benachrichtigung soll gezeichnet sein, damit die Seite hinscrollt.
+  const focusedId = useFocusedId('training');
 
   // Ohne useMemo wäre `?? []` bei jedem Rendern ein neues Array — und jedes useMemo,
   // das davon abhängt, rechnete jedes Mal neu.
@@ -118,7 +121,11 @@ export default function SessionsTab({ onlyMine = false, switchable = false }: Se
   return (
     <div className="space-y-3">
       {toggle}
-      <PagedList items={visible} resetKey={mineOnly}>
+      <PagedList
+        items={visible}
+        resetKey={mineOnly}
+        reveal={(session) => session.id === focusedId}
+      >
         {(session) => {
           const training = trainingList.find((entry) => entry.id === session.training_id);
           return (

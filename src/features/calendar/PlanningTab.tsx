@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useOpenDetail } from '../../app/detail/useDetail';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -43,7 +43,8 @@ export default function PlanningTab() {
   const compact = useIsCompact();
   const [filters, setFilters] = useState<CalendarFilters>(DEFAULT_CALENDAR_FILTERS);
   const [subscribeOpen, setSubscribeOpen] = useState(false);
-  const navigate = useNavigate();
+  // Ein Termin öffnet als Blatt über dem Kalender; der Monat bleibt, wo er war.
+  const openDetail = useOpenDetail();
   const calendarRef = useRef<FullCalendar>(null);
 
   /*
@@ -239,7 +240,7 @@ export default function PlanningTab() {
               );
               if (!path) return;
               arg.jsEvent.preventDefault();
-              navigate(path);
+              openDetail(path);
             }}
             events={events}
           />

@@ -5,6 +5,7 @@ import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import ActionPage from '../features/auth/ActionPage';
 import { RequireAuth, RequireRole } from '../features/auth/guards';
+import DetailEntry from './detail/DetailEntry';
 
 /**
  * Seiten hinter der Anmeldung werden erst beim Aufruf geladen.
@@ -25,9 +26,6 @@ const TeamsPage = lazy(() => import('../features/teams/TeamsPage'));
 const PlayersManagementPage = lazy(() => import('../features/teams/PlayersManagementPage'));
 const GamesPage = lazy(() => import('../features/matches/GamesPage'));
 const MyGamesPage = lazy(() => import('../features/matches/MyGamesPage'));
-const MatchPage = lazy(() => import('../features/matches/MatchPage'));
-const TrainingSessionPage = lazy(() => import('../features/trainings/TrainingSessionPage'));
-const EventPage = lazy(() => import('../features/events/EventPage'));
 const TrainingsPage = lazy(() => import('../features/trainings/TrainingsPage'));
 const CancellationsPage = lazy(() => import('../features/trainings/CancellationsPage'));
 const EventsPage = lazy(() => import('../features/events/EventsPage'));
@@ -85,10 +83,12 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'my-games', element: <MyGamesPage /> },
-          // Ein einzelnes Spiel — für alle, die es sehen dürfen; das entscheidet die RLS.
-          { path: 'match/:matchId', element: <MatchPage /> },
-          { path: 'training/:sessionId', element: <TrainingSessionPage /> },
-          { path: 'event/:eventId', element: <EventPage /> },
+          // Einzelne Termine öffnen als Blatt über der Seite (`src/lib/detailSheet.ts`).
+          // Die alten Adressen aus Benachrichtigungen und dem Kalender-Abo führen auf die
+          // passende Liste mit offenem Blatt. Sehen darf es, wen die RLS lässt.
+          { path: 'match/:id', element: <DetailEntry kind="match" /> },
+          { path: 'training/:id', element: <DetailEntry kind="training" /> },
+          { path: 'event/:id', element: <DetailEntry kind="event" /> },
           { path: 'my-dates', element: <MyDatesPage /> },
           { path: 'my-club', element: <MyClubPage /> },
           { path: 'calendar', element: <CalendarPage /> },

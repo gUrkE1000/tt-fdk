@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import DetailLink from '../../app/detail/DetailLink';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Ban, CalendarDays, ChevronDown, ChevronRight } from 'lucide-react';
@@ -185,7 +185,7 @@ function AgendaEntry({ event }: { event: DisplayEvent }) {
   if (!path) return <div className={classes}>{body}</div>;
 
   return (
-    <Link
+    <DetailLink
       to={path}
       className={cn(
         classes,
@@ -194,6 +194,6 @@ function AgendaEntry({ event }: { event: DisplayEvent }) {
       )}
     >
       {body}
-    </Link>
+    </DetailLink>
   );
 }

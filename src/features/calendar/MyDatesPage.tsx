@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import DetailLink from '../../app/detail/DetailLink';
 import { CalendarCheck, CalendarX, MapPin, Rss } from 'lucide-react';
 import {
   Badge,
@@ -86,12 +87,12 @@ export default function MyDatesPage() {
               </div>
               {/* Zum Termin selbst — dort lässt sich die Antwort auch ändern. */}
               {row.id && detailPath(row.kind as CalendarKind, row.id) ? (
-                <Link
+                <DetailLink
                   to={detailPath(row.kind as CalendarKind, row.id)!}
                   className="block text-sm font-semibold text-gray-800 underline-offset-2 hover:text-primary hover:underline"
                 >
                   {row.title}
-                </Link>
+                </DetailLink>
               ) : (
                 <p className="text-sm text-gray-700">{row.title}</p>
               )}

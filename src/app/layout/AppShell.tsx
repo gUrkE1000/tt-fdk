@@ -14,6 +14,8 @@ import BellButton from '../../features/notifications/BellButton';
 import { useOpenCount } from '../../features/dashboard/openItems';
 import ConnectionBanner from './ConnectionBanner';
 import { LoadingState } from '../../components/ui';
+import DetailSheet from '../detail/DetailSheet';
+import { useScrollToFocus } from '../detail/useScrollToFocus';
 
 interface AppShellProps {
   /** Nur für Tests: überschreibt Rolle und Vereinsname statt der echten Sitzung. */
@@ -39,6 +41,9 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
   // an „Meine Termine", damit man sie auf dem Telefon in der Bottom-Bar sieht.
   const openCount = useOpenCount(session.profile?.id ?? null);
   const badges = { '/': openCount };
+
+  // Nach dem Einstieg über eine Benachrichtigung: die Liste zum Termin scrollen.
+  useScrollToFocus();
 
   // Beim Seitenwechsel schließt der Drawer, sonst bliebe er nach einem Klick offen.
   useEffect(() => {
@@ -117,6 +122,7 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
         />
       </div>
 
+      <DetailSheet />
       <UpdatePrompt />
     </div>
   );

@@ -28,8 +28,17 @@ export interface Paged<T> {
  * `resetKey`: ändert er sich (andere Suche, anderer Filter), beginnt die Liste wieder
  * bei der ersten Seite — sonst stünden nach einem Filterwechsel womöglich 90 Treffer
  * offen, nur weil vorher jemand zweimal „Weitere" gedrückt hat.
+ *
+ * `reveal`: Ein Eintrag, der auf jeden Fall zu sehen sein soll — der Termin aus einer
+ * Benachrichtigung, zu dem die Liste scrollt. Steht er weiter hinten, zeigt die Liste
+ * so viele Seiten, bis er dabei ist.
  */
-export function usePaged<T>(items: readonly T[], resetKey?: unknown, pageSize = PAGE_SIZE): Paged<T> {
+export function usePaged<T>(
+  items: readonly T[],
+  resetKey?: unknown,
+  pageSize = PAGE_SIZE,
+  reveal?: (item: T) => boolean,
+): Paged<T> {
   const [state, setState] = useState({ count: pageSize, key: resetKey });
 
   // Zurücksetzen während des Renderns statt in einem Effekt: So erscheint nie ein Bild
@@ -41,10 +50,13 @@ export function usePaged<T>(items: readonly T[], resetKey?: unknown, pageSize = 
     setState({ count, key: resetKey });
   }
 
+  const wanted = reveal ? items.findIndex(reveal) : -1;
+  if (wanted >= count) count = Math.ceil((wanted + 1) / pageSize) * pageSize;
+
   return {
     shown: items.slice(0, count),
     rest: Math.max(0, items.length - count),
-    more: () => setState((current) => ({ ...current, count: current.count + pageSize })),
+    more: () => setState((current) => ({ ...current, count: count + pageSize })),
   };
 }
 
@@ -73,12 +85,20 @@ export interface PagedListProps<T> {
   /** Ein Eintrag; muss ein Element mit `key` liefern. */
   children: (item: T) => ReactNode;
   resetKey?: unknown;
+  /** Siehe {@link usePaged}. */
+  reveal?: (item: T) => boolean;
   className?: string;
 }
 
 /** Eine Liste von Karten, seitenweise — {@link usePaged} und {@link ShowMore} in einem. */
-export function PagedList<T>({ items, children, resetKey, className = 'space-y-3' }: PagedListProps<T>) {
-  const { shown, rest, more } = usePaged(items, resetKey);
+export function PagedList<T>({
+  items,
+  children,
+  resetKey,
+  reveal,
+  className = 'space-y-3',
+}: PagedListProps<T>) {
+  const { shown, rest, more } = usePaged(items, resetKey, PAGE_SIZE, reveal);
   return (
     <>
       <div className={className}>{shown.map(children)}</div>

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import DetailLink from '../../app/detail/DetailLink';
 import { Bell, Mail, Smartphone } from 'lucide-react';
 import {
   Card,
@@ -76,12 +77,12 @@ export default function NotificationsPage() {
                     <p className="mt-1 whitespace-pre-wrap">{entry.body}</p>
                   </details>
                   {target && target !== '/' && (
-                    <Link
+                    <DetailLink
                       to={target}
                       className="inline-block text-sm font-semibold text-primary underline-offset-2 hover:underline"
                     >
                       Öffnen
-                    </Link>
+                    </DetailLink>
                   )}
                 </CardBody>
               </Card>
