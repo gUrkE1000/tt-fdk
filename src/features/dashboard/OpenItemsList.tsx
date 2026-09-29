@@ -9,7 +9,9 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
+  ShowMore,
   buttonClasses,
+  usePaged,
   useToast,
 } from '../../components/ui';
 import { cn } from '../../lib/cn';
@@ -94,7 +96,9 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
   }, [members.data]);
 
   const all = items.data ?? [];
-  const shown = limit === undefined ? all : all.slice(0, limit);
+  // Ohne `limit` (die ganze Liste unter „Meine Termine") seitenweise wie jede Liste.
+  const paged = usePaged(all);
+  const shown = limit === undefined ? paged.shown : all.slice(0, limit);
 
   if (items.isLoading) return <LoadingState />;
   if (items.isError) return <ErrorState onRetry={() => void items.refetch()} />;
@@ -209,6 +213,8 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
       ))}
 
       {dialogs}
+
+      {limit === undefined && <ShowMore rest={paged.rest} onMore={paged.more} />}
 
       {limit !== undefined && all.length > limit && (
         <p className="text-sm text-gray-600">

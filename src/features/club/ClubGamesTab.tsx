@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { CalendarDays } from 'lucide-react';
 import {
-  Button,
   EmptyState,
   FilterBar,
   Select,
+  ShowMore,
   ErrorState,
   LoadingState,
+  usePaged,
 } from '../../components/ui';
 import { queryStatus } from '../../lib/queryStatus';
 import { useSession } from '../auth/session';
@@ -26,8 +27,6 @@ import MatchDialogs, { type OpenMatchDialog } from '../matches/MatchDialogs';
 import { useCanManageMatch } from '../matches/canManage';
 import { useVenueBlockFor } from '../matches/venueBlock';
 
-const PAGE_SIZES = [10, 25, 50];
-
 /**
  * Alle kommenden Spiele des Vereins, nicht nur die eigenen. Dieselben Karten wie unter
  * „Meine Spiele" — wer hier auf Zusage tippt, meldet sich genauso zurück.
@@ -42,7 +41,6 @@ export default function ClubGamesTab() {
   const volunteers = useAllVolunteers();
 
   const [filters, setFilters] = useState<MatchFilters>(EMPTY_MATCH_FILTERS);
-  const [pageSize, setPageSize] = useState(10);
   const [dialog, setDialog] = useState<OpenMatchDialog | null>(null);
 
   // Ohne useMemo wäre `?? []` bei jedem Rendern ein neues Array — und jedes useMemo,
@@ -70,7 +68,7 @@ export default function ClubGamesTab() {
     [matches.data, filters, rankingTypes],
   );
 
-  const shown = visible.slice(0, pageSize);
+  const { shown, rest, more } = usePaged(visible, filters);
 
   // Mannschaftsführer der Mannschaft oder Administrator.
   const canManage = useCanManageMatch();
@@ -104,12 +102,6 @@ export default function ClubGamesTab() {
             { value: 'all', label: 'Alle Spielorte' },
             ...venueList.map((venue) => ({ value: venue.id, label: venue.name })),
           ]}
-        />
-        <Select
-          aria-label="Einträge pro Seite"
-          value={String(pageSize)}
-          onChange={(event) => setPageSize(Number(event.target.value))}
-          options={PAGE_SIZES.map((size) => ({ value: String(size), label: `${size} pro Seite` }))}
         />
       </FilterBar>
 
@@ -147,13 +139,7 @@ export default function ClubGamesTab() {
             ))}
           </div>
 
-          {visible.length > shown.length && (
-            <div className="mt-3 flex justify-center">
-              <Button onClick={() => setPageSize((size) => size + 25)}>
-                Weitere {Math.min(25, visible.length - shown.length)} anzeigen
-              </Button>
-            </div>
-          )}
+          <ShowMore rest={rest} onMore={more} />
         </>
       )}
 

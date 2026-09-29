@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '../../lib/cn';
+import ShowMore, { usePaged } from './ShowMore';
 
 export interface TableColumn<T> {
   key: string;
@@ -21,6 +22,8 @@ export interface TableProps<T> {
   mobileCard: (row: T) => ReactNode;
   empty?: ReactNode;
   className?: string;
+  /** Beginnt die Liste bei der ersten Seite, sobald sich der Wert ändert (etwa ein Filter). */
+  resetKey?: unknown;
 }
 
 const ALIGN = {
@@ -36,7 +39,11 @@ export default function Table<T>({
   mobileCard,
   empty,
   className,
+  resetKey,
 }: TableProps<T>) {
+  // 30 Zeilen, dann „Weitere anzeigen" — wie jede Liste der App.
+  const { shown, rest, more } = usePaged(rows, resetKey);
+
   if (rows.length === 0 && empty) {
     return <>{empty}</>;
   }
@@ -64,7 +71,7 @@ export default function Table<T>({
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {shown.map((row) => (
               <tr key={rowKey(row)} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                 {columns.map((column) => (
                   <td
@@ -82,10 +89,12 @@ export default function Table<T>({
 
       {/* Smartphone */}
       <div className="space-y-2 md:hidden">
-        {rows.map((row) => (
+        {shown.map((row) => (
           <div key={rowKey(row)}>{mobileCard(row)}</div>
         ))}
       </div>
+
+      <ShowMore rest={rest} onMore={more} />
     </div>
   );
 }

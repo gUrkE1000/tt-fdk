@@ -10,6 +10,7 @@ import {
   ErrorState,
   LoadingState,
   PageHeader,
+  PagedList,
   Tabs,
 } from '../../components/ui';
 import { formatDateTime } from '../../lib/dates';
@@ -70,8 +71,8 @@ export default function MyDatesPage() {
     }
 
     return (
-      <div className="space-y-3">
-        {rows.map((row) => (
+      <PagedList items={rows}>
+        {(row) => (
           <Card key={`${row.kind}:${row.id}`}>
             <CardBody className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-1.5">
@@ -102,8 +103,8 @@ export default function MyDatesPage() {
               )}
             </CardBody>
           </Card>
-        ))}
-      </div>
+        )}
+      </PagedList>
     );
   }
 
