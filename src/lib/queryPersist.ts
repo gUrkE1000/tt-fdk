@@ -29,12 +29,14 @@ const SAVE_DELAY_MS = 2_000;
 
 /**
  * Was nicht aufs Gerät gehört: die Verwaltungssicht (Protokolle, die Mitgliederliste des
- * Admins mit allen Kontaktdaten) und Mitteilungen (enthalten Antwort-Links). Die normale
+ * Admins mit allen Kontaktdaten), Mitteilungen (enthalten Antwort-Links) und Suchen. Die normale
  * Namensliste bleibt drin — ohne sie stünden offline an den Karten keine Namen.
  */
 export function persistable(query: Pick<Query, 'queryKey' | 'state'>): boolean {
   const [head, sub] = query.queryKey;
   if (head === 'admin' || head === 'notifications') return false;
+  // Suchbegriffe sind personenbezogen („Abmeldung", ein Name) und bleiben im Speicher.
+  if (head === 'search') return false;
   if (head === 'members' && sub === 'admin-list') return false;
   return query.state.status === 'success';
 }

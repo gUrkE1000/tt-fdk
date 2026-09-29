@@ -2,6 +2,7 @@ import * as Popover from '@radix-ui/react-popover';
 import { ChevronDown, Check, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { cn } from '../../lib/cn';
+import { matchesSearch } from '../../lib/search';
 import { inputClasses } from './Input';
 
 export interface MultiSelectOption {
@@ -44,14 +45,10 @@ export default function MultiSelect({
     [options, value],
   );
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return options;
-    return options.filter(
-      (option) =>
-        option.label.toLowerCase().includes(q) || option.sublabel?.toLowerCase().includes(q),
-    );
-  }, [options, query]);
+  const filtered = useMemo(
+    () => options.filter((option) => matchesSearch([option.label, option.sublabel], query)),
+    [options, query],
+  );
 
   const atLimit = typeof max === 'number' && value.length >= max;
 

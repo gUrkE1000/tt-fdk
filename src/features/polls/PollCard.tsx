@@ -96,7 +96,7 @@ export default function PollCard({
   }
 
   return (
-    <Card>
+    <Card id={`poll-${poll.id}`}>
       <CardBody className="space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">

@@ -18,6 +18,12 @@ Klick im Kalender führt zur Karte. Dazu: Lade- und Fehlerzustände statt falsch
 Leerlisten, sofortige Antworten, Offline-Stand auf dem Gerät, Daten ab 30 Tagen zurück,
 Seiten und große Bibliotheken werden nachgeladen (Hauptpaket 1,87 MB → 816 KB).
 
+**Nachtrag (29.09.2026) — Suche:** Ein Suchfeld für die ganze App (Kopfzeile, `Strg/⌘ K`,
+Ergebnisseite `/search`): Mitglieder, Spiele, Trainings, Termine, Umfragen, Neuigkeiten,
+Orte, Ämter, Nachrichten, eigene Mitteilungen und Seiten. Findet „Mueller" bei „Müller",
+„Mayer" bei „Meier", „H2 heim" und „Samstag"; sieht nur, was die Datenbank dem Mitglied
+ohnehin zeigt. Konzept und Umsetzung: [docs/suche.md](docs/suche.md).
+
 Noch nicht eingeladen ist jemand: Was davor zu erledigen ist, steht in
 [docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md). 9.4 (Dateien) und
 9.10 („Anmelden als") sind gestrichen. Der nuScore-Import (9.7, *Spieltermine → Codes &
@@ -85,6 +91,7 @@ scripts/          Lokale Testdatenbank, Supabase-Kompatibilitätsschicht, Typgen
 | [docs/code-review.md](docs/code-review.md) | **Code-Review** vom 23.09.2026: Befunde, Nachweise, Stand der Behebung |
 | [docs/sicherung.md](docs/sicherung.md) | **Datensicherung**: verschlüsselt nach GitHub und Google Drive, Schritt für Schritt |
 | [docs/fehler.md](docs/fehler.md) | **Fehler aus dem Betrieb**: Bild, Ursache, Behebung — neueste zuerst |
+| [docs/suche.md](docs/suche.md) | **Suche**: was sie findet, wie sie die Rechte einhält, welches Suchverfahren, wo es im Code steht |
 | [docs/offene-entscheidungen.md](docs/offene-entscheidungen.md) | **Was der Verein entscheiden muss**, mit Möglichkeiten und Aufwand |
 | [docs/vor-der-ersten-einladung.md](docs/vor-der-ersten-einladung.md) | **Check vor dem ersten Mitglied**: SMTP, Vereinsdaten, Rechtliches, Probelauf |
 | [docs/migration.md](docs/migration.md) | **Datenübernahme aus dem TT-Planer**: Reihenfolge, Spalten-Mapping, Checkliste |

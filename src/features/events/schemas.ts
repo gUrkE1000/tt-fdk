@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { todayInBerlin } from '../../lib/dates';
+import { matchesSearch } from '../../lib/search';
 
 export const eventSchema = z
   .object({
@@ -86,13 +87,8 @@ export function filterEvents<T extends FilterableEvent>(
   events: readonly T[],
   filters: EventFilters,
 ): T[] {
-  const needle = filters.search.trim().toLowerCase();
-
   return events.filter((event) => {
-    if (needle) {
-      const haystack = `${event.name} ${event.address ?? ''}`.toLowerCase();
-      if (!haystack.includes(needle)) return false;
-    }
+    if (!matchesSearch([event.name, event.address], filters.search)) return false;
 
     const day = event.starts_at.slice(0, 10);
     if (filters.from && day < filters.from) return false;

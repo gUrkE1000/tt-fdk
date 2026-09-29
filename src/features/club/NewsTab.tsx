@@ -156,7 +156,7 @@ export default function NewsTab({ canEdit = false }: NewsTabProps) {
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
-            <Card key={item.id ?? ''}>
+            <Card key={item.id ?? ''} id={item.id ? `news-${item.id}` : undefined}>
               <CardBody className="space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
