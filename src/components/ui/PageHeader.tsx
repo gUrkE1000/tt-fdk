@@ -16,7 +16,10 @@ export default function PageHeader({ title, description, actions, className }: P
         <h2 className="text-xl font-bold text-gray-900">{title}</h2>
         {description && <p className="mt-0.5 text-sm text-gray-500">{description}</p>}
       </div>
-      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+      {/* max-w-full statt shrink-0: Passen die Knöpfe nicht in eine Zeile, brechen sie um.
+          Sonst ragt die Leiste über den Rand, das Telefon verbreitert die ganze Seite — und
+          jeder Dialog, der die Bildschirmbreite füllt, wird rechts abgeschnitten. */}
+      {actions && <div className="flex max-w-full flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
