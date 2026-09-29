@@ -2120,6 +2120,7 @@ export interface Database {
           created_at: string;
           updated_at: string;
           is_system: boolean;
+          collect_attendance: boolean;
         };
         Insert: {
           id?: string;
@@ -2147,6 +2148,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           is_system?: boolean;
+          collect_attendance?: boolean;
         };
         Update: {
           id?: string;
@@ -2174,6 +2176,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           is_system?: boolean;
+          collect_attendance?: boolean;
         };
         Relationships: [
           {

@@ -77,6 +77,7 @@ const training = {
   is_open: false,
   trainer_invites_only: false,
   is_incognito: false,
+  collect_attendance: true,
   requires_key_owner: false,
   skip_public_holidays: true,
   skip_school_holidays: false,

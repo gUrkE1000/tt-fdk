@@ -99,6 +99,7 @@ const training = {
   is_open: false,
   trainer_invites_only: false,
   is_incognito: false,
+  collect_attendance: true,
   requires_key_owner: false,
   skip_public_holidays: true,
   skip_school_holidays: false,
@@ -412,6 +413,15 @@ describe('TrainingSessionPage', () => {
     renderSession('s-1');
     expect(await screen.findByRole('heading', { name: 'Erwachsenentraining' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Bin dabei/ })).toBeInTheDocument();
+  });
+
+  it('fragt ohne Abfrage weder nach Zu- und Absage noch zählt es Teilnehmer', async () => {
+    state.tables.trainings = [{ ...training, collect_attendance: false }, incognito, openTraining];
+    renderSession('s-1');
+    expect(await screen.findByRole('heading', { name: 'Erwachsenentraining' })).toBeInTheDocument();
+    expect(screen.getByText('Trainer: Tina Trainerin')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Bin dabei/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Teilnehmer/)).not.toBeInTheDocument();
   });
 
   it('zeigt einen Ausfall mit Grund', async () => {

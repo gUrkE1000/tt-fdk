@@ -98,6 +98,8 @@ export const trainingSchema = z
     isSystem: z.boolean(),
     trainerInvitesOnly: z.boolean(),
     isIncognito: z.boolean(),
+    /** Fragt bei jedem Termin nach Zu- oder Absage. */
+    collectAttendance: z.boolean(),
     skipPublicHolidays: z.boolean(),
     skipSchoolHolidays: z.boolean(),
     hideInCalendar: z.boolean(),
@@ -143,6 +145,8 @@ export const EMPTY_TRAINING: TrainingValues = {
   isSystem: false,
   trainerInvitesOnly: false,
   isIncognito: false,
+  // Beim Training sagt kaum jemand zu oder ab — man kommt einfach (Rückmeldung 29.09.2026).
+  collectAttendance: false,
   skipPublicHolidays: true,
   skipSchoolHolidays: false,
   hideInCalendar: false,
