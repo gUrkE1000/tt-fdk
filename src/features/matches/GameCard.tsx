@@ -10,7 +10,6 @@ import {
   Users,
 } from 'lucide-react';
 import {
-  Avatar,
   Badge,
   Button,
   Card,
@@ -20,6 +19,7 @@ import {
 import { formatDate, formatDateTime } from '../../lib/dates';
 import { isFinished } from './filters';
 import { mapsUrl } from '../../lib/maps';
+import { getShortName } from '../../lib/names';
 import { formatVenueAddress } from '../venues/schemas';
 import type { Venue } from '../venues/api';
 import type { TeamWithRoster } from '../teams/api';
@@ -37,7 +37,7 @@ export interface GameCardProps {
   venue: Venue | undefined;
   participations: Participation[];
   volunteers: Volunteer[];
-  /** Namen zu den Profil-IDs, für die Avatare der Aufstellung. */
+  /** Namen zu den Profil-IDs, für Aufstellung, Fahrdienst und Rückmeldungen. */
   nameOf: (profileId: string) => string;
   profileId: string | null;
   /** Zeigt die Leiste des Mannschaftsführers. */
@@ -196,12 +196,24 @@ export default function GameCard({
             </span>
           </div>
           <ProgressBar value={lineup.length} max={required} />
+          {/* Vorname und Nachnamen-Initiale statt bloßer Initialen: „AP" und „AT" muss
+              man erst entschlüsseln, „Adam P." liest man. Sehr lange Namen kürzt die
+              Zeile mit „…" — der volle Name steht im Tooltip. */}
           {lineup.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {lineup.map((entry) => (
-                <Avatar key={entry.profile_id} size="sm" name={nameOf(entry.profile_id)} />
-              ))}
-            </div>
+            <ul className="mt-2 flex flex-wrap gap-1" aria-label="Aufstellung">
+              {lineup.map((entry) => {
+                const full = nameOf(entry.profile_id);
+                return (
+                  <li
+                    key={entry.profile_id}
+                    title={full}
+                    className="max-w-full truncate rounded-full border border-primary-border bg-primary-soft px-2 py-0.5 text-xs font-semibold text-primary"
+                  >
+                    {getShortName(full) || 'Unbekannt'}
+                  </li>
+                );
+              })}
+            </ul>
           )}
 
           {participations.length > 0 && (
@@ -290,6 +302,7 @@ export default function GameCard({
             matchId={match.id}
             profileId={profileId}
             volunteers={volunteers}
+            nameOf={nameOf}
             isHome={match.is_home}
             hidden={team?.hide_drivers_catering ?? false}
           />

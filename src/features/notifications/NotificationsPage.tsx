@@ -7,6 +7,7 @@ import {
   ErrorState,
   LoadingState,
   PageHeader,
+  PagedList,
 } from '../../components/ui';
 import { formatDateTime } from '../../lib/dates';
 import { notificationTarget } from '../../lib/notificationTarget';
@@ -51,8 +52,8 @@ export default function NotificationsPage() {
           description="Sobald dir die App etwas schickt — eine Erinnerung, eine Ersatzanfrage, eine neue Umfrage —, steht es auch hier."
         />
       ) : (
-        <div className="space-y-3">
-          {entries.map((entry) => {
+        <PagedList items={entries}>
+          {(entry) => {
             // Nur Adressen der eigenen App werden zu Links; alles andere bleibt Text.
             const target = entry.link
               ? notificationTarget(entry.link, window.location.origin, '')
@@ -85,8 +86,8 @@ export default function NotificationsPage() {
                 </CardBody>
               </Card>
             );
-          })}
-        </div>
+          }}
+        </PagedList>
       )}
     </div>
   );

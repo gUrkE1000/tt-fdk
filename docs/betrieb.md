@@ -200,7 +200,10 @@ alle abgesagt haben.
 
 ## 6. Trainingstermine
 
-Ein fünfter Job, täglich um 03:00 UTC, schiebt das Fenster von acht Wochen weiter.
+Ein fünfter Job, täglich um 03:00 UTC, schiebt das Fenster von einem Jahr weiter. (Früher
+waren es acht Wochen — am Ende dieses Fensters hörten im Kalender die Trainings und der
+Schlüsseldienst auf.) Offene Rückmeldungen fragt die App trotzdem nur
+für die Trainings der nächsten acht Wochen ab.
 Daneben stößt ein Trigger den Lauf sofort an, sobald sich etwas ändert, was den
 Terminplan betrifft: ein Training (Wochentag, Uhrzeit, Rhythmus, Ort, Aktiv-Schalter,
 Feiertagsschalter), ein Ausfall oder eine Dauerzusage. Ein geänderter Beschreibungstext

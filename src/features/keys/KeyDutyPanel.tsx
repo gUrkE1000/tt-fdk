@@ -1,6 +1,15 @@
 import { useMemo } from 'react';
 import { KeySquare } from 'lucide-react';
-import { Badge, Card, CardBody, EmptyState, Select, useToast } from '../../components/ui';
+import {
+  Badge,
+  Card,
+  CardBody,
+  EmptyState,
+  Select,
+  ShowMore,
+  usePaged,
+  useToast,
+} from '../../components/ui';
 import { formatDate } from '../../lib/dates';
 import { useSession } from '../auth/session';
 import { useMembers } from '../members/api';
@@ -15,8 +24,6 @@ import {
 export interface KeyDutyPanelProps {
   /** Die festen Wochentage bearbeiten (nur der Administrator). */
   editWeekdays?: boolean;
-  /** Höchstens so viele kommende Tage. */
-  limit?: number;
 }
 
 /**
@@ -27,7 +34,7 @@ export interface KeyDutyPanelProps {
  * Vertretungen tragen der Administrator und jeder mit Schlüsseldienst ein; vertreten
  * kann nur, wer selbst Schlüsseldienst hat. Die Regeln prüft die Datenbank.
  */
-export default function KeyDutyPanel({ editWeekdays = false, limit = 12 }: KeyDutyPanelProps) {
+export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps) {
   const { profile, role } = useSession();
   const { toast } = useToast();
   const members = useMembers();
@@ -37,6 +44,9 @@ export default function KeyDutyPanel({ editWeekdays = false, limit = 12 }: KeyDu
   const setOverride = useSetKeyDutyOverride();
 
   const canOverride = role === 'admin' || profile?.key_service === true;
+
+  // Die Termine reichen ein Jahr voraus; gezeigt werden sie seitenweise.
+  const { shown: upcoming, rest, more } = usePaged(dates.data ?? []);
 
   const keyService = useMemo(
     () =>
@@ -72,7 +82,6 @@ export default function KeyDutyPanel({ editWeekdays = false, limit = 12 }: KeyDu
     );
   }
 
-  const upcoming = (dates.data ?? []).slice(0, limit);
 
   return (
     <div className="space-y-4">
@@ -168,6 +177,7 @@ export default function KeyDutyPanel({ editWeekdays = false, limit = 12 }: KeyDu
               ))}
             </ul>
           )}
+          <ShowMore rest={rest} onMore={more} />
         </CardBody>
       </Card>
     </div>

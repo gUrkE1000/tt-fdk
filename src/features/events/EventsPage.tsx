@@ -7,6 +7,7 @@ import {
   EmptyState,
   FilterBar,
   PageHeader,
+  PagedList,
   Tabs,
   useToast,
 } from '../../components/ui';
@@ -65,8 +66,8 @@ export default function EventsPage() {
     }
 
     return (
-      <div className="space-y-3">
-        {rows.map((event) => (
+      <PagedList items={rows} resetKey={filters}>
+        {(event) => (
           <EventCard
             key={event.id}
             event={event}
@@ -81,8 +82,8 @@ export default function EventsPage() {
             }}
             onDelete={() => setToDelete(event)}
           />
-        ))}
-      </div>
+        )}
+      </PagedList>
     );
   }
 

@@ -98,3 +98,6 @@ export type { LoadingStateProps, ErrorStateProps } from './QueryState';
 
 export { ConfirmProvider, useConfirm } from './Confirm';
 export type { ConfirmOptions } from './Confirm';
+
+export { default as ShowMore, PagedList, usePaged, PAGE_SIZE } from './ShowMore';
+export type { ShowMoreProps, PagedListProps, Paged } from './ShowMore';

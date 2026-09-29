@@ -26,6 +26,8 @@ export interface GameTableProps {
   onManagePlayers: (match: MatchRow) => void;
   onShareLineup: (match: MatchRow) => void;
   onReschedule: (match: MatchRow) => void;
+  /** Wechselt er (anderer Filter), beginnt die Liste wieder bei den ersten 30. */
+  resetKey?: unknown;
 }
 
 export default function GameTable({
@@ -39,6 +41,7 @@ export default function GameTable({
   onManagePlayers,
   onShareLineup,
   onReschedule,
+  resetKey,
 }: GameTableProps) {
   const teamOf = (id: string) => teams.find((team) => team.id === id);
   const venueOf = (id: string | null) => venues.find((venue) => venue.id === id);
@@ -161,6 +164,7 @@ export default function GameTable({
       columns={columns}
       rows={matches}
       rowKey={(match) => match.id}
+      resetKey={resetKey}
       mobileCard={(match) => (
         <Card>
           <CardBody className="space-y-2">

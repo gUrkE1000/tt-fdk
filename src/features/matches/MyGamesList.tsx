@@ -4,6 +4,7 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
+  PagedList,
 } from '../../components/ui';
 import { queryStatus } from '../../lib/queryStatus';
 import { useSession } from '../auth/session';
@@ -114,8 +115,8 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
 
   return (
     <>
-      <div className="space-y-3">
-        {mine.map((match) => (
+      <PagedList items={mine} resetKey={scope}>
+        {(match) => (
           <GameCard
             key={match.id}
             match={match}
@@ -133,8 +134,8 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
             onShareLineup={() => setDialog({ kind: 'share', match })}
             onReschedule={() => setDialog({ kind: 'reschedule', match })}
           />
-        ))}
-      </div>
+        )}
+      </PagedList>
 
       <MatchDialogs
         open={dialog}

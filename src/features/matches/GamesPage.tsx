@@ -212,6 +212,7 @@ export default function GamesPage() {
         onManagePlayers={setManaging}
         onShareLineup={setSharing}
         onReschedule={setRescheduling}
+        resetKey={`${scope}:${JSON.stringify(filters)}`}
       />
     );
   }
