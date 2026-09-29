@@ -2,7 +2,7 @@
 
 Stand: 29.09.2026 · Status: **gebaut** (alle Stufen aus Abschnitt 6.3) · Grundlage: Rechte
 aus [zielbild.md](zielbild.md) Abschnitt 5 und der Stand der Migrationen bis
-`20261112000000_search.sql`.
+`20261115000000_search.sql`.
 
 Vorher gab es nur Filterfelder auf einzelnen Seiten (Mitglieder in *Mein Verein*,
 Spieltermine, Vereinstermine), jede mit eigenem `includes()` im Browser. Dieses Dokument
@@ -459,7 +459,7 @@ Umgesetzt nach den Empfehlungen des Konzepts:
 
 | Teil | Ort |
 |---|---|
-| Normalisierung, Phonetik, Bewertung, `rpc_search` | `supabase/migrations/20261112000000_search.sql` |
+| Normalisierung, Phonetik, Bewertung, `rpc_search` | `supabase/migrations/20261115000000_search.sql` |
 | Rechte- und Qualitätstests (44 Assertions) | `supabase/tests/240_search.test.sql` |
 | Normalisierung und Hervorhebung im Browser | `src/lib/search.ts` (Gleichlauf mit SQL per Test) |
 | Datums- und Zeiterkennung | `src/features/search/parseQuery.ts` |
