@@ -74,14 +74,6 @@ const ACTIONS: PageEntry[] = [
     roles: [],
   },
   {
-    id: 'auto-attendance',
-    label: 'Automatische Trainingszusagen',
-    hint: 'Mein Profil',
-    to: '/profile?tab=auto-attendance',
-    keywords: ['automatisch', 'dauerzusage', 'immer dabei'],
-    roles: [],
-  },
-  {
     id: 'privacy',
     label: 'Datenschutz, Datenexport, Konto löschen',
     hint: 'Mein Profil',

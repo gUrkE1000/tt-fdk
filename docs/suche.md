@@ -294,7 +294,7 @@ Ganzer Name exakt > Nachname beginnt so > irgendein Wort beginnt so.
 (Teile von Komposita: „meisterschaften" → „Clubmeisterschaft", aber „spieler" ≠
 „Spieltag"). Bei Namen (Mitglieder, Mannschaften, Gegner, Orte, Ämter) danach die
 **Kölner Phonetik** mit gleichem Anfangsbuchstaben: Meier = Mayer = Maier, Schmidt =
-Schmitt. Die Schwellen sind an echten Wortpaaren eingestellt (Test `240_search`).
+Schmitt. Die Schwellen sind an echten Wortpaaren eingestellt (Test `260_search`).
 Dazwischen eine Stammstufe: die Eingabe ohne letzten Buchstaben als Wortanfang
 („trainings" → „Training", „kasse" → „Kassier").
 
@@ -460,7 +460,7 @@ Umgesetzt nach den Empfehlungen des Konzepts:
 | Teil | Ort |
 |---|---|
 | Normalisierung, Phonetik, Bewertung, `rpc_search` | `supabase/migrations/20261115000000_search.sql` |
-| Rechte- und Qualitätstests (44 Assertions) | `supabase/tests/240_search.test.sql` |
+| Rechte- und Qualitätstests (44 Assertions) | `supabase/tests/260_search.test.sql` |
 | Normalisierung und Hervorhebung im Browser | `src/lib/search.ts` (Gleichlauf mit SQL per Test) |
 | Datums- und Zeiterkennung | `src/features/search/parseQuery.ts` |
 | Seiten, Aktionen, Synonyme | `src/features/search/pages.ts` |

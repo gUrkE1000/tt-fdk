@@ -564,8 +564,12 @@ BEGIN
                      (public.trains(t.id) OR EXISTS (
                          SELECT 1 FROM public.training_members tm
                           WHERE tm.training_id = t.id AND tm.profile_id = v_me)) AS mine,
-                     (SELECT a.status::TEXT FROM public.training_attendance a
-                       WHERE a.session_id = n.id AND a.profile_id = v_me) AS my_status,
+                     -- Nur, wo das Training überhaupt nach Rückmeldungen fragt: Eine alte
+                     -- Antwort an einem Training ohne Abfrage wäre eine falsche Auskunft.
+                     CASE WHEN t.collect_attendance THEN
+                         (SELECT a.status::TEXT FROM public.training_attendance a
+                           WHERE a.session_id = n.id AND a.profile_id = v_me)
+                     END AS my_status,
                      (v_admin OR public.trains(t.id)) AS can_manage,
                      GREATEST(
                          public.search_score(v_tokens, x_main.hay, false),
@@ -619,8 +623,10 @@ BEGIN
                      (public.trains(t.id) OR EXISTS (
                          SELECT 1 FROM public.training_members tm
                           WHERE tm.training_id = t.id AND tm.profile_id = v_me)) AS mine,
-                     (SELECT a.status::TEXT FROM public.training_attendance a
-                       WHERE a.session_id = s.id AND a.profile_id = v_me) AS my_status,
+                     CASE WHEN t.collect_attendance THEN
+                         (SELECT a.status::TEXT FROM public.training_attendance a
+                           WHERE a.session_id = s.id AND a.profile_id = v_me)
+                     END AS my_status,
                      (v_admin OR public.trains(t.id)) AS can_manage,
                      CASE WHEN cardinality(v_tokens) = 0 THEN 0
                           ELSE public.search_score(
