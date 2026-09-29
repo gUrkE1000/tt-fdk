@@ -133,17 +133,13 @@ beforeEach(() => {
 });
 
 describe('ProfilePage', () => {
-  it('zeigt alle vier Reiter', () => {
+  it('zeigt alle drei Reiter', () => {
     renderProfilePage();
 
-    for (const label of [
-      'Profil',
-      'Abwesenheiten',
-      'Benachrichtigungen',
-      'Automatische Trainingszusagen',
-    ]) {
+    for (const label of ['Profil', 'Abwesenheiten', 'Benachrichtigungen']) {
       expect(screen.getByRole('tab', { name: label })).toBeInTheDocument();
     }
+    expect(screen.queryByRole('tab', { name: /Trainingszusagen/ })).not.toBeInTheDocument();
   });
 
   it('füllt das Formular mit den vorhandenen Daten', () => {

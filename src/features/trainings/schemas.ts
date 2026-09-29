@@ -98,10 +98,11 @@ export const trainingSchema = z
     isSystem: z.boolean(),
     trainerInvitesOnly: z.boolean(),
     isIncognito: z.boolean(),
+    /** Fragt bei jedem Termin nach Zu- oder Absage. */
+    collectAttendance: z.boolean(),
     skipPublicHolidays: z.boolean(),
     skipSchoolHolidays: z.boolean(),
     hideInCalendar: z.boolean(),
-    autoCancelNoTrainers: z.boolean(),
 
     statisticsVisibility: z.enum(['all', 'admins', 'groups']),
     statisticsGroupIds: z.array(z.string()),
@@ -143,10 +144,11 @@ export const EMPTY_TRAINING: TrainingValues = {
   isSystem: false,
   trainerInvitesOnly: false,
   isIncognito: false,
+  // Beim Training sagt kaum jemand zu oder ab — man kommt einfach (Rückmeldung 29.09.2026).
+  collectAttendance: false,
   skipPublicHolidays: true,
   skipSchoolHolidays: false,
   hideInCalendar: false,
-  autoCancelNoTrainers: false,
   statisticsVisibility: 'admins',
   statisticsGroupIds: [],
   active: true,
@@ -192,32 +194,6 @@ export const EMPTY_CANCELLATION: CancellationValues = {
   reason: '',
   notifyEmail: false,
 };
-
-// ------------------------------------------------------------------------ Dauerzusage
-
-export const autoAttendanceSchema = z.object({
-  trainingId: z.string().min(1, 'Bitte ein Training auswählen'),
-  untilDate: z.string().min(1, 'Bitte ein Datum angeben'),
-  late: z.boolean(),
-});
-
-export type AutoAttendanceValues = z.infer<typeof autoAttendanceSchema>;
-
-export const EMPTY_AUTO_ATTENDANCE: AutoAttendanceValues = {
-  trainingId: '',
-  untilDate: '',
-  late: false,
-};
-
-/** Wörtlich aus der Bestandsaufnahme (Abschnitt E). */
-export const AUTO_ATTENDANCE_HINT =
-  'Nach der automatischen Zusage zu einem Training, kannst du den Status jederzeit in ' +
-  'deiner Übersicht ändern und z.B. eine Absage hinterlegen.';
-
-/** „Läuft bis 31.12.2026" oder „abgelaufen" — der Status in der Tabelle. */
-export function autoAttendanceStatus(untilDate: string, today: string): 'active' | 'expired' {
-  return untilDate >= today ? 'active' : 'expired';
-}
 
 // ---------------------------------------------------------------------------- Zuweisung
 

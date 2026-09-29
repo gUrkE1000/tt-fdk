@@ -121,10 +121,10 @@ export default function TrainingDialog({
       is_system: values.isSystem,
       trainer_invites_only: values.trainerInvitesOnly,
       is_incognito: values.isIncognito,
+      collect_attendance: values.collectAttendance,
       skip_public_holidays: values.skipPublicHolidays,
       skip_school_holidays: values.skipSchoolHolidays,
       hide_in_calendar: values.hideInCalendar,
-      auto_cancel_no_trainers: values.autoCancelNoTrainers,
       statistics_visibility: values.statisticsVisibility,
       active: values.active,
     };
@@ -310,6 +310,12 @@ export default function TrainingDialog({
           onCheckedChange={(value) => form.setValue('isIncognito', value)}
           label="Inkognito-Training (Teilnehmerzahl und Liste sind nur für Trainer sichtbar)"
         />
+        <Checkbox
+          checked={form.watch('collectAttendance')}
+          onCheckedChange={(value) => form.setValue('collectAttendance', value)}
+          label="Rückmeldungen abfragen (Bin dabei / Komme später / Bin nicht dabei)"
+          hint="Ohne Abfrage steht das Training nicht unter „Offen für dich“ und es wird nicht daran erinnert. Sinnvoll bei Teilnehmergrenze oder Systemtraining."
+        />
       </div>
     </div>
   );
@@ -348,11 +354,6 @@ export default function TrainingDialog({
           checked={form.watch('hideInCalendar')}
           onCheckedChange={(value) => form.setValue('hideInCalendar', value)}
           label="Training im Kalender nicht anzeigen"
-        />
-        <Checkbox
-          checked={form.watch('autoCancelNoTrainers')}
-          onCheckedChange={(value) => form.setValue('autoCancelNoTrainers', value)}
-          label="Training automatisch absagen, wenn alle Trainer abgesagt haben"
         />
       </div>
 
@@ -446,10 +447,10 @@ export function toFormValues(training: TrainingWithPeople): TrainingValues {
     isSystem: training.is_system ?? false,
     trainerInvitesOnly: training.trainer_invites_only,
     isIncognito: training.is_incognito,
+    collectAttendance: training.collect_attendance,
     skipPublicHolidays: training.skip_public_holidays,
     skipSchoolHolidays: training.skip_school_holidays,
     hideInCalendar: training.hide_in_calendar,
-    autoCancelNoTrainers: training.auto_cancel_no_trainers,
     statisticsVisibility: training.statistics_visibility,
     statisticsGroupIds: training.statisticsGroupIds,
     active: training.active,

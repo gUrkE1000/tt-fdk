@@ -52,7 +52,6 @@ interface Result {
   cancelled: number;
   uncancelled: number;
   rescheduled: number;
-  autoAttendance: number;
 }
 
 async function generate(
@@ -66,7 +65,6 @@ async function generate(
     cancelled: 0,
     uncancelled: 0,
     rescheduled: 0,
-    autoAttendance: 0,
   };
 
   let query = admin
@@ -141,17 +139,11 @@ async function generate(
           })),
           { onConflict: 'training_id,session_date', ignoreDuplicates: true },
         )
-        .select('id, session_date, cancelled');
+        .select('id');
 
       if (insertError) console.error(`training_sessions ${row.id}:`, insertError.message);
 
-      const rows = (inserted ?? []) as {
-        id: string;
-        session_date: string;
-        cancelled: boolean;
-      }[];
-      result.created += rows.length;
-      result.autoAttendance += await applyAutoAttendance(admin, row.id, rows);
+      result.created += (inserted ?? []).length;
     }
 
     for (const entry of plan.cancel) {
@@ -300,50 +292,4 @@ async function loadSessions(
   }
 
   return byTraining;
-}
-
-/**
- * Automatische Zusagen (Aufgabe 6.7).
- *
- * Wer regelmäßig kommt, sagt einmal bis zu einem Datum zu und wird danach nicht mehr
- * gefragt. Gesetzt wird das beim Anlegen des Termins — später ändern kann es jeder
- * jederzeit selbst.
- */
-async function applyAutoAttendance(
-  admin: SupabaseClient,
-  trainingId: string,
-  sessions: readonly { id: string; session_date: string; cancelled: boolean }[],
-): Promise<number> {
-  const open = sessions.filter((session) => !session.cancelled);
-  if (open.length === 0) return 0;
-
-  const { data } = await admin
-    .from('training_auto_attendance')
-    .select('profile_id, until_date, late')
-    .eq('training_id', trainingId);
-
-  const entries = (data ?? []) as { profile_id: string; until_date: string; late: boolean }[];
-  if (entries.length === 0) return 0;
-
-  const rows = open.flatMap((session) =>
-    entries
-      .filter((entry) => entry.until_date >= session.session_date)
-      .map((entry) => ({
-        session_id: session.id,
-        profile_id: entry.profile_id,
-        status: entry.late ? 'late' : 'yes',
-        guests: 0,
-        source: 'auto',
-      })),
-  );
-
-  if (rows.length === 0) return 0;
-
-  // `ignoreDuplicates`: eine von Hand gesetzte Rückmeldung wiegt schwerer als die
-  // Dauerzusage und darf nicht überschrieben werden.
-  const { error } = await admin
-    .from('training_attendance')
-    .upsert(rows, { onConflict: 'session_id,profile_id', ignoreDuplicates: true });
-
-  return error ? 0 : rows.length;
 }

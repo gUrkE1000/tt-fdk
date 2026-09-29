@@ -37,7 +37,6 @@ const SOURCES: Source[] = [
   { label: 'trainings', table: 'training_members', column: 'profile_id', order: ['training_id'] },
   { label: 'trainer', table: 'training_trainers', column: 'profile_id', order: ['training_id'] },
   { label: 'rueckmeldungen_training', table: 'training_attendance', column: 'profile_id', order: ['session_id'] },
-  { label: 'dauerzusagen_training', table: 'training_auto_attendance', column: 'profile_id', order: ['training_id'] },
   { label: 'trainingstermine_zugeordnet', table: 'training_session_participants', column: 'profile_id', order: ['session_id'] },
   { label: 'hallenschluessel', table: 'v_session_keys', column: 'bearer_id', order: ['session_id'] },
   { label: 'schluesseldienst', table: 'key_duty_weekdays', column: 'profile_id', order: ['weekday'] },
