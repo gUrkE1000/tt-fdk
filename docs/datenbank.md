@@ -350,7 +350,7 @@ Trainings ein Mitglied erinnert werden will — keine Zeile heißt: zu allen.
 
 ### `training_sessions`, `training_cancellations`
 
-Die einzelnen Termine werden materialisiert: ein Job (Aufgabe 6.3) legt sie bis acht Wochen
+Die einzelnen Termine werden materialisiert: ein Job (Aufgabe 6.3) legt sie bis ein Jahr
 im Voraus an. Nur so kann eine Teilnahme an einem Termin hängen, und nur so bleibt sie
 erhalten, wenn sich die Regel ändert. Bestehende Zeilen werden nie gelöscht, nur
 aktualisiert.

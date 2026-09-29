@@ -399,9 +399,9 @@ describe('planSessions: Änderungen am Training', () => {
 });
 
 describe('HORIZON_DAYS', () => {
-  it('plant acht Wochen im Voraus', () => {
-    expect(HORIZON_DAYS).toBe(56);
-    expect(addDays('2026-09-01', HORIZON_DAYS)).toBe('2026-10-27');
+  it('plant ein Jahr im Voraus', () => {
+    expect(HORIZON_DAYS).toBe(365);
+    expect(addDays('2026-09-01', HORIZON_DAYS)).toBe('2027-09-01');
   });
 });
 

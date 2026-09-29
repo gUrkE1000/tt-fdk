@@ -375,7 +375,7 @@ Der Reihe nach, jeweils mit Blick auf **Verein → Betrieb**:
 |---|---|
 | Ein zweites Mitglied anlegen und einladen | Es bekommt eine E-Mail; unter *Benachrichtigungen* steht die Zeile auf `sent` |
 | Eine Mannschaft anlegen, dann **Spieltermine → Spiele importieren** mit der ICS-Adresse | Unter *Kalenderabgleich* erscheint ein Lauf mit „n neu“ |
-| Ein Training anlegen | Nach kurzer Zeit stehen Termine für die nächsten acht Wochen darin |
+| Ein Training anlegen | Nach kurzer Zeit stehen Termine für das nächste Jahr darin |
 | Auf dem Handy die Glocke drücken | Die Glocke wird grün |
 | Am nächsten Morgen | Unter *Jobs* steht bei allen ein Lauf der vergangenen Nacht |
 

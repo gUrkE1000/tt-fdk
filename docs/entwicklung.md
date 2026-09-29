@@ -179,7 +179,7 @@ die gesamte Datenbank an jeder Policy vorbei.
 | `process-notifications` | Fällige Nachrichten verschicken — E-Mail über Resend, Push über VAPID | Cron-Secret **oder** JWT eines Admins |
 | `enqueue-reminders` | Erinnerungen an Spiele und offene Rückmeldungen einreihen | Cron-Secret **oder** JWT eines Admins |
 | `substitute-engine` | Ersatzkette weiterrücken, Fristen auswerten | Cron-Secret **oder** JWT eines Admins bzw. Mannschaftsführers |
-| `generate-training-sessions` | Trainingstermine acht Wochen im Voraus anlegen und pflegen | Cron-Secret **oder** JWT eines Admins bzw. Trainers |
+| `generate-training-sessions` | Trainingstermine ein Jahr im Voraus anlegen und pflegen | Cron-Secret **oder** JWT eines Admins bzw. Trainers |
 | `calendar-feed` | ICS-Abo eines Mitglieds (nur zugesagte Termine) | den Abo-Token aus `calendar_tokens` — bewusst ohne Anmeldung |
 
 Jede Funktion prüft die Rechte des Aufrufers **selbst**, bevor sie den Admin-Client

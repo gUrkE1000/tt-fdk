@@ -1,7 +1,7 @@
 // Trainingstermine erzeugen (Aufgabe 6.3).
 //
 // Läuft täglich um 03:00 UTC und zusätzlich direkt nach jeder Änderung an einem Training
-// (Trigger mit pg_net). Er materialisiert acht Wochen im Voraus: aus der Regel
+// (Trigger mit pg_net). Er materialisiert ein Jahr im Voraus: aus der Regel
 // „dienstags 19 Uhr, zweiwöchentlich" werden Zeilen, an denen Rückmeldungen hängen können.
 //
 // Gelöscht wird dabei nie. Ein Termin, den es nicht mehr geben soll, wird abgesagt —
@@ -9,7 +9,7 @@
 // und ohne Datenbank vollständig getestet. Hier bleibt das Holen und das Ausführen.
 
 import { authorize, corsHeaders, environment, json, readBody, type SupabaseClient } from '../_shared/http.ts';
-import { berlinToday } from '../_shared/guards.ts';
+import { berlinToday, fetchAllPages } from '../_shared/guards.ts';
 import {
   HORIZON_DAYS,
   addDays,
@@ -259,16 +259,24 @@ async function loadSessions(
   to: string,
   trainingIds: string[],
 ): Promise<Map<string, ExistingSession[]>> {
-  const { data } = await admin
-    .from('training_sessions')
-    .select('id, training_id, session_date, starts_at, ends_at, cancelled, cancellation_id')
-    .in('training_id', trainingIds)
-    .gte('session_date', from)
-    .lte('session_date', to);
+  // Ein Jahr mal alle Trainings sind schnell mehr als die 1000 Zeilen, die PostgREST
+  // je Anfrage liefert. Ein abgeschnittener Rest fehlte hier still — und für die
+  // fehlenden Tage hielte der Planer Absagen und Verschiebungen für unnötig.
+  const data = await fetchAllPages((rangeFrom, rangeTo) =>
+    admin
+      .from('training_sessions')
+      .select('id, training_id, session_date, starts_at, ends_at, cancelled, cancellation_id')
+      .in('training_id', trainingIds)
+      .gte('session_date', from)
+      .lte('session_date', to)
+      .order('training_id')
+      .order('session_date')
+      .range(rangeFrom, rangeTo),
+  );
 
   const byTraining = new Map<string, ExistingSession[]>();
 
-  for (const row of (data ?? []) as {
+  for (const row of data as {
     id: string;
     training_id: string;
     session_date: string;
