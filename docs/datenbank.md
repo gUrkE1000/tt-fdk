@@ -625,9 +625,32 @@ Antwort bekommen und nicht jede für sich rechnet.
 | `handle_new_user()` | Trigger auf `auth.users`: verknüpft oder legt an (siehe unten) |
 | `get_public_club_info()` | Vereinsname für den Anmeldebildschirm, ohne Anmeldung |
 | `rpc_validate_registration_code(text)` | prüft den Vereinscode, gibt nur wahr/falsch zurück |
+| `rpc_search(text, text[], timestamptz, timestamptz, int)` | Globale Suche, **`SECURITY INVOKER`** — siehe „Suche" unten |
+| `search_norm(text)`, `search_phonetic(text)`, `search_score(text[], text, bool)` | Normalform, Kölner Phonetik und Bewertung für die Suche; reine Rechenfunktionen ohne Datenzugriff |
+| `search_strip_html(text)`, `search_team_aliases(text)`, `search_time_bonus(timestamptz, bool)` | Hilfen der Suche: Text aus HTML, „H2" für „2. Herren", Zuschlag für Nähe in der Zeit |
 
-Alle Rechte-Helfer sind `SECURITY DEFINER` mit festem `search_path`. Ohne `DEFINER` liefe
+Alle Rechte-Helfer sind `SECURITY DEFINER` mit festem `search_path` (die Suche ist die
+bewusste Ausnahme, siehe unten). Ohne `DEFINER` liefe
 die `profiles`-Policy in eine Rekursion, weil sie `profiles` liest, um `profiles` zu prüfen.
+
+## Suche
+
+`rpc_search` ist die einzige Funktion mit Datenzugriff, die bewusst **nicht**
+`SECURITY DEFINER` ist. Sie läuft mit den Rechten des Aufrufers und liest dieselben
+Tabellen und Sichten wie die Seiten; RLS und die maskierenden Sichten
+(`v_members_directory`, `v_news`) entscheiden, was gefunden werden kann. Eine eigene
+Suchtabelle mit kopierten Rechten gibt es nicht — sie wäre die zweite Wahrheit, vor der
+der Abschnitt zu `object_messages` warnt.
+
+Gesucht wird nur in Feldern, die der Aufrufer lesen darf, und auch dort nicht in allen:
+Kontaktdaten sind für Nicht-Admins kein Suchfeld (sonst verriete die Suche per
+Rückwärtssuche eine nicht freigegebene Nummer), Abwesenheitsgründe, Stimmen,
+Teilnehmerlisten und Ersatzanfragen sind für niemanden durchsuchbar, Mitteilungen nur die
+eigenen — auch für den Admin, obwohl die Policy ihm alle zeigt.
+
+Die Normalform (`search_norm`) ist ohne `unaccent` gebaut und in `src/lib/search.ts`
+nachgebaut; ein Vitest prüft, dass beide dieselben Zeichenlisten haben. `pg_trgm` liegt im
+Schema `extensions`. Konzept, Bewertung und Schwellen: [suche.md](suche.md).
 
 ## Wie die Aufstellung entsteht
 

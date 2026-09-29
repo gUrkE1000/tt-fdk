@@ -44,9 +44,11 @@ const STATUS_LABELS: Record<string, string> = {
 export default function MyDatesPage() {
   const { profile } = useSession();
   const dates = useMyUpcoming(profile?.id ?? null);
-  const [subscribeOpen, setSubscribeOpen] = useState(false);
-  const open = useMyOpenItems(profile?.id ?? null);
   const [search, setSearch] = useSearchParams();
+  // /my-dates?subscribe=1 öffnet den Dialog gleich — so führt „Kalender abonnieren" aus
+  // der Suche direkt ans Ziel.
+  const [subscribeOpen, setSubscribeOpen] = useState(() => search.get('subscribe') === '1');
+  const open = useMyOpenItems(profile?.id ?? null);
 
   const { attending, declined } = useMemo(() => {
     // Die Sicht liefert auch Vergangenes (der Kalender-Feed braucht es). Hier geht es

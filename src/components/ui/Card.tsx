@@ -6,11 +6,14 @@ export interface CardProps {
   className?: string;
   /** Farbiger Streifen links, z. B. die Mannschaftsfarbe an einer Spielkarte. */
   accentColor?: string | null;
+  /** Sprungziel, z. B. für Links aus der Suche (`#poll-…`). */
+  id?: string;
 }
 
-export function Card({ children, className, accentColor }: CardProps) {
+export function Card({ children, className, accentColor, id }: CardProps) {
   return (
     <div
+      id={id}
       className={cn(
         'relative overflow-hidden rounded-2xl border border-gray-200 bg-white',
         className,

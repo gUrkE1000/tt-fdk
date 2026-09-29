@@ -10,6 +10,10 @@
 export const queryKeys = {
   publicClubInfo: ['public-club-info'] as const,
 
+  /** Globale Suche. Wird nie auf dem Gerät gespeichert (queryPersist). */
+  search: (query: string, kinds: readonly string[], time: string, limit: number) =>
+    ['search', query, kinds, time, limit] as const,
+
   profile: (userId: string | null) => ['profile', userId] as const,
 
   members: {

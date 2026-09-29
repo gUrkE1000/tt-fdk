@@ -39,7 +39,10 @@ SELECT is_empty(
               'may_see_training_statistics', 'berlin_today', 'valid_email_list',
               'belongs_to_team', 'can_see_match',
               -- Sichten rufen sie mit den Rechten des Aufrufers
-              'club_default_venue', 'is_my_training_session', 'is_my_match', 'key_duty_for')
+              'club_default_venue', 'is_my_training_session', 'is_my_match', 'key_duty_for',
+              -- Rechenfunktionen der Suche ohne Datenzugriff; rpc_search ruft sie als Aufrufer
+              'search_norm', 'search_strip_html', 'search_team_aliases', 'search_phonetic',
+              'search_score', 'search_time_bonus')
           AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = p.oid AND d.deptype = 'e') $$,
     'authenticated darf außer rpc_* nur die Prädikate der Policies ausführen'
 );

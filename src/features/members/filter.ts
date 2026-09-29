@@ -1,5 +1,6 @@
 import type { Enums } from '../../lib/database.types';
 import type { Member } from './api';
+import { matchesSearch } from '../../lib/search';
 
 /**
  * Die Filterleiste der Mitgliederliste als reine Funktion.
@@ -52,17 +53,11 @@ export function filterMembers(
   filters: MemberFilters,
   context: FilterContext = { groupMembers: {} },
 ): Member[] {
-  const needle = filters.search.trim().toLowerCase();
-
   return members.filter((member) => {
-    if (needle) {
-      // Gesucht wird über Name, E-Mail und Mitgliedsnummer: wer eine Liste abarbeitet,
-      // tippt mal das eine, mal das andere.
-      const haystack = [member.full_name, member.email, member.member_number]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      if (!haystack.includes(needle)) return false;
+    // Gesucht wird über Name, E-Mail und Mitgliedsnummer: wer eine Liste abarbeitet,
+    // tippt mal das eine, mal das andere.
+    if (!matchesSearch([member.full_name, member.email, member.member_number], filters.search)) {
+      return false;
     }
 
     if (filters.role !== 'all' && member.role !== filters.role) return false;

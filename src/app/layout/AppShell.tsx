@@ -13,6 +13,8 @@ import UpdatePrompt from '../../features/notifications/UpdatePrompt';
 import BellButton from '../../features/notifications/BellButton';
 import { useOpenCount } from '../../features/dashboard/openItems';
 import ConnectionBanner from './ConnectionBanner';
+import SearchLauncher from '../../features/search/SearchDialog';
+import { useScrollToHash } from './useScrollToHash';
 import { LoadingState } from '../../components/ui';
 
 interface AppShellProps {
@@ -39,6 +41,10 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
   // an „Meine Termine", damit man sie auf dem Telefon in der Bottom-Bar sieht.
   const openCount = useOpenCount(session.profile?.id ?? null);
   const badges = { '/': openCount };
+
+  // Links auf eine Stelle der Seite (/votes#poll-…, aus der Suche) springen dorthin,
+  // sobald die Daten geladen sind.
+  useScrollToHash();
 
   // Beim Seitenwechsel schließt der Drawer, sonst bliebe er nach einem Klick offen.
   useEffect(() => {
@@ -93,6 +99,7 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
           actions={
             headerActions ?? (
               <>
+                <SearchLauncher />
                 <BellButton />
                 <ProfileMenu />
               </>

@@ -1,5 +1,6 @@
 import type { Enums } from '../../lib/database.types';
 import type { MatchRow } from './api';
+import { matchesSearch } from '../../lib/search';
 
 /**
  * Die Filterleiste der Spielterminliste als reine Funktion — dieselbe Begründung wie bei
@@ -57,15 +58,11 @@ export function filterMatches(
   filters: MatchFilters,
   teamRankingTypes: Record<string, Enums<'ranking_type'>> = {},
 ): MatchRow[] {
-  const needle = filters.search.trim().toLowerCase();
-
   return matches.filter((match) => {
-    if (needle) {
-      const haystack = [match.summary, match.opponent, match.league, match.location_text]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      if (!haystack.includes(needle)) return false;
+    if (
+      !matchesSearch([match.summary, match.opponent, match.league, match.location_text], filters.search)
+    ) {
+      return false;
     }
 
     if (filters.teamId !== 'all' && match.team_id !== filters.teamId) return false;

@@ -1,13 +1,14 @@
 # Konzept: Suche
 
-Stand: 29.09.2026 · Status: **Konzept, nicht gebaut** · Grundlage: Rechte aus
-[zielbild.md](zielbild.md) Abschnitt 5 und der Stand der Migrationen bis
-`20261111000000_training_attendance_admin_self.sql`.
+Stand: 29.09.2026 · Status: **gebaut** (alle Stufen aus Abschnitt 6.3) · Grundlage: Rechte
+aus [zielbild.md](zielbild.md) Abschnitt 5 und der Stand der Migrationen bis
+`20261112000000_search.sql`.
 
-Heute gibt es nur Filterfelder auf einzelnen Seiten (Mitglieder in *Mein Verein*,
+Vorher gab es nur Filterfelder auf einzelnen Seiten (Mitglieder in *Mein Verein*,
 Spieltermine, Vereinstermine), jede mit eigenem `includes()` im Browser. Dieses Dokument
-beschreibt eine **eine** Suche über die ganze App: was sie finden muss, wie sie die
-Rechte des Mitglieds einhält und mit welcher Technik sie die besten Treffer liefert.
+beschreibt die **eine** Suche über die ganze App: was sie findet, wie sie die Rechte des
+Mitglieds einhält und mit welcher Technik sie die besten Treffer liefert. Wo die
+Umsetzung vom ersten Entwurf abweicht, steht es in Abschnitt 8.
 
 ---
 
@@ -17,7 +18,7 @@ Rechte des Mitglieds einhält und mit welcher Technik sie die besten Treffer lie
 |---|---|
 | Wo? | Ein Suchfeld in der Kopfzeile (Desktop), Lupe in der Kopfzeile (Mobil), Tastatur `Strg/⌘ K` und `/`. Sofortliste beim Tippen, volle Ergebnisseite unter `/search?q=…`. |
 | Was? | Seiten & Aktionen, Mitglieder, Mannschaften, Spiele, Trainings und Trainingstermine, Vereinstermine, Umfragen, Neuigkeiten, Orte, Ämter. Später: Nachrichten am Termin, eigene Mitteilungen. |
-| Rechte? | **Keine eigene Rechtelogik.** Die Suche läuft als `SECURITY INVOKER`-Funktion in Postgres und liest dieselben Tabellen und Views wie die Seiten — RLS und Spaltenmaskierung greifen von selbst. Gesucht wird nur in Feldern, die das Mitglied auch *sehen* darf. |
+| Rechte? | **Keine eigene Rechtelogik.** Die Suche läuft als `SECURITY INVOKER`-Funktion `rpc_search` in Postgres und liest dieselben Tabellen und Views wie die Seiten — RLS und Spaltenmaskierung greifen von selbst. Gesucht wird nur in Feldern, die das Mitglied auch *sehen* darf. |
 | Technik? | Postgres-Volltext ohne Zusatzdienst: **Normalisierung** (Umlaute, ß, Groß/klein) → **Präfixsuche** je Wort → **Trigramm-Ähnlichkeit** (`pg_trgm`) für Tippfehler → **deutsche Volltextsuche** (`tsvector 'german'`) nur für Fließtext. Dazu **Datums- und Mannschaftserkennung** in der Eingabe und eine **persönliche Gewichtung** (eigene Mannschaft, bald stattfindend). |
 | Nicht? | Keine KI-/Vektorsuche, kein externer Suchdienst (Algolia, Meilisearch), kein eigener Suchindex mit kopierten Rechten. Begründung in Abschnitt 5.4. |
 
@@ -117,7 +118,7 @@ Zusage/Absage beim Spiel, „Spieler verwalten" für den Mannschaftsführer.
 ## 3. Wie die Suche aufgebaut ist
 
 ```
-Kopfzeile: <SearchBox>  ──tippt──►  useSearch(q)  ──rpc──►  public.search(q, kinds, …)
+Kopfzeile: <SearchBox>  ──tippt──►  useSearch(q)  ──rpc──►  public.rpc_search(q, kinds, …)
    │                                    │                         │  SECURITY INVOKER
    │                                    │                         │  liest Tabellen/Views
    │                                    │                         ▼  → RLS greift
@@ -127,12 +128,12 @@ Kopfzeile: <SearchBox>  ──tippt──►  useSearch(q)  ──rpc──►  
 Sofortliste (gruppiert)  ──Enter/„Alle"──►  /search?q=…&kind=…&time=…
 ```
 
-- **Frontend**: neues Feature `src/features/search/` mit `api.ts` (react-query, Schlüssel
-  `['search', q, filters]`, *nicht* persistiert), `SearchBox.tsx`, `SearchPage.tsx`,
-  `parseQuery.ts` (Datum/Kürzel, rein und testbar), `synonyms.ts`, `rank.ts` (lokale
-  Treffer mit Servertreffern mischen).
+- **Frontend**: Feature `src/features/search/` mit `api.ts` (react-query, Schlüssel
+  `['search', …]`, *nicht* persistiert, Mischen und Offline-Rückfall), `SearchDialog.tsx`,
+  `SearchPage.tsx`, `parseQuery.ts` (Zeitangaben, rein und testbar), `pages.ts`
+  (Seiten, Aktionen, Synonyme), `HitRow.tsx`, `recent.ts`.
 - **Datenbank**: eine Migration `…_search.sql` mit Erweiterungen, Normalisierungs-
-  funktion, generierten Suchspalten plus Indizes und der Funktion `public.search`.
+  funktion, Phonetik, Bewertung, zwei Trigramm-Indizes und der Funktion `public.rpc_search`.
 - **Keine Edge Function**, kein neuer Dienst, keine Kosten.
 
 ---
@@ -148,7 +149,7 @@ Das folgt dem Grundsatz aus [datenbank.md](datenbank.md): *„Die Datenbank erzw
 Rechte, nicht das Frontend."* und der Begründung bei `object_messages`: *„Eine eigene
 Regel wäre eine zweite Wahrheit, die irgendwann von der ersten abweicht."*
 
-Deshalb ist `public.search` **`SECURITY INVOKER`**: Sie läuft mit den Rechten des
+Deshalb ist `public.rpc_search` **`SECURITY INVOKER`**: Sie läuft mit den Rechten des
 Aufrufers, jede Abfrage darin geht durch dieselben Policies und Views wie die Seiten.
 Ändert sich eine Policy (wie zuletzt `can_see_match` ↔ `is_playing_member`), ändert sich
 die Suche mit — ohne dass jemand an sie denken muss.
@@ -200,7 +201,7 @@ bekommt, kennt jetzt Max' Handynummer, obwohl Max sie nicht freigegeben hat. Reg
 
 ### 4.3 Umsetzung im SQL
 
-- `public.search` ist `LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public,
+- `public.rpc_search` ist `LANGUAGE plpgsql STABLE SECURITY INVOKER SET search_path = public,
   pg_temp`, `GRANT EXECUTE … TO authenticated`, `REVOKE … FROM anon`.
 - Sie liest **Views statt Tabellen**, wo es Views mit Maskierung gibt
   (`v_members_directory`, `v_news`). Die E-Mail für die Admin-Suche kommt nur aus einem
@@ -287,9 +288,15 @@ Jedes Suchwort muss Anfang eines Wortes im Suchtext sein
 (`search_text ~ ('(^| )' || wort)`, über einen `pg_trgm`-GIN-Index beschleunigt).
 Ganzer Name exakt > Nachname beginnt so > irgendein Wort beginnt so.
 
-**Stufe 2 — Tippfehler** (nur wenn Stufe 1 wenig liefert):
-`word_similarity(wort, search_text)` aus `pg_trgm`, Schwelle ~0,4. Findet „Schmitt" bei
-„Schmidt", „Borrusia" bei „Borussia". Deutlich schwächer gewichtet als Stufe 1.
+**Stufe 2 — Tippfehler und Klang** (nur wenn Stufe 1 nicht greift):
+`strict_word_similarity` aus `pg_trgm` ab 0,45 (ganze Wörter, hält kurze Eingaben knapp:
+„kasse" ≠ „Turnstrasse"), für Wörter ab acht Zeichen zusätzlich `word_similarity` ab 0,65
+(Teile von Komposita: „meisterschaften" → „Clubmeisterschaft", aber „spieler" ≠
+„Spieltag"). Bei Namen (Mitglieder, Mannschaften, Gegner, Orte, Ämter) danach die
+**Kölner Phonetik** mit gleichem Anfangsbuchstaben: Meier = Mayer = Maier, Schmidt =
+Schmitt. Die Schwellen sind an echten Wortpaaren eingestellt (Test `240_search`).
+Dazwischen eine Stammstufe: die Eingabe ohne letzten Buchstaben als Wortanfang
+(„trainings" → „Training", „kasse" → „Kassier").
 
 **Stufe 3 — Volltext für Fließtext** (nur Neuigkeiten, Vereinstermine, Umfragen,
 später Nachrichten):
@@ -320,7 +327,9 @@ score = text_score                           -- Stufe 1: 1,0 exakt · 0,8 Nachna
       + 0,20  wenn in den nächsten 14 Tagen  -- linear abnehmend bis 0 bei 60 Tagen
       − 0,20  wenn vergangen (> 1 Tag)       -- außer Zeitfilter „vergangen" gesetzt
       + 0,10  wenn offen für mich            -- keine Antwort, Umfrage nicht abgestimmt
-      × Artgewicht                           -- Seiten 1,1 · Personen/Spiele 1,0 · Rest 0,9
+      × Artgewicht                           -- Ämter 1,05 · Seiten/Personen/Spiele 1,0 ·
+                                             -- Mannschaften/Trainings/Termine 0,95 · Rest 0,8–0,9
+Nebenfelder (Beschreibung, Tätigkeiten, Text) zählen nur 0,6 — Titel und Namen voll.
 Gleichstand: kommende Termine nach Datum aufsteigend, sonst alphabetisch.
 ```
 
@@ -356,7 +365,9 @@ Diese Tabelle wird zum Test (Abschnitt 6).
 
 ---
 
-## 6. Umsetzung
+## 6. Umsetzungsplan (Entwurf)
+
+So war es geplant; was tatsächlich gebaut ist, steht in Abschnitt 8.
 
 ### 6.1 Datenbank (eine Migration)
 
@@ -431,17 +442,45 @@ Stufe 1 ist für sich nutzbar.
 
 ---
 
-## 7. Offene Entscheidungen
+## 7. Entscheidungen
 
-1. **Sollen bestehende Seitenfilter** (Mitglieder, Spieltermine, Vereinstermine) auf
-   dieselbe Normalisierung umgestellt werden? Empfehlung: ja, in Stufe 4 — sonst findet
-   die globale Suche „Mueller", der Filter in *Mein Verein* aber nicht.
-2. **Ergebnisse vergangener Spiele**: Standard „alle, Kommendes zuerst" oder „nur
-   kommende"? Empfehlung: alle, Vergangenes abgewertet (die Frage „wie ging das Spiel
-   gegen X aus / wer hat gespielt" ist häufig).
-3. **Suchbegriffe ohne Treffer zählen** (ohne Benutzer, ohne Begriff)? Nur sinnvoll im
-   Parallelbetrieb, um Synonyme zu ergänzen. Empfehlung: nein, stattdessen im
-   Feedback der Mitglieder (docs/parallelbetrieb.md) danach fragen.
-4. **Kontaktfreigabe als Suchfeld**: Soll man freigegebene Telefonnummern durchsuchen
-   können („wem gehört 0171…")? Empfehlung: nein, auch bei Freigabe nur anzeigen, nicht
-   durchsuchen — die Freigabe gilt dem Anrufen, nicht dem Rückwärtssuchen.
+Umgesetzt nach den Empfehlungen des Konzepts:
+
+1. **Seitenfilter** (Mitglieder, Spieltermine, Vereinstermine, Mehrfachauswahl) nutzen
+   dieselbe Normalisierung (`src/lib/search.ts`, `matchesSearch`): „mueller" findet
+   „Müller" überall, mehrere Wörter in beliebiger Reihenfolge.
+2. **Vergangene Spiele** erscheinen, aber abgewertet; der Zeitfilter „Kommend /
+   Vergangen" auf der Ergebnisseite grenzt ein.
+3. **Keine Zählung** von Suchen, auch nicht anonym.
+4. **Kontaktdaten sind kein Suchfeld**, auch bei Freigabe nicht (nur der Admin sucht in
+   E-Mail und Mitgliedsnummer).
+
+## 8. Umsetzung
+
+| Teil | Ort |
+|---|---|
+| Normalisierung, Phonetik, Bewertung, `rpc_search` | `supabase/migrations/20261112000000_search.sql` |
+| Rechte- und Qualitätstests (44 Assertions) | `supabase/tests/240_search.test.sql` |
+| Normalisierung und Hervorhebung im Browser | `src/lib/search.ts` (Gleichlauf mit SQL per Test) |
+| Datums- und Zeiterkennung | `src/features/search/parseQuery.ts` |
+| Seiten, Aktionen, Synonyme | `src/features/search/pages.ts` |
+| Abfrage, Mischen, Offline-Rückfall | `src/features/search/api.ts` |
+| Sofortsuche (Kopfzeile, `Strg/⌘ K`, `/`) | `src/features/search/SearchDialog.tsx` |
+| Ergebnisseite `/search` mit Filtern und Schnellaktionen | `src/features/search/SearchPage.tsx` |
+| „Zuletzt gesucht" (nur Gerät, beim Abmelden gelöscht) | `src/features/search/recent.ts` |
+
+Abweichungen vom Entwurf:
+
+- **Keine generierten Suchspalten.** Die Suchtexte entstehen zur Laufzeit; nur Mitglieder
+  und Spiele haben einen Trigramm-Index auf den Ausdruck. Spalten hätten jedes
+  `select('*')` und den Offline-Speicher aufgebläht, bei ein paar hundert Zeilen ohne
+  messbaren Gewinn.
+- **Kein `unaccent`.** Die Normalisierung nutzt `translate`, damit sie auf jeder
+  Datenbank gleich arbeitet und im Browser 1:1 nachgebaut werden kann.
+- **Kürzel und Heim/Auswärts** stecken im Suchtext der Datenbank (`search_team_aliases`,
+  „heim"/„auswaerts"), nicht im Parser des Browsers — so wirken sie auch ohne geladene
+  Mannschaftsliste.
+- **Nachrichten am Spiel** sieht nur, wer das Spiel über `can_see_match` sieht
+  (Mannschaft, Anfrage, Admin) — enger als die Spielliste selbst. Die Suche folgt dem.
+- **Trainingstermine** erscheinen einzeln nur bei einer Zeitangabe; sonst steht das
+  Training einmal da, mit seinem nächsten Termin.

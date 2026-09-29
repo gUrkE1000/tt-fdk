@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FileSpreadsheet, Link2, Mail, Plus, TrendingUp, UserPlus } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Button,
   Dialog,
@@ -43,7 +44,13 @@ export default function MembersTab() {
   const activateMember = useActivateMember();
   const deleteMember = useDeleteMember();
 
-  const [filters, setFilters] = useState<MemberFilters>(EMPTY_FILTERS);
+  // Vorbelegt aus der Adresse (/players?q=<Name>), damit „Bearbeiten" in der globalen
+  // Suche direkt beim Mitglied landet.
+  const [params] = useSearchParams();
+  const [filters, setFilters] = useState<MemberFilters>({
+    ...EMPTY_FILTERS,
+    search: params.get('q') ?? '',
+  });
   const [editing, setEditing] = useState<Member | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [qttrOpen, setQttrOpen] = useState(false);

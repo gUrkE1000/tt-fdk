@@ -132,6 +132,7 @@ export function labelForPath(pathname: string): string {
   if (pathname.startsWith('/match/')) return 'Spiel';
   if (pathname.startsWith('/training/')) return 'Training';
   if (pathname.startsWith('/event/')) return 'Vereinstermin';
+  if (pathname === '/search') return 'Suche';
   const exact = NAV.flatMap((s) => s.items).find((item) => item.to === pathname);
   if (exact) return exact.label;
 

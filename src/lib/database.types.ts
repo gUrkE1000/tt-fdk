@@ -2699,6 +2699,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: unknown;
       };
+      rpc_search: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
       rpc_set_calendar_trainings: {
         Args: { [key: string]: unknown };
         Returns: unknown;
@@ -2764,6 +2768,30 @@ export interface Database {
         Returns: unknown;
       };
       rpc_withdraw_request: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      search_norm: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      search_phonetic: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      search_score: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      search_strip_html: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      search_team_aliases: {
+        Args: { [key: string]: unknown };
+        Returns: unknown;
+      };
+      search_time_bonus: {
         Args: { [key: string]: unknown };
         Returns: unknown;
       };
