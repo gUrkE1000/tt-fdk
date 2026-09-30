@@ -18,7 +18,8 @@ import {
 } from '../../components/ui';
 import { formatDate, formatDateTime } from '../../lib/dates';
 import { isFinished } from './filters';
-import { mapsUrl } from '../../lib/maps';
+import { mapsUrl, venueDestination } from '../../lib/maps';
+import { useVenueOf } from '../venues/defaultVenue';
 import { getShortName } from '../../lib/names';
 import { formatVenueAddress } from '../venues/schemas';
 import type { Venue } from '../venues/api';
@@ -67,6 +68,7 @@ export default function GameCard({
   onReschedule,
   venueBlock,
 }: GameCardProps) {
+  const venueOf = useVenueOf();
   const mine = participations.find((entry) => entry.profile_id === profileId) ?? null;
 
   // Spiele sehen alle; mitmachen (antworten, „Ich hätte Zeit", Fahrdienst, Nachrichten)
@@ -94,8 +96,12 @@ export default function GameCard({
     mine.response !== 'none' &&
     (mine.version_responded ?? 0) < (match.version ?? 1);
 
-  const address = venue ? `${venue.name}, ${formatVenueAddress(venue)}` : match.location_text;
-  const route = mapsUrl(venue ? formatVenueAddress(venue) : match.location_text);
+  // Ein Heimspiel ohne eigenen Ort — der Normalfall beim Import aus click-TT — findet im
+  // Standardort statt. Dessen Anschrift ist das Ziel, nicht der Freitext aus dem
+  // Spielplan („Realschule am Anger, Musterstadt"), nach dem Google nur suchen könnte.
+  const place = venue ?? (match.is_home && !match.venue_id ? venueOf(null) : undefined);
+  const address = place ? `${place.name}, ${formatVenueAddress(place)}` : match.location_text;
+  const route = mapsUrl(place ? venueDestination(place) : match.location_text);
 
   const groups = groupResponses(match, participations, nameOf);
 

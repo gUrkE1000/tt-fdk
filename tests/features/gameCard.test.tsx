@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -116,6 +116,8 @@ function renderCard(
   canManage = false,
   volunteers: Volunteer[] = [],
   isHome = true,
+  cardVenue: Venue | null = venue,
+  matchOverrides: Partial<MatchRow> = {},
 ) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -123,9 +125,9 @@ function renderCard(
       <ToastProvider>
         <MemoryRouter>
           <GameCard
-            match={{ ...match, is_home: isHome }}
+            match={{ ...match, is_home: isHome, ...matchOverrides }}
             team={undefined}
-            venue={venue}
+            venue={cardVenue ?? undefined}
             participations={participations}
             volunteers={volunteers}
             nameOf={(id) => names[id] ?? ''}
@@ -186,11 +188,49 @@ describe('GameCard', () => {
     expect(screen.queryByText('ABC123')).toBeNull();
   });
 
-  it('bietet eine Route zur Halle an', () => {
+  it('bietet eine Route mit der genauen Anschrift als Ziel an', () => {
     renderCard([]);
     expect(screen.getByRole('link', { name: /Route/ })).toHaveAttribute(
       'href',
-      expect.stringContaining('google.com/maps/search/?api=1&query=Turnstra'),
+      'https://www.google.com/maps/dir/?api=1&destination=' +
+        encodeURIComponent('Turnstraße 5, 12345 Musterstadt'),
+    );
+  });
+
+  // Fehlerbild: Importierte Heimspiele haben keinen eigenen Ort; die Route suchte nach
+  // dem Freitext aus dem Spielplan und landete irgendwo.
+  it('führt bei einem Heimspiel ohne eigenen Ort zur Anschrift der Standardhalle', async () => {
+    tables.venues = [{ ...venue, active: true }];
+    tables.club_settings = [{ key: 'default_venue_id', value: 'v-1' }];
+    try {
+      renderCard([], false, [], true, null, {
+        venue_id: null,
+        location_text: 'Realschule am Anger Zweifachhalle, Musterstadt',
+      });
+      const link = await screen.findByRole('link', { name: /Route/ });
+      await waitFor(() =>
+        expect(link).toHaveAttribute(
+          'href',
+          'https://www.google.com/maps/dir/?api=1&destination=' +
+            encodeURIComponent('Turnstraße 5, 12345 Musterstadt'),
+        ),
+      );
+      expect(screen.getByText('Sporthalle, Turnstraße 5, 12345 Musterstadt')).toBeInTheDocument();
+    } finally {
+      delete tables.venues;
+      delete tables.club_settings;
+    }
+  });
+
+  it('nimmt bei Auswärtsspielen den Ort aus dem Spielplan', () => {
+    renderCard([], false, [], false, null, {
+      venue_id: null,
+      location_text: 'Grundschule Beispielstadt, Beispielstadt',
+    });
+    expect(screen.getByRole('link', { name: /Route/ })).toHaveAttribute(
+      'href',
+      'https://www.google.com/maps/dir/?api=1&destination=' +
+        encodeURIComponent('Grundschule Beispielstadt, Beispielstadt'),
     );
   });
 

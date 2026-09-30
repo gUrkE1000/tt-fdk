@@ -3,7 +3,7 @@ import { buildOpenItems } from '../../src/features/dashboard/openItems';
 import { groupResponses } from '../../src/features/matches/responseGroups';
 import { mergeHistory, type HistoryRow } from '../../src/features/notifications/history';
 import { detailPath } from '../../src/features/calendar/events';
-import { mapsUrl } from '../../src/lib/maps';
+import { mapsUrl, venueDestination } from '../../src/lib/maps';
 import type { Participation } from '../../src/features/matches/api';
 
 describe('buildOpenItems', () => {
@@ -129,9 +129,9 @@ describe('detailPath', () => {
 });
 
 describe('mapsUrl', () => {
-  it('baut einen Suchlink aus der Adresse', () => {
+  it('baut einen Routenlink mit der Adresse als Ziel', () => {
     expect(mapsUrl('Turnstraße 5,  12345 Musterstadt')).toBe(
-      'https://www.google.com/maps/search/?api=1&query=Turnstra%C3%9Fe%205%2C%2012345%20Musterstadt',
+      'https://www.google.com/maps/dir/?api=1&destination=Turnstra%C3%9Fe%205%2C%2012345%20Musterstadt',
     );
   });
 
@@ -139,5 +139,17 @@ describe('mapsUrl', () => {
     expect(mapsUrl('')).toBeNull();
     expect(mapsUrl(null)).toBeNull();
     expect(mapsUrl('   ')).toBeNull();
+  });
+});
+
+describe('venueDestination', () => {
+  const hall = { name: 'Sporthalle Nord', address: 'Turnstraße 5', postal_code: '12345', city: 'Musterstadt' };
+
+  it('nimmt die genaue Anschrift, ohne den Hallennamen', () => {
+    expect(venueDestination(hall)).toBe('Turnstraße 5, 12345 Musterstadt');
+  });
+
+  it('nimmt ohne Straße den Namen dazu', () => {
+    expect(venueDestination({ ...hall, address: '' })).toBe('Sporthalle Nord, 12345 Musterstadt');
   });
 });

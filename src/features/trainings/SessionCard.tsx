@@ -23,7 +23,7 @@ import {
 import { cn } from '../../lib/cn';
 import MessagesPanel from '../messages/MessagesPanel';
 import { formatDateTime, formatTime } from '../../lib/dates';
-import { mapsUrl } from '../../lib/maps';
+import { mapsUrl, venueDestination } from '../../lib/maps';
 import { formatVenueAddress } from '../venues/schemas';
 import type { Venue } from '../venues/api';
 import {
@@ -199,7 +199,7 @@ export default function SessionCard({
     }
   }
 
-  const route = venue ? mapsUrl(formatVenueAddress(venue)) : null;
+  const route = venue ? mapsUrl(venueDestination(venue)) : null;
   const comments = coming.filter(
     (entry) => entry.profile_id !== profileId && (entry.comment ?? '').trim() !== '',
   );
