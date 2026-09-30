@@ -1,7 +1,7 @@
 -- Wer bringt den Schlüssel zum Training? (Migration training_key_bearer)
 
 BEGIN;
-SELECT plan(22);
+SELECT plan(23);
 
 -- Erwachsenentraining (…0001): Trainerin Tina (…0003), Termin …0001 in zwei Tagen,
 -- …0003 vergangen. Jugendtraining (…0002) ist inkognito: Trainer Theo (…0004),
@@ -187,6 +187,14 @@ SELECT is(
         AND profile_id = '22222222-0000-0000-0000-000000000003')::int,
     1,
     'an die Trainerin'
+);
+
+SELECT matches(
+    (SELECT payload ->> 'link' FROM public.notifications
+      WHERE type = 'training_key_missing' AND channel = 'email'
+        AND profile_id = '22222222-0000-0000-0000-000000000003'),
+    '/\?tab=keys&date=\d{4}-\d{2}-\d{2}$',
+    'Der Link führt zum Tag im Schlüsseldienst'
 );
 
 SELECT is(

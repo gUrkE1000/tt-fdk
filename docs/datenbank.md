@@ -292,7 +292,7 @@ abgeleitet (Migration `training_key_bearer`). Gilt für jedes Training;
   eingetragen ist. Wer vom Trainer eingetragen wird, bekommt `training_key_assigned`.
 - Sagt der Eingetragene ab (`training_attendance.status = 'no'`), trägt ein Trigger ihn aus.
 - `enqueue_key_reminders()` (aus dem Erinnerungslauf) schickt den Trainern einmal je
-  Termin `training_key_missing`, wenn der Termin in den nächsten 24 Stunden liegt und
+  Termin `training_key_missing` („Kein Schlüsseldienst eingeteilt", Link zum Tag im Schlüsseldienst), wenn der Termin in den nächsten 24 Stunden liegt und
   niemand eingetragen und kein Schlüsseldienst eingeteilt ist. `training_key_reminders`
   merkt sich das; Austragen setzt es zurück.
 - Gelesen wird über `v_session_keys` (`has_bearer`, `bearer_id`, `bearer_name`). Die Tabelle
