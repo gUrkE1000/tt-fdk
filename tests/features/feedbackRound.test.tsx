@@ -162,9 +162,9 @@ describe('GameCard nach der Rückmeldungsrunde', () => {
     expect(screen.queryByRole('button', { name: /Ich kann fahren/ })).toBeNull();
   });
 
-  it('bietet „Ich fahre direkt" nur bei Auswärtsspielen an — ohne Verpflegung', () => {
+  it('bietet Fahrdienst nur bei Auswärtsspielen an — ohne Verpflegung', () => {
     const { unmount } = renderCard({ participations: [part('p-a', 'yes')] });
-    expect(screen.getByRole('button', { name: /Ich kann fahren/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Ich kann fahren/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Ich fahre direkt/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /bringe etwas mit/ })).toBeNull();
     unmount();
@@ -173,6 +173,7 @@ describe('GameCard nach der Rückmeldungsrunde', () => {
       match: { ...baseMatch, is_home: false } as MatchRow,
       participations: [part('p-a', 'yes')],
     });
+    expect(screen.getByRole('button', { name: /Ich kann fahren/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Ich fahre direkt/ })).toBeInTheDocument();
   });
 });

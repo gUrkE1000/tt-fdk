@@ -38,7 +38,8 @@ export default function VolunteerToggles({
   const { toast } = useToast();
   const toggle = useToggleVolunteer();
 
-  if (hidden) return null;
+  // Bei Heimspielen gibt es nichts zu fahren.
+  if (hidden || isHome) return null;
 
   const mine = volunteers.filter((entry) => entry.profile_id === profileId);
   const isDriver = mine.some((entry) => entry.kind === 'driver');
@@ -81,15 +82,13 @@ export default function VolunteerToggles({
           offLabel="Ich kann fahren"
           onClick={() => void flip('driver', !isDriver)}
         />
-        {!isHome && (
-          <Toggle
-            icon={Navigation}
-            on={isDirect}
-            onLabel="Fahre doch nicht direkt"
-            offLabel="Ich fahre direkt"
-            onClick={() => void flip('direct', !isDirect)}
-          />
-        )}
+        <Toggle
+          icon={Navigation}
+          on={isDirect}
+          onLabel="Fahre doch nicht direkt"
+          offLabel="Ich fahre direkt"
+          onClick={() => void flip('direct', !isDirect)}
+        />
       </div>
 
       {lines.map(({ label, entries }) => (
