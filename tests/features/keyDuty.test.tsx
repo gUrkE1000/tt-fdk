@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 
 /*
   Schlüsseldienst (KeyDutyPanel): feste Wochentage vergibt der Administrator, einen
@@ -88,12 +89,14 @@ const member = (id: string, name: string, status = 'active') => ({
   role: 'member',
 });
 
-function renderPanel(props: React.ComponentProps<typeof KeyDutyPanel> = {}) {
+function renderPanel(props: React.ComponentProps<typeof KeyDutyPanel> = {}, path = '/?tab=keys') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <ToastProvider>
-        <KeyDutyPanel {...props} />
+        <MemoryRouter initialEntries={[path]}>
+          <KeyDutyPanel {...props} />
+        </MemoryRouter>
       </ToastProvider>
     </QueryClientProvider>,
   );
@@ -238,6 +241,16 @@ describe('KeyDutyPanel', () => {
         args: { p_date: '2026-11-21', p_profile_id: 'p-otto' },
       }),
     );
+  });
+
+  it('hebt den Tag hervor, mit dem man von der Trainingsseite kommt', async () => {
+    renderPanel({}, '/?tab=keys&date=2026-10-12');
+
+    const button = await screen.findByRole('button', { name: 'Schlüsseldienst am 12.10.2026' });
+    expect(button.closest('li')).toHaveClass('bg-primary-soft');
+    expect(
+      screen.getByRole('button', { name: 'Schlüsseldienst am 05.10.2026' }).closest('li'),
+    ).not.toHaveClass('bg-primary-soft');
   });
 
   it('zeigt einem Mitglied ohne Schlüsseldienst den Plan nur zum Lesen', async () => {

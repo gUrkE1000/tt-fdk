@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { cn } from '../../lib/cn';
 import {
   Badge,
   Button,
@@ -48,11 +50,26 @@ export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps
   const [otherDate, setOtherDate] = useState('');
   const [otherPerson, setOtherPerson] = useState('');
 
+  // Von der Trainingsseite kommt man mit `?date=` direkt zu einem Tag.
+  const [params] = useSearchParams();
+  const focusDate = params.get('date');
+  const focusRef = useRef<HTMLLIElement>(null);
+
   const hasWeekday = (weekdays.data ?? []).some((entry) => entry.profile_id === profile?.id);
   const canPlan = role === 'admin' || hasWeekday;
 
   // Die Termine reichen ein Jahr voraus; gezeigt werden sie seitenweise.
-  const { shown: upcoming, rest, more } = usePaged(dates.data ?? []);
+  const { shown: upcoming, rest, more } = usePaged(
+    dates.data ?? [],
+    undefined,
+    undefined,
+    (entry) => entry.duty_date === focusDate,
+  );
+  const focusShown = upcoming.some((entry) => entry.duty_date === focusDate);
+
+  useEffect(() => {
+    if (focusShown) focusRef.current?.scrollIntoView?.({ block: 'center' });
+  }, [focusShown]);
 
   const people = useMemo(
     () =>
@@ -126,7 +143,11 @@ export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps
               {upcoming.map((entry) => (
                 <li
                   key={entry.duty_date}
-                  className="flex flex-wrap items-center justify-between gap-2 py-2"
+                  ref={entry.duty_date === focusDate ? focusRef : undefined}
+                  className={cn(
+                    'flex flex-wrap items-center justify-between gap-2 py-2',
+                    entry.duty_date === focusDate && '-mx-2 rounded-lg bg-primary-soft px-2',
+                  )}
                 >
                   <div className="min-w-0">
                     <span className="font-semibold text-gray-900">

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
 import type { ViewRow } from '../../lib/database.types';
 
@@ -23,25 +23,5 @@ export function useSessionKeys() {
       if (error) throw error;
       return data ?? [];
     },
-  });
-}
-
-/**
- * Wer den Schlüssel zu einem Trainingstermin bringt. `profileId` = die eigene ID:
- * selbst eintragen; `null`: austragen; eine andere ID: jemanden eintragen (Trainer,
- * Admin). Die Regeln prüft `rpc_set_session_key_bearer`.
- */
-export function useSetSessionKeyBearer() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ sessionId, profileId }: { sessionId: string; profileId: string | null }) => {
-      const { error } = await supabase.rpc('rpc_set_session_key_bearer', {
-        p_session_id: sessionId,
-        p_profile_id: profileId,
-      });
-      if (error) throw error;
-    },
-    onSettled: () => void queryClient.invalidateQueries({ queryKey: keyKeys.sessions() }),
   });
 }

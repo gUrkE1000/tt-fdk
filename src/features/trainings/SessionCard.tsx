@@ -298,7 +298,6 @@ export default function SessionCard({
 
             <KeyBearerRow
               session={session}
-              training={training}
               keys={keys}
               profileId={profileId}
             />
