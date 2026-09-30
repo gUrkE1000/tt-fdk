@@ -94,10 +94,12 @@ export default function GameTable({
     );
   }
 
-  function lineupCell(match: MatchRow) {
+  // Am Handy fehlt der Spaltenkopf — dort steht „Aufstellung" direkt über der Leiste.
+  function lineupCell(match: MatchRow, withLabel = false) {
     const required = match.required_players ?? 0;
     return (
       <div className="min-w-[8rem]">
+        {withLabel && <p className="text-xs font-medium text-gray-500">Aufstellung</p>}
         <p className="text-sm font-semibold tabular-nums text-gray-900">
           {`${match.confirmedCount} / ${required}`}
         </p>
@@ -174,7 +176,7 @@ export default function GameTable({
             </div>
             {opponentCell(match)}
             <p className="text-sm text-gray-500">{teamOf(match.team_id)?.name}</p>
-            {lineupCell(match)}
+            {lineupCell(match, true)}
           </CardBody>
         </Card>
       )}
