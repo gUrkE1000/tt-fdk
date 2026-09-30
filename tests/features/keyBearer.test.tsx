@@ -116,7 +116,7 @@ beforeEach(() => {
   state.tables = {
     profiles: [
       { id: 'p-me', full_name: 'Ich', status: 'active', deleted_at: null },
-      { id: 'p-anna', full_name: 'Anna', status: 'active', deleted_at: null, key_service: true },
+      { id: 'p-anna', full_name: 'Anna', status: 'active', deleted_at: null },
       { id: 'p-zora', full_name: 'Zora', status: 'active', deleted_at: null },
     ],
   };
@@ -125,17 +125,17 @@ beforeEach(() => {
 // ---------------------------------------------------------------- reine Logik
 
 describe('bearerOptions', () => {
-  it('stellt den Schlüsseldienst voran und lässt Inaktive weg', () => {
+  it('sortiert nach Namen und lässt Inaktive weg', () => {
     const members = [
-      { id: 'p-z', full_name: 'Zora', status: 'active', deleted_at: null, key_service: true },
+      { id: 'p-z', full_name: 'Zora', status: 'active', deleted_at: null },
       { id: 'p-b', full_name: 'Bert', status: 'active', deleted_at: null },
       { id: 'p-a', full_name: 'Anna', status: 'active', deleted_at: null },
       { id: 'p-x', full_name: 'Xaver', status: 'pending_approval', deleted_at: null },
     ] as MemberSummary[];
     expect(bearerOptions(members)).toEqual([
-      { value: 'p-z', label: 'Zora · Schlüsseldienst' },
       { value: 'p-a', label: 'Anna' },
       { value: 'p-b', label: 'Bert' },
+      { value: 'p-z', label: 'Zora' },
     ]);
   });
 });
@@ -188,7 +188,7 @@ describe('KeyBearerRow', () => {
     renderRow(sessionKeys());
     await userEvent.click(await screen.findByRole('button', { name: /Jemanden eintragen/ }));
     const select = await screen.findByRole('combobox', { name: 'Wer bringt den Schlüssel?' });
-    await screen.findByRole('option', { name: 'Anna · Schlüsseldienst' });
+    await screen.findByRole('option', { name: 'Anna' });
     await userEvent.selectOptions(select, 'p-zora');
     await waitFor(() =>
       expect(state.rpcCalls).toContainEqual({

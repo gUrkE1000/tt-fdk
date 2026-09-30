@@ -63,6 +63,8 @@ export type { TextareaProps } from './Textarea';
 
 export { default as Select } from './Select';
 export type { SelectProps, SelectOption } from './Select';
+export { default as SearchSelect } from './SearchSelect';
+export type { SearchSelectProps } from './SearchSelect';
 
 export { default as Checkbox } from './Checkbox';
 export type { CheckboxProps } from './Checkbox';

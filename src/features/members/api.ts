@@ -31,7 +31,7 @@ export type RankingType = Enums<'ranking_type'>;
  * (`v_members_directory`, mit Freigabe) oder – als Admin – `useAdminMembers`.
  */
 export const MEMBER_SUMMARY_COLUMNS =
-  'id, first_name, last_name, full_name, gender, member_number, role, status, no_games, qttr, contact_visible, hide_birthday, key_service, auth_linked_at, deleted_at, created_at, updated_at';
+  'id, first_name, last_name, full_name, gender, member_number, role, status, no_games, qttr, contact_visible, hide_birthday, auth_linked_at, deleted_at, created_at, updated_at';
 
 export type MemberSummary = Pick<
   Member,
@@ -52,8 +52,6 @@ export type MemberSummary = Pick<
   | 'created_at'
   | 'updated_at'
 > & {
-  /** Übernimmt Schließdienste in der Halle (Schlüsseldienst). */
-  key_service?: boolean;
 };
 
 // ---------------------------------------------------------------- Lesen
@@ -325,7 +323,7 @@ function invalidateMembers(queryClient: ReturnType<typeof useQueryClient>) {
   void queryClient.invalidateQueries({ queryKey: queryKeys.members.all });
   // Das eigene Profil steckt in der Sitzung und muss ebenfalls neu geladen werden.
   void queryClient.invalidateQueries({ queryKey: ['profile'] });
-  // Ohne Kennzeichen oder mit gelöschtem Konto fallen Schlüsseldienst-Tage weg
+  // Mit gelöschtem Konto fallen Schlüsseldienst-Tage weg
   // (Trigger `clear_key_duty_on_leave`).
   void queryClient.invalidateQueries({ queryKey: ['key-duty'] });
 }

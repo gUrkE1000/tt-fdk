@@ -78,7 +78,6 @@ const profile: Profile = {
   email: 'anna@example.com',
   phone: null,
   mobile_phone: null,
-  key_service: false,
   gender: 'female',
   birthday: '1990-04-12',
   member_number: null,

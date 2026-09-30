@@ -451,14 +451,12 @@ im Titel stehen. Vereinstermine gehören nicht ins Abo.
 ### Schlüsseldienst: `key_duty_weekdays`, `key_duty_overrides`
 
 Migration `20261105000001_feedback_round`. Wer die Halle auf- und zuschließt:
-`profiles.key_service` kennzeichnet die Personen (setzt nur der Admin, Spaltenschutz per
-Trigger). `key_duty_weekdays` hält je Wochentag (1 = Montag … 7 = Sonntag) die feste
+`key_duty_weekdays` hält je Wochentag (1 = Montag … 7 = Sonntag) die feste
 Person, `key_duty_overrides` die Vertretung für genau einen Tag — Folgetermine bleiben
 beim Wochentag. `key_duty_for(date)` liefert die Person des Tages.
 
-Vertretungen gehen nur über `rpc_set_key_duty_override(date, profile_id)`: Admin und
-jeder mit Schlüsseldienst dürfen, vertreten kann nur, wer selbst Schlüsseldienst hat;
-die Vertretung bekommt `key_duty_assigned`. `v_key_duty_dates` listet die Tage, an
+Vertretungen gehen nur über `rpc_set_key_duty_override(date, profile_id)`; die Vertretung
+bekommt `key_duty_assigned`. `v_key_duty_dates` listet die Tage, an
 denen die Halle gebraucht wird (Training findet statt oder Heimspiel), mit der Person.
 `v_session_keys` zeigt am Trainingstermin `duty_id`/`duty_name`; an einem Tag mit
 Schlüsseldienst entfällt die Erinnerung „Noch niemand bringt den Schlüssel".
@@ -469,6 +467,14 @@ eigene Schlüsseldienst steht in `v_my_upcoming` (Art `key_duty`, Status `yes`) 
 „Meine Termine" (nicht im Kalender-Abo, das rechnet `calendar_feed_items`). Einen festen Wochentag bekommt nur, wer
 Schlüsseldienst hat (Trigger); wird das Kennzeichen entfernt oder das Konto gelöscht,
 fallen Wochentage und künftige Vertretungen weg.
+
+Seit Migration `20261116000000_key_duty_without_role` gibt es das Kennzeichen
+`profiles.key_service` nicht mehr: Wochentag und Vertretung bekommt jedes aktive
+Mitglied (Trigger bzw. RPC prüfen das). Eine Vertretung eintragen dürfen der Admin, wer
+einen festen Wochentag hat, und wer an dem Tag eingeteilt ist. `v_key_duty_days` listet
+jeden Hallentag, auch ohne Person (`profile_id` NULL) — daraus wählt die Oberfläche;
+`v_key_duty_dates` ist davon der Teil mit Person. Gelöschte Konten verlieren weiterhin
+Wochentage und künftige Vertretungen.
 
 ### Systemtraining: `training_session_participants`
 

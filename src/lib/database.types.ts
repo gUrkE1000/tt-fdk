@@ -1230,7 +1230,6 @@ export interface Database {
           deleted_at: string | null;
           created_at: string;
           updated_at: string;
-          key_service: boolean;
         };
         Insert: {
           id?: string;
@@ -1255,7 +1254,6 @@ export interface Database {
           deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
-          key_service?: boolean;
         };
         Update: {
           id?: string;
@@ -1280,7 +1278,6 @@ export interface Database {
           deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
-          key_service?: boolean;
         };
         Relationships: [];
       };
@@ -2260,6 +2257,19 @@ export interface Database {
         Relationships: [];
       };
       v_key_duty_dates: {
+        Row: {
+          duty_date: string | null;
+          weekday: number | null;
+          profile_id: string | null;
+          full_name: string | null;
+          is_override: boolean | null;
+          regular_id: string | null;
+          starts_at: string | null;
+          ends_at: string | null;
+        };
+        Relationships: [];
+      };
+      v_key_duty_days: {
         Row: {
           duty_date: string | null;
           weekday: number | null;

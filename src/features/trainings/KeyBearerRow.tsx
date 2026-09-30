@@ -13,25 +13,15 @@ export interface KeyBearerRowProps {
   profileId: string | null;
 }
 
-/**
- * Wen der Trainer eintragen kann: erst, wer Schlüsseldienst hat, dann alle übrigen
- * aktiven Mitglieder, jeweils nach Namen.
- */
+/** Wen der Trainer eintragen kann: alle aktiven Mitglieder, nach Namen. */
 export function bearerOptions(members: MemberSummary[]): { value: string; label: string }[] {
   const active = members.filter((member) => member.status === 'active' && !member.deleted_at);
   const byName = (a: MemberSummary, b: MemberSummary) =>
     (a.full_name ?? '').localeCompare(b.full_name ?? '', 'de');
 
-  return [
-    ...active
-      .filter((member) => member.key_service)
-      .sort(byName)
-      .map((member) => ({ value: member.id, label: `${member.full_name ?? ''} · Schlüsseldienst` })),
-    ...active
-      .filter((member) => !member.key_service)
-      .sort(byName)
-      .map((member) => ({ value: member.id, label: member.full_name ?? '' })),
-  ];
+  return active
+    .sort(byName)
+    .map((member) => ({ value: member.id, label: member.full_name ?? '' }));
 }
 
 /**

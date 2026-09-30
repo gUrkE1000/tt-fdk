@@ -222,10 +222,8 @@ export default function DashboardPage() {
               </Suspense>
             ),
           },
-          // Nur für den Schlüsseldienst (und den Admin): die eigenen Tage und Vertretungen.
-          ...(profile?.key_service || role === 'admin'
-            ? [{ value: 'keys', label: 'Schlüsseldienst', content: <KeyDutyPanel /> }]
-            : []),
+          // Wer wann aufschließt, soll jeder sehen; eintragen dürfen die Beteiligten.
+          { value: 'keys', label: 'Schlüsseldienst', content: <KeyDutyPanel /> },
           {
             value: 'open-trainings',
             label: `Offene Trainings (${openTrainingCount})`,

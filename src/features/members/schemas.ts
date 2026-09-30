@@ -20,7 +20,6 @@ export const memberSchema = z.object({
   status: z.enum(['active', 'pending_approval', 'unconfirmed']),
   noGames: z.boolean(),
   /** Übernimmt Schließdienste in der Halle. */
-  keyService: z.boolean(),
   qttr: z
     .number({ error: 'Bitte eine Zahl eingeben' })
     .int('Bitte eine ganze Zahl')
