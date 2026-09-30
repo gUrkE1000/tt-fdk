@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 interface Row {
@@ -84,12 +84,17 @@ import { formatVenueAddress } from '../../src/features/venues/schemas';
 import { contactPeople, searchDirectory, type DirectoryEntry } from '../../src/features/club/directory';
 import { bundeslandLabel, BUNDESLAND_OPTIONS } from '../../src/lib/bundeslaender';
 
-function renderPage(ui: React.ReactElement) {
+function LocationProbe() {
+  const location = useLocation();
+  return <p>{location.pathname + location.search}</p>;
+}
+
+function renderPage(ui: React.ReactElement, path = '/') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <ToastProvider>
-        <MemoryRouter>{ui}</MemoryRouter>
+        <MemoryRouter initialEntries={[path]}>{ui}</MemoryRouter>
       </ToastProvider>
     </QueryClientProvider>,
   );
@@ -246,24 +251,58 @@ describe('Verzeichnis', () => {
 
 // ------------------------------------------------------------------ Oberfläche
 
-describe('ClubPage', () => {
-  it('zeigt alle Reiter', async () => {
-    renderPage(<ClubPage />);
+describe('Verein (zusammengelegt)', () => {
+  it('zeigt dem Administrator zusätzlich Daten, Übersicht und Betrieb', async () => {
+    renderPage(<MyClubPage />);
 
-    for (const label of ['Daten', 'Ämter', 'Neuigkeiten', 'Dateien', 'Übersicht', 'Betrieb']) {
+    for (const label of [
+      'Mitglieder',
+      'Rollen & Kontaktdaten',
+      'Neuigkeiten',
+      'Dateien',
+      'Daten',
+      'Übersicht',
+      'Betrieb',
+    ]) {
       expect(screen.getByRole('tab', { name: label })).toBeInTheDocument();
+    }
+    expect(screen.getByRole('heading', { name: 'Verein' })).toBeInTheDocument();
+  });
+
+  it('zeigt einem Mitglied nur die Reiter zum Lesen', async () => {
+    who.role = 'member';
+    try {
+      renderPage(<MyClubPage />);
+      expect(screen.getByRole('tab', { name: 'Neuigkeiten' })).toBeInTheDocument();
+      for (const label of ['Daten', 'Übersicht', 'Betrieb']) {
+        expect(screen.queryByRole('tab', { name: label })).toBeNull();
+      }
+    } finally {
+      who.role = 'admin';
     }
   });
 
+  it('leitet alte Links auf „Verein" (/club) in den passenden Reiter', async () => {
+    render(
+      <MemoryRouter initialEntries={['/club?tab=offices']}>
+        <Routes>
+          <Route path="/club" element={<ClubPage />} />
+          <Route path="/my-club" element={<LocationProbe />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText('/my-club?tab=contacts')).toBeInTheDocument();
+  });
+
   it('lädt die gespeicherten Vereinsdaten ins Formular', async () => {
-    renderPage(<ClubPage />);
+    renderPage(<MyClubPage />, '/my-club?tab=data');
 
     await waitFor(() => expect(screen.getByLabelText(/^Name/)).toHaveValue('TTC Musterstadt'));
     expect(screen.getByLabelText('Bundesland')).toHaveValue('NW');
   });
 
   it('bietet die aktiven Orte als Standardort an', async () => {
-    renderPage(<ClubPage />);
+    renderPage(<MyClubPage />, '/my-club?tab=data');
 
     const select = await screen.findByLabelText('Standardort');
     await waitFor(() =>
@@ -272,7 +311,7 @@ describe('ClubPage', () => {
   });
 
   it('speichert die geänderten Daten als Schlüssel-Wert-Paare', async () => {
-    renderPage(<ClubPage />);
+    renderPage(<MyClubPage />, '/my-club?tab=data');
 
     await waitFor(() => expect(screen.getByLabelText(/^Name/)).toHaveValue('TTC Musterstadt'));
 
@@ -288,7 +327,7 @@ describe('ClubPage', () => {
   });
 
   it('weist eine unvollständige Webadresse ab', async () => {
-    renderPage(<ClubPage />);
+    renderPage(<MyClubPage />, '/my-club?tab=data');
     await waitFor(() => expect(screen.getByLabelText(/^Name/)).toHaveValue('TTC Musterstadt'));
 
     await userEvent.type(screen.getByLabelText('Webseite'), 'ttc.example.org');
@@ -299,7 +338,7 @@ describe('ClubPage', () => {
   });
 
   it('schlägt einen Registrierungscode vor, ohne ihn schon zu speichern', async () => {
-    renderPage(<ClubPage />);
+    renderPage(<MyClubPage />, '/my-club?tab=data');
     await waitFor(() => expect(screen.getByLabelText(/^Name/)).toHaveValue('TTC Musterstadt'));
 
     await userEvent.click(screen.getByRole('button', { name: /Neuen Code vorschlagen/ }));

@@ -92,6 +92,8 @@ export const router = createBrowserRouter([
           { path: 'event/:id', element: <DetailEntry kind="event" /> },
           { path: 'my-dates', element: <MyDatesPage /> },
           { path: 'my-club', element: <MyClubPage /> },
+          // Frühere Admin-Seite „Verein" — heute Reiter von /my-club.
+          { path: 'club', element: <ClubPage /> },
           { path: 'calendar', element: <CalendarPage /> },
           { path: 'votes', element: <PollsPage /> },
           { path: 'profile', element: <ProfilePage /> },
@@ -133,7 +135,6 @@ export const router = createBrowserRouter([
             element: <RequireRole roles={['admin']} />,
             children: [
               { path: 'players', element: <MembersPage /> },
-              { path: 'club', element: <ClubPage /> },
               { path: 'hall-closures', element: <HallClosuresPage /> },
             ],
           },

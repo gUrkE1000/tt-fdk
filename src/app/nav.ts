@@ -12,7 +12,6 @@ import {
   Calendar,
   Vote,
   UserCog,
-  Settings,
   MapPin,
   Inbox,
   CalendarOff,
@@ -59,7 +58,7 @@ export const NAV: NavSection[] = [
   {
     section: 'Verein',
     items: [
-      { to: '/my-club', label: 'Mein Verein', icon: Building2, roles: [] },
+      { to: '/my-club', label: 'Verein', icon: Building2, roles: [] },
       {
         // Für alle sichtbar, weil die Freigabe am Training hängt und nicht an der
         // Rolle (`statistics_visibility`): Ein Mitglied einer freigegebenen Gruppe
@@ -111,7 +110,6 @@ export const NAV: NavSection[] = [
     section: 'Verwalten',
     items: [
       { to: '/players', label: 'Mitglieder', icon: UserCog, roles: ['admin'] },
-      { to: '/club', label: 'Verein', icon: Settings, roles: ['admin'] },
       {
         to: '/venues',
         label: 'Orte & Schlüsseldienst',

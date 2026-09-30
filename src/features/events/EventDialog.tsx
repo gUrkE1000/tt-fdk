@@ -172,7 +172,7 @@ export default function EventDialog({ open, onOpenChange, event }: EventDialogPr
           <Checkbox
             checked={form.watch('hideInMyClub')}
             onCheckedChange={(value) => form.setValue('hideInMyClub', value)}
-            label="Termin unter „Mein Verein“ nicht anzeigen"
+            label="Termin unter „Verein“ nicht anzeigen"
           />
           <Checkbox
             checked={form.watch('excludeCalendar')}

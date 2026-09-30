@@ -129,7 +129,7 @@ export default function ClubRolesTab() {
         <EmptyState
           icon={BadgeCheck}
           title="Noch keine Ämter"
-          description="Jugendwart, Kassier, Pressewart — wer im Verein wofür zuständig ist, steht danach unter „Mein Verein“ für alle nachlesbar."
+          description="Jugendwart, Kassier, Pressewart — wer im Verein wofür zuständig ist, steht danach unter „Verein“ für alle nachlesbar."
         />
       ) : (
         <div className="space-y-3">

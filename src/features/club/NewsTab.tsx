@@ -125,7 +125,7 @@ export default function NewsTab({ canEdit = false }: NewsTabProps) {
       {canEdit && (
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-gray-600">
-            Neuigkeiten stehen unter „Mein Verein“ für alle. Beim Schreiben entscheidest
+            Neuigkeiten stehen unter „Verein“ für alle. Beim Schreiben entscheidest
             du, ob alle Mitglieder einen Hinweis bekommen.
           </p>
           <Button

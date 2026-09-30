@@ -17,6 +17,11 @@ import {
 import Placeholder from '../../app/Placeholder';
 import { roleLabel } from '../../lib/labels';
 import { useClubSettings } from './api';
+import { useSession } from '../auth/session';
+import ClubDataTab from './ClubDataTab';
+import ClubOverviewTab from './ClubOverviewTab';
+import ClubRolesTab from './ClubRolesTab';
+import AdminPage from '../admin/AdminPage';
 import { SESSION_WINDOW_DAYS } from '../trainings/api';
 import { useClubRoles } from './rolesApi';
 import NewsTab from './NewsTab';
@@ -27,8 +32,14 @@ import OpenTrainingsList from '../trainings/OpenTrainingsList';
 import ClubEventsTab from './ClubEventsTab';
 import { contactPeople, searchDirectory, useDirectory, type DirectoryEntry } from './directory';
 
+/**
+ * „Verein" — für alle dieselbe Seite. Mitglieder lesen, der Administrator bearbeitet in
+ * denselben Reitern (Neuigkeiten, Ämter) und hat dazu Daten, Übersicht und Betrieb.
+ * Früher waren das zwei Menüpunkte („Mein Verein" und „Verein"); `/club` leitet her.
+ */
 export default function MyClubPage() {
   const settings = useClubSettings();
+  const isAdmin = useSession().role === 'admin';
   // Der Reiter steht in der Adresse, damit Links aus Benachrichtigungen und aus
   // „Offen für dich" direkt dort landen (z. B. /my-club?tab=news).
   const [search, setSearch] = useSearchParams();
@@ -36,7 +47,7 @@ export default function MyClubPage() {
   return (
     <div>
       <PageHeader
-        title="Mein Verein"
+        title="Verein"
         description={settings.data?.club_name ?? undefined}
       />
 
@@ -51,12 +62,16 @@ export default function MyClubPage() {
             // schon auf dieser Seite ist.
             content: <MembersDirectory key={search.get('q') ?? ''} />,
           },
-          { value: 'contacts', label: 'Rollen & Kontaktdaten', content: <Contacts /> },
+          {
+            value: 'contacts',
+            label: 'Rollen & Kontaktdaten',
+            content: <Contacts editRoles={isAdmin} />,
+          },
           { value: 'trainings', label: 'Trainings', content: <ClubTrainingsTab /> },
           { value: 'events', label: 'Vereinstermine', content: <ClubEventsTab /> },
           { value: 'teams', label: 'Mannschaften', content: <ClubTeamsTab /> },
           { value: 'games', label: 'Spiele', content: <ClubGamesTab /> },
-          { value: 'news', label: 'Neuigkeiten', content: <NewsTab /> },
+          { value: 'news', label: 'Neuigkeiten', content: <NewsTab canEdit={isAdmin} /> },
           {
             value: 'files',
             label: 'Dateien',
@@ -67,6 +82,14 @@ export default function MyClubPage() {
             label: 'Über den Verein',
             content: <About text={settings.data?.about_html ?? ''} />,
           },
+          // Nur für den Administrator: verwalten, was oben alle lesen.
+          ...(isAdmin
+            ? [
+                { value: 'data', label: 'Daten', content: <ClubDataTab /> },
+                { value: 'overview', label: 'Übersicht', content: <ClubOverviewTab /> },
+                { value: 'operations', label: 'Betrieb', content: <AdminPage /> },
+              ]
+            : []),
         ]}
       />
     </div>
@@ -154,17 +177,18 @@ function MembersDirectory() {
   );
 }
 
-function Contacts() {
+/** `editRoles`: der Administrator legt die Ämter hier auch an und bearbeitet sie. */
+function Contacts({ editRoles = false }: { editRoles?: boolean }) {
   const directory = useDirectory();
   const people = contactPeople(directory.data ?? []);
 
-  if (people.length === 0) {
+  if (people.length === 0 && !editRoles) {
     return <EmptyState icon={Users} title="Keine Ansprechpartner hinterlegt" />;
   }
 
   return (
     <div className="space-y-6">
-      <ClubRolesList />
+      {editRoles ? <ClubRolesTab /> : <ClubRolesList />}
 
       <div className="space-y-3">
         <div>

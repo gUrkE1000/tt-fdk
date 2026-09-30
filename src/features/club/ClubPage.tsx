@@ -1,30 +1,21 @@
-import { PageHeader, Tabs } from '../../components/ui';
-import Placeholder from '../../app/Placeholder';
-import ClubDataTab from './ClubDataTab';
-import ClubOverviewTab from './ClubOverviewTab';
-import AdminPage from '../admin/AdminPage';
-import ClubRolesTab from './ClubRolesTab';
-import NewsTab from './NewsTab';
+import { Navigate, useSearchParams } from 'react-router-dom';
 
+/** Frühere Reiter von „Verein" (`/club`) und wo sie heute stehen. */
+const TABS: Record<string, string> = {
+  data: 'data',
+  offices: 'contacts',
+  news: 'news',
+  files: 'files',
+  overview: 'overview',
+  operations: 'operations',
+};
+
+/**
+ * „Verein" und „Mein Verein" sind eine Seite (`/my-club`). Alte Links und Lesezeichen
+ * auf `/club` landen im passenden Reiter.
+ */
 export default function ClubPage() {
-  return (
-    <div>
-      <PageHeader title="Verein" description="Vereinsdaten, Ämter und Übersicht." />
-
-      <Tabs
-        tabs={[
-          { value: 'data', label: 'Daten', content: <ClubDataTab /> },
-          { value: 'offices', label: 'Ämter', content: <ClubRolesTab /> },
-          { value: 'news', label: 'Neuigkeiten', content: <NewsTab canEdit /> },
-          {
-            value: 'files',
-            label: 'Dateien',
-            content: <Placeholder title="Vereinsdateien" task="9.4" />,
-          },
-          { value: 'overview', label: 'Übersicht', content: <ClubOverviewTab /> },
-          { value: 'operations', label: 'Betrieb', content: <AdminPage /> },
-        ]}
-      />
-    </div>
-  );
+  const [search] = useSearchParams();
+  const tab = TABS[search.get('tab') ?? ''] ?? 'data';
+  return <Navigate to={`/my-club?tab=${tab}`} replace />;
 }
