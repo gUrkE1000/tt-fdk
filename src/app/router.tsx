@@ -126,11 +126,14 @@ export const router = createBrowserRouter([
             children: [{ path: 'dates', element: <EventsPage /> }],
           },
           {
+            element: <RequireRole roles={['admin']} keyService />,
+            children: [{ path: 'venues', element: <VenuesPage /> }],
+          },
+          {
             element: <RequireRole roles={['admin']} />,
             children: [
               { path: 'players', element: <MembersPage /> },
               { path: 'club', element: <ClubPage /> },
-              { path: 'venues', element: <VenuesPage /> },
               { path: 'hall-closures', element: <HallClosuresPage /> },
             ],
           },

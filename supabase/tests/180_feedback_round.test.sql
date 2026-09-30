@@ -173,8 +173,8 @@ SELECT ok(
 -- ============================================================ Schlüsseldienst
 DO $$ BEGIN PERFORM tests.login_as('22222222-1111-0000-0000-000000000001'); END $$;
 
-SELECT hasnt_column('public', 'profiles', 'key_service',
-    'Ein Kennzeichen „Schlüsseldienst" gibt es nicht mehr');
+SELECT col_default_is('public', 'profiles', 'key_service', 'false',
+    'Das Kennzeichen „Schlüsseldienst" ist zunächst aus');
 
 DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000001'); END $$;
 

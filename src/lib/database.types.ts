@@ -1230,6 +1230,7 @@ export interface Database {
           deleted_at: string | null;
           created_at: string;
           updated_at: string;
+          key_service: boolean;
         };
         Insert: {
           id?: string;
@@ -1254,6 +1255,7 @@ export interface Database {
           deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
+          key_service?: boolean;
         };
         Update: {
           id?: string;
@@ -1278,6 +1280,7 @@ export interface Database {
           deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
+          key_service?: boolean;
         };
         Relationships: [];
       };
@@ -2527,6 +2530,10 @@ export interface Database {
         Returns: unknown;
       };
       is_admin: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
+      is_key_service: {
         Args: Record<string, never>;
         Returns: unknown;
       };

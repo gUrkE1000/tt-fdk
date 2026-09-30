@@ -24,7 +24,7 @@ import {
 } from './dutyApi';
 
 export interface KeyDutyPanelProps {
-  /** Die festen Wochentage bearbeiten (nur der Administrator). */
+  /** Die festen Wochentage bearbeiten (Administrator und Schlüsseldienst). */
   editWeekdays?: boolean;
 }
 
@@ -36,8 +36,9 @@ const NOBODY = { value: '', label: 'niemand' };
  * Die Folgetermine bleiben beim festen Inhaber.
  *
  * Schlüsseldienst übernehmen kann jedes aktive Mitglied — ausgewählt per Suche. Für
- * einen Tag eintragen dürfen der Administrator, wer einen festen Wochentag hat, und
- * wer an dem Tag eingeteilt ist. Die Regeln prüft die Datenbank.
+ * einen Tag eintragen dürfen der Administrator, wer das Kennzeichen „Schlüsseldienst“
+ * oder einen festen Wochentag hat, und wer an dem Tag eingeteilt ist. Die Regeln
+ * prüft die Datenbank.
  */
 export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps) {
   const { profile, role } = useSession();
@@ -56,7 +57,7 @@ export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps
   const focusRef = useRef<HTMLLIElement>(null);
 
   const hasWeekday = (weekdays.data ?? []).some((entry) => entry.profile_id === profile?.id);
-  const canPlan = role === 'admin' || hasWeekday;
+  const canPlan = role === 'admin' || profile?.key_service === true || hasWeekday;
 
   // Die Termine reichen ein Jahr voraus; gezeigt werden sie seitenweise.
   const { shown: upcoming, rest, more } = usePaged(

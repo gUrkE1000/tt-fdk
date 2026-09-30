@@ -30,6 +30,8 @@ export interface NavItem {
   icon: LucideIcon;
   /** Leer = für alle angemeldeten Rollen sichtbar. */
   roles: Role[];
+  /** Auch sichtbar für Mitglieder mit dem Kennzeichen „Schlüsseldienst“. */
+  keyService?: boolean;
   /** Für die Bottom-Bar auf dem Smartphone. */
   primary?: boolean;
 }
@@ -110,7 +112,13 @@ export const NAV: NavSection[] = [
     items: [
       { to: '/players', label: 'Mitglieder', icon: UserCog, roles: ['admin'] },
       { to: '/club', label: 'Verein', icon: Settings, roles: ['admin'] },
-      { to: '/venues', label: 'Orte & Schlüsseldienst', icon: MapPin, roles: ['admin'] },
+      {
+        to: '/venues',
+        label: 'Orte & Schlüsseldienst',
+        icon: MapPin,
+        roles: ['admin'],
+        keyService: true,
+      },
     ],
   },
 ];
@@ -119,12 +127,15 @@ export const NAV: NavSection[] = [
  * Filtert die Navigation auf das, was diese Rolle sehen darf.
  * Abschnitte ohne sichtbare Einträge fallen weg.
  */
-export function visibleNav(role: Role | null | undefined): NavSection[] {
+export function visibleNav(role: Role | null | undefined, keyService = false): NavSection[] {
   if (!role) return [];
 
   return NAV.map((section) => ({
     ...section,
-    items: section.items.filter((item) => item.roles.length === 0 || item.roles.includes(role)),
+    items: section.items.filter(
+      (item) =>
+        item.roles.length === 0 || item.roles.includes(role) || (keyService && item.keyService),
+    ),
   })).filter((section) => section.items.length > 0);
 }
 

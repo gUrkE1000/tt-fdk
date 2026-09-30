@@ -12,12 +12,21 @@ interface SidebarProps {
    * eigenen Eintrag hat. Sonst stünde die Seite von vorhin danach zweimal da.
    */
   replace?: boolean;
+  /** Hat das Kennzeichen „Schlüsseldienst“ (sieht „Orte & Schlüsseldienst“). */
+  keyService?: boolean;
   /** Zähler je Ziel, z. B. offene Rückmeldungen an „Übersicht". */
   badges?: Record<string, number>;
 }
 
-export default function Sidebar({ role, clubName, onNavigate, replace, badges }: SidebarProps) {
-  const sections = visibleNav(role);
+export default function Sidebar({
+  role,
+  keyService = false,
+  clubName,
+  onNavigate,
+  replace,
+  badges,
+}: SidebarProps) {
+  const sections = visibleNav(role, keyService);
 
   return (
     <nav className="flex h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white">

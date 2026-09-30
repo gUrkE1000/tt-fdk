@@ -65,12 +65,16 @@ export function RequireAuth() {
   return <Outlet />;
 }
 
-/** Schützt Routen, die nur bestimmte Rollen sehen dürfen. */
-export function RequireRole({ roles }: { roles: Role[] }) {
-  const { role, loading, loadingDetail } = useSession();
+/**
+ * Schützt Routen, die nur bestimmte Rollen sehen dürfen. Mit `keyService` auch
+ * Mitglieder mit dem Kennzeichen „Schlüsseldienst“.
+ */
+export function RequireRole({ roles, keyService = false }: { roles: Role[]; keyService?: boolean }) {
+  const { role, profile, loading, loadingDetail } = useSession();
 
   if (loading) return <LoadingScreen detail={loadingDetail} />;
-  if (!role || !roles.includes(role)) return <Navigate to="/" replace />;
+  const allowed = role !== null && (roles.includes(role) || (keyService && profile?.key_service === true));
+  if (!allowed) return <Navigate to="/" replace />;
 
   return <Outlet />;
 }

@@ -59,11 +59,18 @@ vi.mock('../../src/lib/supabaseClient', () => ({
 import ClubPage from '../../src/features/club/ClubPage';
 import MyClubPage from '../../src/features/club/MyClubPage';
 // Die Seite braucht die Rolle: Der Administrator sieht und verwaltet alle Spiele.
+const who = vi.hoisted(() => ({ role: 'admin', keyService: false }));
 vi.mock('../../src/features/auth/session', () => ({
   useSession: () => ({
     session: null,
-    profile: { id: 'p-admin', first_name: 'Anna', full_name: 'Anna Admin', status: 'active' },
-    role: 'admin',
+    profile: {
+      id: 'p-admin',
+      first_name: 'Anna',
+      full_name: 'Anna Admin',
+      status: 'active',
+      key_service: who.keyService,
+    },
+    role: who.role,
     loading: false,
     previousLoginAt: null,
   }),
@@ -350,6 +357,23 @@ describe('VenuesPage', () => {
 
     await waitFor(() => expect(state.updates).toHaveLength(1));
     expect(state.updates[0]).toEqual({ table: 'venues', values: { active: false } });
+  });
+
+  it('zeigt dem Schlüsseldienst die Orte nur zum Lesen, den Schlüsseldienst zum Planen', async () => {
+    who.role = 'member';
+    who.keyService = true;
+    try {
+      renderPage(<VenuesPage />);
+      expect(await screen.findAllByText('Sporthalle Musterstadt')).not.toHaveLength(0);
+      expect(screen.queryByRole('button', { name: /Ort anlegen/ })).toBeNull();
+      expect(screen.queryByRole('button', { name: /bearbeiten/ })).toBeNull();
+      expect(screen.queryByRole('button', { name: /stilllegen/ })).toBeNull();
+      expect(await screen.findByText('Feste Wochentage')).toBeInTheDocument();
+      expect(screen.getByText('Anderer Tag')).toBeInTheDocument();
+    } finally {
+      who.role = 'admin';
+      who.keyService = false;
+    }
   });
 
   it('führt den Schlüsseldienst unter den Orten — ohne Schlüsselverwaltung', async () => {

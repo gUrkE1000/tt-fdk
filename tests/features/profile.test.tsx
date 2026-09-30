@@ -87,6 +87,7 @@ const profile: Profile = {
   qttr: 1420,
   contact_visible: true,
   hide_birthday: false,
+  key_service: false,
   emails_copies: [],
   reminder_games_hours: 48,
   auth_linked_at: null,
