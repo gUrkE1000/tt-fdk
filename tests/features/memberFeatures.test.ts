@@ -117,9 +117,9 @@ describe('detailPath', () => {
   });
 
   it('fällt ohne ID auf die Liste zurück', () => {
-    expect(detailPath('match')).toBe('/my-club?tab=games');
-    expect(detailPath('training')).toBe('/my-club?tab=trainings');
-    expect(detailPath('event')).toBe('/my-club?tab=events');
+    expect(detailPath('match')).toBe('/my-games');
+    expect(detailPath('training')).toBe('/?tab=trainings');
+    expect(detailPath('event')).toBe('/my-dates');
   });
 
   it('lässt Schlüsseldienst und Hallensperren ohne Ziel', () => {
