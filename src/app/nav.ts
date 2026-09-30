@@ -15,6 +15,7 @@ import {
   Settings,
   MapPin,
   Inbox,
+  CalendarOff,
 } from 'lucide-react';
 
 /**
@@ -92,6 +93,13 @@ export const NAV: NavSection[] = [
         label: 'Vereinstermine',
         icon: PartyPopper,
         roles: ['admin', 'organizer'],
+      },
+      {
+        // Ausfälle sind Hallensperrungen: Sie treffen Trainings und Heimspiele gleich.
+        to: '/hall-closures',
+        label: 'Hallensperrungen',
+        icon: CalendarOff,
+        roles: ['admin'],
       },
       { to: '/calendar', label: 'Kalender', icon: Calendar, roles: [], primary: true },
       { to: '/votes', label: 'Umfragen', icon: Vote, roles: [] },

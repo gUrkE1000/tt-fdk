@@ -28,7 +28,7 @@ const GamesPage = lazy(() => import('../features/matches/GamesPage'));
 const MyGamesPage = lazy(() => import('../features/matches/MyGamesPage'));
 const SearchPage = lazy(() => import('../features/search/SearchPage'));
 const TrainingsPage = lazy(() => import('../features/trainings/TrainingsPage'));
-const CancellationsPage = lazy(() => import('../features/trainings/CancellationsPage'));
+const HallClosuresPage = lazy(() => import('../features/venues/HallClosuresPage'));
 const EventsPage = lazy(() => import('../features/events/EventsPage'));
 const PollsPage = lazy(() => import('../features/polls/PollsPage'));
 const CalendarPage = lazy(() => import('../features/calendar/CalendarPage'));
@@ -109,8 +109,8 @@ export const router = createBrowserRouter([
             element: <RequireRole roles={['admin', 'trainer']} />,
             children: [
               { path: 'trainings', element: <TrainingsPage /> },
-              { path: 'trainings/cancellations', element: <CancellationsPage /> },
-              { path: 'trainings/cancellations/:trainingId', element: <CancellationsPage /> },
+              // Frühere Adressen der Ausfälle, etwa aus Lesezeichen.
+              { path: 'trainings/cancellations/*', element: <Navigate to="/hall-closures" replace /> },
             ],
           },
           {
@@ -131,6 +131,7 @@ export const router = createBrowserRouter([
               { path: 'players', element: <MembersPage /> },
               { path: 'club', element: <ClubPage /> },
               { path: 'venues', element: <VenuesPage /> },
+              { path: 'hall-closures', element: <HallClosuresPage /> },
             ],
           },
 

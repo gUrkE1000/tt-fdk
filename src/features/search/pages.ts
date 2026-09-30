@@ -106,12 +106,12 @@ const ACTIONS: PageEntry[] = [
     roles: ['admin', 'team_leader'],
   },
   {
-    id: 'training-cancel',
-    label: 'Trainingsausfall eintragen',
-    hint: 'Trainings',
-    to: '/trainings/cancellations',
-    keywords: ['ausfall', 'training absagen', 'fällt aus', 'hallensperrung'],
-    roles: ['admin', 'trainer'],
+    id: 'hall-closure',
+    label: 'Hallensperrung eintragen',
+    hint: 'Hallensperrungen',
+    to: '/hall-closures',
+    keywords: ['ausfall', 'training absagen', 'fällt aus', 'hallensperrung', 'halle gesperrt'],
+    roles: ['admin'],
   },
   {
     id: 'invite',

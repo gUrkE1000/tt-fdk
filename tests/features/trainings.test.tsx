@@ -26,6 +26,7 @@ function makeBuilder(table: string) {
     range: () => chain,
     is: () => chain,
     eq: () => chain,
+    gte: () => chain,
     insert: (values: unknown) => {
       state.inserts.push({ table, values });
       return {
@@ -87,12 +88,11 @@ vi.mock('../../src/features/auth/session', () => ({
 }));
 
 import TrainingsPage from '../../src/features/trainings/TrainingsPage';
-import CancellationsPage from '../../src/features/trainings/CancellationsPage';
+import HallClosuresPage from '../../src/features/venues/HallClosuresPage';
+import { EMPTY_HALL_CLOSURE, hallClosureSchema } from '../../src/features/venues/schemas';
 import { ToastProvider } from '../../src/components/ui';
 import {
-  EMPTY_CANCELLATION,
   EMPTY_TRAINING,
-  cancellationSchema,
   formatSchedule,
   resolveAssignment,
   toTimeInput,
@@ -263,19 +263,15 @@ describe('Trainings-Schema', () => {
   });
 });
 
-describe('Ausfall-Schema', () => {
+describe('Hallensperrung-Schema', () => {
   it('verlangt ein Datum', () => {
-    expect(
-      cancellationSchema.safeParse({ ...EMPTY_CANCELLATION, trainingId: 'tr-1' }).success,
-    ).toBe(false);
+    expect(hallClosureSchema.safeParse({ ...EMPTY_HALL_CLOSURE, venueId: 'v-1' }).success).toBe(
+      false,
+    );
   });
 
-  it('verlangt beim Hallenausfall einen Ort', () => {
-    const result = cancellationSchema.safeParse({
-      ...EMPTY_CANCELLATION,
-      target: 'venue',
-      fromDate: '2026-11-08',
-    });
+  it('verlangt eine Halle', () => {
+    const result = hallClosureSchema.safeParse({ ...EMPTY_HALL_CLOSURE, fromDate: '2026-11-08' });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].message).toMatch(/Ort auswählen/);
@@ -283,9 +279,9 @@ describe('Ausfall-Schema', () => {
   });
 
   it('weist ein Ende vor dem Anfang zurück', () => {
-    const result = cancellationSchema.safeParse({
-      ...EMPTY_CANCELLATION,
-      trainingId: 'tr-1',
+    const result = hallClosureSchema.safeParse({
+      ...EMPTY_HALL_CLOSURE,
+      venueId: 'v-1',
       fromDate: '2026-11-08',
       toDate: '2026-11-01',
     });
@@ -294,11 +290,8 @@ describe('Ausfall-Schema', () => {
 
   it('nimmt einen einzelnen Tag ohne Ende an', () => {
     expect(
-      cancellationSchema.safeParse({
-        ...EMPTY_CANCELLATION,
-        trainingId: 'tr-1',
-        fromDate: '2026-11-08',
-      }).success,
+      hallClosureSchema.safeParse({ ...EMPTY_HALL_CLOSURE, venueId: 'v-1', fromDate: '2026-11-08' })
+        .success,
     ).toBe(true);
   });
 });
@@ -558,34 +551,103 @@ describe('Trainingsdialog', () => {
   });
 });
 
-// ------------------------------------------------------------------ Ausfälle
+// ------------------------------------------------------------------ Hallensperrungen
 
-describe('CancellationsPage', () => {
-  it('listet Ausfälle je Training und für ganze Hallen', async () => {
-    renderPage(<CancellationsPage />, '/trainings/cancellations');
+describe('HallClosuresPage', () => {
+  it('listet Hallensperrungen und frühere Ausfälle einzelner Trainings', async () => {
+    renderPage(<HallClosuresPage />, '/hall-closures');
 
-    expect(await screen.findAllByText('Herbstferien')).not.toHaveLength(0);
-    expect(screen.getAllByText('Wahllokal').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('ganze Halle').length).toBeGreaterThan(0);
+    expect(await screen.findAllByText('Wahllokal')).not.toHaveLength(0);
+    expect(screen.getAllByText('Sporthalle Musterstadt').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Herbstferien').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('nur dieses Training').length).toBeGreaterThan(0);
   });
 
-  it('markiert einen Ausfall, über den per E-Mail informiert wurde', async () => {
-    renderPage(<CancellationsPage />, '/trainings/cancellations');
-    expect(await screen.findAllByText('per E-Mail gemeldet')).not.toHaveLength(0);
+  it('zeigt die Heimspiele, die in die Sperrung fallen', async () => {
+    state.tables.matches = [
+      {
+        id: 'm-1',
+        team_id: 'te-1',
+        is_home: true,
+        active: true,
+        venue_id: 'v-1',
+        dtstart: '2026-11-08T13:00:00Z',
+        opponent: 'TTC Nachbarstadt',
+      },
+      {
+        id: 'm-2',
+        team_id: 'te-1',
+        is_home: false,
+        active: true,
+        venue_id: null,
+        dtstart: '2026-11-08T13:00:00Z',
+        opponent: 'SV Auswärts',
+      },
+    ];
+    renderPage(<HallClosuresPage />, '/hall-closures');
+
+    expect(await screen.findAllByText('1 Heimspiel betroffen')).not.toHaveLength(0);
+    expect(screen.getAllByText(/gegen TTC Nachbarstadt — muss verlegt werden/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/SV Auswärts/)).toBeNull();
   });
 
-  it('nimmt einen Ausfall erst nach Rückfrage zurück', async () => {
-    renderPage(<CancellationsPage />, '/trainings/cancellations');
-    await screen.findAllByText('Herbstferien');
+  it('legt eine Sperrung für eine Halle an', async () => {
+    renderPage(<HallClosuresPage />, '/hall-closures');
+    await screen.findAllByText('Wahllokal');
 
-    await userEvent.click(screen.getAllByRole('button', { name: /zurücknehmen/ })[0]);
+    await userEvent.click(screen.getByRole('button', { name: /Hallensperrung anlegen/ }));
+    await userEvent.selectOptions(await screen.findByRole('combobox', { name: /^Halle/ }), 'v-1');
+    await userEvent.type(screen.getByLabelText(/Von/), '2026-12-05');
+    await userEvent.type(screen.getByLabelText(/Grund/), 'Weihnachtsfeier');
+    await userEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    await waitFor(() =>
+      expect(state.inserts).toContainEqual({
+        table: 'training_cancellations',
+        values: expect.objectContaining({
+          training_id: null,
+          venue_id: 'v-1',
+          from_date: '2026-12-05',
+          to_date: '2026-12-05',
+          reason: 'Weihnachtsfeier',
+        }),
+      }),
+    );
+  });
+
+  it('ändert eine bestehende Sperrung', async () => {
+    renderPage(<HallClosuresPage />, '/hall-closures');
+    await screen.findAllByText('Wahllokal');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /Sperrung vom 08.11.2026 ändern/ })[0]);
+    const bis = await screen.findByLabelText(/Bis/);
+    await userEvent.type(bis, '2026-11-09');
+    await userEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    await waitFor(() =>
+      expect(state.updates).toContainEqual({
+        table: 'training_cancellations',
+        values: expect.objectContaining({
+          venue_id: 'v-1',
+          from_date: '2026-11-08',
+          to_date: '2026-11-09',
+        }),
+      }),
+    );
+  });
+
+  it('hebt eine Sperrung erst nach Rückfrage auf', async () => {
+    renderPage(<HallClosuresPage />, '/hall-closures');
+    await screen.findAllByText('Wahllokal');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /Sperrung vom 20.10.2026 aufheben/ })[0]);
 
     expect(
       await screen.findByText(/Termine, die ein Trainer von Hand abgesagt hat, bleiben abgesagt/),
     ).toBeInTheDocument();
     expect(state.deletes).toHaveLength(0);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Zurücknehmen' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Aufheben' }));
 
     await waitFor(() =>
       expect(state.deletes).toContainEqual({ table: 'training_cancellations', value: 'c-1' }),

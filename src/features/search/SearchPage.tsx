@@ -304,9 +304,6 @@ function HitActions({ hit, profileId }: { hit: SearchHit; profileId: string | nu
     }
     if (hit.kind === 'team') links.push({ to: '/teams', label: 'Kader bearbeiten' });
     if (hit.kind === 'match') links.push({ to: hit.target, label: 'Spieler verwalten' });
-    if ((hit.kind === 'training' || hit.kind === 'session') && typeof hit.meta.training_id === 'string') {
-      links.push({ to: `/trainings/cancellations/${hit.meta.training_id}`, label: 'Ausfall eintragen' });
-    }
     if (hit.kind === 'event') links.push({ to: '/dates', label: 'Bearbeiten' });
     if (hit.kind === 'venue') links.push({ to: '/venues', label: 'Bearbeiten' });
     if (hit.kind === 'office') links.push({ to: '/club', label: 'Bearbeiten' });

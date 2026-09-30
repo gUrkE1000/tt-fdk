@@ -406,6 +406,18 @@ export function useCreateCancellation() {
   });
 }
 
+export function useUpdateCancellation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...values }: UpdateDto<'training_cancellations'> & { id: string }) => {
+      const { error } = await supabase.from('training_cancellations').update(values).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => invalidate(queryClient),
+  });
+}
+
 export function useDeleteCancellation() {
   const queryClient = useQueryClient();
 

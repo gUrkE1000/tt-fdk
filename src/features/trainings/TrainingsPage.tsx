@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CalendarOff, Pencil, Plus, Trash2, UserPlus } from 'lucide-react';
+import { Pencil, Plus, Trash2, UserPlus } from 'lucide-react';
 import TableTennis from '../../components/icons/TableTennis';
 import {
   Badge,
@@ -34,7 +33,6 @@ import {
 import AssignMembersDialog from './AssignMembersDialog';
 import OpenTrainingsList from './OpenTrainingsList';
 import SessionsTab from './SessionsTab';
-import CancellationDialog from './CancellationDialog';
 import TrainingDialog from './TrainingDialog';
 
 export default function TrainingsPage() {
@@ -59,7 +57,6 @@ export default function TrainingsPage() {
  * der häufigste Eingriff ist — zum Saisonende trifft es mehrere auf einmal.
  */
 function PlanningTab() {
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const trainings = useTrainings();
@@ -74,7 +71,6 @@ function PlanningTab() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignFor, setAssignFor] = useState<string | null>(null);
-  const [cancelOpen, setCancelOpen] = useState(false);
   const [toDelete, setToDelete] = useState<TrainingWithPeople | null>(null);
 
   const trainingList = trainings.data ?? [];
@@ -129,11 +125,6 @@ function PlanningTab() {
           }}
         />
         <IconButton
-          icon={CalendarOff}
-          label={`Ausfälle von ${training.name}`}
-          onClick={() => navigate(`/trainings/cancellations/${training.id}`)}
-        />
-        <IconButton
           icon={Pencil}
           label={`${training.name} bearbeiten`}
           onClick={() => {
@@ -177,17 +168,6 @@ function PlanningTab() {
                 setAssignFor(null);
                 setAssignOpen(true);
               },
-            },
-            {
-              label: 'Ausfall anlegen',
-              icon: CalendarOff,
-              hint: 'Einzelner Tag oder Zeitraum, je Training oder Halle',
-              onSelect: () => setCancelOpen(true),
-            },
-            {
-              label: 'Alle Ausfälle ansehen',
-              icon: CalendarOff,
-              onSelect: () => navigate('/trainings/cancellations'),
             },
           ]}
         />
@@ -277,13 +257,6 @@ function PlanningTab() {
         groups={groups.data ?? []}
         members={memberList}
         trainingId={assignFor}
-      />
-
-      <CancellationDialog
-        open={cancelOpen}
-        onOpenChange={setCancelOpen}
-        trainings={trainingList}
-        venues={venues.data ?? []}
       />
 
       <Dialog
