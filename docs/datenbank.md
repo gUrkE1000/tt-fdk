@@ -468,8 +468,8 @@ eigene Schlüsseldienst steht in `v_my_upcoming` (Art `key_duty`, Status `yes`) 
 Schlüsseldienst hat (Trigger); wird das Kennzeichen entfernt oder das Konto gelöscht,
 fallen Wochentage und künftige Vertretungen weg.
 
-Seit Migration `20261116000000_key_duty_without_role` gibt es das Kennzeichen
-`profiles.key_service` nicht mehr: Wochentag und Vertretung bekommt jedes aktive
+Seit Migration `20261116000000_key_duty_without_role` begrenzt das Kennzeichen
+`profiles.key_service` die Auswahl nicht mehr: Wochentag und Vertretung bekommt jedes aktive
 Mitglied (Trigger bzw. RPC prüfen das). Eine Vertretung eintragen dürfen der Admin, wer
 einen festen Wochentag hat, und wer an dem Tag eingeteilt ist. `v_key_duty_days` listet
 jeden Hallentag, auch ohne Person (`profile_id` NULL) — daraus wählt die Oberfläche;

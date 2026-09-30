@@ -6,8 +6,8 @@
 -- Den festen Wochentag und die Vertretung für einen einzelnen Tag bekommt jedes aktive
 -- Mitglied — ausgewählt direkt im Schlüsseldienst.
 --
---   1. `key_service` und `is_key_service()` entfallen, der Spaltenschutz kennt sie
---      nicht mehr.
+--   1. `key_service` begrenzt die Auswahl nicht mehr; der Spaltenschutz kennt es
+--      vorerst nicht (20261118000000_key_service_flag nimmt es wieder auf).
 --   2. Vertretungen tragen der Administrator, wer einen festen Wochentag hat, und wer
 --      an dem Tag eingeteilt ist, ein. Vertreten kann jedes aktive Mitglied.
 --   3. `v_key_duty_days` listet jeden Hallentag, auch ohne Schlüsseldienst — damit
@@ -107,8 +107,9 @@ BEGIN
 END;
 $$;
 
-DROP FUNCTION IF EXISTS public.is_key_service();
-ALTER TABLE public.profiles DROP COLUMN IF EXISTS key_service;
+-- `key_service` und `is_key_service()` bleiben stehen: Das Kennzeichen kommt in
+-- 20261118000000_key_service_flag als Recht zum Planen zurück, und so gehen die
+-- gesetzten Häkchen beim Ausrollen nicht verloren.
 
 -- ----------------------------------------------------------------------------
 -- 2. Vertretung
