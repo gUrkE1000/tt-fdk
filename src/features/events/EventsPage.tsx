@@ -3,7 +3,7 @@ import { CalendarDays, Plus } from 'lucide-react';
 import {
   Button,
   DateInput,
-  Dialog,
+  DeleteDialog,
   EmptyState,
   FilterBar,
   PageHeader,
@@ -148,23 +148,17 @@ export default function EventsPage() {
 
       <EventDialog open={dialogOpen} onOpenChange={setDialogOpen} event={editing} />
 
-      <Dialog
+      <DeleteDialog
         open={toDelete !== null}
         onOpenChange={(next) => !next && setToDelete(null)}
         title={`${toDelete?.name ?? 'Termin'} löschen?`}
-        footer={
-          <>
-            <Button onClick={() => setToDelete(null)}>Abbrechen</Button>
-            <Button variant="danger" onClick={() => void onDeleteConfirmed()}>
-              Löschen
-            </Button>
-          </>
-        }
+        expected={toDelete?.name ?? ''}
+        onConfirm={onDeleteConfirmed}
       >
         <p className="text-sm text-gray-600">
           Mit dem Termin verschwinden auch alle Zu- und Absagen dazu.
         </p>
-      </Dialog>
+      </DeleteDialog>
     </div>
   );
 }

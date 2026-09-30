@@ -27,7 +27,7 @@ export default function QuickLinks({ links, canEdit = false }: QuickLinksProps) 
         </div>
         <p className="mt-2 text-sm text-gray-600">
           Noch keine Links hinterlegt. Unter{' '}
-          <Link to="/club" className="font-semibold text-primary underline-offset-2 hover:underline">
+          <Link to="/my-club?tab=operations" className="font-semibold text-primary underline-offset-2 hover:underline">
             Verein → Betrieb
           </Link>{' '}
           lassen sich Tabelle, TTR-Rechner und Vereinsrangliste eintragen.

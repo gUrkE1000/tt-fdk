@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Badge, Button, Dialog, FormField, Select, Textarea, useToast } from '../../components/ui';
 import { formatShortDayDate, formatTime } from '../../lib/dates';
 import { readPdfLines } from '../../lib/pdfText';
@@ -44,7 +44,13 @@ export default function NuscoreImportDialog({
 
   const [teamId, setTeamId] = useState('');
   const [sources, setSources] = useState<Partial<Record<NuscoreKind, Source>>>({});
-  const [reading, setReading] = useState<NuscoreKind | null>(null);
+  // Beide Listen dürfen gleichzeitig gelesen werden. Das erste Einlesen lädt erst
+  // pdfjs nach und dauert; wären die Felder solange gesperrt, liefe die Wahl der
+  // zweiten Datei ins Leere.
+  const [reading, setReading] = useState<NuscoreKind[]>([]);
+  // Je Liste zählt nur das zuletzt begonnene Einlesen — eine neue Datei oder ein
+  // Wechsel der Mannschaft macht ein noch laufendes ungültig.
+  const ticket = useRef<Record<NuscoreKind, number>>({ code: 0, pin: 0 });
   const [pasteOpen, setPasteOpen] = useState(false);
   const [inputKey, setInputKey] = useState(0);
 
@@ -68,6 +74,8 @@ export default function NuscoreImportDialog({
   const byId = useMemo(() => new Map(teamMatches.map((match) => [match.id, match])), [teamMatches]);
 
   function reset() {
+    ticket.current = { code: ticket.current.code + 1, pin: ticket.current.pin + 1 };
+    setReading([]);
     setSources({});
     setPasteOpen(false);
     setInputKey((key) => key + 1);
@@ -85,10 +93,14 @@ export default function NuscoreImportDialog({
   }
 
   async function onFile(kind: NuscoreKind, file: File) {
-    setReading(kind);
+    const mine = ++ticket.current[kind];
+    const current = () => ticket.current[kind] === mine;
+    setReading((kinds) => [...kinds.filter((other) => other !== kind), kind]);
     try {
-      takeLines(kind, file.name, await readPdfLines(file));
+      const lines = await readPdfLines(file);
+      if (current()) takeLines(kind, file.name, lines);
     } catch (error) {
+      if (!current()) return;
       toast(
         error instanceof Error
           ? `Die PDF ließ sich nicht lesen: ${error.message}`
@@ -96,12 +108,12 @@ export default function NuscoreImportDialog({
         'error',
       );
     } finally {
-      setReading(null);
+      if (current()) setReading((kinds) => kinds.filter((other) => other !== kind));
     }
   }
 
   async function apply() {
-    if (!plan || plan.assignments.length === 0) return;
+    if (!plan || plan.assignments.length === 0 || reading.length > 0) return;
     try {
       const { saved, failed } = await setNuscore.mutateAsync(plan.assignments);
       toast(
@@ -138,7 +150,7 @@ export default function NuscoreImportDialog({
             key={`${kind}-${inputKey}`}
             type="file"
             accept="application/pdf,.pdf"
-            disabled={!teamId || reading !== null}
+            disabled={!teamId}
             onChange={(event) => {
               const file = event.target.files?.[0];
               if (file) void onFile(kind, file);
@@ -164,7 +176,7 @@ export default function NuscoreImportDialog({
           <Button
             variant="primary"
             loading={setNuscore.isPending}
-            disabled={!plan || plan.assignments.length === 0}
+            disabled={!plan || plan.assignments.length === 0 || reading.length > 0}
             onClick={() => void apply()}
           >
             Übernehmen
@@ -197,7 +209,11 @@ export default function NuscoreImportDialog({
         {fileField('code')}
         {fileField('pin')}
 
-        {reading && <p className="text-sm text-gray-500">Die PDF wird gelesen …</p>}
+        {reading.length > 0 && (
+          <p className="text-sm text-gray-500">
+            {reading.length > 1 ? 'Die PDFs werden' : 'Die PDF wird'} gelesen …
+          </p>
+        )}
 
         <div>
           <button

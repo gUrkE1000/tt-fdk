@@ -292,7 +292,7 @@ abgeleitet (Migration `training_key_bearer`). Gilt für jedes Training;
   eingetragen ist. Wer vom Trainer eingetragen wird, bekommt `training_key_assigned`.
 - Sagt der Eingetragene ab (`training_attendance.status = 'no'`), trägt ein Trigger ihn aus.
 - `enqueue_key_reminders()` (aus dem Erinnerungslauf) schickt den Trainern einmal je
-  Termin `training_key_missing`, wenn der Termin in den nächsten 24 Stunden liegt und
+  Termin `training_key_missing` („Kein Schlüsseldienst eingeteilt", Link zum Tag im Schlüsseldienst), wenn der Termin in den nächsten 24 Stunden liegt und
   niemand eingetragen und kein Schlüsseldienst eingeteilt ist. `training_key_reminders`
   merkt sich das; Austragen setzt es zurück.
 - Gelesen wird über `v_session_keys` (`has_bearer`, `bearer_id`, `bearer_name`). Die Tabelle
@@ -451,14 +451,12 @@ im Titel stehen. Vereinstermine gehören nicht ins Abo.
 ### Schlüsseldienst: `key_duty_weekdays`, `key_duty_overrides`
 
 Migration `20261105000001_feedback_round`. Wer die Halle auf- und zuschließt:
-`profiles.key_service` kennzeichnet die Personen (setzt nur der Admin, Spaltenschutz per
-Trigger). `key_duty_weekdays` hält je Wochentag (1 = Montag … 7 = Sonntag) die feste
+`key_duty_weekdays` hält je Wochentag (1 = Montag … 7 = Sonntag) die feste
 Person, `key_duty_overrides` die Vertretung für genau einen Tag — Folgetermine bleiben
 beim Wochentag. `key_duty_for(date)` liefert die Person des Tages.
 
-Vertretungen gehen nur über `rpc_set_key_duty_override(date, profile_id)`: Admin und
-jeder mit Schlüsseldienst dürfen, vertreten kann nur, wer selbst Schlüsseldienst hat;
-die Vertretung bekommt `key_duty_assigned`. `v_key_duty_dates` listet die Tage, an
+Vertretungen gehen nur über `rpc_set_key_duty_override(date, profile_id)`; die Vertretung
+bekommt `key_duty_assigned`. `v_key_duty_dates` listet die Tage, an
 denen die Halle gebraucht wird (Training findet statt oder Heimspiel), mit der Person.
 `v_session_keys` zeigt am Trainingstermin `duty_id`/`duty_name`; an einem Tag mit
 Schlüsseldienst entfällt die Erinnerung „Noch niemand bringt den Schlüssel".
@@ -469,6 +467,20 @@ eigene Schlüsseldienst steht in `v_my_upcoming` (Art `key_duty`, Status `yes`) 
 „Meine Termine" (nicht im Kalender-Abo, das rechnet `calendar_feed_items`). Einen festen Wochentag bekommt nur, wer
 Schlüsseldienst hat (Trigger); wird das Kennzeichen entfernt oder das Konto gelöscht,
 fallen Wochentage und künftige Vertretungen weg.
+
+Seit Migration `20261116000000_key_duty_without_role` begrenzt das Kennzeichen
+`profiles.key_service` die Auswahl nicht mehr: Wochentag und Vertretung bekommt jedes aktive
+Mitglied (Trigger bzw. RPC prüfen das). Eine Vertretung eintragen dürfen der Admin, wer
+einen festen Wochentag hat, und wer an dem Tag eingeteilt ist. `v_key_duty_days` listet
+jeden Hallentag, auch ohne Person (`profile_id` NULL) — daraus wählt die Oberfläche;
+`v_key_duty_dates` ist davon der Teil mit Person. Gelöschte Konten verlieren weiterhin
+Wochentage und künftige Vertretungen.
+
+Seit Migration `20261118000000_key_service_flag` ist `profiles.key_service` wieder da —
+als Recht, nicht als Auswahlgrenze: Wer es hat (setzt nur der Admin, Spaltenschutz per
+Trigger), sieht „Orte & Schlüsseldienst", vergibt feste Wochentage (`key_duty_weekdays`,
+Policy `is_admin() OR is_key_service()`) und trägt einzelne Tage ein. Eingeteilt werden
+kann weiterhin jedes aktive Mitglied.
 
 ### Systemtraining: `training_session_participants`
 

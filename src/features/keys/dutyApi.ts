@@ -18,7 +18,8 @@ export interface KeyDutyWeekday {
 export interface KeyDutyDate {
   duty_date: string;
   weekday: number;
-  profile_id: string;
+  /** `null`: Die Halle wird gebraucht, aber niemand ist eingeteilt. */
+  profile_id: string | null;
   full_name: string | null;
   is_override: boolean;
   regular_id: string | null;
@@ -44,14 +45,14 @@ export function useKeyDutyWeekdays() {
   });
 }
 
-/** Die kommenden Tage mit Schlüsseldienst, ab heute. */
+/** Die kommenden Hallentage ab heute — auch die, an denen niemand eingeteilt ist. */
 export function useKeyDutyDates() {
   return useQuery({
     queryKey: KEYS.dates(),
     queryFn: async (): Promise<KeyDutyDate[]> => {
       const rows = await fetchAll((from, to) =>
         supabase
-          .from('v_key_duty_dates')
+          .from('v_key_duty_days')
           .select('*', { count: 'exact' })
           .gte('duty_date', todayInBerlin())
           .order('duty_date')
@@ -92,7 +93,7 @@ export function useSetKeyDutyWeekday() {
   });
 }
 
-/** Vertretung für einen Tag (`null` = zurück zum festen Inhaber). */
+/** Vertretung für einen Tag (`null` = zurück zum festen Inhaber bzw. niemand). */
 export function useSetKeyDutyOverride() {
   const invalidate = useInvalidate();
 

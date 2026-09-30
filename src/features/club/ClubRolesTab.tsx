@@ -94,8 +94,9 @@ export default function ClubRolesTab() {
   async function remove(role: ClubRoleWithMembers) {
     const ok = await confirm({
       title: `Das Amt „${role.name}" löschen?`,
-      confirmLabel: 'Löschen',
+      confirmLabel: 'Endgültig löschen',
       danger: true,
+      typeToConfirm: role.name,
     });
     if (!ok) return;
 
@@ -128,7 +129,7 @@ export default function ClubRolesTab() {
         <EmptyState
           icon={BadgeCheck}
           title="Noch keine Ämter"
-          description="Jugendwart, Kassier, Pressewart — wer im Verein wofür zuständig ist, steht danach unter „Mein Verein“ für alle nachlesbar."
+          description="Jugendwart, Kassier, Pressewart — wer im Verein wofür zuständig ist, steht danach unter „Verein“ für alle nachlesbar."
         />
       ) : (
         <div className="space-y-3">

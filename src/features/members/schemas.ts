@@ -19,7 +19,7 @@ export const memberSchema = z.object({
   role: z.enum(['admin', 'team_leader', 'trainer', 'organizer', 'member', 'guest']),
   status: z.enum(['active', 'pending_approval', 'unconfirmed']),
   noGames: z.boolean(),
-  /** Übernimmt Schließdienste in der Halle. */
+  /** Plant den Schlüsseldienst unter „Orte & Schlüsseldienst“. */
   keyService: z.boolean(),
   qttr: z
     .number({ error: 'Bitte eine Zahl eingeben' })

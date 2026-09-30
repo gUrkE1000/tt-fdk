@@ -57,7 +57,7 @@ import KeyBearerRow from '../../src/features/trainings/KeyBearerRow';
 import type { MatchRow, Participation, Volunteer } from '../../src/features/matches/api';
 import type { TeamWithRoster } from '../../src/features/teams/api';
 import type { SessionKeys } from '../../src/features/keys/api';
-import type { TrainingSession, TrainingWithPeople } from '../../src/features/trainings/api';
+import type { TrainingSession } from '../../src/features/trainings/api';
 
 const future = new Date(Date.now() + 5 * 86_400_000).toISOString();
 
@@ -162,9 +162,9 @@ describe('GameCard nach der Rückmeldungsrunde', () => {
     expect(screen.queryByRole('button', { name: /Ich kann fahren/ })).toBeNull();
   });
 
-  it('bietet „Ich fahre direkt" nur bei Auswärtsspielen an — ohne Verpflegung', () => {
+  it('bietet Fahrdienst nur bei Auswärtsspielen an — ohne Verpflegung', () => {
     const { unmount } = renderCard({ participations: [part('p-a', 'yes')] });
-    expect(screen.getByRole('button', { name: /Ich kann fahren/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Ich kann fahren/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Ich fahre direkt/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /bringe etwas mit/ })).toBeNull();
     unmount();
@@ -173,6 +173,7 @@ describe('GameCard nach der Rückmeldungsrunde', () => {
       match: { ...baseMatch, is_home: false } as MatchRow,
       participations: [part('p-a', 'yes')],
     });
+    expect(screen.getByRole('button', { name: /Ich kann fahren/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Ich fahre direkt/ })).toBeInTheDocument();
   });
 });
@@ -289,7 +290,6 @@ describe('Schlüsseldienst am Trainingstermin', () => {
     ends_at: future,
     cancelled: false,
   } as unknown as TrainingSession;
-  const training = { id: 'tr-1', venue_id: 'v-1', trainerIds: [] } as unknown as TrainingWithPeople;
   const keys = (extra: Partial<SessionKeys>) =>
     ({
       session_id: 's-1',
@@ -309,7 +309,6 @@ describe('Schlüsseldienst am Trainingstermin', () => {
     wrap(
       <KeyBearerRow
         session={session}
-        training={training}
         keys={keys({ duty_id: 'p-k', duty_name: 'Karl Klein' })}
         profileId="p-a"
       />,
@@ -322,7 +321,6 @@ describe('Schlüsseldienst am Trainingstermin', () => {
     wrap(
       <KeyBearerRow
         session={session}
-        training={training}
         keys={keys({ duty_id: 'p-a', duty_name: 'Anna' })}
         profileId="p-a"
       />,

@@ -117,15 +117,18 @@ export default function TeamDialog({ open, onOpenChange, team, members }: TeamDi
         <FormField label="Name" required error={form.formState.errors.name?.message}>
           {(p) => <Input {...p} {...form.register('name')} placeholder="1. Herren" />}
         </FormField>
-        <FormField label="Farbe" hint="Kennfarbe in Kalender und Listen.">
-          {(p) => (
-            <ColorInput
-              {...p}
-              value={form.watch('color')}
-              onChange={(value) => form.setValue('color', value ?? '')}
-            />
-          )}
-        </FormField>
+        {/* Volle Breite: Die Farbfelder brauchen Platz, sonst werden sie zu klein zum Tippen. */}
+        <div className="sm:col-span-2">
+          <FormField label="Farbe" hint="Kennfarbe in Kalender und Listen.">
+            {(p) => (
+              <ColorInput
+                {...p}
+                value={form.watch('color') || null}
+                onChange={(value) => form.setValue('color', value ?? '')}
+              />
+            )}
+          </FormField>
+        </div>
         <FormField
           label="Anzahl Spieler"
           required

@@ -13,12 +13,15 @@ import {
 import { formatDateTime, formatShortDayDate, formatTime } from '../../lib/dates';
 import type { TeamWithRoster } from '../teams/api';
 import type { Venue } from '../venues/api';
+import { getShortName } from '../../lib/names';
 import type { MatchRow } from './api';
 
 export interface GameTableProps {
   matches: MatchRow[];
   teams: TeamWithRoster[];
   venues: Venue[];
+  /** Namen zu den Profil-IDs, für die Aufstellung. */
+  nameOf: (profileId: string) => string;
   selected: string[];
   onSelectedChange: (ids: string[]) => void;
   onEdit: (match: MatchRow) => void;
@@ -34,6 +37,7 @@ export default function GameTable({
   matches,
   teams,
   venues,
+  nameOf,
   selected,
   onSelectedChange,
   onEdit,
@@ -94,14 +98,33 @@ export default function GameTable({
     );
   }
 
-  function lineupCell(match: MatchRow) {
+  // Am Handy fehlt der Spaltenkopf — dort steht „Aufstellung" direkt über der Leiste.
+  function lineupCell(match: MatchRow, withLabel = false) {
     const required = match.required_players ?? 0;
     return (
       <div className="min-w-[8rem]">
+        {withLabel && <p className="text-xs font-medium text-gray-500">Aufstellung</p>}
         <p className="text-sm font-semibold tabular-nums text-gray-900">
           {`${match.confirmedCount} / ${required}`}
         </p>
         <ProgressBar value={match.confirmedCount} max={required} />
+        {/* Wie auf der Spielkarte: Vorname und Nachnamen-Initiale. */}
+        {match.lineupIds.length > 0 && (
+          <ul className="mt-1.5 flex flex-wrap gap-1" aria-label="Aufstellung">
+            {match.lineupIds.map((id) => {
+              const full = nameOf(id);
+              return (
+                <li
+                  key={id}
+                  title={full}
+                  className="max-w-full truncate rounded-full border border-primary-border bg-primary-soft px-2 py-0.5 text-xs font-semibold text-primary"
+                >
+                  {getShortName(full) || 'Unbekannt'}
+                </li>
+              );
+            })}
+          </ul>
+        )}
         <div className="mt-1.5 flex flex-wrap gap-1">
           <Button size="sm" onClick={() => onManagePlayers(match)}>
             <Users className="h-3.5 w-3.5" aria-hidden="true" />
@@ -174,7 +197,7 @@ export default function GameTable({
             </div>
             {opponentCell(match)}
             <p className="text-sm text-gray-500">{teamOf(match.team_id)?.name}</p>
-            {lineupCell(match)}
+            {lineupCell(match, true)}
           </CardBody>
         </Card>
       )}

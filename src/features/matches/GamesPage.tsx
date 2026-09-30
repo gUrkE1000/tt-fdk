@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Download, KeyRound, Plus, SlidersHorizontal, Trash2, Users } from 'lucide-react';
 import {
   Button,
-  Dialog,
+  DeleteDialog,
   EmptyState,
   FilterBar,
   PageHeader,
@@ -202,6 +202,7 @@ export default function GamesPage() {
         matches={rows}
         teams={teamList}
         venues={venueList}
+        nameOf={nameOf}
         selected={selected}
         onSelectedChange={setSelected}
         onEdit={(match) => {
@@ -479,7 +480,7 @@ export default function GamesPage() {
         match={rescheduling}
       />
 
-      <Dialog
+      <DeleteDialog
         open={cleanupOpen}
         onOpenChange={setCleanupOpen}
         title={
@@ -487,23 +488,18 @@ export default function GamesPage() {
             ? 'Entfallenen Spieltermin löschen?'
             : `${cancelled.length} entfallene Spieltermine löschen?`
         }
-        footer={
-          <>
-            <Button onClick={() => setCleanupOpen(false)}>Abbrechen</Button>
-            <Button variant="danger" onClick={() => void onCleanupConfirmed()}>
-              Aufräumen
-            </Button>
-          </>
-        }
+        expected="löschen"
+        confirmLabel="Aufräumen"
+        onConfirm={onCleanupConfirmed}
       >
         <p className="text-sm text-gray-600">
           Gelöscht wird alles, was als „entfällt“ markiert ist — samt der Rückmeldungen dazu.
           Aktive Termine bleiben unangetastet. Steht ein Spiel wieder im Verbandskalender,
           legt der nächste Abgleich es neu an.
         </p>
-      </Dialog>
+      </DeleteDialog>
 
-      <Dialog
+      <DeleteDialog
         open={toDelete !== null}
         onOpenChange={(next) => !next && setToDelete(null)}
         title={
@@ -511,21 +507,15 @@ export default function GamesPage() {
             ? `${toDelete.length} Spieltermine löschen?`
             : 'Spieltermin löschen?'
         }
-        footer={
-          <>
-            <Button onClick={() => setToDelete(null)}>Abbrechen</Button>
-            <Button variant="danger" onClick={() => void onDeleteConfirmed()}>
-              Löschen
-            </Button>
-          </>
-        }
+        expected="löschen"
+        onConfirm={onDeleteConfirmed}
       >
         <p className="text-sm text-gray-600">
           Mit dem Termin verschwinden alle Rückmeldungen dazu. Importierte Spiele legt der
           nächste Abgleich wieder an — soll ein Spiel dauerhaft weg, schalte den Abgleich für
           die Mannschaft ab.
         </p>
-      </Dialog>
+      </DeleteDialog>
     </div>
   );
 }

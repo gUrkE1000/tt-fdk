@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 import Button from './Button';
 import Dialog from './Dialog';
+import { TypeToConfirm, typedMatches } from './DeleteDialog';
 
 export interface ConfirmOptions {
   title: string;
@@ -9,6 +10,8 @@ export interface ConfirmOptions {
   confirmLabel?: string;
   /** Rot statt blau — für alles, was sich nicht rückgängig machen lässt. */
   danger?: boolean;
+  /** Für Unumkehrbares: Erst wenn das abgetippt ist (Name oder „löschen"), geht es. */
+  typeToConfirm?: string;
 }
 
 type Confirm = (options: ConfirmOptions) => Promise<boolean>;
@@ -24,11 +27,15 @@ const ConfirmContext = createContext<Confirm | null>(null);
  */
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [options, setOptions] = useState<ConfirmOptions | null>(null);
+  const [typed, setTyped] = useState('');
+  const blocked =
+    options?.typeToConfirm !== undefined && !typedMatches(typed, options.typeToConfirm);
   const resolver = useRef<((value: boolean) => void) | null>(null);
 
   const confirm = useCallback<Confirm>((next) => {
     // Eine noch offene Rückfrage gilt als abgebrochen.
     resolver.current?.(false);
+    setTyped('');
     setOptions(next);
     return new Promise<boolean>((resolve) => {
       resolver.current = resolve;
@@ -51,13 +58,25 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         footer={
           <>
             <Button onClick={() => close(false)}>Abbrechen</Button>
-            <Button variant={options?.danger ? 'danger' : 'primary'} onClick={() => close(true)}>
+            <Button
+              variant={options?.danger ? 'danger' : 'primary'}
+              disabled={blocked}
+              onClick={() => close(true)}
+            >
               {options?.confirmLabel ?? 'OK'}
             </Button>
           </>
         }
       >
         {options?.description && <p className="text-sm text-gray-600">{options.description}</p>}
+        {options?.typeToConfirm !== undefined && (
+          <TypeToConfirm
+            expected={options.typeToConfirm}
+            value={typed}
+            onChange={setTyped}
+            onSubmit={() => close(true)}
+          />
+        )}
       </Dialog>
     </ConfirmContext.Provider>
   );
@@ -71,5 +90,13 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
  */
 export function useConfirm(): Confirm {
   const ctx = useContext(ConfirmContext);
-  return ctx ?? ((options) => Promise.resolve(window.confirm(options.title)));
+  return (
+    ctx ??
+    ((options) =>
+      Promise.resolve(
+        options.typeToConfirm === undefined
+          ? window.confirm(options.title)
+          : typedMatches(window.prompt(options.title) ?? '', options.typeToConfirm),
+      ))
+  );
 }

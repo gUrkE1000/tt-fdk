@@ -16,7 +16,7 @@ describe('Seiten & Aktionen in der Suche', () => {
 
   it('findet Menüpunkte über ihren Namen und Wortanfänge', () => {
     expect(first('kalen')).toBe('Kalender');
-    expect(first('mein verein')).toBe('Mein Verein');
+    expect(first('mein verein')).toBe('Verein');
   });
 
   it('zeigt nur, was auch im Menü der Rolle steht', () => {

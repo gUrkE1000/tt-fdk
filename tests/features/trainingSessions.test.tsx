@@ -338,6 +338,46 @@ describe('SessionsTab', () => {
     expect(screen.getAllByRole('button', { name: 'Bin dabei' })).toHaveLength(1);
   });
 
+  // Die Termine reichen ein Jahr voraus (wie im Kalender); die Liste zeigte früher nur
+  // zwei Wochen davon.
+  function later(id: string, daysAhead: number) {
+    const date = new Date(Date.now() + daysAhead * 86_400_000).toISOString().slice(0, 10);
+    return {
+      id,
+      training_id: 'tr-1',
+      session_date: date,
+      starts_at: `${date}T17:00:00.000Z`,
+      ends_at: `${date}T19:00:00.000Z`,
+      cancelled: false,
+      cancel_reason: '',
+      cancellation_id: null,
+      reminder_sent_at: null,
+    };
+  }
+
+  it('zeigt auch Termine weit nach den nächsten zwei Wochen', async () => {
+    state.tables.training_sessions = [later('s-weit', 60)];
+    renderPage(<SessionsTab />);
+    expect(await screen.findAllByText('Erwachsenentraining')).not.toHaveLength(0);
+  });
+
+  it('schneidet mit „days“ auf die nächsten Tage zu', async () => {
+    state.tables.training_sessions = [later('s-weit', 60)];
+    renderPage(<SessionsTab days={14} />);
+    expect(await screen.findByText(/In den nächsten 14 Tagen steht kein Training an/)).toBeInTheDocument();
+  });
+
+  it('blättert in Seiten zu 30 Terminen', async () => {
+    state.tables.training_sessions = Array.from({ length: 35 }, (_, index) =>
+      later(`s-${index}`, index * 7 + 1),
+    );
+    renderPage(<SessionsTab />);
+
+    const more = await screen.findByRole('button', { name: /Weitere 5 anzeigen/ });
+    await userEvent.click(more);
+    expect(screen.queryByRole('button', { name: /Weitere .* anzeigen/ })).toBeNull();
+  });
+
   it('zeigt mit „onlyMine“ nur Trainings, zu denen man gehört', async () => {
     state.tables.training_members = [{ training_id: 'tr-1', profile_id: 'p-01' }];
     renderPage(<SessionsTab onlyMine />);

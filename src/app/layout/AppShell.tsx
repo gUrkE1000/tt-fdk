@@ -50,6 +50,7 @@ function Shell({ role, clubName, headerActions }: AppShellProps) {
   const clubInfo = usePublicClubInfo();
 
   const effectiveRole = role !== undefined ? role : session.role;
+  const keyService = session.profile?.key_service === true;
   const effectiveClubName = clubName ?? clubInfo.data?.club_name ?? 'Vereinsplaner';
 
   // Die Zahl an „Übersicht": Wo fehlt noch meine Antwort? Sie steht dort und nicht
@@ -81,7 +82,12 @@ function Shell({ role, clubName, headerActions }: AppShellProps) {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <div className="hidden xl:block">
-        <Sidebar role={effectiveRole} clubName={effectiveClubName} badges={badges} />
+        <Sidebar
+          role={effectiveRole}
+          keyService={keyService}
+          clubName={effectiveClubName}
+          badges={badges}
+        />
       </div>
 
       {drawerOpen && (
@@ -94,6 +100,7 @@ function Shell({ role, clubName, headerActions }: AppShellProps) {
           <div className="absolute inset-y-0 left-0 flex">
             <Sidebar
               role={effectiveRole}
+              keyService={keyService}
               clubName={effectiveClubName}
               badges={badges}
               onNavigate={() => setDrawerOpen(false)}

@@ -7,7 +7,7 @@ import {
   buttonClasses,
   Card,
   CardBody,
-  Dialog,
+  DeleteDialog,
   EmptyState,
   IconButton,
   PageHeader,
@@ -188,24 +188,19 @@ export default function TeamsPage() {
         members={memberList}
       />
 
-      <Dialog
+      <DeleteDialog
         open={toDelete !== null}
         onOpenChange={(open) => !open && setToDelete(null)}
         title={`${toDelete?.name ?? 'Mannschaft'} löschen?`}
-        footer={
-          <>
-            <Button onClick={() => setToDelete(null)}>Abbrechen</Button>
-            <Button variant="danger" onClick={() => void onDeleteConfirmed()}>
-              Löschen
-            </Button>
-          </>
-        }
+        expected={toDelete?.name ?? ''}
+        loading={deleteTeam.isPending}
+        onConfirm={onDeleteConfirmed}
       >
         <p className="text-sm text-gray-600">
           Mit der Mannschaft verschwinden auch ihre Spieltermine und alle Rückmeldungen dazu.
           Soll die Mannschaft nur nicht mehr auftauchen, setze sie stattdessen auf „inaktiv“.
         </p>
-      </Dialog>
+      </DeleteDialog>
     </div>
   );
 }

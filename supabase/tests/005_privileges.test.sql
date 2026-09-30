@@ -32,7 +32,7 @@ SELECT is_empty(
           AND p.proname NOT IN (
               'get_public_club_info',
               'current_member_role', 'is_active_member', 'is_admin', 'is_organizer_or_admin',
-              'is_playing_member', 'can_see_absences', 'leads_team', 'leads_match',
+              'is_playing_member', 'can_see_absences', 'leads_team', 'leads_match', 'is_key_service',
               'trains', 'trains_session', 'can_see_training', 'may_see_training_roster',
               'may_see_session_roster', 'may_join_training', 'is_poll_target',
               'may_see_poll_results', 'can_see_message_object',

@@ -247,3 +247,146 @@ describe('groupTextLines', () => {
     ).toEqual(['Datum', '10.10.2026 TTC Kirchheim 4711', '18.10.2026']);
   });
 });
+
+// Randfälle aus der Prüfung der Import-Logik (30.09.2026). Ein PIN hat dieselbe Form
+// wie eine Jahreszahl im Vereinsnamen oder eine Spielnummer — entscheidend ist, wo er
+// steht.
+describe('parseNuscoreList: PINs', () => {
+  const values = (lines: string[]) => parseNuscoreList(lines, 'pin').map((entry) => entry.value);
+
+  it('nimmt ohne PIN keine Zahl aus dem Vereinsnamen', () => {
+    expect(values(['Sa. 10.10.2026 18:30 (1) TSV Feldkirchen II TSV 1860 München'])).toEqual([]);
+  });
+
+  it('nimmt ohne PIN keine Spielnummer', () => {
+    expect(values(['Sa. 10.10.2026 18:30 1045 TSV Feldkirchen II TTC Kirchheim'])).toEqual([]);
+  });
+
+  it('findet den PIN hinter einem Gegner mit Jahreszahl', () => {
+    expect(values(['Sa. 10.10.2026 18:30 (1) TSV 1860 München TSV Feldkirchen II 4711'])).toEqual([
+      '4711',
+    ]);
+  });
+
+  it('nimmt den PIN aus der Folgezeile, wenn der Name nach der Jahreszahl umbricht', () => {
+    expect(
+      values(['Sa. 10.10.2026 18:30 (1) TSV Feldkirchen II TSV Zorneding 1920', 'II 4711']),
+    ).toEqual(['4711']);
+  });
+
+  it('hält den Code nicht für den PIN, egal in welcher Reihenfolge', () => {
+    expect(
+      values([
+        'Sa. 10.10.2026 18:30 (1) TSV Feldkirchen II TTC Kirchheim AB12CD34EF56 4711',
+        'So. 18.10.2026 10:00 (1) SC Baldham TSV Feldkirchen II 0815 ZX98YW76VU54',
+      ]),
+    ).toEqual(['4711', '0815']);
+  });
+
+  it('liest PINs aus Buchstaben und Ziffern', () => {
+    expect(values(['Sa. 10.10.2026 18:30 (1) TSV Feldkirchen II TTC Kirchheim A7K9Q2'])).toEqual([
+      'A7K9Q2',
+    ]);
+  });
+
+  it('übergeht Fußzeile und Stand-Datum, auch über einen Seitenwechsel', () => {
+    expect(
+      values([
+        'Stand: 26.09.2026',
+        'Sa. 10.10.2026 18:30 (1) TSV Feldkirchen II TTC Kirchheim 4711',
+        'nu .Dokument 019, erstellt am 26.09.2026 19:16 | Seite 1 von 2',
+        'Datum, Uhrzeit (Lokal) Heimmannschaft Gastmannschaft Spiel-PIN',
+        'So. 18.10.2026 10:00 (1) SC Baldham TSV Feldkirchen II 0815',
+      ]),
+    ).toEqual(['4711', '0815']);
+  });
+});
+
+describe('parseNuscoreList: Codes', () => {
+  const values = (lines: string[]) => parseNuscoreList(lines, 'code').map((entry) => entry.value);
+
+  it('nimmt ohne Code nichts aus dem Vereinsnamen', () => {
+    expect(values(['Sa. 10.10.2026 18:30 (1) TSV Feldkirchen II TSV 1860 München'])).toEqual([]);
+  });
+
+  it('setzt einen in der PDF zerrissenen Code wieder zusammen', () => {
+    expect(values(['Sa. 10.10.2026 18:30 (1) TSV Feldkirchen II TTC Kirchheim AB12CD34 EF56'])).toEqual([
+      'AB12CD34EF56',
+    ]);
+  });
+
+  it('findet den Code in der Folgezeile und neben einer PIN-Spalte', () => {
+    expect(
+      values([
+        'Sa. 10.10.2026 18:30 (1) TSV Feldkirchen II TTC Kirchheim',
+        'AB12CD34EF56',
+        'So. 18.10.2026 10:00 (1) TSV Feldkirchen II SC Baldham ZX98YW76VU54 4711',
+      ]),
+    ).toEqual(['AB12CD34EF56', 'ZX98YW76VU54']);
+  });
+
+  it('liest die Uhrzeit auch mit Punkt', () => {
+    expect(
+      parseNuscoreList(['Sa. 10.10.2026 18.30 (1) TSV Feldkirchen II TTC Kirchheim AB12CD34EF56'], 'code')[0]
+        .time,
+    ).toBe('18:30');
+  });
+});
+
+describe('planNuscoreImport: Randfälle', () => {
+  it('ordnet ein am selben Tag verschobenes Spiel trotz anderer Uhrzeit zu', () => {
+    const plan = planNuscoreImport(
+      parseNuscoreList(['Sa. 10.10.2026 18:30 (1) TSV Feldkirchen II TTC Kirchheim 4711'], 'pin'),
+      [match({ id: 'a', dtstart: '2026-10-10T17:00:00Z', opponent: 'TTC Kirchheim' })],
+    );
+    expect(plan.assignments).toEqual([{ matchId: 'a', code: null, pin: '4711' }]);
+  });
+
+  it('unterscheidet zweite und dritte Mannschaft desselben Vereins am selben Tag', () => {
+    const plan = planNuscoreImport(
+      parseNuscoreList(
+        [
+          'Sa. 10.10.2026 (1) TSV Feldkirchen II TSV Kirchheim II 4711',
+          'Sa. 10.10.2026 (1) TSV Kirchheim III TSV Feldkirchen II 0815',
+        ],
+        'pin',
+      ),
+      [
+        match({ id: 'zwei', dtstart: '2026-10-10T08:00:00Z', opponent: 'TSV Kirchheim II' }),
+        match({ id: 'drei', dtstart: '2026-10-10T12:00:00Z', opponent: 'TSV Kirchheim III' }),
+      ],
+    );
+    expect(plan.unassigned).toEqual([]);
+    expect(plan.assignments).toEqual([
+      { matchId: 'zwei', code: null, pin: '4711' },
+      { matchId: 'drei', code: null, pin: '0815' },
+    ]);
+  });
+
+  it('führt beide Listen einer Mannschaft zu je einem Eintrag pro Spiel zusammen', () => {
+    const plan = planNuscoreImport(
+      [
+        ...parseNuscoreList(
+          ['Mo. 26.10.2026 20:00 (1) TSV Feldkirchen II TSV Ebersberg AB12CD34EF56'],
+          'code',
+        ),
+        ...parseNuscoreList(
+          [
+            'Mo. 26.10.2026 20:00 (1) TSV Feldkirchen II TSV Ebersberg 4821',
+            'Do. 03.12.2026 19:45 (1) TSV Zorneding 1920 II TSV Feldkirchen II 7310',
+          ],
+          'pin',
+        ),
+      ],
+      [
+        match({ id: 'heim', dtstart: '2026-10-26T19:00:00Z', opponent: 'TSV Ebersberg' }),
+        match({ id: 'ausw', dtstart: '2026-12-03T18:45:00Z', opponent: 'TSV Zorneding 1920 II' }),
+      ],
+    );
+    expect(plan.unassigned).toEqual([]);
+    expect(plan.assignments).toEqual([
+      { matchId: 'heim', code: 'AB12CD34EF56', pin: '4821' },
+      { matchId: 'ausw', code: null, pin: '7310' },
+    ]);
+  });
+});

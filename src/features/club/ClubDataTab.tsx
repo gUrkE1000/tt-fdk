@@ -124,7 +124,7 @@ export default function ClubDataTab() {
         <CardBody className="space-y-4">
           <FormField
             label="Informationen über den Verein"
-            hint="Erscheint unter „Mein Verein“."
+            hint="Erscheint unter „Verein“."
           >
             {(p) => <Textarea {...p} {...form.register('about_html')} rows={5} />}
           </FormField>

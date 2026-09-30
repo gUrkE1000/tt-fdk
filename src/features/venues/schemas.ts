@@ -39,3 +39,29 @@ export function formatVenueAddress(venue: {
   const place = [venue.postal_code, venue.city].filter(Boolean).join(' ').trim();
   return [venue.address?.trim(), place].filter(Boolean).join(', ');
 }
+
+// ---------------------------------------------------------------------------- Hallensperrung
+
+export const hallClosureSchema = z
+  .object({
+    venueId: z.string().min(1, 'Bitte einen Ort auswählen'),
+    fromDate: z.string().min(1, 'Bitte ein Datum angeben'),
+    /** Leer = nur der eine Tag. */
+    toDate: z.string(),
+    reason: z.string(),
+    notifyEmail: z.boolean(),
+  })
+  .refine((values) => values.toDate === '' || values.toDate >= values.fromDate, {
+    path: ['toDate'],
+    message: 'Das Ende liegt vor dem Anfang',
+  });
+
+export type HallClosureValues = z.infer<typeof hallClosureSchema>;
+
+export const EMPTY_HALL_CLOSURE: HallClosureValues = {
+  venueId: '',
+  fromDate: '',
+  toDate: '',
+  reason: '',
+  notifyEmail: false,
+};

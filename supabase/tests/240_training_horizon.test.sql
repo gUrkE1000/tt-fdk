@@ -20,7 +20,6 @@ VALUES
      date_trunc('day', NOW()) + INTERVAL '182 days 21 hours');
 
 -- Ein fester Schlüsseldienst für jeden Wochentag, damit jeder Hallentag einen hat.
-UPDATE public.profiles SET key_service = true WHERE id = '22222222-0000-0000-0000-000000000001';
 INSERT INTO public.key_duty_weekdays (weekday, profile_id)
 SELECT d, '22222222-0000-0000-0000-000000000001' FROM generate_series(1, 7) AS d
 ON CONFLICT (weekday) DO UPDATE SET profile_id = EXCLUDED.profile_id;

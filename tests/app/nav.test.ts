@@ -109,6 +109,27 @@ describe('NAV-Struktur', () => {
   });
 });
 
+describe('Schlüsseldienst', () => {
+  const venues = (role: Role, keyService: boolean) =>
+    visibleNav(role, keyService)
+      .flatMap((section) => section.items)
+      .some((item) => item.to === '/venues');
+
+  it('zeigt „Orte & Schlüsseldienst" Mitgliedern mit dem Kennzeichen', () => {
+    expect(venues('member', false)).toBe(false);
+    expect(venues('member', true)).toBe(true);
+    expect(venues('trainer', true)).toBe(true);
+    expect(venues('admin', false)).toBe(true);
+  });
+
+  it('gibt dem Kennzeichen keine anderen Admin-Seiten', () => {
+    const items = visibleNav('member', true).flatMap((section) => section.items.map((i) => i.to));
+    expect(items).not.toContain('/players');
+    expect(items).not.toContain('/club');
+    expect(items).not.toContain('/hall-closures');
+  });
+});
+
 describe('Symbole', () => {
   const item = (to: string) => NAV.flatMap((section) => section.items).find((entry) => entry.to === to);
 

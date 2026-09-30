@@ -15,9 +15,12 @@ import { useSetVenueActive, useVenues, type Venue } from './api';
 import { formatVenueAddress } from './schemas';
 import VenueDialog from './VenueDialog';
 import KeyDutyPanel from '../keys/KeyDutyPanel';
+import { useSession } from '../auth/session';
 
 export default function VenuesPage() {
   const { toast } = useToast();
+  // Der Schlüsseldienst sieht die Orte, ändert aber nur den Schlüsseldienst.
+  const isAdmin = useSession().role === 'admin';
   const venues = useVenues();
   const setActive = useSetVenueActive();
   const [editing, setEditing] = useState<Venue | null>(null);
@@ -61,16 +64,18 @@ export default function VenuesPage() {
           title="Orte & Schlüsseldienst"
           description="Hallen und Räume, in denen gespielt und trainiert wird."
           actions={
-            <Button
-              variant="primary"
-              onClick={() => {
-                setEditing(null);
-                setDialogOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Ort anlegen
-            </Button>
+            isAdmin && (
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setEditing(null);
+                  setDialogOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Ort anlegen
+              </Button>
+            )
           }
         />
 
@@ -98,7 +103,9 @@ export default function VenuesPage() {
               align: 'right',
               cell: (venue: Venue) => venue.max_games ?? 'unbegrenzt',
             },
-            { key: 'actions', header: 'Aktion', align: 'right', cell: actions },
+            ...(isAdmin
+              ? [{ key: 'actions', header: 'Aktion', align: 'right' as const, cell: actions }]
+              : []),
           ]}
           rows={venues.data ?? []}
           rowKey={(venue) => venue.id}
@@ -112,7 +119,7 @@ export default function VenuesPage() {
                       {formatVenueAddress(venue) || 'ohne Adresse'}
                     </p>
                   </div>
-                  {actions(venue)}
+                  {isAdmin && actions(venue)}
                 </div>
                 {!venue.active && <Badge tone="removed">stillgelegt</Badge>}
               </CardBody>

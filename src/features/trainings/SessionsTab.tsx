@@ -12,7 +12,7 @@ import { useSession } from '../auth/session';
 import { useMembers } from '../members/api';
 import { useVenueOf } from '../venues/defaultVenue';
 import {
-  SESSION_WINDOW_DAYS,
+  sessionWindowEnd,
   useSessionAssignees,
   useSessionCounts,
   useSessionParticipants,
@@ -32,16 +32,22 @@ export interface SessionsTabProps {
    * Kalender. Sehen darf jedes Mitglied alle, zu- und absagen nur bei den eigenen.
    */
   switchable?: boolean;
+  /** Nur so viele Tage voraus; ohne Angabe alle kommenden Termine. */
+  days?: number;
 }
 
 /**
- * Die nächsten zwei Wochen Training.
+ * Die kommenden Trainingstermine, seitenweise — oder nur die nächsten `days` Tage.
  *
  * Welche Termine hier auftauchen, entscheidet die Datenbank: Ein Gast sieht nur offene
  * Trainings, ein Mitglied alle. Die Oberfläche filtert nichts nach, sonst gäbe es zwei
  * Stellen, an denen dieselbe Regel steht.
  */
-export default function SessionsTab({ onlyMine = false, switchable = false }: SessionsTabProps) {
+export default function SessionsTab({
+  onlyMine = false,
+  switchable = false,
+  days,
+}: SessionsTabProps) {
   const { profile } = useSession();
   const [mineChosen, setMineChosen] = useState(true);
   const mineOnly = onlyMine || (switchable && mineChosen);
@@ -67,7 +73,10 @@ export default function SessionsTab({ onlyMine = false, switchable = false }: Se
   }, [members.data]);
 
   const visible = useMemo(() => {
-    const rows = sessions.data ?? [];
+    const until = days === undefined ? null : sessionWindowEnd(days);
+    const rows = (sessions.data ?? []).filter(
+      (session) => until === null || session.session_date <= until,
+    );
     if (!mineOnly || !profile?.id) return rows;
 
     const assigned = new Set(
@@ -83,7 +92,7 @@ export default function SessionsTab({ onlyMine = false, switchable = false }: Se
         assigned,
       ),
     );
-  }, [sessions.data, mineOnly, profile?.id, trainingList, assignees.data]);
+  }, [sessions.data, days, mineOnly, profile?.id, trainingList, assignees.data]);
 
   const status = queryStatus(sessions, trainings);
   if (status.loading) return <LoadingState />;
@@ -108,11 +117,9 @@ export default function SessionsTab({ onlyMine = false, switchable = false }: Se
         <EmptyState
           icon={CalendarCheck}
           title="Keine Trainingstermine"
-          description={
-            mineOnly
-              ? `In den nächsten ${SESSION_WINDOW_DAYS} Tagen steht kein Training an, zu dem du gefragt bist.`
-              : `In den nächsten ${SESSION_WINDOW_DAYS} Tagen steht kein Training an.`
-          }
+          description={`${
+            days === undefined ? 'Es steht' : `In den nächsten ${days} Tagen steht`
+          } kein Training an${mineOnly ? ', zu dem du gefragt bist' : ''}.`}
         />
       </div>
     );

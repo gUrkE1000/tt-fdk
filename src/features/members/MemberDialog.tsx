@@ -99,10 +99,10 @@ export default function MemberDialog({
       role: values.role,
       status: values.status,
       no_games: values.noGames,
-      key_service: values.keyService,
       qttr: values.qttr,
       contact_visible: values.contactVisible,
       hide_birthday: values.hideBirthday,
+      key_service: values.keyService,
     };
 
     try {
@@ -216,7 +216,7 @@ export default function MemberDialog({
           checked={form.watch('keyService')}
           onCheckedChange={(value) => form.setValue('keyService', value)}
           label="Schlüsseldienst"
-          hint="Schließt die Halle auf und zu. Die festen Wochentage vergibst du unter „Orte & Schlüsseldienst“."
+          hint="Sieht „Orte & Schlüsseldienst“ und plant dort, wer die Halle auf- und zuschließt."
         />
         <Checkbox
           checked={form.watch('contactVisible')}
@@ -299,10 +299,10 @@ export function toFormValues(
     role: member?.role ?? 'member',
     status: member?.status ?? 'unconfirmed',
     noGames: member?.no_games ?? false,
-    keyService: member?.key_service ?? false,
     qttr: member?.qttr ?? null,
     contactVisible: member?.contact_visible ?? false,
     hideBirthday: member?.hide_birthday ?? false,
+    keyService: member?.key_service ?? false,
     groupIds: member
       ? groups.filter((group) => group.memberIds.includes(member.id)).map((group) => group.id)
       : [],

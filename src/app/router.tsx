@@ -28,7 +28,7 @@ const GamesPage = lazy(() => import('../features/matches/GamesPage'));
 const MyGamesPage = lazy(() => import('../features/matches/MyGamesPage'));
 const SearchPage = lazy(() => import('../features/search/SearchPage'));
 const TrainingsPage = lazy(() => import('../features/trainings/TrainingsPage'));
-const CancellationsPage = lazy(() => import('../features/trainings/CancellationsPage'));
+const HallClosuresPage = lazy(() => import('../features/venues/HallClosuresPage'));
 const EventsPage = lazy(() => import('../features/events/EventsPage'));
 const PollsPage = lazy(() => import('../features/polls/PollsPage'));
 const CalendarPage = lazy(() => import('../features/calendar/CalendarPage'));
@@ -92,6 +92,8 @@ export const router = createBrowserRouter([
           { path: 'event/:id', element: <DetailEntry kind="event" /> },
           { path: 'my-dates', element: <MyDatesPage /> },
           { path: 'my-club', element: <MyClubPage /> },
+          // Frühere Admin-Seite „Verein" — heute Reiter von /my-club.
+          { path: 'club', element: <ClubPage /> },
           { path: 'calendar', element: <CalendarPage /> },
           { path: 'votes', element: <PollsPage /> },
           { path: 'profile', element: <ProfilePage /> },
@@ -109,8 +111,8 @@ export const router = createBrowserRouter([
             element: <RequireRole roles={['admin', 'trainer']} />,
             children: [
               { path: 'trainings', element: <TrainingsPage /> },
-              { path: 'trainings/cancellations', element: <CancellationsPage /> },
-              { path: 'trainings/cancellations/:trainingId', element: <CancellationsPage /> },
+              // Frühere Adressen der Ausfälle, etwa aus Lesezeichen.
+              { path: 'trainings/cancellations/*', element: <Navigate to="/hall-closures" replace /> },
             ],
           },
           {
@@ -126,11 +128,14 @@ export const router = createBrowserRouter([
             children: [{ path: 'dates', element: <EventsPage /> }],
           },
           {
+            element: <RequireRole roles={['admin']} keyService />,
+            children: [{ path: 'venues', element: <VenuesPage /> }],
+          },
+          {
             element: <RequireRole roles={['admin']} />,
             children: [
               { path: 'players', element: <MembersPage /> },
-              { path: 'club', element: <ClubPage /> },
-              { path: 'venues', element: <VenuesPage /> },
+              { path: 'hall-closures', element: <HallClosuresPage /> },
             ],
           },
 

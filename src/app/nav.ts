@@ -12,9 +12,9 @@ import {
   Calendar,
   Vote,
   UserCog,
-  Settings,
   MapPin,
   Inbox,
+  CalendarOff,
 } from 'lucide-react';
 
 /**
@@ -29,6 +29,8 @@ export interface NavItem {
   icon: LucideIcon;
   /** Leer = für alle angemeldeten Rollen sichtbar. */
   roles: Role[];
+  /** Auch sichtbar für Mitglieder mit dem Kennzeichen „Schlüsseldienst“. */
+  keyService?: boolean;
   /** Für die Bottom-Bar auf dem Smartphone. */
   primary?: boolean;
 }
@@ -56,7 +58,7 @@ export const NAV: NavSection[] = [
   {
     section: 'Verein',
     items: [
-      { to: '/my-club', label: 'Mein Verein', icon: Building2, roles: [] },
+      { to: '/my-club', label: 'Verein', icon: Building2, roles: [] },
       {
         // Für alle sichtbar, weil die Freigabe am Training hängt und nicht an der
         // Rolle (`statistics_visibility`): Ein Mitglied einer freigegebenen Gruppe
@@ -93,6 +95,13 @@ export const NAV: NavSection[] = [
         icon: PartyPopper,
         roles: ['admin', 'organizer'],
       },
+      {
+        // Ausfälle sind Hallensperrungen: Sie treffen Trainings und Heimspiele gleich.
+        to: '/hall-closures',
+        label: 'Hallensperrungen',
+        icon: CalendarOff,
+        roles: ['admin'],
+      },
       { to: '/calendar', label: 'Kalender', icon: Calendar, roles: [], primary: true },
       { to: '/votes', label: 'Umfragen', icon: Vote, roles: [] },
     ],
@@ -101,8 +110,13 @@ export const NAV: NavSection[] = [
     section: 'Verwalten',
     items: [
       { to: '/players', label: 'Mitglieder', icon: UserCog, roles: ['admin'] },
-      { to: '/club', label: 'Verein', icon: Settings, roles: ['admin'] },
-      { to: '/venues', label: 'Orte & Schlüsseldienst', icon: MapPin, roles: ['admin'] },
+      {
+        to: '/venues',
+        label: 'Orte & Schlüsseldienst',
+        icon: MapPin,
+        roles: ['admin'],
+        keyService: true,
+      },
     ],
   },
 ];
@@ -111,12 +125,15 @@ export const NAV: NavSection[] = [
  * Filtert die Navigation auf das, was diese Rolle sehen darf.
  * Abschnitte ohne sichtbare Einträge fallen weg.
  */
-export function visibleNav(role: Role | null | undefined): NavSection[] {
+export function visibleNav(role: Role | null | undefined, keyService = false): NavSection[] {
   if (!role) return [];
 
   return NAV.map((section) => ({
     ...section,
-    items: section.items.filter((item) => item.roles.length === 0 || item.roles.includes(role)),
+    items: section.items.filter(
+      (item) =>
+        item.roles.length === 0 || item.roles.includes(role) || (keyService && item.keyService),
+    ),
   })).filter((section) => section.items.length > 0);
 }
 

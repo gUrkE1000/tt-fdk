@@ -156,45 +156,6 @@ export const EMPTY_TRAINING: TrainingValues = {
   memberIds: [],
 };
 
-// ---------------------------------------------------------------------------- Ausfall
-
-export const cancellationSchema = z
-  .object({
-    /** Ein Ausfall gilt entweder einem Training oder einer ganzen Halle, nie beidem. */
-    target: z.enum(['training', 'venue']),
-    trainingId: z.string(),
-    venueId: z.string(),
-    fromDate: z.string().min(1, 'Bitte ein Datum angeben'),
-    /** Leer = nur der eine Tag. */
-    toDate: z.string(),
-    reason: z.string(),
-    notifyEmail: z.boolean(),
-  })
-  .refine((values) => values.target !== 'training' || values.trainingId !== '', {
-    path: ['trainingId'],
-    message: 'Bitte ein Training auswählen',
-  })
-  .refine((values) => values.target !== 'venue' || values.venueId !== '', {
-    path: ['venueId'],
-    message: 'Bitte einen Ort auswählen',
-  })
-  .refine((values) => values.toDate === '' || values.toDate >= values.fromDate, {
-    path: ['toDate'],
-    message: 'Das Ende liegt vor dem Anfang',
-  });
-
-export type CancellationValues = z.infer<typeof cancellationSchema>;
-
-export const EMPTY_CANCELLATION: CancellationValues = {
-  target: 'training',
-  trainingId: '',
-  venueId: '',
-  fromDate: '',
-  toDate: '',
-  reason: '',
-  notifyEmail: false,
-};
-
 // ---------------------------------------------------------------------------- Zuweisung
 
 export interface AssignSource {

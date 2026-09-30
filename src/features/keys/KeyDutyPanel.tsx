@@ -1,16 +1,18 @@
-import { useMemo } from 'react';
-import { KeySquare } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { cn } from '../../lib/cn';
 import {
   Badge,
+  Button,
   Card,
   CardBody,
-  EmptyState,
-  Select,
+  DateInput,
+  SearchSelect,
   ShowMore,
   usePaged,
   useToast,
 } from '../../components/ui';
-import { formatDate } from '../../lib/dates';
+import { formatDate, todayInBerlin } from '../../lib/dates';
 import { useSession } from '../auth/session';
 import { useMembers } from '../members/api';
 import { WEEKDAYS, weekdayLabel } from '../trainings/schemas';
@@ -22,17 +24,21 @@ import {
 } from './dutyApi';
 
 export interface KeyDutyPanelProps {
-  /** Die festen Wochentage bearbeiten (nur der Administrator). */
+  /** Die festen Wochentage bearbeiten (Administrator und Schlüsseldienst). */
   editWeekdays?: boolean;
 }
 
+const NOBODY = { value: '', label: 'niemand' };
+
 /**
  * Schlüsseldienst: wer an welchem Wochentag die Halle auf- und zuschließt, und die
- * nächsten Tage mit der Möglichkeit, für genau einen Tag eine Vertretung einzutragen.
+ * nächsten Hallentage mit der Möglichkeit, für genau einen Tag jemanden einzutragen.
  * Die Folgetermine bleiben beim festen Inhaber.
  *
- * Vertretungen tragen der Administrator und jeder mit Schlüsseldienst ein; vertreten
- * kann nur, wer selbst Schlüsseldienst hat. Die Regeln prüft die Datenbank.
+ * Schlüsseldienst übernehmen kann jedes aktive Mitglied — ausgewählt per Suche. Für
+ * einen Tag eintragen dürfen der Administrator, wer das Kennzeichen „Schlüsseldienst“
+ * oder einen festen Wochentag hat, und wer an dem Tag eingeteilt ist. Die Regeln
+ * prüft die Datenbank.
  */
 export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps) {
   const { profile, role } = useSession();
@@ -42,17 +48,36 @@ export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps
   const dates = useKeyDutyDates();
   const setWeekday = useSetKeyDutyWeekday();
   const setOverride = useSetKeyDutyOverride();
+  const [otherDate, setOtherDate] = useState('');
+  const [otherPerson, setOtherPerson] = useState('');
 
-  const canOverride = role === 'admin' || profile?.key_service === true;
+  // Von der Trainingsseite kommt man mit `?date=` direkt zu einem Tag.
+  const [params] = useSearchParams();
+  const focusDate = params.get('date');
+  const focusRef = useRef<HTMLLIElement>(null);
+
+  const hasWeekday = (weekdays.data ?? []).some((entry) => entry.profile_id === profile?.id);
+  const canPlan = role === 'admin' || profile?.key_service === true || hasWeekday;
 
   // Die Termine reichen ein Jahr voraus; gezeigt werden sie seitenweise.
-  const { shown: upcoming, rest, more } = usePaged(dates.data ?? []);
+  const { shown: upcoming, rest, more } = usePaged(
+    dates.data ?? [],
+    undefined,
+    undefined,
+    (entry) => entry.duty_date === focusDate,
+  );
+  const focusShown = upcoming.some((entry) => entry.duty_date === focusDate);
 
-  const keyService = useMemo(
+  useEffect(() => {
+    if (focusShown) focusRef.current?.scrollIntoView?.({ block: 'center' });
+  }, [focusShown]);
+
+  const people = useMemo(
     () =>
       (members.data ?? [])
-        .filter((member) => member.key_service && member.status === 'active')
-        .map((member) => ({ value: member.id, label: member.full_name ?? '' })),
+        .filter((member) => member.status === 'active' && !member.deleted_at)
+        .map((member) => ({ value: member.id, label: member.full_name ?? '' }))
+        .sort((a, b) => a.label.localeCompare(b.label, 'de')),
     [members.data],
   );
 
@@ -68,21 +93,6 @@ export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps
     }
   }
 
-  if (members.isSuccess && keyService.length === 0) {
-    return (
-      <EmptyState
-        icon={KeySquare}
-        title="Noch niemand hat Schlüsseldienst"
-        description={
-          role === 'admin'
-            ? 'Setze bei den Mitgliedern das Kennzeichen „Schlüsseldienst“. Danach vergibst du hier die festen Wochentage.'
-            : 'Der Administrator vergibt den Schlüsseldienst.'
-        }
-      />
-    );
-  }
-
-
   return (
     <div className="space-y-4">
       {editWeekdays && (
@@ -97,24 +107,24 @@ export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps
                 const current =
                   (weekdays.data ?? []).find((entry) => entry.weekday === day.value)?.profile_id ?? '';
                 return (
-                  <label key={day.value} className="flex items-center gap-2 text-sm">
+                  <div key={day.value} className="flex items-center gap-2 text-sm">
                     <span className="w-24 shrink-0 font-semibold text-gray-700">{day.label}</span>
-                    <Select
+                    <SearchSelect
                       aria-label={`Schlüsseldienst ${day.label}`}
                       value={current}
-                      onChange={(event) =>
+                      onChange={(value) =>
                         void run(
                           () =>
                             setWeekday.mutateAsync({
                               weekday: day.value,
-                              profileId: event.target.value || null,
+                              profileId: value || null,
                             }),
                           'Schlüsseldienst gespeichert',
                         )
                       }
-                      options={[{ value: '', label: 'niemand' }, ...keyService]}
+                      options={[NOBODY, ...people]}
                     />
-                  </label>
+                  </div>
                 );
               })}
             </div>
@@ -127,51 +137,53 @@ export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps
           <h3 className="font-bold text-gray-900">Die nächsten Tage</h3>
           {upcoming.length === 0 ? (
             <p className="text-sm text-gray-600">
-              In den nächsten Wochen ist kein Tag mit Schlüsseldienst eingeplant.
+              In den nächsten Wochen wird die Halle an keinem Tag gebraucht.
             </p>
           ) : (
             <ul className="divide-y divide-gray-100">
               {upcoming.map((entry) => (
                 <li
                   key={entry.duty_date}
-                  className="flex flex-wrap items-center justify-between gap-2 py-2"
+                  ref={entry.duty_date === focusDate ? focusRef : undefined}
+                  className={cn(
+                    'flex flex-wrap items-center justify-between gap-2 py-2',
+                    entry.duty_date === focusDate && '-mx-2 rounded-lg bg-primary-soft px-2',
+                  )}
                 >
                   <div className="min-w-0">
                     <span className="font-semibold text-gray-900">
                       {weekdayLabel(entry.weekday)}, {formatDate(entry.duty_date)}
                     </span>
-                    {entry.is_override && (
+                    {entry.is_override && entry.regular_id && (
                       <Badge tone="late" className="ml-1.5">
                         Vertretung für {nameOf(entry.regular_id)}
                       </Badge>
                     )}
-                    {entry.profile_id === profile?.id && (
+                    {entry.profile_id !== null && entry.profile_id === profile?.id && (
                       <Badge tone="primary" className="ml-1.5">
                         du
                       </Badge>
                     )}
                   </div>
-                  {canOverride ? (
-                    <Select
+                  {canPlan || entry.profile_id === profile?.id ? (
+                    <SearchSelect
                       aria-label={`Schlüsseldienst am ${formatDate(entry.duty_date)}`}
-                      value={entry.profile_id}
-                      onChange={(event) =>
+                      className="sm:w-64"
+                      value={entry.profile_id ?? ''}
+                      onChange={(value) =>
                         void run(
                           () =>
                             setOverride.mutateAsync({
                               date: entry.duty_date,
-                              profileId:
-                                event.target.value === (entry.regular_id ?? '')
-                                  ? null
-                                  : event.target.value,
+                              profileId: value === '' || value === entry.regular_id ? null : value,
                             }),
-                          'Vertretung gespeichert',
+                          'Schlüsseldienst gespeichert',
                         )
                       }
-                      options={keyService}
+                      options={entry.regular_id ? people : [NOBODY, ...people]}
                     />
                   ) : (
-                    <span className="text-sm text-gray-700">{entry.full_name}</span>
+                    <span className="text-sm text-gray-700">{entry.full_name ?? 'niemand'}</span>
                   )}
                 </li>
               ))}
@@ -180,6 +192,46 @@ export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps
           <ShowMore rest={rest} onMore={more} />
         </CardBody>
       </Card>
+
+      {canPlan && (
+        <Card>
+          <CardBody className="space-y-2">
+            <h3 className="font-bold text-gray-900">Anderer Tag</h3>
+            <p className="text-sm text-gray-600">
+              Für einen Tag, der oben nicht steht — etwa ein Turnier oder ein Sondertraining.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <DateInput
+                aria-label="Tag"
+                className="w-44"
+                min={todayInBerlin()}
+                value={otherDate}
+                onChange={(event) => setOtherDate(event.target.value)}
+              />
+              <SearchSelect
+                aria-label="Schlüsseldienst am anderen Tag"
+                className="sm:w-64"
+                placeholder="Person auswählen"
+                value={otherPerson}
+                onChange={setOtherPerson}
+                options={people}
+              />
+              <Button
+                disabled={!otherDate || !otherPerson}
+                onClick={() =>
+                  void run(async () => {
+                    await setOverride.mutateAsync({ date: otherDate, profileId: otherPerson });
+                    setOtherDate('');
+                    setOtherPerson('');
+                  }, 'Schlüsseldienst gespeichert')
+                }
+              >
+                Eintragen
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+      )}
     </div>
   );
 }

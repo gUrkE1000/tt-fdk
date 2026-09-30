@@ -2,7 +2,7 @@
 -- Stimmigkeit der Zuordnung, Heimspiel kommt nachträglich in eine gesperrte Halle.
 
 BEGIN;
-SELECT plan(14);
+SELECT plan(15);
 
 -- Trainingstermin …0001 liegt in zwei Tagen (19–21 Uhr) und ist an diesem Tag die
 -- einzige Belegung. Meik (…0005) führt die 1. Herren, Mara (…0006) die 2.
@@ -15,14 +15,19 @@ DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000001'); END 
 
 SELECT throws_ok(
     $$ INSERT INTO public.key_duty_weekdays (weekday, profile_id)
-       VALUES (1, '22222222-1111-0000-0000-000000000001') $$,
+       VALUES (1, '22222222-9999-0000-0000-000000000001') $$,
     '22023',
     NULL,
-    'Ohne Schlüsseldienst gibt es keinen festen Wochentag'
+    'Einen festen Wochentag bekommt nur ein aktives Mitglied'
 );
 
-UPDATE public.profiles SET key_service = true
- WHERE id IN ('22222222-1111-0000-0000-000000000001', '22222222-1111-0000-0000-000000000002');
+SELECT is(
+    (SELECT profile_id FROM public.v_key_duty_days
+      WHERE duty_date = (SELECT session_date FROM public.training_sessions
+                          WHERE id = '77777777-0000-0000-0000-000000000001')),
+    NULL::uuid,
+    'Auch ein Hallentag ohne Schlüsseldienst steht zur Auswahl'
+);
 
 INSERT INTO public.key_duty_weekdays (weekday, profile_id)
 VALUES (EXTRACT(ISODOW FROM (SELECT session_date FROM public.training_sessions
@@ -73,19 +78,18 @@ SELECT is(
     'Auch der Kalender-Feed (service_role) liest ihn'
 );
 
--- ============================================================ Kennzeichen weg
+-- ============================================================ Konto gelöscht
 DO $$ BEGIN PERFORM tests.login_as('22222222-0000-0000-0000-000000000001'); END $$;
 
-UPDATE public.profiles SET key_service = false WHERE id = '22222222-1111-0000-0000-000000000001';
+UPDATE public.profiles SET deleted_at = NOW()
+ WHERE id IN ('22222222-1111-0000-0000-000000000001', '22222222-1111-0000-0000-000000000002');
 
 SELECT is(
     (SELECT count(*) FROM public.key_duty_weekdays
       WHERE profile_id = '22222222-1111-0000-0000-000000000001')::int,
     0,
-    'Ohne Kennzeichen fallen die festen Wochentage weg'
+    'Ein gelöschtes Konto verliert seine festen Wochentage'
 );
-
-UPDATE public.profiles SET deleted_at = NOW() WHERE id = '22222222-1111-0000-0000-000000000002';
 
 SELECT is(
     (SELECT count(*) FROM public.key_duty_overrides
@@ -94,7 +98,8 @@ SELECT is(
     'Ein gelöschtes Konto verliert seine künftigen Vertretungen'
 );
 
-UPDATE public.profiles SET deleted_at = NULL WHERE id = '22222222-1111-0000-0000-000000000002';
+UPDATE public.profiles SET deleted_at = NULL
+ WHERE id IN ('22222222-1111-0000-0000-000000000001', '22222222-1111-0000-0000-000000000002');
 
 -- ============================================================ Heimspiel wandert in die Sperre
 -- Halle 2 ist am Tag von Spiel 1 (Heimspiel der 1. Herren in Halle 1) gesperrt.

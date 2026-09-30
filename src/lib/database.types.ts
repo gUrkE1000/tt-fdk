@@ -2272,6 +2272,19 @@ export interface Database {
         };
         Relationships: [];
       };
+      v_key_duty_days: {
+        Row: {
+          duty_date: string | null;
+          weekday: number | null;
+          profile_id: string | null;
+          full_name: string | null;
+          is_override: boolean | null;
+          regular_id: string | null;
+          starts_at: string | null;
+          ends_at: string | null;
+        };
+        Relationships: [];
+      };
       v_match_lineup_status: {
         Row: {
           match_id: string | null;
@@ -2517,6 +2530,10 @@ export interface Database {
         Returns: unknown;
       };
       is_admin: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
+      is_key_service: {
         Args: Record<string, never>;
         Returns: unknown;
       };

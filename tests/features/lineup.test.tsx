@@ -377,17 +377,23 @@ describe('MyGamesPage', () => {
   });
 
   it('trägt mich als Fahrer ein', async () => {
-    renderWith(<MyGamesPage />);
-    await screen.findByText(/1\. Herren gegen/);
+    // Fahren gibt es nur bei Auswärtsspielen.
+    upcoming.is_home = false;
+    try {
+      renderWith(<MyGamesPage />);
+      await screen.findByText(/1\. Herren gegen/);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Ich kann fahren' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Ich kann fahren' }));
 
-    await waitFor(() =>
-      expect(state.inserts).toContainEqual({
-        table: 'match_volunteers',
-        values: { match_id: 'm-1', profile_id: 'p-me', kind: 'driver' },
-      }),
-    );
+      await waitFor(() =>
+        expect(state.inserts).toContainEqual({
+          table: 'match_volunteers',
+          values: { match_id: 'm-1', profile_id: 'p-me', kind: 'driver' },
+        }),
+      );
+    } finally {
+      upcoming.is_home = true;
+    }
   });
 
   // Fehlerbild vom 23.09.2026: Beide Knöpfe standen an der Karte, taten aber nichts —

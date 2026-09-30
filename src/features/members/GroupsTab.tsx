@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   CardBody,
+  DeleteDialog,
   Dialog,
   EmptyState,
   FormField,
@@ -215,23 +216,17 @@ export default function GroupsTab() {
         </FormField>
       </Dialog>
 
-      <Dialog
+      <DeleteDialog
         open={toDelete !== null}
         onOpenChange={(open) => !open && setToDelete(null)}
         title={`Gruppe ${toDelete?.name ?? ''} löschen?`}
-        footer={
-          <>
-            <Button onClick={() => setToDelete(null)}>Abbrechen</Button>
-            <Button variant="danger" onClick={() => void onDeleteConfirmed()}>
-              Löschen
-            </Button>
-          </>
-        }
+        expected={toDelete?.name ?? ''}
+        onConfirm={onDeleteConfirmed}
       >
         <p className="text-sm text-gray-600">
           Die Mitglieder bleiben erhalten, nur die Zuordnung verschwindet.
         </p>
-      </Dialog>
+      </DeleteDialog>
     </div>
   );
 }
