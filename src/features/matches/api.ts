@@ -13,7 +13,7 @@ export type Volunteer = Tables<'match_volunteers'>;
 export interface MatchRow extends Match {
   confirmedCount: number;
   /** Profil-IDs der Aufstellung, nach Position — wie auf der Spielkarte. */
-  lineupIds: string[];
+  lineupIds?: string[];
 }
 
 /**
