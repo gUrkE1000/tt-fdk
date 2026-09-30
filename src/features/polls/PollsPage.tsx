@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { BarChart3, Plus } from 'lucide-react';
 import {
   Button,
-  Dialog,
+  DeleteDialog,
   EmptyState,
   PageHeader,
   PagedList,
@@ -133,23 +133,17 @@ export default function PollsPage() {
         groups={groups.data ?? []}
       />
 
-      <Dialog
+      <DeleteDialog
         open={toDelete !== null}
         onOpenChange={(next) => !next && setToDelete(null)}
         title={`${toDelete?.title ?? 'Umfrage'} löschen?`}
-        footer={
-          <>
-            <Button onClick={() => setToDelete(null)}>Abbrechen</Button>
-            <Button variant="danger" onClick={() => void onDeleteConfirmed()}>
-              Löschen
-            </Button>
-          </>
-        }
+        expected={toDelete?.title ?? ''}
+        onConfirm={onDeleteConfirmed}
       >
         <p className="text-sm text-gray-600">
           Mit der Umfrage verschwinden auch alle abgegebenen Stimmen.
         </p>
-      </Dialog>
+      </DeleteDialog>
     </div>
   );
 }

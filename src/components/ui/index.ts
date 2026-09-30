@@ -62,6 +62,8 @@ export { default as Textarea } from './Textarea';
 export type { TextareaProps } from './Textarea';
 
 export { default as Select } from './Select';
+export { default as DeleteDialog, TypeToConfirm, typedMatches } from './DeleteDialog';
+export type { DeleteDialogProps } from './DeleteDialog';
 export type { SelectProps, SelectOption } from './Select';
 export { default as SearchSelect } from './SearchSelect';
 export type { SearchSelectProps } from './SearchSelect';

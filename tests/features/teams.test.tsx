@@ -319,7 +319,7 @@ describe('TeamsPage', () => {
     expect(confirm).toBeDisabled();
 
     // Ein falscher Name gibt den Knopf nicht frei, auch nicht mit Enter.
-    const input = within(dialog).getByLabelText('Name der Mannschaft zur Bestätigung');
+    const input = within(dialog).getByLabelText('Zur Bestätigung eingeben');
     await userEvent.type(input, '2. Herren{Enter}');
     expect(confirm).toBeDisabled();
     expect(state.deletes).toHaveLength(0);
@@ -339,12 +339,12 @@ describe('TeamsPage', () => {
 
     await userEvent.click(screen.getAllByRole('button', { name: /1\. Herren löschen/ })[0]);
     let dialog = await screen.findByRole('dialog');
-    await userEvent.type(within(dialog).getByLabelText('Name der Mannschaft zur Bestätigung'), '1. Herren');
+    await userEvent.type(within(dialog).getByLabelText('Zur Bestätigung eingeben'), '1. Herren');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Abbrechen' }));
 
     await userEvent.click(screen.getAllByRole('button', { name: /1\. Herren löschen/ })[0]);
     dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByLabelText('Name der Mannschaft zur Bestätigung')).toHaveValue('');
+    expect(within(dialog).getByLabelText('Zur Bestätigung eingeben')).toHaveValue('');
     expect(within(dialog).getByRole('button', { name: 'Endgültig löschen' })).toBeDisabled();
     expect(state.deletes).toHaveLength(0);
   });

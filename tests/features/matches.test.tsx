@@ -433,7 +433,10 @@ describe('GamesPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /^Löschen/ }));
     const dialog = await screen.findByRole('dialog');
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }));
+    const confirm = within(dialog).getByRole('button', { name: 'Endgültig löschen' });
+    expect(confirm).toBeDisabled();
+    await userEvent.type(within(dialog).getByLabelText('Zur Bestätigung eingeben'), 'löschen');
+    await userEvent.click(confirm);
 
     await waitFor(() => expect(state.deleted).toEqual([['m-1']]));
   });

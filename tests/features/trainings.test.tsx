@@ -440,7 +440,10 @@ describe('TrainingsPage, Tab „Planung“', () => {
     await userEvent.click(
       screen.getAllByRole('button', { name: 'Erwachsenentraining löschen' })[0],
     );
-    await userEvent.click(await screen.findByRole('button', { name: 'Löschen' }));
+    const confirm = await screen.findByRole('button', { name: 'Endgültig löschen' });
+    expect(confirm).toBeDisabled();
+    await userEvent.type(screen.getByLabelText('Zur Bestätigung eingeben'), 'Erwachsenentraining');
+    await userEvent.click(confirm);
 
     await waitFor(() =>
       expect(state.deletes).toContainEqual({ table: 'trainings', value: 'tr-1' }),

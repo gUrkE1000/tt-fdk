@@ -104,8 +104,9 @@ export default function NewsTab({ canEdit = false }: NewsTabProps) {
     const ok = await confirm({
       title: `„${item.title}" löschen?`,
       description: 'Die Neuigkeit verschwindet für alle Mitglieder.',
-      confirmLabel: 'Löschen',
+      confirmLabel: 'Endgültig löschen',
       danger: true,
+      typeToConfirm: item.title || 'löschen',
     });
     if (!ok) return;
 

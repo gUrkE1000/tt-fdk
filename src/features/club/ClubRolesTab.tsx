@@ -94,8 +94,9 @@ export default function ClubRolesTab() {
   async function remove(role: ClubRoleWithMembers) {
     const ok = await confirm({
       title: `Das Amt „${role.name}" löschen?`,
-      confirmLabel: 'Löschen',
+      confirmLabel: 'Endgültig löschen',
       danger: true,
+      typeToConfirm: role.name,
     });
     if (!ok) return;
 

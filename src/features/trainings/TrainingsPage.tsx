@@ -7,7 +7,7 @@ import {
   Card,
   CardBody,
   Checkbox,
-  Dialog,
+  DeleteDialog,
   EmptyState,
   IconButton,
   Menu,
@@ -259,24 +259,18 @@ function PlanningTab() {
         trainingId={assignFor}
       />
 
-      <Dialog
+      <DeleteDialog
         open={toDelete !== null}
         onOpenChange={(open) => !open && setToDelete(null)}
         title={`${toDelete?.name ?? 'Training'} löschen?`}
-        footer={
-          <>
-            <Button onClick={() => setToDelete(null)}>Abbrechen</Button>
-            <Button variant="danger" onClick={() => void onDeleteConfirmed()}>
-              Löschen
-            </Button>
-          </>
-        }
+        expected={toDelete?.name ?? ''}
+        onConfirm={onDeleteConfirmed}
       >
         <p className="text-sm text-gray-600">
           Mit dem Training verschwinden auch alle seine Termine und die Rückmeldungen dazu. Soll
           es nur keine neuen Termine mehr geben, nimm stattdessen den Haken bei „Aktiv“ heraus.
         </p>
-      </Dialog>
+      </DeleteDialog>
     </div>
   );
 }
