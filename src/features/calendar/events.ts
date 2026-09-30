@@ -39,11 +39,11 @@ export const ALL_KINDS: CalendarKind[] = CATEGORIES.map((category) => category.k
 export function detailPath(kind: CalendarKind, id?: string): string | null {
   switch (kind) {
     case 'match':
-      return id ? matchPath(id) : '/my-club?tab=games';
+      return id ? matchPath(id) : '/my-games';
     case 'training':
-      return id ? trainingPath(id) : '/my-club?tab=trainings';
+      return id ? trainingPath(id) : '/?tab=trainings';
     case 'event':
-      return id ? eventPath(id) : '/my-club?tab=events';
+      return id ? eventPath(id) : '/my-dates';
     default:
       return null;
   }

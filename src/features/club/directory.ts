@@ -33,18 +33,3 @@ export function useDirectory() {
 export function searchDirectory(entries: DirectoryEntry[], search: string): DirectoryEntry[] {
   return entries.filter((entry) => matchesSearch([entry.full_name], search));
 }
-
-/** Ansprechpartner: Admins, Trainer und Mannschaftsführer, in dieser Reihenfolge. */
-const CONTACT_ORDER = ['admin', 'trainer', 'team_leader'] as const;
-
-export function contactPeople(entries: DirectoryEntry[]): DirectoryEntry[] {
-  return entries
-    .filter((entry) => CONTACT_ORDER.includes(entry.role as (typeof CONTACT_ORDER)[number]))
-    .sort((a, b) => {
-      const byRole =
-        CONTACT_ORDER.indexOf(a.role as (typeof CONTACT_ORDER)[number]) -
-        CONTACT_ORDER.indexOf(b.role as (typeof CONTACT_ORDER)[number]);
-      if (byRole !== 0) return byRole;
-      return (a.full_name ?? '').localeCompare(b.full_name ?? '', 'de');
-    });
-}

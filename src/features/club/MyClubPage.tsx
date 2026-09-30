@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { Mail, Phone, Users } from 'lucide-react';
 import {
-  Avatar,
   Badge,
   Card,
   CardBody,
@@ -14,7 +13,6 @@ import {
   ErrorState,
   LoadingState,
 } from '../../components/ui';
-import Placeholder from '../../app/Placeholder';
 import { roleLabel } from '../../lib/labels';
 import { useClubSettings } from './api';
 import { useSession } from '../auth/session';
@@ -22,15 +20,21 @@ import ClubDataTab from './ClubDataTab';
 import ClubOverviewTab from './ClubOverviewTab';
 import ClubRolesTab from './ClubRolesTab';
 import AdminPage from '../admin/AdminPage';
-import { SESSION_WINDOW_DAYS } from '../trainings/api';
 import { useClubRoles } from './rolesApi';
 import NewsTab from './NewsTab';
 import ClubTeamsTab from './ClubTeamsTab';
-import ClubGamesTab from './ClubGamesTab';
-import SessionsTab from '../trainings/SessionsTab';
-import OpenTrainingsList from '../trainings/OpenTrainingsList';
-import ClubEventsTab from './ClubEventsTab';
-import { contactPeople, searchDirectory, useDirectory, type DirectoryEntry } from './directory';
+import { searchDirectory, useDirectory, type DirectoryEntry } from './directory';
+
+/**
+ * Reiter, die es nicht mehr gibt, weil ihr Inhalt schon an anderer Stelle steht:
+ * Trainings in der Übersicht, Termine unter „Meine Termine", Spiele unter „Meine Spiele".
+ */
+const MOVED_TABS: Record<string, string> = {
+  trainings: '/?tab=trainings',
+  events: '/my-dates',
+  games: '/my-games',
+  files: '/my-club',
+};
 
 /**
  * „Verein" — für alle dieselbe Seite. Mitglieder lesen, der Administrator bearbeitet in
@@ -43,6 +47,12 @@ export default function MyClubPage() {
   // Der Reiter steht in der Adresse, damit Links aus Benachrichtigungen und aus
   // „Offen für dich" direkt dort landen (z. B. /my-club?tab=news).
   const [search, setSearch] = useSearchParams();
+  const tab = search.get('tab') ?? 'members';
+  const about = settings.data?.about_html ?? '';
+
+  // Frühere Reiter, deren Inhalt es an anderer Stelle schon gibt — alte Links führen dorthin.
+  const moved = MOVED_TABS[tab];
+  if (moved) return <Navigate to={moved} replace />;
 
   return (
     <div>
@@ -52,7 +62,7 @@ export default function MyClubPage() {
       />
 
       <Tabs
-        value={search.get('tab') ?? 'members'}
+        value={tab}
         onValueChange={(value) => setSearch({ tab: value }, { replace: true })}
         tabs={[
           {
@@ -64,24 +74,16 @@ export default function MyClubPage() {
           },
           {
             value: 'contacts',
-            label: 'Rollen & Kontaktdaten',
-            content: <Contacts editRoles={isAdmin} />,
+            label: 'Ämter',
+            content: isAdmin ? <ClubRolesTab /> : <ClubRolesList />,
           },
-          { value: 'trainings', label: 'Trainings', content: <ClubTrainingsTab /> },
-          { value: 'events', label: 'Vereinstermine', content: <ClubEventsTab /> },
           { value: 'teams', label: 'Mannschaften', content: <ClubTeamsTab /> },
-          { value: 'games', label: 'Spiele', content: <ClubGamesTab /> },
           { value: 'news', label: 'Neuigkeiten', content: <NewsTab canEdit={isAdmin} /> },
-          {
-            value: 'files',
-            label: 'Dateien',
-            content: <Placeholder title="Vereinsdateien" task="9.4" />,
-          },
-          {
-            value: 'about',
-            label: 'Über den Verein',
-            content: <About text={settings.data?.about_html ?? ''} />,
-          },
+          // Ohne Text gibt es für Mitglieder nichts zu lesen; der Administrator schreibt ihn
+          // unter „Daten".
+          ...(about.trim() !== ''
+            ? [{ value: 'about', label: 'Über den Verein', content: <About text={about} /> }]
+            : []),
           // Nur für den Administrator: verwalten, was oben alle lesen.
           ...(isAdmin
             ? [
@@ -92,25 +94,6 @@ export default function MyClubPage() {
             : []),
         ]}
       />
-    </div>
-  );
-}
-
-/**
- * Trainings aus Mitgliedersicht: die eigenen Termine der nächsten zwei Wochen, darunter
- * die Liste der offenen Trainings zum Selbst-Eintragen. Dieselben Karten wie unter
- * „Trainings“ — wer hier zusagt, meldet sich genauso zurück.
- */
-function ClubTrainingsTab() {
-  return (
-    <div className="space-y-6">
-      <SessionsTab onlyMine days={SESSION_WINDOW_DAYS} />
-      <div>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-600">
-          Offene Trainings
-        </h2>
-        <OpenTrainingsList />
-      </div>
     </div>
   );
 }
@@ -177,59 +160,17 @@ function MembersDirectory() {
   );
 }
 
-/** `editRoles`: der Administrator legt die Ämter hier auch an und bearbeitet sie. */
-function Contacts({ editRoles = false }: { editRoles?: boolean }) {
-  const directory = useDirectory();
-  const people = contactPeople(directory.data ?? []);
-
-  if (people.length === 0 && !editRoles) {
-    return <EmptyState icon={Users} title="Keine Ansprechpartner hinterlegt" />;
-  }
-
-  return (
-    <div className="space-y-6">
-      {editRoles ? <ClubRolesTab /> : <ClubRolesList />}
-
-      <div className="space-y-3">
-        <div>
-          <h3 className="font-bold text-gray-900">Ansprechpartner in der Anwendung</h3>
-          <p className="text-sm text-gray-600">
-            Administratoren, Trainer und Mannschaftsführer — wer die Anwendung pflegt. Ein
-            Amt ist etwas anderes: es steht oben.
-          </p>
-        </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        {people.map((entry) => (
-          <Card key={entry.id}>
-            <CardBody className="flex items-start gap-3">
-              <Avatar name={entry.full_name ?? ''} />
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-gray-900">{entry.full_name}</p>
-                <Badge tone="primary">{roleLabel(entry.role)}</Badge>
-                <div className="mt-1">
-                  <ContactCell entry={entry} />
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        ))}
-      </div>
-      </div>
-    </div>
-  );
-}
-
 /** Die Ämter des Vereins (Aufgabe 9.6) — wen man wofür anspricht. */
 function ClubRolesList() {
   const roles = useClubRoles();
   const entries = (roles.data ?? []).filter((role) => role.memberNames.length > 0);
 
-  if (entries.length === 0) return null;
+  if (entries.length === 0) {
+    return <EmptyState icon={Users} title="Noch keine Ämter hinterlegt" />;
+  }
 
   return (
     <div className="space-y-3">
-      <h3 className="font-bold text-gray-900">Ämter</h3>
 
       <div className="grid gap-3 sm:grid-cols-2">
         {entries.map((role) => (

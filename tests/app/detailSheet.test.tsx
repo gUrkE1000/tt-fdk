@@ -54,8 +54,8 @@ describe('Adressen der Einzelansicht', () => {
 
   it('kennt zu jeder Art die Liste darunter', () => {
     expect(parentOf('match')).toEqual({ pathname: '/my-games', search: '' });
-    expect(parentOf('training')).toEqual({ pathname: '/my-club', search: '?tab=trainings' });
-    expect(parentOf('event')).toEqual({ pathname: '/my-club', search: '?tab=events' });
+    expect(parentOf('training')).toEqual({ pathname: '/', search: '?tab=trainings' });
+    expect(parentOf('event')).toEqual({ pathname: '/my-dates', search: '' });
   });
 });
 

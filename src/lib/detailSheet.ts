@@ -81,9 +81,9 @@ export function parentOf(kind: DetailKind): { pathname: string; search: string }
     case 'match':
       return { pathname: '/my-games', search: '' };
     case 'training':
-      return { pathname: '/my-club', search: '?tab=trainings' };
+      return { pathname: '/', search: '?tab=trainings' };
     case 'event':
-      return { pathname: '/my-club', search: '?tab=events' };
+      return { pathname: '/my-dates', search: '' };
   }
 }
 

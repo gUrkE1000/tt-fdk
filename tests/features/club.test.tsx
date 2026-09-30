@@ -81,7 +81,7 @@ import VenuesPage from '../../src/features/venues/VenuesPage';
 import { ToastProvider } from '../../src/components/ui';
 import { parseAliases, toClubFormValues, clubDataSchema } from '../../src/features/club/schemas';
 import { formatVenueAddress } from '../../src/features/venues/schemas';
-import { contactPeople, searchDirectory, type DirectoryEntry } from '../../src/features/club/directory';
+import { searchDirectory, type DirectoryEntry } from '../../src/features/club/directory';
 import { bundeslandLabel, BUNDESLAND_OPTIONS } from '../../src/lib/bundeslaender';
 
 function LocationProbe() {
@@ -239,14 +239,6 @@ describe('Verzeichnis', () => {
     expect(searchDirectory(directoryRows, 'meik')).toHaveLength(1);
     expect(searchDirectory(directoryRows, '')).toHaveLength(3);
   });
-
-  it('sortiert Ansprechpartner nach Rolle', () => {
-    expect(contactPeople(directoryRows).map((entry) => entry.role)).toEqual([
-      'admin',
-      'trainer',
-      'team_leader',
-    ]);
-  });
 });
 
 // ------------------------------------------------------------------ Oberfläche
@@ -257,9 +249,8 @@ describe('Verein (zusammengelegt)', () => {
 
     for (const label of [
       'Mitglieder',
-      'Rollen & Kontaktdaten',
+      'Ämter',
       'Neuigkeiten',
-      'Dateien',
       'Daten',
       'Übersicht',
       'Betrieb',
@@ -447,14 +438,34 @@ describe('MyClubPage', () => {
     expect(screen.getAllByText('Tina Trainerin').length).toBeGreaterThan(0);
   });
 
-  it('listet die Ansprechpartner mit Rolle', async () => {
+  it('zeigt die Rolle jedes Mitglieds direkt in der Liste', async () => {
     renderPage(<MyClubPage />);
-    await screen.findAllByText('Anna Admin');
-
-    await userEvent.click(screen.getByRole('tab', { name: 'Rollen & Kontaktdaten' }));
-
-    expect(await screen.findByText(/Administratoren, Trainer und Mannschaftsführer/)).toBeInTheDocument();
+    expect(await screen.findAllByText('Anna Admin')).not.toHaveLength(0);
     expect(screen.getAllByText('Trainer').length).toBeGreaterThan(0);
+  });
+
+  it('führt nur noch das Nötige — Trainings, Termine und Spiele stehen anderswo', () => {
+    renderPage(<MyClubPage />);
+    for (const label of ['Mitglieder', 'Ämter', 'Mannschaften', 'Neuigkeiten']) {
+      expect(screen.getByRole('tab', { name: label })).toBeInTheDocument();
+    }
+    for (const label of ['Trainings', 'Vereinstermine', 'Spiele', 'Dateien', 'Rollen & Kontaktdaten']) {
+      expect(screen.queryByRole('tab', { name: label })).toBeNull();
+    }
+  });
+
+  it('leitet alte Reiter-Links dorthin, wo es den Inhalt heute gibt', async () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter initialEntries={['/my-club?tab=games']}>
+          <Routes>
+            <Route path="/my-club" element={<MyClubPage />} />
+            <Route path="/my-games" element={<LocationProbe />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByText('/my-games')).toBeInTheDocument();
   });
 
   it('zeigt den Vereinstext, wenn einer hinterlegt ist', async () => {
