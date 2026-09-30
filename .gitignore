@@ -12,3 +12,6 @@ coverage/
 
 # Arbeitsdateien der Supabase-CLI
 supabase/.temp/
+
+# Ausgaben der Playwright-CLI (Snapshots, Logs, Screenshots)
+.playwright-cli/
