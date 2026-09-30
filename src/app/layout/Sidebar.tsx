@@ -7,11 +7,16 @@ interface SidebarProps {
   clubName: string;
   /** Wird auf dem Smartphone nach jedem Klick aufgerufen, um den Drawer zu schließen. */
   onNavigate?: () => void;
+  /**
+   * Ein Klick ersetzt den aktuellen Eintrag im Verlauf — im Menü am Telefon, das einen
+   * eigenen Eintrag hat. Sonst stünde die Seite von vorhin danach zweimal da.
+   */
+  replace?: boolean;
   /** Zähler je Ziel, z. B. offene Rückmeldungen an „Übersicht". */
   badges?: Record<string, number>;
 }
 
-export default function Sidebar({ role, clubName, onNavigate, badges }: SidebarProps) {
+export default function Sidebar({ role, clubName, onNavigate, replace, badges }: SidebarProps) {
   const sections = visibleNav(role);
 
   return (
@@ -38,6 +43,7 @@ export default function Sidebar({ role, clubName, onNavigate, badges }: SidebarP
                     to={item.to}
                     end={item.to === '/'}
                     onClick={onNavigate}
+                    replace={replace}
                     className={({ isActive }) =>
                       [
                         'flex min-h-touch items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors',

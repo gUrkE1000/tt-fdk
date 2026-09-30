@@ -25,15 +25,18 @@ export function detailTarget(
   };
 }
 
-/** Wie {@link detailTarget}, aber zum Aufrufen — für Klicks ohne Link (Kalender). */
-export function useOpenDetail(): (path: string) => void {
+/**
+ * Wie {@link detailTarget}, aber zum Aufrufen — für Klicks ohne Link (Kalender).
+ * `replace`: aus einem Dialog heraus, dessen Eintrag im Verlauf ersetzt werden soll.
+ */
+export function useOpenDetail(): (path: string, options?: { replace?: boolean }) => void {
   const navigate = useNavigate();
   const location = useLocation();
 
   return useCallback(
-    (path: string) => {
+    (path: string, options?: { replace?: boolean }) => {
       const { to, state } = detailTarget(path, location);
-      navigate(to, { state });
+      navigate(to, { state, replace: options?.replace });
     },
     [navigate, location],
   );
