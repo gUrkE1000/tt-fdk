@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -39,6 +39,7 @@ vi.mock('../../src/lib/pdfText', () => ({
 }));
 
 import NuscoreImportDialog from '../../src/features/matches/NuscoreImportDialog';
+import { readPdfLines } from '../../src/lib/pdfText';
 import { ToastProvider } from '../../src/components/ui';
 import type { MatchRow } from '../../src/features/matches/api';
 import type { TeamWithRoster } from '../../src/features/teams/api';
@@ -81,6 +82,21 @@ function renderDialog() {
     </QueryClientProvider>,
   );
 }
+
+/** Ein Einlesen, das erst endet, wenn der Test es sagt — wie pdfjs beim ersten Laden. */
+function slowRead() {
+  let finish: (lines: string[]) => void = () => {};
+  vi.mocked(readPdfLines).mockImplementationOnce(
+    () => new Promise<string[]>((resolve) => (finish = resolve)),
+  );
+  return (lines: string[]) => act(() => finish(lines));
+}
+
+const CODE_LINE = 'Sa. 10.10.2026 18:30 TSV Feldkirchen II TTC Kirchheim 7EXU-XFZU-F8S4';
+const PIN_LINES = [
+  'Sa. 10.10.2026 18:30 TSV Feldkirchen II TTC Kirchheim 4711',
+  'So. 18.10.2026 10:00 SC Baldham TSV Feldkirchen II 0815',
+];
 
 function pdf(name: string) {
   return new File(['%PDF-1.4'], name, { type: 'application/pdf' });
@@ -163,6 +179,91 @@ describe('NuscoreImportDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Übernehmen' }));
 
     expect(await screen.findByText('0 Spiele ergänzt, 1 nicht gespeichert')).toBeInTheDocument();
+  });
+
+  // Fehlerbild: Beide Listen auf einmal hochgeladen, übernommen wurde nur eine. Während
+  // die erste PDF gelesen wurde (beim ersten Mal lädt pdfjs nach), waren beide Felder
+  // gesperrt und „Übernehmen" schon frei.
+  it('lässt die zweite Liste wählen, während die erste noch gelesen wird', async () => {
+    const user = userEvent.setup();
+    renderDialog();
+    await user.selectOptions(screen.getByLabelText(/Mannschaft/), 't-1');
+
+    const finishCodes = slowRead();
+    await user.upload(screen.getByLabelText('Spiel-Codes (PDF)'), pdf('codes.pdf'));
+    expect(screen.getByText('Die PDF wird gelesen …')).toBeInTheDocument();
+    expect(screen.getByLabelText('Spiel-PINs (PDF)')).toBeEnabled();
+
+    const finishPins = slowRead();
+    await user.upload(screen.getByLabelText('Spiel-PINs (PDF)'), pdf('pins.pdf'));
+    expect(screen.getByText('Die PDFs werden gelesen …')).toBeInTheDocument();
+
+    // Die PINs sind zuerst fertig, die Codes danach — beide bleiben stehen.
+    await finishPins(PIN_LINES);
+    await finishCodes([CODE_LINE]);
+
+    expect(await screen.findByText('7EXUXFZUF8S4')).toBeInTheDocument();
+    expect(screen.getByText('4711')).toBeInTheDocument();
+    expect(screen.getByText('0815')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Übernehmen' }));
+    await waitFor(() => expect(state.updates).toHaveLength(2));
+    expect(state.updates).toEqual(
+      expect.arrayContaining([
+        { id: 'm-1', values: { nuscore_code: '7EXUXFZUF8S4', nuscore_pin: '4711' } },
+        { id: 'm-2', values: { nuscore_pin: '0815' } },
+      ]),
+    );
+  });
+
+  it('übernimmt erst, wenn beide Listen gelesen sind', async () => {
+    const user = userEvent.setup();
+    renderDialog();
+    await user.selectOptions(screen.getByLabelText(/Mannschaft/), 't-1');
+
+    state.pdfLines = [CODE_LINE];
+    await user.upload(screen.getByLabelText('Spiel-Codes (PDF)'), pdf('codes.pdf'));
+    await screen.findByText('7EXUXFZUF8S4');
+    expect(screen.getByRole('button', { name: 'Übernehmen' })).toBeEnabled();
+
+    const finishPins = slowRead();
+    await user.upload(screen.getByLabelText('Spiel-PINs (PDF)'), pdf('pins.pdf'));
+    expect(screen.getByRole('button', { name: 'Übernehmen' })).toBeDisabled();
+
+    await finishPins(PIN_LINES);
+    expect(await screen.findByText('4711')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Übernehmen' })).toBeEnabled();
+  });
+
+  it('nimmt bei einer neu gewählten Datei nur die zuletzt gewählte', async () => {
+    const user = userEvent.setup();
+    renderDialog();
+    await user.selectOptions(screen.getByLabelText(/Mannschaft/), 't-1');
+
+    const finishOld = slowRead();
+    await user.upload(screen.getByLabelText('Spiel-PINs (PDF)'), pdf('alt.pdf'));
+    state.pdfLines = ['Sa. 10.10.2026 18:30 TSV Feldkirchen II TTC Kirchheim 1234'];
+    await user.upload(screen.getByLabelText('Spiel-PINs (PDF)'), pdf('neu.pdf'));
+    await screen.findByText('1234');
+
+    await finishOld(PIN_LINES);
+    expect(screen.getByText('1234')).toBeInTheDocument();
+    expect(screen.queryByText('4711')).toBeNull();
+    expect(screen.getByText('neu.pdf: 1 Eintrag')).toBeInTheDocument();
+  });
+
+  it('verwirft eine Liste, die nach dem Wechsel der Mannschaft fertig wird', async () => {
+    const user = userEvent.setup();
+    renderDialog();
+    await user.selectOptions(screen.getByLabelText(/Mannschaft/), 't-1');
+
+    const finishPins = slowRead();
+    await user.upload(screen.getByLabelText('Spiel-PINs (PDF)'), pdf('pins.pdf'));
+    await user.selectOptions(screen.getByLabelText(/Mannschaft/), 't-2');
+    await finishPins(PIN_LINES);
+
+    expect(screen.queryByText('Das würde übernommen:')).toBeNull();
+    expect(screen.queryByText(/Die PDF wird gelesen/)).toBeNull();
   });
 
   it('lässt Dateien erst nach der Wahl der Mannschaft zu', () => {
