@@ -6,6 +6,7 @@ import RegisterPage from '../features/auth/RegisterPage';
 import ActionPage from '../features/auth/ActionPage';
 import { RequireAuth, RequireRole } from '../features/auth/guards';
 import DetailEntry from './detail/DetailEntry';
+import RouteError from './RouteError';
 
 /**
  * Seiten hinter der Anmeldung werden erst beim Aufruf geladen.
@@ -77,10 +78,12 @@ export const router = createBrowserRouter([
   // --------------------------------------------------- angemeldet
   {
     element: <RequireAuth />,
+    errorElement: <RouteError />,
     children: [
       {
         path: '/',
         element: <AppShell />,
+        errorElement: <RouteError />,
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'my-games', element: <MyGamesPage /> },

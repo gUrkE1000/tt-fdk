@@ -109,9 +109,9 @@ export default function GameTable({
         </p>
         <ProgressBar value={match.confirmedCount} max={required} />
         {/* Wie auf der Spielkarte: Vorname und Nachnamen-Initiale. */}
-        {match.lineupIds.length > 0 && (
+        {(match.lineupIds ?? []).length > 0 && (
           <ul className="mt-1.5 flex flex-wrap gap-1" aria-label="Aufstellung">
-            {match.lineupIds.map((id) => {
+            {(match.lineupIds ?? []).map((id) => {
               const full = nameOf(id);
               return (
                 <li
