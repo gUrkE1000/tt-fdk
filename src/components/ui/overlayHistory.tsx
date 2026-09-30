@@ -8,7 +8,7 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { UNSAFE_DataRouterContext, useLocation, useNavigate, type Location } from 'react-router-dom';
 
 /**
  * Zurückwischen schließt zuerst den offenen Dialog.
@@ -46,14 +46,24 @@ const POP_TIMEOUT_MS = 1000;
 export function OverlayHistoryProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const dataRouter = useContext(UNSAFE_DataRouterContext);
 
-  // Der zuletzt bekannte Eintrag. `pending` sind die Marken, wie sie nach den eigenen,
-  // noch nicht gerenderten Navigationen aussehen werden.
+  // Der zuletzt gerenderte Eintrag — nur Rückfall, falls es keinen Daten-Router gibt.
   const current = useRef(location);
-  const pending = useRef(overlaysOf(location.state));
   const releasing = useRef(new Set<string>());
   const popping = useRef(false);
   const waiting = useRef<(() => void)[]>([]);
+
+  /**
+   * Wo der Router wirklich steht.
+   *
+   * Nicht die gerenderte Adresse: React Router zeichnet einen Seitenwechsel als
+   * Transition, also nach allem Dringenden. Tippt man im Menü auf einen Eintrag, ist das
+   * Menü schon zu, während noch die alte Seite samt Menü-Eintrag im Verlauf angezeigt
+   * wird. Wer dann auf die gerenderte Adresse schaute, hielt das Menü für „mit dem Kreuz
+   * geschlossen", ging einen Schritt zurück — und nahm den Seitenwechsel wieder weg.
+   */
+  const routerLocation = (): Location => dataRouter?.router.state.location ?? current.current;
 
   const flushWaiting = () => {
     popping.current = false;
@@ -64,25 +74,36 @@ export function OverlayHistoryProvider({ children }: { children: ReactNode }) {
 
   useLayoutEffect(() => {
     current.current = location;
-    pending.current = overlaysOf(location.state);
-    flushWaiting();
+    if (!dataRouter) flushWaiting();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
+
+  // Ein Schritt zurück ist angekommen, sobald der Router woanders steht — nicht erst,
+  // wenn React die Seite gezeichnet hat.
+  useEffect(() => {
+    if (!dataRouter) return;
+    let key = dataRouter.router.state.location.key;
+    return dataRouter.router.subscribe((state) => {
+      if (state.location.key === key) return;
+      key = state.location.key;
+      if (popping.current) flushWaiting();
+    });
+  }, [dataRouter]);
 
   // Nach dem Neuladen gibt es die Dialoge der Marken nicht mehr. Ohne Aufräumen wäre
   // der Eintrag ein toter Schritt: Zurück täte scheinbar nichts.
   useEffect(() => {
-    if (overlaysOf(current.current.state).length === 0) return;
+    if (overlaysOf(routerLocation().state).length === 0) return;
     go([], true);
     // Nur beim ersten Rendern.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function go(overlays: string[], replace: boolean) {
-    const loc = current.current;
+    const loc = routerLocation();
     // `focus` gehört zu genau einem Eintrag (useScrollToFocus); kopiert würde die Liste
     // beim Öffnen jedes Dialogs wieder zum Termin springen.
     const { focus: _focus, overlays: _overlays, ...rest } = (loc.state ?? {}) as Record<string, unknown>;
-    pending.current = overlays;
     navigate(
       { pathname: loc.pathname, search: loc.search, hash: loc.hash },
       { replace, state: overlays.length > 0 ? { ...rest, overlays } : rest },
@@ -91,13 +112,19 @@ export function OverlayHistoryProvider({ children }: { children: ReactNode }) {
 
   function flushRelease() {
     if (releasing.current.size === 0) return;
-    const list = pending.current;
+    // Erst wenn ein laufender Schritt zurück angekommen ist, stimmt der Stand des Routers.
+    if (popping.current) {
+      waiting.current.push(flushRelease);
+      return;
+    }
+    // Nur Marken, die im aktuellen Eintrag wirklich obenauf liegen. Hat ein Link den
+    // Eintrag des Dialogs schon ersetzt, gibt es nichts zurückzunehmen.
+    const list = overlaysOf(routerLocation().state);
     let count = 0;
     while (count < list.length && releasing.current.has(list[list.length - 1 - count])) count++;
     releasing.current.clear();
     if (count === 0) return;
 
-    pending.current = list.slice(0, list.length - count);
     popping.current = true;
     window.setTimeout(() => popping.current && flushWaiting(), POP_TIMEOUT_MS);
     navigate(-count);
@@ -106,7 +133,7 @@ export function OverlayHistoryProvider({ children }: { children: ReactNode }) {
   const api = useRef<Pick<OverlayHistory, 'push' | 'release'>>({
     push(token) {
       const run = () => {
-        const list = pending.current;
+        const list = overlaysOf(routerLocation().state);
         const top = list[list.length - 1];
         // Ein Dialog geht zu, im selben Zug geht ein anderer auf (Bestätigung nach dem
         // Bearbeiten …): den Eintrag weiterverwenden statt zurück und wieder vor.
@@ -123,7 +150,7 @@ export function OverlayHistoryProvider({ children }: { children: ReactNode }) {
       else run();
     },
     release(token) {
-      if (!pending.current.includes(token)) return;
+      if (!overlaysOf(routerLocation().state).includes(token)) return;
       releasing.current.add(token);
       // Gesammelt, damit mehrere Dialoge, die zugleich zugehen, ein Schritt sind.
       queueMicrotask(flushRelease);

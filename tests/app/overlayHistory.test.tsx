@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, useState } from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -57,6 +57,26 @@ function EditThenConfirm() {
   );
 }
 
+/**
+ * Eine Seite, die wie in der App erst nachgeladen wird. Solange sie lädt, hält React den
+ * Seitenwechsel zurück (Transition) — die angezeigte Adresse hinkt dem Router hinterher.
+ */
+let finishLoading: () => void = () => {};
+const LazyVotes = lazy(
+  () =>
+    new Promise<{ default: () => JSX.Element }>((resolve) => {
+      finishLoading = () => resolve({ default: () => <h2>Umfragen-Seite</h2> });
+    }),
+);
+
+let finishSearch: () => void = () => {};
+const LazySearch = lazy(
+  () =>
+    new Promise<{ default: () => JSX.Element }>((resolve) => {
+      finishSearch = () => resolve({ default: () => <h2>Suchseite</h2> });
+    }),
+);
+
 function MyGames() {
   return (
     <div>
@@ -68,7 +88,7 @@ function MyGames() {
   );
 }
 
-function renderApp(initialEntries: string[]) {
+function renderApp(initialEntries: string[], { lazyVotes = false } = {}) {
   const router = createMemoryRouter(
     [
       {
@@ -77,7 +97,8 @@ function renderApp(initialEntries: string[]) {
         children: [
           { index: true, element: <h2>Übersicht</h2> },
           { path: 'my-games', element: <MyGames /> },
-          { path: 'votes', element: <h2>Abstimmungen</h2> },
+          { path: 'votes', element: lazyVotes ? <LazyVotes /> : <h2>Abstimmungen</h2> },
+          { path: 'search', element: <LazySearch /> },
         ],
       },
     ],
@@ -194,5 +215,55 @@ describe('Zurückwischen schließt zuerst den Dialog', () => {
     expect(where(router)).toBe('/my-games');
     await back(router);
     expect(where(router)).toBe('/');
+  });
+
+  it('ein Link im Menü führt auch dann zur neuen Seite, wenn diese erst nachlädt', async () => {
+    // Der gemeldete Fehler: Das Menü ging zu, bevor die neue Seite gezeichnet war. Die App
+    // hielt das für „mit dem Kreuz geschlossen", ging einen Schritt zurück und nahm damit
+    // den Seitenwechsel wieder weg.
+    const router = renderApp(['/', '/my-games'], { lazyVotes: true });
+    await userEvent.click(screen.getAllByRole('button', { name: 'Menü öffnen' })[0]);
+    const menu = screen.getByRole('button', { name: 'Menü schließen' }).parentElement!;
+    await userEvent.click(
+      Array.from(menu.querySelectorAll('a')).find((a) => a.getAttribute('href') === '/votes')!,
+    );
+    // Die Seite lädt noch; der Router ist aber schon weiter und muss dort bleiben.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
+    expect(where(router)).toBe('/votes');
+
+    await act(async () => {
+      finishLoading();
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
+    expect(await screen.findByRole('heading', { level: 2, name: 'Umfragen-Seite' })).toBeInTheDocument();
+    expect(where(router)).toBe('/votes');
+
+    // Der Menü-Eintrag wurde ersetzt, nicht zurückgenommen: zurück führt zur Seite davor.
+    await back(router);
+    expect(where(router)).toBe('/my-games');
+  });
+
+  it('„Alle Treffer" in der Sofortsuche führt zur Suchseite und bleibt dort', async () => {
+    const router = renderApp(['/', '/my-games']);
+    await userEvent.click(screen.getAllByRole('button', { name: 'Suchen' })[0]);
+    await userEvent.type(await screen.findByRole('combobox'), 'meier');
+    await userEvent.click(await screen.findByRole('option', { name: /Alle Treffer/ }));
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
+    expect(where(router)).toBe('/search?q=meier');
+
+    await act(async () => {
+      finishSearch();
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
+    expect(await screen.findByRole('heading', { level: 2, name: 'Suchseite' })).toBeInTheDocument();
+    expect(where(router)).toBe('/search?q=meier');
+
+    await back(router);
+    expect(where(router)).toBe('/my-games');
   });
 });
