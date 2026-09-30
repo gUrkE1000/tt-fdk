@@ -2,6 +2,7 @@ import * as RadixDialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '../../lib/cn';
+import { useCloseOnBack } from './overlayHistory';
 
 export interface DrawerProps {
   open: boolean;
@@ -22,6 +23,9 @@ export default function Drawer({
   side = 'right',
   children,
 }: DrawerProps) {
+  // Zurückwischen am Telefon schließt den Dialog statt die Seite darunter.
+  useCloseOnBack(open, () => onOpenChange(false));
+
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>

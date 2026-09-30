@@ -15,7 +15,7 @@ import { useOpenCount } from '../../features/dashboard/openItems';
 import ConnectionBanner from './ConnectionBanner';
 import SearchLauncher from '../../features/search/SearchDialog';
 import { useScrollToHash } from './useScrollToHash';
-import { LoadingState } from '../../components/ui';
+import { LoadingState, OverlayHistoryProvider, useCloseOnBack } from '../../components/ui';
 import DetailSheet from '../detail/DetailSheet';
 import { useScrollToFocus } from '../detail/useScrollToFocus';
 
@@ -29,9 +29,22 @@ interface AppShellProps {
 /**
  * Grundgerüst der Anwendung: feste Seitenleiste ab xl, darunter Kopfzeile mit Hamburger,
  * Drawer und Bottom-Bar (Zielbild 6.2).
+ *
+ * Alles darin hängt am Verlauf: Zurückwischen schließt zuerst einen offenen Dialog
+ * (`OverlayHistoryProvider`), dann das Blatt einer Einzelansicht, dann die Seite.
  */
-export default function AppShell({ role, clubName, headerActions }: AppShellProps) {
+export default function AppShell(props: AppShellProps) {
+  return (
+    <OverlayHistoryProvider>
+      <Shell {...props} />
+    </OverlayHistoryProvider>
+  );
+}
+
+function Shell({ role, clubName, headerActions }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // Das Menü am Telefon schließt beim Zurückwischen wie jeder Dialog.
+  const menuOnTop = useCloseOnBack(drawerOpen, () => setDrawerOpen(false));
   const location = useLocation();
   const session = useSession();
   const clubInfo = usePublicClubInfo();
@@ -84,6 +97,7 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
               clubName={effectiveClubName}
               badges={badges}
               onNavigate={() => setDrawerOpen(false)}
+              replace={menuOnTop}
             />
             <button
               type="button"
