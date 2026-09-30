@@ -21,6 +21,7 @@ import {
   type EventStatus,
 } from './api';
 import { isRegistrationOpen } from './schemas';
+import { detailMarker } from '../../lib/detailSheet';
 
 export interface EventCardProps {
   event: ClubEvent;
@@ -93,7 +94,7 @@ export default function EventCard({
   }
 
   return (
-    <Card>
+    <Card data-detail={detailMarker('event', event.id)}>
       <CardBody className="space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">

@@ -212,14 +212,14 @@ describe('MyDatesPage', () => {
     expect(screen.queryByText('Noch offen')).toBeNull();
   });
 
-  it('führt von jedem Termin auf seine Seite', async () => {
+  it('öffnet jeden Termin als Blatt über der Liste, der Reiter bleibt', async () => {
     renderPage();
     expect(
       await screen.findByRole('link', { name: '1. Herren gegen TTC Nachbarstadt' }),
-    ).toHaveAttribute('href', '/match/m-1');
+    ).toHaveAttribute('href', '/my-dates?tab=attending&match=m-1');
     expect(screen.getByRole('link', { name: 'Erwachsenentraining' })).toHaveAttribute(
       'href',
-      '/training/s-1',
+      '/my-dates?tab=attending&training=s-1',
     );
   });
 

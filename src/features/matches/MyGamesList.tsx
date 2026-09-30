@@ -19,6 +19,7 @@ import MatchDialogs, { type OpenMatchDialog } from './MatchDialogs';
 import { useCanManageMatch } from './canManage';
 import { useVenueBlockFor } from './venueBlock';
 import { getShortName } from '../../lib/names';
+import { useFocusedId } from '../../app/detail/useDetail';
 
 export type MyGamesScope = 'all' | 'home' | 'away' | 'past';
 
@@ -48,6 +49,8 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
   const members = useMembers();
 
   const [dialog, setDialog] = useState<OpenMatchDialog | null>(null);
+  // Das Spiel aus einer Benachrichtigung soll gezeichnet sein, damit die Seite hinscrollt.
+  const focusedId = useFocusedId('match');
 
   const profileId = profile?.id ?? null;
 
@@ -115,7 +118,7 @@ export default function MyGamesList({ scope = 'all', limit, empty }: MyGamesList
 
   return (
     <>
-      <PagedList items={mine} resetKey={scope}>
+      <PagedList items={mine} resetKey={scope} reveal={(match) => match.id === focusedId}>
         {(match) => (
           <GameCard
             key={match.id}

@@ -39,6 +39,7 @@ import type { SessionKeys } from '../keys/api';
 import KeyBearerRow from './KeyBearerRow';
 import SessionAssigneesPanel from './SessionAssigneesPanel';
 import { isMySession } from './schemas';
+import { detailMarker } from '../../lib/detailSheet';
 
 const CHOICES: {
   value: AttendanceStatus;
@@ -204,7 +205,10 @@ export default function SessionCard({
   );
 
   return (
-    <Card className={cn(session.cancelled && 'opacity-60')}>
+    <Card
+      className={cn(session.cancelled && 'opacity-60')}
+      data-detail={detailMarker('training', session.id)}
+    >
       <CardBody className="space-y-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">

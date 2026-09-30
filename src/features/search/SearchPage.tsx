@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import DetailLink from '../../app/detail/DetailLink';
 import { useQueryClient } from '@tanstack/react-query';
 import { Phone, Search, SearchX, WifiOff } from 'lucide-react';
 import {
@@ -273,9 +274,10 @@ function ResultItem({
           {row}
         </a>
       ) : (
-        <Link to={hit.target} className="min-w-0 flex-1 hover:bg-gray-50" onClick={onOpen}>
+        // Termine öffnen als Blatt über den Treffern; zurück steht wieder die Trefferliste.
+        <DetailLink to={hit.target} className="min-w-0 flex-1 hover:bg-gray-50" onClick={onOpen}>
           {row}
-        </Link>
+        </DetailLink>
       )}
       {actions}
     </div>

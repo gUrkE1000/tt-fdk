@@ -30,6 +30,7 @@ import VolunteerToggles from './VolunteerToggles';
 import RescheduleVotePanel from './RescheduleVotePanel';
 import MessagesPanel from '../messages/MessagesPanel';
 import { groupResponses } from './responseGroups';
+import { detailMarker } from '../../lib/detailSheet';
 
 export interface GameCardProps {
   match: MatchRow;
@@ -108,7 +109,7 @@ export default function GameCard({
   const finished = isFinished(match);
 
   return (
-    <Card>
+    <Card data-detail={detailMarker('match', match.id)}>
       <CardBody className="space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">

@@ -397,3 +397,27 @@
     @apply mx-px;
   }
 }
+
+/*
+ * Die Karte, zu der eine Liste nach einer Benachrichtigung gescrollt ist, leuchtet kurz
+ * auf — sonst sucht man sie unter fünf gleich aussehenden Karten
+ * (`src/app/detail/useScrollToFocus.ts`).
+ */
+@keyframes detail-focus {
+  from {
+    box-shadow: 0 0 0 3px rgb(var(--primary));
+  }
+  to {
+    box-shadow: 0 0 0 3px rgb(var(--primary) / 0);
+  }
+}
+
+.detail-focus {
+  animation: detail-focus 2.4s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail-focus {
+    animation-duration: 0.01s;
+  }
+}

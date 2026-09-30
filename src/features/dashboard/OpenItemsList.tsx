@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import DetailLink from '../../app/detail/DetailLink';
 import { CalendarClock, Check, CheckCircle2, Clock, Share2, Users, Vote, X } from 'lucide-react';
 import {
   Badge,
@@ -133,14 +134,14 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
         <ul className="space-y-1.5">
           {unrequested.map((match) => (
             <li key={match.id} className="flex flex-wrap items-center justify-between gap-2">
-              <Link
+              <DetailLink
                 to={matchPath(match.id)}
                 className="text-sm text-gray-800 underline-offset-2 hover:text-primary hover:underline"
               >
                 {match.dtstart ? formatDateTime(match.dtstart) : ''} ·{' '}
                 {(teams.data ?? []).find((team) => team.id === match.team_id)?.name ?? 'Mannschaft'}{' '}
                 gegen {match.opponent || 'unbekannt'}
-              </Link>
+              </DetailLink>
               <Button size="sm" onClick={() => setDialog({ kind: 'manage', match })}>
                 <Users className="h-4 w-4" aria-hidden="true" />
                 Spieler anfragen
@@ -185,12 +186,12 @@ export default function OpenItemsList({ limit }: OpenItemsListProps) {
                 </span>
               )}
             </div>
-            <Link
+            <DetailLink
               to={detailLink(item)}
               className="block font-semibold text-gray-900 underline-offset-2 hover:text-primary hover:underline"
             >
               {item.title}
-            </Link>
+            </DetailLink>
             <OpenItemActions
               item={item}
               participation={

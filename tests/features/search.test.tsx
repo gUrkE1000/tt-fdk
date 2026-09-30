@@ -161,7 +161,8 @@ describe('Sofortsuche', () => {
     await screen.findByText('Nachbar', { selector: 'mark' });
     await userEvent.keyboard('{Enter}');
 
-    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/match/m-1'));
+    // Das Spiel öffnet als Blatt über der Seite, auf der gesucht wurde.
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/?match=m-1'));
     expect(screen.queryByRole('combobox')).toBeNull();
     // Die Suche steht jetzt unter „zuletzt gesucht".
     expect(loadRecent('me')).toEqual(['nachbar']);
@@ -304,6 +305,13 @@ describe('Ergebnisseite', () => {
         p_comment: '',
       }),
     );
+  });
+
+  it('öffnet ein Spiel als Blatt über den Treffern, die Suche bleibt in der Adresse', async () => {
+    state.rows = [MATCH];
+    renderWith(<SearchPage />, '/search?q=nachbar');
+    const hit = (await screen.findByText('Nachbar', { selector: 'mark' })).closest('a');
+    expect(hit).toHaveAttribute('href', '/search?q=nachbar&match=m-1');
   });
 
   it('merkt sich die Suche erst, wenn ein Treffer geöffnet wird', async () => {

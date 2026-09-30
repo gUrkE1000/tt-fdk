@@ -16,6 +16,8 @@ import ConnectionBanner from './ConnectionBanner';
 import SearchLauncher from '../../features/search/SearchDialog';
 import { useScrollToHash } from './useScrollToHash';
 import { LoadingState } from '../../components/ui';
+import DetailSheet from '../detail/DetailSheet';
+import { useScrollToFocus } from '../detail/useScrollToFocus';
 
 interface AppShellProps {
   /** Nur für Tests: überschreibt Rolle und Vereinsname statt der echten Sitzung. */
@@ -41,6 +43,9 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
   // an „Meine Termine", damit man sie auf dem Telefon in der Bottom-Bar sieht.
   const openCount = useOpenCount(session.profile?.id ?? null);
   const badges = { '/': openCount };
+
+  // Nach dem Einstieg über eine Benachrichtigung: die Liste zum Termin scrollen.
+  useScrollToFocus();
 
   // Links auf eine Stelle der Seite (/votes#poll-…, aus der Suche) springen dorthin,
   // sobald die Daten geladen sind.
@@ -124,6 +129,7 @@ export default function AppShell({ role, clubName, headerActions }: AppShellProp
         />
       </div>
 
+      <DetailSheet />
       <UpdatePrompt />
     </div>
   );

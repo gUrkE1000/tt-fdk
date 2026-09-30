@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { ArrowRight, Clock, Loader2, Search, WifiOff, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useOpenDetail } from '../../app/detail/useDetail';
 import { cn } from '../../lib/cn';
 import { searchable } from '../../lib/search';
 import { useSession } from '../auth/session';
@@ -83,6 +84,8 @@ interface SearchDialogProps {
 
 export function SearchDialog({ open, onOpenChange, initialQuery = '' }: SearchDialogProps) {
   const navigate = useNavigate();
+  // Termine öffnen als Blatt über der Seite, auf der man gesucht hat.
+  const openDetail = useOpenDetail();
   const { profile, role } = useSession();
   const userId = profile?.id ?? null;
   const [query, setQuery] = useState(initialQuery);
@@ -124,10 +127,10 @@ export function SearchDialog({ open, onOpenChange, initialQuery = '' }: SearchDi
       } else if (option.hit.external) {
         window.open(option.hit.target, '_blank', 'noopener,noreferrer');
       } else {
-        navigate(option.hit.target);
+        openDetail(option.hit.target);
       }
     },
-    [navigate, onOpenChange, trimmed, userId],
+    [navigate, openDetail, onOpenChange, trimmed, userId],
   );
 
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {

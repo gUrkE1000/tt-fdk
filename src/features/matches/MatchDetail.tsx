@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, SearchX } from 'lucide-react';
+import { SearchX } from 'lucide-react';
 import { EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui';
 import { formatDateTime } from '../../lib/dates';
 import { queryStatus } from '../../lib/queryStatus';
@@ -15,15 +14,14 @@ import GameCard from './GameCard';
 import MatchDialogs, { type OpenMatchDialog } from './MatchDialogs';
 
 /**
- * Die Seite eines einzelnen Spiels (`/match/:matchId`).
+ * Ein einzelnes Spiel, im Blatt über der Seite (`src/app/detail/DetailSheet.tsx`).
  *
  * Ziel von Kalender, „Offen für dich" und Übersicht: Wer dort auf ein Spiel tippt,
- * landet bei genau diesem Spiel — mit Rückmeldung, Aufstellung, Nachrichten und für den
- * Mannschaftsführer den Knöpfen zum Verwalten — statt in einer Liste, in der er es erst
+ * sieht genau dieses Spiel — mit Rückmeldung, Aufstellung, Nachrichten und für den
+ * Mannschaftsführer den Knöpfen zum Verwalten — statt einer Liste, in der er es erst
  * suchen muss.
  */
-export default function MatchPage() {
-  const { matchId = null } = useParams<{ matchId: string }>();
+export default function MatchDetail({ matchId }: { matchId: string }) {
   const { profile } = useSession();
 
   const match = useMatch(matchId);
@@ -53,35 +51,21 @@ export default function MatchPage() {
   const team = (teams.data ?? []).find((entry) => entry.id === row?.team_id);
   const status = queryStatus(match, participations);
 
-  const back = (
-    <Link
-      to="/my-games"
-      className="inline-flex items-center gap-1 text-sm font-semibold text-primary underline-offset-2 hover:underline"
-    >
-      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-      Meine Spiele
-    </Link>
-  );
-
   if (status.loading) return <LoadingState rows={1} />;
   if (status.error) return <ErrorState onRetry={status.retry} />;
 
   if (!row) {
     return (
-      <div className="space-y-4">
-        {back}
-        <EmptyState
-          icon={SearchX}
-          title="Dieses Spiel gibt es nicht (mehr)"
-          description="Vielleicht wurde es gelöscht, oder der Link ist unvollständig."
-        />
-      </div>
+      <EmptyState
+        icon={SearchX}
+        title="Dieses Spiel gibt es nicht (mehr)"
+        description="Vielleicht wurde es gelöscht, oder der Link ist unvollständig."
+      />
     );
   }
 
   return (
     <div>
-      <div className="mb-2">{back}</div>
       <PageHeader
         title={`${team?.name ?? 'Mannschaft'} gegen ${row.opponent || 'unbekannt'}`}
         description={row.dtstart ? formatDateTime(row.dtstart) : undefined}

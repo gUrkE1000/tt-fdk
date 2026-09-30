@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, SearchX } from 'lucide-react';
+import { SearchX } from 'lucide-react';
 import { EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui';
 import { formatDateTime } from '../../lib/dates';
 import { queryStatus } from '../../lib/queryStatus';
@@ -17,14 +16,13 @@ import {
 import SessionCard from './SessionCard';
 
 /**
- * Die Seite eines einzelnen Trainingstermins (`/training/:sessionId`).
+ * Ein einzelner Trainingstermin, im Blatt über der Seite (`src/app/detail/DetailSheet.tsx`).
  *
- * Ziel des Kalenders und von „Offen für dich": Wer dort auf ein Training tippt, landet
- * bei genau diesem Termin — mit Zu-/Absage, Gästen, Bemerkung, Teilnehmern, Schlüssel
- * und Nachrichten — statt in der Trainingsliste unter „Mein Verein".
+ * Ziel des Kalenders und von „Offen für dich": Wer dort auf ein Training tippt, sieht
+ * genau diesen Termin — mit Zu-/Absage, Gästen, Bemerkung, Teilnehmern, Schlüssel und
+ * Nachrichten — statt ihn in der Trainingsliste unter „Mein Verein" zu suchen.
  */
-export default function TrainingSessionPage() {
-  const { sessionId = null } = useParams<{ sessionId: string }>();
+export default function TrainingSessionDetail({ sessionId }: { sessionId: string }) {
   const { profile } = useSession();
 
   const session = useTrainingSession(sessionId);
@@ -43,16 +41,6 @@ export default function TrainingSessionPage() {
 
   const status = queryStatus(session, trainings);
 
-  const back = (
-    <Link
-      to="/my-club?tab=trainings"
-      className="inline-flex items-center gap-1 text-sm font-semibold text-primary underline-offset-2 hover:underline"
-    >
-      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-      Trainings
-    </Link>
-  );
-
   if (status.loading) return <LoadingState rows={1} />;
   if (status.error) return <ErrorState onRetry={status.retry} />;
 
@@ -61,20 +49,16 @@ export default function TrainingSessionPage() {
 
   if (!row) {
     return (
-      <div className="space-y-4">
-        {back}
-        <EmptyState
-          icon={SearchX}
-          title="Diesen Trainingstermin gibt es nicht (mehr)"
-          description="Vielleicht wurde er gelöscht, oder der Link ist unvollständig."
-        />
-      </div>
+      <EmptyState
+        icon={SearchX}
+        title="Diesen Trainingstermin gibt es nicht (mehr)"
+        description="Vielleicht wurde er gelöscht, oder der Link ist unvollständig."
+      />
     );
   }
 
   return (
     <div>
-      <div className="mb-2">{back}</div>
       <PageHeader title={training?.name ?? 'Training'} description={formatDateTime(row.starts_at)} />
 
       <SessionCard

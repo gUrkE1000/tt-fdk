@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 interface Row {
@@ -89,7 +89,7 @@ vi.mock('../../src/features/auth/session', () => ({
 
 import MyGamesPage from '../../src/features/matches/MyGamesPage';
 import OpenItemsList from '../../src/features/dashboard/OpenItemsList';
-import MatchPage from '../../src/features/matches/MatchPage';
+import MatchDetail from '../../src/features/matches/MatchDetail';
 import ManagePlayersDialog from '../../src/features/matches/ManagePlayersDialog';
 import ShareLineupDialog from '../../src/features/matches/ShareLineupDialog';
 import { ToastProvider } from '../../src/components/ui';
@@ -772,16 +772,14 @@ describe('OpenItemsList', () => {
 
 // ------------------------------------------------------------------ Seite eines Spiels
 
-describe('MatchPage', () => {
-  function renderMatch(path = '/match/m-1') {
+describe('MatchDetail', () => {
+  function renderMatch(matchId = 'm-1') {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     return render(
       <QueryClientProvider client={client}>
         <ToastProvider>
-          <MemoryRouter initialEntries={[path]}>
-            <Routes>
-              <Route path="/match/:matchId" element={<MatchPage />} />
-            </Routes>
+          <MemoryRouter>
+            <MatchDetail matchId={matchId} />
           </MemoryRouter>
         </ToastProvider>
       </QueryClientProvider>,
@@ -804,11 +802,11 @@ describe('MatchPage', () => {
 
   it('sagt es, wenn es das Spiel nicht gibt', async () => {
     state.tables.matches = [];
-    renderMatch('/match/weg');
+    renderMatch('weg');
     expect(await screen.findByText('Dieses Spiel gibt es nicht (mehr)')).toBeInTheDocument();
   });
 
-  it('wird von „Offen für dich" direkt verlinkt', async () => {
+  it('wird von „Offen für dich" als Blatt über der Seite verlinkt', async () => {
     state.tables.v_open_participations = [
       { profile_id: 'p-me', kind: 'match', id: 'm-1', starts_at: '2026-10-08T17:30:00Z', title: 'Spiel am 8.10.' },
     ];
@@ -816,7 +814,7 @@ describe('MatchPage', () => {
     renderWith(<OpenItemsList />);
     expect(await screen.findByRole('link', { name: 'Spiel am 8.10.' })).toHaveAttribute(
       'href',
-      '/match/m-1',
+      '/?match=m-1',
     );
   });
 });

@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 interface Row {
@@ -76,7 +76,7 @@ vi.mock('../../src/features/auth/session', () => ({
 }));
 
 import SessionsTab from '../../src/features/trainings/SessionsTab';
-import TrainingSessionPage from '../../src/features/trainings/TrainingSessionPage';
+import TrainingSessionDetail from '../../src/features/trainings/TrainingSessionDetail';
 import OpenTrainingsList from '../../src/features/trainings/OpenTrainingsList';
 import { ToastProvider } from '../../src/components/ui';
 
@@ -392,16 +392,14 @@ describe('OpenTrainingsList', () => {
 
 // ------------------------------------------------------------------ Seite eines Termins
 
-describe('TrainingSessionPage', () => {
+describe('TrainingSessionDetail', () => {
   function renderSession(id: string) {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     return render(
       <QueryClientProvider client={client}>
         <ToastProvider>
-          <MemoryRouter initialEntries={[`/training/${id}`]}>
-            <Routes>
-              <Route path="/training/:sessionId" element={<TrainingSessionPage />} />
-            </Routes>
+          <MemoryRouter>
+            <TrainingSessionDetail sessionId={id} />
           </MemoryRouter>
         </ToastProvider>
       </QueryClientProvider>,
