@@ -42,10 +42,14 @@ export default function MatchDetail({ matchId }: { matchId: string }) {
   // Die Karte erwartet die Zahl der Zusagen, die die Listen mitbringen.
   const row = useMemo<MatchRow | null>(() => {
     if (!match.data) return null;
-    const confirmedCount = (participations.data ?? []).filter(
+    const confirmed = (participations.data ?? []).filter(
       (entry) => entry.response === 'yes' && !entry.removed,
-    ).length;
-    return { ...match.data, confirmedCount };
+    );
+    const lineupIds = confirmed
+      .filter((entry) => entry.lineup_position !== null)
+      .sort((a, b) => (a.lineup_position ?? 0) - (b.lineup_position ?? 0))
+      .map((entry) => entry.profile_id);
+    return { ...match.data, confirmedCount: confirmed.length, lineupIds };
   }, [match.data, participations.data]);
 
   const team = (teams.data ?? []).find((entry) => entry.id === row?.team_id);

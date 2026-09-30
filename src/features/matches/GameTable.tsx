@@ -13,12 +13,15 @@ import {
 import { formatDateTime, formatShortDayDate, formatTime } from '../../lib/dates';
 import type { TeamWithRoster } from '../teams/api';
 import type { Venue } from '../venues/api';
+import { getShortName } from '../../lib/names';
 import type { MatchRow } from './api';
 
 export interface GameTableProps {
   matches: MatchRow[];
   teams: TeamWithRoster[];
   venues: Venue[];
+  /** Namen zu den Profil-IDs, für die Aufstellung. */
+  nameOf: (profileId: string) => string;
   selected: string[];
   onSelectedChange: (ids: string[]) => void;
   onEdit: (match: MatchRow) => void;
@@ -34,6 +37,7 @@ export default function GameTable({
   matches,
   teams,
   venues,
+  nameOf,
   selected,
   onSelectedChange,
   onEdit,
@@ -104,6 +108,23 @@ export default function GameTable({
           {`${match.confirmedCount} / ${required}`}
         </p>
         <ProgressBar value={match.confirmedCount} max={required} />
+        {/* Wie auf der Spielkarte: Vorname und Nachnamen-Initiale. */}
+        {match.lineupIds.length > 0 && (
+          <ul className="mt-1.5 flex flex-wrap gap-1" aria-label="Aufstellung">
+            {match.lineupIds.map((id) => {
+              const full = nameOf(id);
+              return (
+                <li
+                  key={id}
+                  title={full}
+                  className="max-w-full truncate rounded-full border border-primary-border bg-primary-soft px-2 py-0.5 text-xs font-semibold text-primary"
+                >
+                  {getShortName(full) || 'Unbekannt'}
+                </li>
+              );
+            })}
+          </ul>
+        )}
         <div className="mt-1.5 flex flex-wrap gap-1">
           <Button size="sm" onClick={() => onManagePlayers(match)}>
             <Users className="h-3.5 w-3.5" aria-hidden="true" />

@@ -202,6 +202,7 @@ export default function GamesPage() {
         matches={rows}
         teams={teamList}
         venues={venueList}
+        nameOf={nameOf}
         selected={selected}
         onSelectedChange={setSelected}
         onEdit={(match) => {

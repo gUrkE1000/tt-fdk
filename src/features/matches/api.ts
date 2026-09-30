@@ -12,6 +12,8 @@ export type Volunteer = Tables<'match_volunteers'>;
 /** Ein Spieltermin mit den Zahlen, die die Liste ohne zweite Abfrage braucht. */
 export interface MatchRow extends Match {
   confirmedCount: number;
+  /** Profil-IDs der Aufstellung, nach Position — wie auf der Spielkarte. */
+  lineupIds: string[];
 }
 
 /**
@@ -53,23 +55,32 @@ export function useMatches(scope: MatchScope = 'recent') {
           // die Tabelle selbst kennt kein Datum.
           let query = supabase
             .from('match_participations')
-            .select('match_id, profile_id, response, removed, matches!inner(dtstart)', {
-              count: 'exact',
-            });
+            .select(
+              'match_id, profile_id, response, removed, lineup_position, matches!inner(dtstart)',
+              { count: 'exact' },
+            );
           if (since) query = query.gte('matches.dtstart', since);
           return query.order('match_id').order('profile_id').range(from, to);
         }),
       ]);
 
       const confirmed = new Map<string, number>();
+      const lineups = new Map<string, { profileId: string; position: number }[]>();
       for (const row of participations) {
         if (row.response !== 'yes' || row.removed) continue;
         confirmed.set(row.match_id, (confirmed.get(row.match_id) ?? 0) + 1);
+        if (row.lineup_position === null) continue;
+        const lineup = lineups.get(row.match_id) ?? [];
+        lineup.push({ profileId: row.profile_id, position: row.lineup_position });
+        lineups.set(row.match_id, lineup);
       }
 
       return matches.map((match) => ({
         ...match,
         confirmedCount: confirmed.get(match.id) ?? 0,
+        lineupIds: (lineups.get(match.id) ?? [])
+          .sort((a, b) => a.position - b.position)
+          .map((entry) => entry.profileId),
       }));
     },
   });
