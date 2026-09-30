@@ -98,22 +98,43 @@ function isoDate(match: RegExpMatchArray): string | null {
 }
 
 /**
- * Der PIN ist der letzte Block aus Ziffern und Großbuchstaben, der kein Datum und keine
- * Uhrzeit ist — in der click-TT-Liste steht der Wert wie beim Code am Zeilenende.
+ * Der PIN am Ende einer Zeile — in der click-TT-Liste steht der Wert wie beim Code am
+ * Zeilenende. Nur dort: Mitten in der Zeile stehen Spielnummern und Vereinsnamen mit
+ * Jahreszahl („TSV 1860"), die genauso aussehen. Fehlt der PIN, gibt es keinen.
  */
-function findPin(text: string): string | null {
-  const labelled = text.match(LABELLED_PIN);
-  if (labelled) return labelled[1].toUpperCase();
-
-  const rest = text
+function pinAtEnd(line: string): string | null {
+  const rest = line
     .toUpperCase()
     .replace(new RegExp(CODE_HYPHEN.source, 'g'), ' ')
     .replace(new RegExp(DATE.source, 'g'), ' ')
     .replace(new RegExp(TIME.source, 'g'), ' ');
-  const tokens = rest.split(/[\s|;,]+/).filter((token) => /^[A-Z0-9]{4,12}$/.test(token));
+  const tokens = rest.split(/[\s|;,]+/).filter(Boolean);
+  // Ein Code (Zeile mit Code- und PIN-Spalte) steht dahinter, der PIN davor.
+  while (tokens.length > 0 && /^[A-Z0-9]{12}$/.test(tokens[tokens.length - 1])) {
+    const code = tokens.pop() as string;
+    if (!(/\d/.test(code) && /[A-Z]/.test(code))) return null;
+  }
+  const last = tokens[tokens.length - 1] ?? '';
   // Mit mindestens einer Ziffer: „TTSV" oder „HERREN" in Großbuchstaben ist kein PIN.
-  const candidates = tokens.filter((token) => /\d/.test(token));
-  return candidates.length > 0 ? candidates[candidates.length - 1] : null;
+  return /^[A-Z0-9]{4,11}$/.test(last) && /\d/.test(last) ? last : null;
+}
+
+/** Sieht aus wie eine Jahreszahl im Vereinsnamen („1920"). */
+const YEAR_LIKE = /^(18|19|20)\d{2}$/;
+
+/**
+ * Der PIN eines Eintrags: beschriftet irgendwo, sonst am Ende der Datumszeile. Bricht
+ * der Gegner um und endet die Datumszeile mit einer Jahreszahl („Zorneding 1920"),
+ * während die Folgezeile einen Wert trägt („II 4711"), gilt der aus der Folgezeile.
+ */
+function findPin(record: readonly string[]): string | null {
+  const labelled = record.join(' ').match(LABELLED_PIN);
+  if (labelled) return labelled[1].toUpperCase();
+
+  const [first, ...rest] = record.map(pinAtEnd);
+  const later = rest.filter((pin): pin is string => pin !== null);
+  if (first && !(YEAR_LIKE.test(first) && later.length > 0)) return first;
+  return later[later.length - 1] ?? first ?? null;
 }
 
 export function parseNuscoreList(lines: readonly string[], kind: NuscoreKind): NuscoreEntry[] {
@@ -128,8 +149,7 @@ export function parseNuscoreList(lines: readonly string[], kind: NuscoreKind): N
     const timeMatch = text.slice((dateMatch?.index ?? 0) + (dateMatch?.[0].length ?? 0)).match(TIME);
     const time = timeMatch ? `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}` : null;
 
-    const find = kind === 'code' ? findCode : findPin;
-    const value = find(record[0]) ?? find(text);
+    const value = kind === 'code' ? (findCode(record[0]) ?? findCode(text)) : findPin(record);
     if (!value) continue;
 
     entries.push({ kind, date, time, value, text });
@@ -212,7 +232,15 @@ function candidatesFor(entry: NuscoreEntry, matches: readonly NuscoreMatch[]): N
   if (found.length <= 1) return found;
 
   const byOpponent = found.filter((match) => mentionsOpponent(entry.text, match.opponent));
-  return byOpponent.length > 0 ? byOpponent : found;
+  if (byOpponent.length === 1) return byOpponent;
+  if (byOpponent.length === 0) return found;
+
+  // „TSV Kirchheim II" und „TSV Kirchheim III" teilen jedes Wort: Dann entscheidet der
+  // ganze Name, als eigene Wörter im Eintrag.
+  const byName = byOpponent.filter((match) =>
+    ` ${normalize(entry.text)} `.includes(` ${normalize(match.opponent ?? '')} `),
+  );
+  return byName.length > 0 ? byName : byOpponent;
 }
 
 /**
