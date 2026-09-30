@@ -140,24 +140,33 @@ export type SessionParticipant = ViewRow<'v_session_participants'>;
 export type SessionCounts = ViewRow<'v_session_counts'>;
 export type AttendanceStatus = Enums<'attendance_status'>;
 
-/** So weit reicht der Blick auf der Terminkarte — zwei Wochen, wie im Zielbild. */
+/** So weit reicht der Blick in Übersicht und „Mein Verein" — zwei Wochen, wie im Zielbild. */
 export const SESSION_WINDOW_DAYS = 14;
 
-export function useTrainingSessions(days = SESSION_WINDOW_DAYS) {
+/** Der letzte Tag des Zwei-Wochen-Blicks (ISO-Datum). */
+export function sessionWindowEnd(days = SESSION_WINDOW_DAYS, now = new Date()): string {
+  return todayInBerlin(new Date(now.getTime() + days * 86_400_000));
+}
+
+/**
+ * Alle kommenden Trainingstermine — so weit, wie der Erzeugungs-Job sie anlegt (ein
+ * Jahr, wie im Kalender). Die Listen blättern in Seiten; Übersicht und „Mein Verein"
+ * schneiden selbst auf {@link SESSION_WINDOW_DAYS} Tage zu.
+ */
+export function useTrainingSessions() {
   return useQuery({
     queryKey: queryKeys.trainings.sessions(),
     queryFn: async (): Promise<TrainingSession[]> => {
-      const today = todayInBerlin();
-      const until = todayInBerlin(new Date(Date.now() + days * 86_400_000));
-
-      const { data, error } = await supabase
-        .from('training_sessions')
-        .select('*')
-        .gte('session_date', today)
-        .lte('session_date', until)
-        .order('starts_at');
-      if (error) throw error;
-      return data ?? [];
+      // Ein Jahr mit mehreren Trainings je Woche kann über 1000 Zeilen haben.
+      return fetchAll((from, to) =>
+        supabase
+          .from('training_sessions')
+          .select('*', { count: 'exact' })
+          .gte('session_date', todayInBerlin())
+          .order('starts_at')
+          .order('id')
+          .range(from, to),
+      );
     },
   });
 }

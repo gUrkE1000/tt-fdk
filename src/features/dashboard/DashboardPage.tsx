@@ -8,7 +8,13 @@ import { useClubSettings } from '../club/api';
 import { useAllParticipations, useMatches } from '../matches/api';
 import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
-import { useSessionAssignees, useTrainings, useTrainingSessions } from '../trainings/api';
+import {
+  SESSION_WINDOW_DAYS,
+  sessionWindowEnd,
+  useSessionAssignees,
+  useTrainings,
+  useTrainingSessions,
+} from '../trainings/api';
 import { isMySession, openTrainings } from '../trainings/schemas';
 import SessionsTab from '../trainings/SessionsTab';
 import OpenTrainingsList from '../trainings/OpenTrainingsList';
@@ -97,10 +103,12 @@ export default function DashboardPage() {
       isMySession(session, byId.get(session.training_id), profileId, assigned);
   }, [assignees.data, trainingList, profileId]);
 
-  const mySessionCount = useMemo(
-    () => (sessions.data ?? []).filter(isMine).length,
-    [sessions.data, isMine],
-  );
+  // Wie die Liste darunter: die nächsten zwei Wochen.
+  const mySessionCount = useMemo(() => {
+    const until = sessionWindowEnd();
+    return (sessions.data ?? []).filter((entry) => entry.session_date <= until && isMine(entry))
+      .length;
+  }, [sessions.data, isMine]);
 
   const openTrainingCount = openTrainings(trainingList).length;
 
@@ -211,7 +219,7 @@ export default function DashboardPage() {
           {
             value: 'trainings',
             label: `Trainings (${mySessionCount})`,
-            content: <SessionsTab onlyMine />,
+            content: <SessionsTab onlyMine days={SESSION_WINDOW_DAYS} />,
           },
           {
             value: 'calendar',

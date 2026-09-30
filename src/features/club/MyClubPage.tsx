@@ -17,6 +17,7 @@ import {
 import Placeholder from '../../app/Placeholder';
 import { roleLabel } from '../../lib/labels';
 import { useClubSettings } from './api';
+import { SESSION_WINDOW_DAYS } from '../trainings/api';
 import { useClubRoles } from './rolesApi';
 import NewsTab from './NewsTab';
 import ClubTeamsTab from './ClubTeamsTab';
@@ -80,7 +81,7 @@ export default function MyClubPage() {
 function ClubTrainingsTab() {
   return (
     <div className="space-y-6">
-      <SessionsTab onlyMine />
+      <SessionsTab onlyMine days={SESSION_WINDOW_DAYS} />
       <div>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-600">
           Offene Trainings
