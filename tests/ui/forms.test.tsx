@@ -6,7 +6,7 @@ import Input from '../../src/components/ui/Input';
 import Textarea from '../../src/components/ui/Textarea';
 import Select from '../../src/components/ui/Select';
 import Checkbox from '../../src/components/ui/Checkbox';
-import ColorInput from '../../src/components/ui/ColorInput';
+import ColorInput, { TEAM_COLORS } from '../../src/components/ui/ColorInput';
 import MultiSelect from '../../src/components/ui/MultiSelect';
 import PersonPicker from '../../src/components/ui/PersonPicker';
 import DateInput from '../../src/components/ui/DateInput';
@@ -104,17 +104,48 @@ describe('Checkbox', () => {
 });
 
 describe('ColorInput', () => {
+  it('wählt eine Farbe aus den Farbfeldern', () => {
+    const onChange = vi.fn();
+    render(<ColorInput value={null} onChange={onChange} />);
+    fireEvent.click(screen.getByRole('radio', { name: 'Grün' }));
+    expect(onChange).toHaveBeenCalledWith('#15803d');
+  });
+
+  it('markiert die gewählte Farbe', () => {
+    render(<ColorInput value="#2563EB" onChange={vi.fn()} />);
+    expect(screen.getByRole('radio', { name: 'Blau' })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('radio', { name: 'Rot' })).toHaveAttribute('aria-checked', 'false');
+  });
+
   it('lässt die Farbe entfernen', () => {
     const onChange = vi.fn();
-    render(<ColorInput value="#0d9488" onChange={onChange} />);
-    fireEvent.click(screen.getByLabelText('Farbe entfernen'));
+    render(<ColorInput value="#15803d" onChange={onChange} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Keine Farbe' }));
     expect(onChange).toHaveBeenCalledWith(null);
   });
 
-  it('zeigt ohne Farbe einen Hinweis statt eines Werts', () => {
-    render(<ColorInput value={null} onChange={vi.fn()} />);
-    expect(screen.getByText('keine Farbe')).toBeInTheDocument();
-    expect(screen.queryByLabelText('Farbe entfernen')).toBeNull();
+  it('zeigt eine eigene Farbe außerhalb der Auswahl als gewählt an', () => {
+    render(<ColorInput value="#0d9488" onChange={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Eigene Farbe' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('radio', { checked: true })).toBeNull();
+  });
+
+  it('bietet ohne clearable kein „Keine Farbe" an', () => {
+    render(<ColorInput value="#15803d" onChange={vi.fn()} clearable={false} />);
+    expect(screen.queryByRole('button', { name: 'Keine Farbe' })).toBeNull();
+  });
+
+  it('hebt sich mit jeder Farbe deutlich vom weißen Hintergrund ab', () => {
+    const luminance = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((i) => {
+        const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    for (const color of TEAM_COLORS) {
+      expect(1.05 / (luminance(color.value) + 0.05)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });
 
