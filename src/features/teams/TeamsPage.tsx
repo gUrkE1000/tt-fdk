@@ -10,6 +10,7 @@ import {
   Dialog,
   EmptyState,
   IconButton,
+  Input,
   PageHeader,
   Table,
   useToast,
@@ -31,6 +32,12 @@ export default function TeamsPage() {
   const [editing, setEditing] = useState<TeamWithRoster | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [toDelete, setToDelete] = useState<TeamWithRoster | null>(null);
+  // Löschen nimmt Spieltermine und Rückmeldungen mit — deshalb muss man den Namen
+  // abtippen, damit es nicht aus Versehen passiert.
+  const [deleteInput, setDeleteInput] = useState('');
+  const deleteConfirmed =
+    toDelete !== null &&
+    deleteInput.trim().toLocaleLowerCase('de') === toDelete.name.trim().toLocaleLowerCase('de');
   const [meldungOpen, setMeldungOpen] = useState(false);
   const { role } = useSession();
 
@@ -38,15 +45,20 @@ export default function TeamsPage() {
   const nameOf = (id: string) =>
     memberList.find((member) => member.id === id)?.full_name ?? 'Unbekannt';
 
+  function closeDelete() {
+    setToDelete(null);
+    setDeleteInput('');
+  }
+
   async function onDeleteConfirmed() {
-    if (!toDelete) return;
+    if (!toDelete || !deleteConfirmed) return;
     try {
       await deleteTeam.mutateAsync(toDelete.id);
       toast(`${toDelete.name} wurde gelöscht`, 'success');
     } catch (error) {
       toast(error instanceof Error ? error.message : 'Löschen fehlgeschlagen', 'error');
     } finally {
-      setToDelete(null);
+      closeDelete();
     }
   }
 
@@ -190,13 +202,18 @@ export default function TeamsPage() {
 
       <Dialog
         open={toDelete !== null}
-        onOpenChange={(open) => !open && setToDelete(null)}
+        onOpenChange={(open) => !open && closeDelete()}
         title={`${toDelete?.name ?? 'Mannschaft'} löschen?`}
         footer={
           <>
-            <Button onClick={() => setToDelete(null)}>Abbrechen</Button>
-            <Button variant="danger" onClick={() => void onDeleteConfirmed()}>
-              Löschen
+            <Button onClick={closeDelete}>Abbrechen</Button>
+            <Button
+              variant="danger"
+              disabled={!deleteConfirmed}
+              loading={deleteTeam.isPending}
+              onClick={() => void onDeleteConfirmed()}
+            >
+              Endgültig löschen
             </Button>
           </>
         }
@@ -205,6 +222,21 @@ export default function TeamsPage() {
           Mit der Mannschaft verschwinden auch ihre Spieltermine und alle Rückmeldungen dazu.
           Soll die Mannschaft nur nicht mehr auftauchen, setze sie stattdessen auf „inaktiv“.
         </p>
+        <label className="mt-3 block space-y-1.5 text-sm text-gray-700">
+          <span>
+            Zum Bestätigen den Namen der Mannschaft eingeben:{' '}
+            <strong className="text-gray-900">{toDelete?.name}</strong>
+          </span>
+          <Input
+            value={deleteInput}
+            onChange={(event) => setDeleteInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') void onDeleteConfirmed();
+            }}
+            autoComplete="off"
+            aria-label="Name der Mannschaft zur Bestätigung"
+          />
+        </label>
       </Dialog>
     </div>
   );
