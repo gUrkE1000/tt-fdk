@@ -19,6 +19,11 @@ describe('Seiten & Aktionen in der Suche', () => {
     expect(first('mein verein')).toBe('Verein');
   });
 
+  it('bietet dem Schlüsseldienst „Orte & Schlüsseldienst" an, anderen Mitgliedern nicht', () => {
+    expect(pagesForRole('member').map((p) => p.to)).not.toContain('/venues');
+    expect(pagesForRole('member', true).map((p) => p.to)).toContain('/venues');
+  });
+
   it('zeigt nur, was auch im Menü der Rolle steht', () => {
     const memberPages = pagesForRole('member').map((p) => p.to);
     expect(memberPages).not.toContain('/players');

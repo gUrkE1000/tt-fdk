@@ -476,6 +476,11 @@ jeden Hallentag, auch ohne Person (`profile_id` NULL) — daraus wählt die Ober
 `v_key_duty_dates` ist davon der Teil mit Person. Gelöschte Konten verlieren weiterhin
 Wochentage und künftige Vertretungen.
 
+Seit Migration `20261119000000_hall_closure_update_notice` meldet auch das Ändern einer
+Hallensperrung (Trigger `training_cancellations_update_notify`): Mitglieder betroffener
+Trainings und die Mannschaftsführung betroffener Heimspiele erfahren es — nur für neu
+betroffene Tage bzw. Spiele, nicht erneut für schon gemeldete.
+
 Seit Migration `20261118000000_key_service_flag` ist `profiles.key_service` wieder da —
 als Recht, nicht als Auswahlgrenze: Wer es hat (setzt nur der Admin, Spaltenschutz per
 Trigger), sieht „Orte & Schlüsseldienst", vergibt feste Wochentage (`key_duty_weekdays`,

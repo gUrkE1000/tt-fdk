@@ -160,9 +160,11 @@ export function allPages(): PageEntry[] {
 }
 
 /** Was diese Rolle überhaupt finden darf: nur Seiten, die ihr Menü auch zeigt. */
-export function pagesForRole(role: Role | null | undefined): PageEntry[] {
+export function pagesForRole(role: Role | null | undefined, keyService = false): PageEntry[] {
   if (!role) return [];
-  const visible = new Set(visibleNav(role).flatMap((section) => section.items.map((i) => i.to)));
+  const visible = new Set(
+    visibleNav(role, keyService).flatMap((section) => section.items.map((i) => i.to)),
+  );
   return allPages().filter((page) =>
     page.id.startsWith('nav:')
       ? visible.has(page.to)
@@ -183,12 +185,13 @@ export function searchPages(
   query: string,
   role: Role | null | undefined,
   limit = 5,
+  keyService = false,
 ): PageHit[] {
   const tokens = searchTokens(query);
   if (tokens.length === 0 || !searchable(query)) return [];
 
   const hits: PageHit[] = [];
-  for (const page of pagesForRole(role)) {
+  for (const page of pagesForRole(role, keyService)) {
     const label = ` ${normalizeSearch(page.label)} `;
     const keywords = ` ${normalizeSearch(page.keywords.join(' '))} `;
     let score = 0;

@@ -70,6 +70,33 @@ describe('Zwischenspeicher auf dem Gerät', () => {
     expect(window.localStorage.getItem('anderes')).toBe('bleibt');
   });
 
+  // Fehlerbild vom 30.09.2026: Nach dem Ausrollen kamen Spiele ohne das neue Feld
+  // `lineupIds` aus dem Speicher und brachten die Spieltermine-Tabelle zum Absturz.
+  it('verwirft den Stand, den eine andere Fassung der App gespeichert hat', () => {
+    const before = clientWith([[['matches', 'list', 'recent'], [{ id: 'm-1' }]]]);
+    expect(saveCache(before, 'u-1')).toBe(true);
+
+    const stored = JSON.parse(window.localStorage.getItem('vp-cache:u-1') ?? '{}');
+    window.localStorage.setItem(
+      'vp-cache:u-1',
+      JSON.stringify({ ...stored, build: 'alte-fassung' }),
+    );
+
+    const after = new QueryClient();
+    expect(restoreCache(after, 'u-1')).toBe(false);
+    expect(after.getQueryData(['matches', 'list', 'recent'])).toBeUndefined();
+    expect(window.localStorage.getItem('vp-cache:u-1')).toBeNull();
+  });
+
+  it('verwirft auch Stände von vor der Kennung (ohne `build`)', () => {
+    const before = clientWith([[['matches', 'list', 'recent'], [{ id: 'm-1' }]]]);
+    saveCache(before, 'u-1');
+    const { build: _build, ...legacy } = JSON.parse(window.localStorage.getItem('vp-cache:u-1') ?? '{}');
+    window.localStorage.setItem('vp-cache:u-1', JSON.stringify(legacy));
+
+    expect(restoreCache(new QueryClient(), 'u-1')).toBe(false);
+  });
+
   it('übersteht kaputte Daten im Speicher', () => {
     window.localStorage.setItem('vp-cache:u-1', '{kaputt');
     expect(restoreCache(new QueryClient(), 'u-1')).toBe(false);
