@@ -17,23 +17,23 @@ import { roleLabel } from '../../lib/labels';
 import { useClubSettings } from './api';
 import { useSession } from '../auth/session';
 import ClubDataTab from './ClubDataTab';
-import ClubOverviewTab from './ClubOverviewTab';
-import ClubRolesTab from './ClubRolesTab';
 import AdminPage from '../admin/AdminPage';
-import { useClubRoles } from './rolesApi';
 import NewsTab from './NewsTab';
-import ClubTeamsTab from './ClubTeamsTab';
 import { searchDirectory, useDirectory, type DirectoryEntry } from './directory';
 
 /**
- * Reiter, die es nicht mehr gibt, weil ihr Inhalt schon an anderer Stelle steht:
- * Trainings in der Übersicht, Termine unter „Meine Termine", Spiele unter „Meine Spiele".
+ * Reiter, die es nicht mehr gibt: Trainings stehen in der Übersicht, Termine unter
+ * „Meine Termine", Spiele unter „Meine Spiele". Mannschaften, Ämter und die
+ * Zuordnungs-Übersicht sind auf Wunsch weggefallen.
  */
 const MOVED_TABS: Record<string, string> = {
   trainings: '/?tab=trainings',
   events: '/my-dates',
   games: '/my-games',
   files: '/my-club',
+  teams: '/my-club',
+  contacts: '/my-club',
+  overview: '/my-club',
 };
 
 /**
@@ -72,12 +72,6 @@ export default function MyClubPage() {
             // schon auf dieser Seite ist.
             content: <MembersDirectory key={search.get('q') ?? ''} />,
           },
-          {
-            value: 'contacts',
-            label: 'Ämter',
-            content: isAdmin ? <ClubRolesTab /> : <ClubRolesList />,
-          },
-          { value: 'teams', label: 'Mannschaften', content: <ClubTeamsTab /> },
           { value: 'news', label: 'Neuigkeiten', content: <NewsTab canEdit={isAdmin} /> },
           // Ohne Text gibt es für Mitglieder nichts zu lesen; der Administrator schreibt ihn
           // unter „Daten".
@@ -88,7 +82,6 @@ export default function MyClubPage() {
           ...(isAdmin
             ? [
                 { value: 'data', label: 'Daten', content: <ClubDataTab /> },
-                { value: 'overview', label: 'Übersicht', content: <ClubOverviewTab /> },
                 { value: 'operations', label: 'Betrieb', content: <AdminPage /> },
               ]
             : []),
@@ -156,40 +149,6 @@ function MembersDirectory() {
           )
         }
       />
-    </div>
-  );
-}
-
-/** Die Ämter des Vereins (Aufgabe 9.6) — wen man wofür anspricht. */
-function ClubRolesList() {
-  const roles = useClubRoles();
-  const entries = (roles.data ?? []).filter((role) => role.memberNames.length > 0);
-
-  if (entries.length === 0) {
-    return <EmptyState icon={Users} title="Noch keine Ämter hinterlegt" />;
-  }
-
-  return (
-    <div className="space-y-3">
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        {entries.map((role) => (
-          <Card key={role.id}>
-            <CardBody className="space-y-1">
-              <p className="font-semibold text-gray-900">{role.name}</p>
-              <p className="text-sm text-gray-700">{role.memberNames.join(', ')}</p>
-              {role.description && <p className="text-sm text-gray-600">{role.description}</p>}
-              {role.duties.length > 0 && (
-                <ul className="list-inside list-disc text-sm text-gray-500">
-                  {role.duties.map((duty) => (
-                    <li key={duty}>{duty}</li>
-                  ))}
-                </ul>
-              )}
-            </CardBody>
-          </Card>
-        ))}
-      </div>
     </div>
   );
 }

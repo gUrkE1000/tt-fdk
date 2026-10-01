@@ -99,7 +99,12 @@ export function SearchDialog({ open, onOpenChange, initialQuery = '' }: SearchDi
   // Verlauf — sonst stünde die Seite, auf der gesucht wurde, danach zweimal da.
   const onTop = useCloseOnBack(open, () => onOpenChange(false));
 
-  const search = useSearch({ query: debounced, limit: 5 }, role ?? null, open);
+  const search = useSearch(
+    { query: debounced, limit: 5 },
+    role ?? null,
+    open,
+    profile?.key_service === true,
+  );
   const trimmed = query.trim();
   const settled = debounced.trim() === trimmed;
   const groups = useMemo(

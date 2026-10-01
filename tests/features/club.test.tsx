@@ -244,17 +244,10 @@ describe('Verzeichnis', () => {
 // ------------------------------------------------------------------ Oberfläche
 
 describe('Verein (zusammengelegt)', () => {
-  it('zeigt dem Administrator zusätzlich Daten, Übersicht und Betrieb', async () => {
+  it('zeigt dem Administrator zusätzlich Daten und Betrieb', async () => {
     renderPage(<MyClubPage />);
 
-    for (const label of [
-      'Mitglieder',
-      'Ämter',
-      'Neuigkeiten',
-      'Daten',
-      'Übersicht',
-      'Betrieb',
-    ]) {
+    for (const label of ['Mitglieder', 'Neuigkeiten', 'Daten', 'Betrieb']) {
       expect(screen.getByRole('tab', { name: label })).toBeInTheDocument();
     }
     expect(screen.getByRole('heading', { name: 'Verein' })).toBeInTheDocument();
@@ -265,7 +258,7 @@ describe('Verein (zusammengelegt)', () => {
     try {
       renderPage(<MyClubPage />);
       expect(screen.getByRole('tab', { name: 'Neuigkeiten' })).toBeInTheDocument();
-      for (const label of ['Daten', 'Übersicht', 'Betrieb']) {
+      for (const label of ['Daten', 'Betrieb']) {
         expect(screen.queryByRole('tab', { name: label })).toBeNull();
       }
     } finally {
@@ -444,12 +437,21 @@ describe('MyClubPage', () => {
     expect(screen.getAllByText('Trainer').length).toBeGreaterThan(0);
   });
 
-  it('führt nur noch das Nötige — Trainings, Termine und Spiele stehen anderswo', () => {
+  it('führt nur noch das Nötige', () => {
     renderPage(<MyClubPage />);
-    for (const label of ['Mitglieder', 'Ämter', 'Mannschaften', 'Neuigkeiten']) {
+    for (const label of ['Mitglieder', 'Neuigkeiten']) {
       expect(screen.getByRole('tab', { name: label })).toBeInTheDocument();
     }
-    for (const label of ['Trainings', 'Vereinstermine', 'Spiele', 'Dateien', 'Rollen & Kontaktdaten']) {
+    for (const label of [
+      'Trainings',
+      'Vereinstermine',
+      'Spiele',
+      'Dateien',
+      'Rollen & Kontaktdaten',
+      'Mannschaften',
+      'Ämter',
+      'Übersicht',
+    ]) {
       expect(screen.queryByRole('tab', { name: label })).toBeNull();
     }
   });

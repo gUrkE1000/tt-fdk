@@ -21,6 +21,12 @@ import {
 
 const PREFIX = 'vp-cache:';
 const VERSION = 1;
+/**
+ * Der Stand der App, der die Daten gespeichert hat. Ein neuer Stand verwirft sie: Die
+ * Form der Daten ändert sich mit der App (etwa neue Felder an einem Spiel), und alte
+ * Daten in neuer Oberfläche brachten sie am 30.09.2026 zum Absturz.
+ */
+const BUILD = typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'lokal';
 /** Älter als eine Woche hilft der Stand niemandem mehr — dann lieber leer als falsch. */
 const MAX_AGE_MS = 7 * 86_400_000;
 /** Browser erlauben meist 5 MB je Seite; darüber wird nicht gespeichert. */
@@ -47,6 +53,7 @@ function storageKey(userId: string): string {
 
 interface Stored {
   v: number;
+  build?: string;
   savedAt: number;
   state: DehydratedState;
 }
@@ -68,7 +75,7 @@ export function restoreCache(client: QueryClient, userId: string, now = Date.now
 
   try {
     const stored = JSON.parse(raw) as Stored;
-    if (stored.v !== VERSION || now - stored.savedAt > MAX_AGE_MS) {
+    if (stored.v !== VERSION || stored.build !== BUILD || now - stored.savedAt > MAX_AGE_MS) {
       store?.removeItem(storageKey(userId));
       return false;
     }
@@ -86,7 +93,7 @@ export function saveCache(client: QueryClient, userId: string, now = Date.now())
   if (!store) return false;
 
   const state = dehydrate(client, { shouldDehydrateQuery: persistable });
-  const serialized = JSON.stringify({ v: VERSION, savedAt: now, state } satisfies Stored);
+  const serialized = JSON.stringify({ v: VERSION, build: BUILD, savedAt: now, state } satisfies Stored);
   if (serialized.length > MAX_BYTES) return false;
 
   try {

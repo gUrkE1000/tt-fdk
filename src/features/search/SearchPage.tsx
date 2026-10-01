@@ -63,6 +63,8 @@ export default function SearchPage() {
   const search = useSearch(
     { query: urlQuery, kinds: kind ? [kind] : [], time, limit: kind ? 50 : 20 },
     role ?? null,
+    true,
+    profile?.key_service === true,
   );
   const groups = useMemo(() => groupHits(search.data?.hits ?? []), [search.data]);
 
@@ -306,7 +308,6 @@ function HitActions({ hit, profileId }: { hit: SearchHit; profileId: string | nu
     if (hit.kind === 'match') links.push({ to: hit.target, label: 'Spieler verwalten' });
     if (hit.kind === 'event') links.push({ to: '/dates', label: 'Bearbeiten' });
     if (hit.kind === 'venue') links.push({ to: '/venues', label: 'Bearbeiten' });
-    if (hit.kind === 'office') links.push({ to: '/my-club?tab=contacts', label: 'Bearbeiten' });
   }
 
   // Zu- und Absage direkt in der Liste, wenn man angefragt ist und das Spiel noch kommt.

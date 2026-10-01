@@ -97,6 +97,7 @@ export async function runSearch(
   role: Role | null,
   origin: string,
   now: Date = new Date(),
+  keyService = false,
 ): Promise<SearchResult> {
   const parsed = parseQuery(request.query, now);
   const time = request.time ?? 'all';
@@ -108,7 +109,7 @@ export async function runSearch(
 
   // Seiten nur ohne Zeitangabe: „Samstag" meint einen Termin, keine Seite.
   if (!parsed.range && time === 'all' && (!kinds || kinds.includes('page'))) {
-    for (const { page, score } of searchPages(parsed.text, role, limit)) {
+    for (const { page, score } of searchPages(parsed.text, role, limit, keyService)) {
       hits.push({
         kind: 'page',
         id: page.id,
@@ -193,6 +194,7 @@ export function searchOffline(
   request: SearchRequest,
   role: Role | null,
   now: Date = new Date(),
+  keyService = false,
 ): SearchResult {
   const parsed = parseQuery(request.query, now);
   const { from, to } = effectiveRange(parsed.range, request.time ?? 'all', now);
@@ -213,7 +215,7 @@ export function searchOffline(
   };
 
   if (!parsed.range && wants('page')) {
-    for (const { page, score } of searchPages(parsed.text, role, limit)) {
+    for (const { page, score } of searchPages(parsed.text, role, limit, keyService)) {
       hits.push({ ...base, kind: 'page', id: page.id, title: page.label, subtitle: page.hint, target: page.to, score });
     }
   }
@@ -300,7 +302,12 @@ export function useDebounced<T>(value: T, delay = DEBOUNCE_MS): T {
  * Die Suche als Query. Nicht im Offline-Speicher (`queryPersist` lässt `search` aus):
  * Suchbegriffe sind personenbezogen und gehören nicht auf die Platte.
  */
-export function useSearch(request: SearchRequest, role: Role | null, enabled = true) {
+export function useSearch(
+  request: SearchRequest,
+  role: Role | null,
+  enabled = true,
+  keyService = false,
+) {
   const client = useQueryClient();
   const query = request.query.trim();
   const active = enabled && query.length > 0;
@@ -315,12 +322,12 @@ export function useSearch(request: SearchRequest, role: Role | null, enabled = t
     queryFn: async (): Promise<SearchResult> => {
       const origin = typeof window === 'undefined' ? 'http://localhost' : window.location.origin;
       if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-        return searchOffline(client, request, role);
+        return searchOffline(client, request, role, undefined, keyService);
       }
       try {
-        return await runSearch(request, role, origin);
+        return await runSearch(request, role, origin, undefined, keyService);
       } catch (error) {
-        if (isNetworkError(error)) return searchOffline(client, request, role);
+        if (isNetworkError(error)) return searchOffline(client, request, role, undefined, keyService);
         throw error;
       }
     },
