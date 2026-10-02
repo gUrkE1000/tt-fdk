@@ -35,7 +35,7 @@ Trainer oder Mitglied eine der folgenden Tätigkeiten wieder über WhatsApp/Tele
 | Z8 | Vereinstermine, Umfragen, Abwesenheiten, Kalender | Termin mit Anmeldefrist und Teilnehmerliste; Umfrage (Abstimmung / Personen); Abwesenheit fließt in Aufstellung ein; Kalender Monat/Woche/Liste + ICS-Abo pro Mitglied |
 | Z9 | Verwaltung ohne Entwickler | Admin pflegt Mitglieder (inkl. Excel-Import/-Export), Rollen, Gruppen, Ämter, Orte, Mannschaften, Vereinsdaten in der Oberfläche |
 | Z10 | Datenschutz | Nur eingeloggte Mitglieder sehen Daten; Rechte werden in der Datenbank erzwungen; Kontaktdaten nur bei Freigabe sichtbar; Mitglied kann sich selbst löschen; Hosting EU |
-| Z11 | Betrieb | Läuft auf Supabase Free/Pro + GitHub Pages; Sachkosten ≤ 80 €/Jahr; alle Zeitjobs in der Datenbank (pg_cron); Fehler sichtbar im Admin-Bereich |
+| Z11 | Betrieb | Läuft auf Supabase Free/Pro + Cloudflare Pages; Sachkosten ≤ 80 €/Jahr; alle Zeitjobs in der Datenbank (pg_cron); Fehler sichtbar im Admin-Bereich |
 
 ### 1.3 Scope in drei Stufen
 

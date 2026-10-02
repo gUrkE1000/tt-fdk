@@ -15,7 +15,7 @@ npx tsc --noEmit # Typprüfung
 `.env.example` nach `.env.local` kopieren und ausfüllen.
 
 Die Anwendung wird unter der Wurzel ausgeliefert. Wer sie auf einem Unterpfad hostet
-(GitHub Pages liefert ein Projekt unter `/<repo>/` aus), setzt beim Bauen
+(etwa GitHub Pages ohne eigene Domain: `/<repo>/`), setzt beim Bauen
 `VITE_BASE_PATH=/repo/` — Manifest, Service Worker und Symbole richten sich danach.
 
 ### App-Symbole und PWA

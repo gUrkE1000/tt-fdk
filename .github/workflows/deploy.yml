@@ -1,7 +1,15 @@
-name: Deploy to GitHub Pages
+name: Deploy to Cloudflare Pages
 
-# Nur manuell startbar, solange GitHub Pages und die Supabase-Secrets nicht eingerichtet
-# sind (Aufgabe 0.3 im Umsetzungsplan). Danach hier wieder ergaenzen:
+# Ausgeliefert wird ueber Cloudflare Pages, nicht GitHub Pages: Das Repository ist privat
+# (die Sicherung in backup.yml verlangt das), und GitHub Pages gibt es fuer private
+# Repositories nur mit einem bezahlten Plan.
+#
+# Gebaut wird trotzdem hier, nicht bei Cloudflare: So liegen alle VITE_*-Werte an einer
+# Stelle (den Repository-Secrets), und die Build-Kennung im Bundle ist der Commit.
+# Cloudflare bekommt nur das fertige dist/ per Direct Upload.
+#
+# Nur manuell startbar, solange Cloudflare Pages und die Supabase-Secrets nicht
+# eingerichtet sind (Aufgabe 0.3 im Umsetzungsplan). Danach hier wieder ergaenzen:
 #
 #   push:
 #     branches: [main]
@@ -10,8 +18,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: 'pages'
@@ -19,10 +25,11 @@ concurrency:
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      # Name des Pages-Projekts. Als Repository-Variable ueberschreibbar; die
+      # Voreinstellung ergibt die Adresse vereinsplaner.pages.dev.
+      PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT || 'vereinsplaner' }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -43,49 +50,47 @@ jobs:
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
         run: npm run build
 
-      # Ohne diese Datei liefert GitHub Pages bei jedem Pfad ausser der Wurzel seine
-      # eigene 404-Seite: Lesezeichen, Neuladen und jeder Link aus einer Benachrichtigung
-      # landen im Nichts. Der Aufruf der Startseite funktioniert trotzdem — deshalb faellt
-      # es beim Ausprobieren nicht auf, sondern erst bei den Mitgliedern.
-      - name: SPA-Fallback pruefen
+      # Cloudflare Pages behandelt ein Projekt OHNE 404.html auf oberster Ebene als
+      # Single-Page-App und liefert fuer jeden unbekannten Pfad index.html mit Status 200.
+      # Liegt dort eine 404.html, bekommt jeder tiefe Link (Lesezeichen, Neuladen, Link aus
+      # einer Benachrichtigung) stattdessen Status 404. Der Aufruf der Startseite
+      # funktioniert in beiden Faellen — deshalb faellt es beim Ausprobieren nicht auf.
+      - name: SPA-Modus pruefen
         run: |
-          if [ ! -f dist/404.html ]; then
-            echo "dist/404.html fehlt — scripts/spa-fallback.mjs lief nicht."
-            echo "Ohne die Datei ist jeder tiefe Link auf der Seite kaputt."
+          if [ -f dist/404.html ]; then
+            echo "dist/404.html darf es nicht geben — Cloudflare Pages schaltet sonst den SPA-Modus ab."
             exit 1
           fi
-          echo "dist/404.html vorhanden."
-
-      # Guertel zum Hosentraeger. Die eigene Domain steht in den
-      # Repository-Einstellungen (Settings -> Pages -> Custom domain); wird sie dort
-      # versehentlich geleert, liefe die Seite wieder unter der github.io-Adresse — und
-      # jeder Link in jeder Benachrichtigung zeigte ins Leere. Die Datei schreibt sie
-      # noch einmal ins Artefakt.
-      #
-      # Quelle ist VITE_APP_URL, also derselbe Wert, der ohnehin gepflegt wird. Damit
-      # gibt es keine zweite Stelle, an der beim Domainwechsel jemand nachziehen muesste.
-      - name: Eigene Domain ins Artefakt schreiben
-        env:
-          APP_URL: ${{ secrets.VITE_APP_URL }}
-        run: |
-          host="${APP_URL#http://}"
-          host="${host#https://}"
-          host="${host%%/*}"
-          if [ -n "$host" ]; then
-            echo "$host" > dist/CNAME
-            echo "Eigene Domain: $host"
-          else
-            echo "VITE_APP_URL ist leer — keine CNAME-Datei."
-            echo "GitHub Pages nutzt dann die Einstellung aus dem Repository."
+          if [ ! -f dist/_headers ]; then
+            echo "dist/_headers fehlt — public/_headers wurde nicht mitkopiert."
+            exit 1
           fi
+          echo "SPA-Modus aktiv, _headers vorhanden."
 
-      - name: Setup Pages
-        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
-      - name: Upload Artifact
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
-        with:
-          path: './dist'
+      # Einmalig: Gibt es das Projekt noch nicht, legt der Schritt es an. Existiert es
+      # schon, scheitert das Anlegen, und das ist gewollt. Klappt beides nicht (Token ohne
+      # Recht, falsche Konto-ID), meldet es der naechste Schritt unmissverstaendlich.
+      #
+      # Die eigene Domain gehoert NICHT hierher, sondern ins Projekt (Workers & Pages →
+      # Projekt → Custom domains). Cloudflare legt den DNS-Eintrag dann selbst an.
+      - name: Pages-Projekt anlegen, falls noetig
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@4.147.0 pages project create "$PAGES_PROJECT" \
+            --production-branch=main \
+            || echo "Projekt $PAGES_PROJECT besteht bereits (oder Anlegen nicht moeglich)."
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      # Von main aus ist das die produktive Fassung. Von jedem anderen Branch aus entsteht
+      # nur eine Vorschau unter <branch>.<projekt>.pages.dev; die eigene Domain bleibt
+      # unberuehrt.
+      - name: Deploy to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@4.147.0 pages deploy dist \
+            --project-name="$PAGES_PROJECT" \
+            --branch="$GITHUB_REF_NAME" \
+            --commit-hash="$GITHUB_SHA"

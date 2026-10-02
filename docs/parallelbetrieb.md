@@ -173,8 +173,8 @@ dem, was gefehlt hat.
 | 11.6 | Eine Sicherung wurde einmal probeweise zurückgespielt (in ein Testprojekt, nicht produktiv) | | | |
 
 **11.2 im Detail.** Der laufende Betrieb kostet: Supabase Free 0 €, Supabase Pro 25 $/Monat
-falls nötig, Resend im Free-Tier 0 € (3.000 Mails/Monat), Domain ~15 €/Jahr, GitHub Pages
-0 €. Bei Free-Tier ist das Kriterium trivial erfüllt; die Prüfung ist eine andere: **Reicht
+falls nötig, Resend im Free-Tier 0 € (3.000 Mails/Monat), Domain ~15 €/Jahr, Cloudflare
+Pages 0 €. Bei Free-Tier ist das Kriterium trivial erfüllt; die Prüfung ist eine andere: **Reicht
 Free?** Dafür nach vier Wochen die Zahlen aus dem Supabase-Dashboard eintragen:
 
 | | gemessen | Grenze Free |

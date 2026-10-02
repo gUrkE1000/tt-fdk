@@ -134,8 +134,8 @@ wenigsten gebrauchen kannst.
 
 ### Wenn du übergangsweise eine fremde oder private Domain nutzt
 
-- **Subdomain nehmen**, nicht die Hauptdomain: `tt.beispiel.de` → `CNAME` auf
-  `<konto>.github.io`.
+- **Subdomain nehmen**, nicht die Hauptdomain: `tt.beispiel.de` als *Custom domain* des
+  Cloudflare-Pages-Projekts.
 - ⚠️ **Für Resend eine eigene Sende-Subdomain** (`mail.beispiel.de`), nicht die Hauptdomain.
   Resend verlangt SPF-, DKIM- und DMARC-Einträge; liegt auf der Hauptdomain privates
   E-Mail-Konto, kann eine zu strenge DMARC-Regel die eigene Post ins Nichts schicken. Eine
@@ -197,7 +197,10 @@ es, weil Push-Nachrichten nicht über Resend laufen.
 
 Das Repository existiert. Zu tun:
 
-1. *Settings → Pages* → Source: **GitHub Actions**.
+1. *Settings → General → Danger Zone* → **Change visibility → Private**. Die wöchentliche
+   Sicherung legt alle Mitgliederdaten als Artefakt ab; in einem öffentlichen Repository
+   wären sie für jeden abrufbar. Deshalb läuft die Auslieferung über Cloudflare Pages
+   (GitHub Pages gibt es für private Repositories nur mit bezahltem Plan).
 2. *Settings → Secrets and variables → Actions* → diese Secrets anlegen:
 
 | Secret | Woher |
@@ -209,6 +212,8 @@ Das Repository existiert. Zu tun:
 | `VITE_SUPABASE_ANON_KEY` | der anon-Schlüssel |
 | `VITE_APP_URL` | `https://<deine Domain>` |
 | `VITE_VAPID_PUBLIC_KEY` | kommt in [2.3](#23-vapid-schlüsselpaar-erzeugen) |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare → *My Profile → API Tokens → Create Token → Custom token*, Berechtigung **Account → Cloudflare Pages → Edit** — sonst nichts |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare → *Workers & Pages* → rechte Spalte **Account ID** |
 
 3. *Settings → Secrets and variables → Actions → Variables* → `BACKUP_ENABLED` = `true`
    (schaltet die wöchentliche Sicherung scharf; ohne die Variable läuft sie ins Leere).
@@ -477,10 +482,14 @@ lohnt, sie einmal auf Deutsch zu bringen.
 
 ## 2.8 Anwendung ausliefern
 
-GitHub → *Actions* → **Deploy to GitHub Pages** → *Run workflow*.
+GitHub → *Actions* → **Deploy to Cloudflare Pages** → *Run workflow* (Branch `main`).
+Der erste Lauf legt das Pages-Projekt `vereinsplaner` an; danach ist die Anwendung unter
+`https://vereinsplaner.pages.dev` erreichbar. Ist der Name bei Cloudflare schon vergeben,
+hängt Cloudflare ein Kürzel an; die tatsächliche Adresse steht am Ende des Laufs im Log.
 
-Danach die Domain auf GitHub Pages zeigen lassen (*Settings → Pages → Custom domain*) und
-**HTTPS erzwingen** abhaken.
+Dann die eigene Domain eintragen: Cloudflare → *Workers & Pages* → `vereinsplaner` →
+*Custom domains* → *Set up a custom domain*. Die Schritte stehen in
+[`domain-einrichten.md` §4](domain-einrichten.md#4-die-anwendung-cloudflare-pages).
 
 > **Ohne HTTPS gibt es keinen Service Worker, kein Push und keine Installation als App.**
 > Das ist keine Empfehlung, das ist eine Browser-Regel.
@@ -724,7 +733,7 @@ KONTEXT — Vereinsplaner (Tischtennisverein, ~80 Mitglieder)
 
 Stack:
 - Frontend: React 18 + TypeScript (strict) + Vite 8 + Tailwind, ausgeliefert
-  über GitHub Pages als PWA (vite-plugin-pwa, injectManifest)
+  über Cloudflare Pages als PWA (vite-plugin-pwa, injectManifest)
 - Backend: Supabase Cloud, Region Frankfurt
   - PostgreSQL 15/16, 31 Migrationen, Row Level Security auf JEDER Tabelle
     in `public`, ~84 Policies mit auth.uid()

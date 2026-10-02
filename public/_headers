@@ -1,0 +1,17 @@
+# Sicherheits-Header für Cloudflare Pages.
+#
+# Die Content-Security-Policy selbst steht als Meta-Tag in index.html (vite.config.ts).
+# Ein Meta-Tag kann aber nicht verbieten, dass eine fremde Seite die Anwendung in einem
+# Rahmen einbettet (Clickjacking) — das geht nur per Header. Mehrere CSPs gelten
+# gemeinsam; diese hier schränkt ausschließlich das Einbetten ein.
+/*
+  Content-Security-Policy: frame-ancestors 'self'
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Dateinamen unter /assets/ enthalten einen Hash und ändern sich mit jedem Inhalt.
+# sw.js, index.html und das Manifest behalten Cloudflares Voreinstellung (immer neu
+# prüfen), sonst sähe niemand den Hinweis auf einen neuen Stand.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

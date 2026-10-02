@@ -85,7 +85,7 @@ scripts/          Lokale Testdatenbank, Supabase-Kompatibilitätsschicht, Typgen
 | [docs/entwicklung.md](docs/entwicklung.md) | Entwicklungsumgebung, Testdatenbank, pgTAP-Konventionen |
 | [docs/datenbank.md](docs/datenbank.md) | Schema-Referenz und die Begründungen dahinter |
 | [docs/go-live.md](docs/go-live.md) | **Der Faden von heute bis zur Kündigung**: alle manuellen Schritte, Checklisten, Fehlerbehandlung, fertige KI-Prompts |
-| [docs/domain-einrichten.md](docs/domain-einrichten.md) | DNS für Anwendung und Versand: GitHub Pages, Resend, Prüfbefehle, Domainwechsel |
+| [docs/domain-einrichten.md](docs/domain-einrichten.md) | DNS für Anwendung und Versand: Cloudflare Pages, Resend, Prüfbefehle, Domainwechsel |
 | [docs/einrichtung.md](docs/einrichtung.md) | **Einrichtung von null**: Supabase, Resend, VAPID, Secrets, Cron, erster Administrator |
 | [docs/betrieb.md](docs/betrieb.md) | Laufender Betrieb: Reiter „Betrieb", Cron, Fehlerbilder, Sicherung |
 | [docs/code-review.md](docs/code-review.md) | **Code-Review** vom 23.09.2026: Befunde, Nachweise, Stand der Behebung |
@@ -115,7 +115,7 @@ Das Supabase-Projekt ist eingerichtet (Region Frankfurt), die sieben Edge Functi
 ausgerollt, die sechs Cron-Jobs laufen. Die Entwicklung läuft weiterhin vollständig gegen
 die lokale Testdatenbank (`scripts/local-db.sh`) — dieselben Migrationen, dieselben Tests.
 
-Die Workflows `Deploy to GitHub Pages` und `Supabase ausrollen` sind noch manuell startbar;
+Die Workflows `Deploy to Cloudflare Pages` und `Supabase ausrollen` sind noch manuell startbar;
 ihr `push`-Auslöser ist auskommentiert und kann jetzt aktiviert werden.
 
 ⚠️ **Ein Reset entfernt Erweiterungen.** `supabase db reset --linked` nimmt `pg_cron` und

@@ -5,8 +5,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 /**
  * `base` steuert, unter welchem Pfad die Anwendung ausgeliefert wird.
  *
- * Voreinstellung ist die Wurzel. Wer auf einem Unterpfad hostet (GitHub Pages liefert ein
- * Projekt unter `/<repo>/` aus), setzt `VITE_BASE_PATH=/repo/` beim Bauen. Ein relativer
+ * Voreinstellung ist die Wurzel. Wer auf einem Unterpfad hostet (etwa GitHub Pages ohne eigene
+ * Domain: `/<repo>/`), setzt `VITE_BASE_PATH=/repo/` beim Bauen. Ein relativer
  * Pfad (`./`) ginge hier nicht: Der Service Worker braucht einen festen Gültigkeitsbereich,
  * und ein tiefer Link wie `/trainings/cancellations` würde seine Skripte sonst unter
  * `/trainings/assets/…` suchen.
@@ -26,10 +26,11 @@ const buildId = (process.env.GITHUB_SHA ?? '').slice(0, 7) || 'lokal';
 /**
  * Content-Security-Policy als Meta-Tag — nur im Produktionsbuild.
  *
- * GitHub Pages setzt keine Sicherheits-Header. Die Policy erlaubt Skripte nur vom eigenen
- * Ursprung (kein Inline-Skript) und Verbindungen nur zu Supabase: Ein eingeschleustes
- * Skript könnte weder etwas nachladen noch Daten wegschicken. `style-src 'unsafe-inline'`
- * brauchen FullCalendar und der Editor. `frame-ancestors` wirkt per Meta-Tag nicht.
+ * Die Policy erlaubt Skripte nur vom eigenen Ursprung (kein Inline-Skript) und
+ * Verbindungen nur zu Supabase: Ein eingeschleustes Skript könnte weder etwas nachladen
+ * noch Daten wegschicken. `style-src 'unsafe-inline'` brauchen FullCalendar und der
+ * Editor. `frame-ancestors` wirkt per Meta-Tag nicht — das setzt `public/_headers` als
+ * echten Header (Cloudflare Pages).
  *
  * Nicht im Entwicklungsmodus: Dort braucht Vite ein Inline-Skript (React Refresh) und
  * eine WebSocket-Verbindung für das Neuladen.

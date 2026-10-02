@@ -12,3 +12,6 @@ coverage/
 
 # Arbeitsdateien der Supabase-CLI
 supabase/.temp/
+
+# Lokaler Zustand von `wrangler pages dev`
+.wrangler/

@@ -20,6 +20,10 @@ diesem Ordner liegt.
 
 ## Was noch dazugehört, aber nicht hier liegt
 
+- **Auftragsverarbeitung Cloudflare** (Auslieferung der Anwendung, DNS): kein eigener
+  Vertrag nötig — Cloudflares *Data Processing Addendum* ist Bestandteil der
+  Nutzungsbedingungen, die mit dem Konto akzeptiert werden. Für die Unterlagen die aktuelle
+  Fassung einmal als PDF ablegen (cloudflare.com/cloudflare-customer-dpa).
 - **Benennung eines Datenschutzbeauftragten**: für einen Sportverein in der Regel
   **nicht** erforderlich (§ 38 BDSG: erst ab 20 Personen, die ständig mit der
   Verarbeitung befasst sind). Wer dennoch eine Ansprechperson benennt, trägt sie in

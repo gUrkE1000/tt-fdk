@@ -1,7 +1,11 @@
 # Domain einrichten
 
-Zwei Subdomains, sieben DNS-Einträge, zweimal warten. Danach ist die Anwendung unter einer
-eigenen Adresse erreichbar und Resend darf in ihrem Namen E-Mails verschicken.
+Zwei Subdomains, eine Handvoll DNS-Einträge, zweimal warten. Danach ist die Anwendung unter
+einer eigenen Adresse erreichbar und Resend darf in ihrem Namen E-Mails verschicken.
+
+Ausgeliefert wird über **Cloudflare Pages**, das DNS liegt am einfachsten ebenfalls bei
+Cloudflare. GitHub Pages scheidet aus, weil das Repository privat ist (die Sicherung legt
+dort Mitgliederdaten ab) und Pages für private Repositories einen bezahlten Plan verlangt.
 
 > **Das lässt sich jetzt erledigen, unabhängig von Supabase.** DNS und die
 > Domain-Prüfung bei Resend brauchen Minuten bis Stunden — nutz die Wartezeit für
@@ -33,35 +37,62 @@ Eine Sende-Subdomain isoliert das vollständig — und lässt sich später ersat
 
 ---
 
-## 2. Vorab prüfen: lässt der Anbieter dich?
+## 2. Das DNS zu Cloudflare holen
 
-Du brauchst **drei Eintragstypen**: `CNAME`, `TXT` und `MX`. Bei Baukasten-Anbietern
-(WordPress.com, Wix, Jimdo, Squarespace) ist die DNS-Verwaltung manchmal auf eine Auswahl
-beschränkt.
+Du brauchst **drei Eintragstypen**: `CNAME`, `TXT` und `MX`. Cloudflare kann alle, ist
+kostenlos, und die eigene Domain für Pages ist dann ein Klick (Abschnitt 4), weil
+Cloudflare den Eintrag selbst anlegt.
 
-**WordPress.com:** *Upgrades → Domains* (bzw. *Domains* in der Seitenleiste) → die Domain
-anklicken → **DNS-Einträge** / *DNS records*. Dort gibt es „Eintrag hinzufügen" mit einer
-Typ-Auswahl.
+> **Es geht auch ohne Umzug**, wenn du nur eine Subdomain brauchst und der bisherige
+> Anbieter `CNAME`, `TXT` und `MX` erlaubt: Dann trägst du dort `tt` → `CNAME` auf
+> `<projekt>.pages.dev` ein (Abschnitt 4, Fall „DNS woanders"). Für die Hauptdomain
+> (`beispiel.de` ohne Subdomain) muss das DNS bei Cloudflare liegen.
 
-Prüf einmal, ob `CNAME`, `TXT` **und** `MX` in der Liste stehen. Wenn ja: weiter mit
-Abschnitt 3.
+⚠️ **Der Umzug ist kein risikoloser Schritt:** Dabei werden die *Nameserver* der Domain
+umgestellt. Alles, was bisher unter der Domain lief — eine Website, vorhandene
+E-Mail-Postfächer — läuft nur weiter, wenn die zugehörigen Einträge vorher bei Cloudflare
+nachgebaut wurden.
 
-### Falls nicht — oder falls es zu umständlich wird
+### 2.1 Domain hinzufügen und Einträge prüfen
 
-Dann verwaltest du das DNS woanders, ohne die Domain umzuziehen: **Cloudflare DNS** ist
-kostenlos, kann jeden Eintragstyp und ist schnell.
+Cloudflare → *Add a domain* → Domain eingeben → Plan **Free**. Cloudflare durchsucht dann
+das bisherige DNS und zeigt „Review your DNS records".
 
-⚠️ **Aber Vorsicht, das ist kein risikoloser Schritt:** Dabei werden die *Nameserver* der
-Domain umgestellt. Alles, was bisher unter der Domain lief — deine WordPress-Website,
-vorhandene E-Mail-Postfächer — läuft nur weiter, wenn die zugehörigen Einträge vorher bei
-Cloudflare nachgebaut wurden. Cloudflare importiert beim Einrichten die gefundenen Einträge
-automatisch; **prüf die Liste trotzdem Zeile für Zeile**, bevor du die Nameserver
-umstellst. Besonders `MX`-Einträge: Fehlen die, kommt keine E-Mail mehr an.
+**Prüf die Liste Zeile für Zeile** gegen die Anzeige beim bisherigen Anbieter — beide
+nebeneinander offen. Der Scan rät die Namen nur; typischerweise fehlen:
+
+- **DKIM-Einträge eines vorhandenen Postfachs** (`google._domainkey`, `titan1._domainkey`,
+  `selector1._domainkey` …) — der Teil vor `._domainkey` ist frei gewählt und nicht zu
+  erraten.
+- `_dmarc` der Hauptdomain, `SRV`-Einträge (`_autodiscover._tcp` u. ä.).
+- Selbst angelegte Subdomains, etwa schon eingetragene Resend-Einträge aus Abschnitt 5.
+
+Was fehlt, von Hand ergänzen. Die **`MX`-Einträge** besonders genau: Fehlen die, kommt
+keine E-Mail mehr an.
+
+### 2.2 Proxy-Status der übernommenen Einträge
+
+Cloudflare will `A`- und `CNAME`-Einträge standardmäßig *proxied* (orange Wolke) schalten.
+Für **übernommene Einträge einer bestehenden Website** (etwa WordPress.com) auf
+**DNS only** (graue Wolke) stellen: Hinter dem Proxy scheitert bei solchen Anbietern oft
+die Erneuerung des eigenen Zertifikats, und die Seite ist Wochen später plötzlich
+„nicht sicher". Mit grauer Wolke ändert sich für die Website nichts.
+
+Der Eintrag für die Anwendung (`tt`) ist die Ausnahme: Den legt Cloudflare Pages in
+Abschnitt 4 selbst an, **proxied** — so muss er bleiben.
+
+### 2.3 DNSSEC aus, dann Nameserver umstellen
+
+1. Beim bisherigen Anbieter **DNSSEC ausschalten**, falls aktiv. Sonst ist die Domain nach
+   dem Umstellen für viele Resolver unerreichbar. (Bei Cloudflare lässt es sich später
+   wieder einschalten: *DNS → Settings → DNSSEC*.)
+2. Beim Registrar die beiden **Nameserver** eintragen, die Cloudflare anzeigt.
+3. Warten, bis Cloudflare die Domain als **Active** meldet — Minuten bis 24 Stunden.
 
 Wenn du an der Hauptdomain eine laufende Website hast und dir unsicher bist: nimm lieber
 gleich eine separate Domain für den Verein, statt an einer funktionierenden herumzustellen.
 
-☐ DNS-Verwaltung erlaubt CNAME, TXT, MX: ☐ ja ☐ nein → Cloudflare
+☐ Einträge verglichen am: ________ ☐ Domain bei Cloudflare *Active* am: ________
 
 ---
 
@@ -69,7 +100,7 @@ gleich eine separate Domain für den Verein, statt an einer funktionierenden her
 
 **Das kostet fast jeden eine Stunde**, deshalb steht es vor den eigentlichen Schritten.
 
-Resend und GitHub nennen dir **vollständige** Namen:
+Resend nennt dir **vollständige** Namen:
 
 ```
 resend._domainkey.mail.beispiel.de
@@ -99,97 +130,85 @@ Abschnitt 6, was tatsächlich dasteht. Lieber einmal nachsehen als sechs Einträ
 
 ---
 
-## 4. Die Anwendung: GitHub Pages
+## 4. Die Anwendung: Cloudflare Pages
 
-### 4.1 Pages einschalten
+### 4.1 Zugang für den Deploy-Workflow
 
-GitHub → Repository → *Settings* → *Pages*:
+Gebaut wird in GitHub Actions (`.github/workflows/deploy.yml`), Cloudflare bekommt nur das
+fertige Ergebnis. Dafür braucht GitHub zwei Secrets
+(*Settings → Secrets and variables → Actions*):
 
-- **Source**: `GitHub Actions`
+| Secret | Woher |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare → *My Profile → API Tokens → Create Token → Custom token*. Berechtigung: **Account → Cloudflare Pages → Edit**. Sonst nichts — der Token darf weder DNS noch andere Dienste anfassen |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare → *Workers & Pages* → rechte Spalte **Account ID** |
 
-### 4.2 Eigene Domain eintragen
+Den Token sofort ins Passwortdepot; Cloudflare zeigt ihn nur einmal.
 
-Auf derselben Seite unter **Custom domain**: `tt.beispiel.de` → *Save*.
+### 4.2 Erstes Deployment
 
-GitHub prüft daraufhin das DNS und meldet zunächst einen Fehler — der Eintrag existiert ja
-noch nicht. Das ist erwartet.
+GitHub → *Actions* → **Deploy to Cloudflare Pages** → *Run workflow* (Branch `main`).
 
-### 4.3 Den DNS-Eintrag setzen
+Der erste Lauf legt das Pages-Projekt `vereinsplaner` an (anderer Name: Repository-Variable
+`CLOUDFLARE_PAGES_PROJECT`). Danach läuft die Anwendung unter
+`https://vereinsplaner.pages.dev` — ist der Name vergeben, hängt Cloudflare ein Kürzel an;
+die tatsächliche Adresse steht am Ende des Laufs im Log.
 
-**Welche Einträge du brauchst, hängt davon ab, ob du eine Subdomain oder die Hauptdomain
-nutzt.** Das ist der Punkt, an dem die meisten Anleitungen aneinander vorbeireden.
+> Ein Lauf von einem anderen Branch als `main` erzeugt nur eine **Vorschau** unter
+> `<branch>.vereinsplaner.pages.dev`. Die eigene Domain zeigt immer auf `main`.
 
-### Fall A — Subdomain (`tt.beispiel.de`)
+### 4.3 Eigene Domain eintragen
 
-Ein einziger Eintrag:
+Cloudflare → *Workers & Pages* → `vereinsplaner` → *Custom domains* →
+*Set up a custom domain* → `tt.beispiel.de` → *Continue* → *Activate domain*.
 
-| Typ | Name | Wert | TTL |
+**Liegt das DNS bei Cloudflare** (Abschnitt 2), legt Cloudflare den Eintrag selbst an:
+
+| Typ | Name | Wert | Proxy |
 |---|---|---|---|
-| `CNAME` | `tt` | `<dein-github-konto>.github.io` | Standard |
+| `CNAME` | `tt` | `vereinsplaner.pages.dev` | **proxied** (orange) |
 
-Manche Oberflächen wollen den Wert mit Punkt am Ende (`konto.github.io.`). Beides ist
-richtig; wenn einer nicht angenommen wird, nimm den anderen.
+Nichts von Hand anlegen und die Wolke **nicht** auf grau stellen — Pages braucht den Proxy
+für Zertifikat und Auslieferung. Gibt es unter `tt` schon einen alten Eintrag, vorher
+löschen; ein Name kann nicht zwei Ziele haben.
 
-### Fall B — Hauptdomain (`beispiel.de`)
-
-Ein `CNAME` geht hier **nicht** — auf der Wurzel einer Domain verbietet der DNS-Standard
-das. Stattdessen vier `A`-Einträge, alle mit leerem Namen bzw. `@`:
-
-| Typ | Name | Wert |
-|---|---|---|
-| `A` | `@` | `185.199.108.153` |
-| `A` | `@` | `185.199.109.153` |
-| `A` | `@` | `185.199.110.153` |
-| `A` | `@` | `185.199.111.153` |
-
-Optional dieselben vier noch einmal als `AAAA` für IPv6:
-
-```
-2606:50c0:8000::153
-2606:50c0:8001::153
-2606:50c0:8002::153
-2606:50c0:8003::153
-```
-
-⚠️ **Vorhandene `A`-Einträge auf `@` vorher löschen.** Registrare legen ab Werk einen
-Eintrag an, der auf ihre eigene Platzhalterseite zeigt. Bleibt der stehen, landet etwa
-jeder fünfte Aufruf dort statt bei euch — ein Fehler, der sich anfühlt wie „manchmal geht's
-nicht". Manche Oberflächen bieten an, die alten Einträge beim Anlegen des neuen selbst
-abzuschalten; das ist genau richtig und spart den Schritt.
-
-**Und `www` nicht vergessen.** GitHub prüft die `www`-Variante automatisch mit und meldet
-sie als *improperly configured*, solange sie noch beim Registrar hängt. Die Hauptadresse
-funktioniert davon unabhängig — aber Leute tippen `www.` aus Gewohnheit:
+**Liegt das DNS woanders** (nur bei einer Subdomain möglich): beim Anbieter selbst
+eintragen, mit relativem Namen (Abschnitt 3):
 
 | Typ | Name | Wert |
 |---|---|---|
-| `CNAME` | `www` | `<dein-github-konto>.github.io` |
+| `CNAME` | `tt` | `vereinsplaner.pages.dev` |
 
-Den vorhandenen `A`-Eintrag auf `www` vorher löschen: Ein Name kann nicht gleichzeitig `A`
-und `CNAME` sein. Danach leitet GitHub `www` selbsttätig auf die Hauptadresse um.
+**Hauptdomain statt Subdomain** (`beispiel.de`): geht nur mit DNS bei Cloudflare, dann
+genauso wie oben — Cloudflare löst den `CNAME` auf der Wurzel selbst auf. Alte `A`-Einträge
+auf `@` vorher löschen. Für `www` zusätzlich `www.beispiel.de` als zweite Custom domain
+eintragen.
 
-### 4.4 Warten, dann HTTPS erzwingen
+### 4.4 Warten, bis die Domain aktiv ist
 
-Zurück auf *Settings → Pages*. Sobald die DNS-Prüfung durchläuft (Minuten bis ~1 Stunde),
-stellt GitHub automatisch ein Zertifikat aus. **Dann** wird das Kästchen **Enforce HTTPS**
-anklickbar — ankreuzen.
+In *Custom domains* steht zunächst *Verifying* bzw. *Initializing*. Sobald dort **Active**
+steht (meist Minuten, selten bis zu einer Stunde), ist das Zertifikat ausgestellt. HTTPS
+ist bei Pages immer an; ein Kästchen zum Erzwingen gibt es nicht.
 
 > ⚠️ **Ohne HTTPS gibt es keinen Service Worker, kein Push und keine Installation als App.**
-> Das ist eine Browser-Regel, keine Einstellung. Solange das Kästchen ausgegraut ist, ist
+> Das ist eine Browser-Regel, keine Einstellung. Solange die Domain nicht *Active* ist, ist
 > die Einrichtung an dieser Stelle nicht fertig.
 
-Das Kästchen bleibt manchmal eine halbe Stunde ausgegraut, obwohl das DNS stimmt. Erst nach
-zwei Stunden anfangen, einen Fehler zu vermuten.
-
-☐ `CNAME` gesetzt am: ________ ☐ Enforce HTTPS aktiv am: ________
+☐ Custom domain eingetragen am: ________ ☐ *Active* am: ________
 
 ### 4.5 Was du **nicht** tun musst
 
 - **`VITE_BASE_PATH` setzen.** Bei einer eigenen Domain liegt die Anwendung in der Wurzel;
-  die Voreinstellung `/` ist richtig. Setzt du sie auf `/tt-fdk/`, sucht der Service Worker
+  die Voreinstellung `/` ist richtig. Setzt du einen Unterpfad, sucht der Service Worker
   an der falschen Stelle und Push funktioniert nicht.
-- **Eine `CNAME`-Datei anlegen.** Der Deploy-Workflow schreibt sie beim Bauen aus dem
-  Secret `VITE_APP_URL` — es gibt also genau eine Stelle, an der die Domain gepflegt wird.
+- **Umleitungen für tiefe Links anlegen.** Pages behandelt das Projekt als Single-Page-App,
+  solange es keine `404.html` enthält; der Deploy-Workflow prüft das.
+- **Sicherheits-Header konfigurieren.** Die stehen in `public/_headers` und werden mit
+  ausgeliefert.
+
+Die Anwendung bleibt zusätzlich unter `vereinsplaner.pages.dev` erreichbar. Anmelden kann
+man sich dort nicht (die Adresse steht nicht in den Redirect-URLs von Supabase) — Links
+gehören immer auf die eigene Domain.
 
 ---
 
@@ -252,9 +271,9 @@ Registrare bieten im Bestellvorgang gern Pakete an. Für diese Anwendung gilt:
 |---|---|---|
 | **Domain allein** | ✅ **ja** | Mehr ist es nicht |
 | E-Mail-Paket / Postfächer | ❌ nein | Der Versand läuft über Resend. Ein Postfach macht die Zustellung **nicht** zuverlässiger — siehe unten. Für Antworten reicht die Antwortadresse (5.5) |
-| Webhosting | ❌ nein | Die Anwendung liegt auf GitHub Pages, kostenlos |
+| Webhosting | ❌ nein | Die Anwendung liegt auf Cloudflare Pages, kostenlos |
 | Website-Baukasten | ❌ nein | — |
-| SSL-Zertifikat | ❌ nein | GitHub Pages stellt es selbst aus, kostenlos |
+| SSL-Zertifikat | ❌ nein | Cloudflare stellt es selbst aus, kostenlos |
 
 **Der verbreitete Irrtum:** *„Mit einem richtigen Postfach wird die E-Mail zuverlässiger
 zugestellt."* Das stimmt nicht. Ob eine Nachricht im Posteingang oder im Spam landet,
@@ -303,9 +322,10 @@ Im Terminal. `dig` gibt es auf macOS und Linux; unter Windows tut `nslookup -typ
 denselben Dienst.
 
 ```bash
-# Zeigt die Anwendung auf GitHub?
-dig +short tt.beispiel.de CNAME
-# erwartet: konto.github.io.
+# Liefert die Domain die Anwendung aus?
+curl -sI https://tt.beispiel.de/trainings | grep -iE '^HTTP|x-frame-options'
+# erwartet: HTTP/2 200 und x-frame-options: SAMEORIGIN (kommt aus public/_headers —
+# steht es da, antwortet wirklich dieses Pages-Projekt)
 
 # Findet man den SPF-Eintrag?
 dig +short send.mail.beispiel.de TXT
@@ -324,10 +344,14 @@ dig +short send.mail.beispiel.de MX
 
 1. **Noch nicht propagiert.** Warte. Bis zu einer Stunde ist normal, bei ungünstiger TTL
    auch länger. Gegenprobe mit einem fremden Resolver:
-   `dig +short @1.1.1.1 tt.beispiel.de CNAME`
+   `dig +short @1.1.1.1 send.mail.beispiel.de TXT`
 2. **Name doppelt.** Sieh nach, ob der Eintrag `tt.beispiel.de.beispiel.de` heißt →
    [Abschnitt 3](#3-der-häufigste-stolperstein-relative-namen).
 3. **Falscher Typ.** `CNAME` statt `TXT` oder umgekehrt.
+
+Für `tt` liefert `dig` bei DNS über Cloudflare **keinen** `CNAME`, sondern Cloudflare-IPs —
+das ist bei einem proxied Eintrag richtig so. Antwortet `curl` nicht, sieh zuerst in
+*Workers & Pages → vereinsplaner → Custom domains* nach, ob dort *Active* steht.
 
 Ein sehr praktischer Gegencheck ohne Terminal: [dnschecker.org](https://dnschecker.org)
 zeigt denselben Eintrag aus vielen Ländern gleichzeitig.
@@ -368,8 +392,8 @@ Diese Liste ist der Grund, warum dieses Dokument existiert. Zu ändern sind:
 
 | Wo | Was |
 |---|---|
-| DNS der neuen Domain | Abschnitte 4.3 und 5.2 komplett neu |
-| GitHub → Settings → Pages | Custom domain, danach erneut *Enforce HTTPS* |
+| DNS der neuen Domain | Abschnitte 2 und 5.2 komplett neu |
+| Cloudflare → Workers & Pages → Custom domains | neue Domain hinzufügen, warten auf *Active* |
 | GitHub → Secrets | `VITE_APP_URL` |
 | Supabase → Secrets | `APP_URL` |
 | Supabase → Auth → URL Configuration | Site URL **und** Redirect URLs |
