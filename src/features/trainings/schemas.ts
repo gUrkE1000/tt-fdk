@@ -196,7 +196,8 @@ export function resolveAssignment(input: {
 // ---------------------------------------------------------------------------- Auswahl
 
 /**
- * Welche Trainings mich betreffen: die offenen und die, in denen ich eingetragen bin.
+ * Welche Trainings mich betreffen: die, in denen ich eingetragen bin. Ein offenes
+ * Training gehört erst dazu, wenn ich unter „Offene Trainings" teilnehme.
  *
  * Steht hier und nicht in der jeweiligen Komponente, weil der Reiter „Termine" und die
  * Kachelzahl auf der Übersicht sonst auseinanderlaufen könnten — und niemand würde es
@@ -210,7 +211,7 @@ export function myTrainingIds(
 
   return new Set(
     trainings
-      .filter((training) => training.is_open || training.memberIds.includes(profileId))
+      .filter((training) => training.memberIds.includes(profileId))
       .map((training) => training.id),
   );
 }
@@ -229,7 +230,8 @@ export function isMySession(
   if (!training) return false;
   if (training.trainerIds?.includes(profileId)) return true;
   if (training.is_system) return assignedSessionIds.has(session.id);
-  return training.is_open || training.memberIds.includes(profileId);
+  // Offene Trainings erst nach „Teilnehmen" — dann steht man in `training_members`.
+  return training.memberIds.includes(profileId);
 }
 
 /**

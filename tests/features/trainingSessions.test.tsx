@@ -378,6 +378,34 @@ describe('SessionsTab', () => {
     expect(screen.queryByRole('button', { name: /Weitere .* anzeigen/ })).toBeNull();
   });
 
+  it('zeigt ein offenes Training erst nach „Teilnehmen“ unter den eigenen', async () => {
+    const openSession = {
+      id: 's-open',
+      training_id: 'tr-3',
+      session_date: day,
+      starts_at: `${day}T08:00:00.000Z`,
+      ends_at: `${day}T10:00:00.000Z`,
+      cancelled: false,
+      cancel_reason: '',
+      cancellation_id: null,
+      reminder_sent_at: null,
+    };
+    state.tables.training_sessions = [...(state.tables.training_sessions ?? []), openSession];
+    state.tables.training_members = [{ training_id: 'tr-1', profile_id: 'p-01' }];
+    const { unmount } = renderPage(<SessionsTab onlyMine />);
+
+    await screen.findAllByText('Erwachsenentraining');
+    expect(screen.queryByText('Offenes Training')).toBeNull();
+    unmount();
+
+    state.tables.training_members = [
+      { training_id: 'tr-1', profile_id: 'p-01' },
+      { training_id: 'tr-3', profile_id: 'p-01' },
+    ];
+    renderPage(<SessionsTab onlyMine />);
+    expect(await screen.findByText('Offenes Training')).toBeInTheDocument();
+  });
+
   it('zeigt mit „onlyMine“ nur Trainings, zu denen man gehört', async () => {
     state.tables.training_members = [{ training_id: 'tr-1', profile_id: 'p-01' }];
     renderPage(<SessionsTab onlyMine />);

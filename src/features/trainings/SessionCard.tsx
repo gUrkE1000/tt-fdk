@@ -114,9 +114,12 @@ export default function SessionCard({
     .filter((entry) => entry.session_id === session.id)
     .map((entry) => entry.profile_id);
   const mine = participants.find((entry) => entry.profile_id === profileId) ?? null;
+  // Zu einem offenen Training ist jeder eingeladen — zusagen darf man auch ohne
+  // „Teilnehmen", es steht dann nur nicht unter „Meine Trainings".
   const mayAnswer =
     profileId !== null &&
     (mine !== null ||
+      training?.is_open === true ||
       isMySession(
         session,
         training,
