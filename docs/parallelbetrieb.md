@@ -158,7 +158,7 @@ dem, was gefehlt hat.
 | 10.3 | Ein Gast sieht keine Mannschaftsdaten | | | |
 | 10.4 | Ein Mitglied hat die Selbstlöschung ausprobiert (Testkonto) und war danach für alle unsichtbar | | | |
 | 10.5 | Der Datenschutzhinweis ist veröffentlicht und in der Anwendung verlinkt | | | |
-| 10.6 | AV-Verträge mit Supabase und Resend liegen unterschrieben vor | | | |
+| 10.6 | AV-Verträge mit Supabase und Brevo liegen vor | | | |
 | 10.7 | Die Daten liegen in der EU (Supabase-Region Frankfurt, einmal nachgesehen) | | | |
 
 ### Z11 — Betrieb
@@ -173,7 +173,7 @@ dem, was gefehlt hat.
 | 11.6 | Eine Sicherung wurde einmal probeweise zurückgespielt (in ein Testprojekt, nicht produktiv) | | | |
 
 **11.2 im Detail.** Der laufende Betrieb kostet: Supabase Free 0 €, Supabase Pro 25 $/Monat
-falls nötig, Resend im Free-Tier 0 € (3.000 Mails/Monat), Domain ~15 €/Jahr, Cloudflare
+falls nötig, Brevo im Free-Plan 0 € (300 Mails/Tag), Domain ~15 €/Jahr, Cloudflare
 Pages 0 €. Bei Free-Tier ist das Kriterium trivial erfüllt; die Prüfung ist eine andere: **Reicht
 Free?** Dafür nach vier Wochen die Zahlen aus dem Supabase-Dashboard eintragen:
 
@@ -182,12 +182,12 @@ Free?** Dafür nach vier Wochen die Zahlen aus dem Supabase-Dashboard eintragen:
 | Datenbankgröße | | 500 MB |
 | Monatliche aktive Nutzer | | 50.000 |
 | Edge-Function-Aufrufe | | 500.000/Monat |
-| E-Mails über Resend | | 3.000/Monat, 100/Tag |
+| E-Mails über Brevo | | 300/Tag |
 
-Der Wert, der bei einem Tischtennisverein zuerst eng wird, ist **100 Mails pro Tag** —
-ein Sammelhinweis an 80 Mitglieder plus Spielerinnerungen kommt dem nahe. Wenn dieser
-Wert über 70 liegt, gehört in Abschnitt 6 vermerkt, dass Push aktiv beworben werden muss
-oder Resend kostenpflichtig wird (20 $/Monat).
+Der Wert, der bei einem Tischtennisverein zuerst eng wird, ist **300 Mails pro Tag** —
+ein Sammelhinweis an 80 Mitglieder plus Spielerinnerungen bleibt meist deutlich darunter.
+Wenn dieser Wert über 200 liegt, gehört in Abschnitt 6 vermerkt, dass Push aktiv beworben
+werden muss oder Brevo kostenpflichtig wird (Tarif *Starter*).
 
 ---
 

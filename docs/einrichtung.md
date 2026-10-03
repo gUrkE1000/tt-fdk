@@ -16,7 +16,7 @@ Rechne mit zwei bis drei Stunden, davon die Hälfte Wartezeit auf DNS-Einträge.
 | | Wofür | Kosten |
 |---|---|---|
 | Supabase-Projekt | Datenbank, Anmeldung, Edge Functions | kostenloser Tarif reicht für einen Verein |
-| Resend-Konto | E-Mail-Versand | kostenlos bis 3.000 E-Mails im Monat |
+| Brevo-Konto | E-Mail-Versand | kostenlos bis 300 E-Mails am Tag |
 | Eine Domain | Adresse der Anwendung und Absenderadresse | ~15 € im Jahr |
 | Ein Ort zum Ausliefern | die gebauten Dateien | kostenlos |
 
@@ -122,14 +122,18 @@ Datei nicht an.
 > mv supabase/seed.sql.aus supabase/seed.sql
 > ```
 
-## 4. Resend einrichten
+## 4. Brevo einrichten
 
-1. Auf [resend.com](https://resend.com) ein Konto anlegen.
-2. Die eigene Domain hinzufügen und die genannten DNS-Einträge setzen (SPF, DKIM, DMARC).
-   Das dauert je nach Anbieter Minuten bis Stunden.
-3. Warten, bis die Domain als *verified* gilt. Vorher lehnt Resend jeden Versand ab, und
-   jede Nachricht landet auf `failed`.
-4. Einen API-Schlüssel erzeugen.
+1. Auf [brevo.com](https://www.brevo.com) ein Konto anlegen.
+2. Die Sende-Domain hinzufügen und die genannten DNS-Einträge setzen (DKIM, DMARC,
+   Besitznachweis). Das dauert je nach Anbieter Minuten bis Stunden.
+3. Warten, bis die Domain als *authentifiziert* gilt, dann die Absenderadresse unter
+   *Senders* anlegen. Vorher lehnt Brevo jeden Versand ab, und jede Nachricht landet auf
+   `failed`.
+4. Einen API-Schlüssel erzeugen und die IP-Sperre abschalten (*Security → Authorised IPs*)
+   — die Edge Functions haben keine feste IP.
+
+Einzelheiten: [`domain-einrichten.md` §5](domain-einrichten.md#5-der-versand-brevo).
 
 Eine Absenderadresse wie `planer@verein.example.org` genügt; ein Postfach dahinter braucht
 es nicht, solange niemand auf die Benachrichtigungen antwortet.
@@ -150,7 +154,7 @@ niemand würde ihnen sagen, warum plötzlich nichts mehr kommt.
 
 ```bash
 npx supabase secrets set APP_URL="https://verein.example.org"
-npx supabase secrets set RESEND_API_KEY="re_..."
+npx supabase secrets set BREVO_API_KEY="xkeysib-..."
 npx supabase secrets set VAPID_PUBLIC_KEY="B..."
 npx supabase secrets set VAPID_PRIVATE_KEY="..."
 ```

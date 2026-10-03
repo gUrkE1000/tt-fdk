@@ -16,7 +16,7 @@ diesem Ordner liegt.
 | [`datenschutzhinweis.md`](datenschutzhinweis.md) | Art. 13 DSGVO: Was die Mitglieder erfahren müssen | **ja**, in der Anwendung verlinkt |
 | [`loeschkonzept.md`](loeschkonzept.md) | Welche Daten wann verschwinden — und wer das tut | faktisch ja (Art. 5, 17) |
 | [`av-supabase.md`](av-supabase.md) | Auftragsverarbeitung Datenbank/Hosting | **ja**, Vertrag abzuschließen |
-| [`av-resend.md`](av-resend.md) | Auftragsverarbeitung E-Mail-Versand | **ja**, Vertrag abzuschließen |
+| [`av-brevo.md`](av-brevo.md) | Auftragsverarbeitung E-Mail-Versand | **ja**, Vertrag abzulegen |
 
 ## Was noch dazugehört, aber nicht hier liegt
 
@@ -36,6 +36,6 @@ diesem Ordner liegt.
 ## Warum es überhaupt einfacher wird als beim TT-Planer
 
 Der Verein war bisher Verantwortlicher für Daten, die bei einem Anbieter lagen, dessen
-Verarbeitung er nicht einsehen konnte. Mit dem eigenen Supabase-Projekt sind es zwei
+Verarbeitung er nicht einsehen konnte. Mit dem eigenen Supabase-Projekt sind es drei
 Auftragsverarbeiter statt einem undurchsichtigen Dienst, und das
 Verarbeitungsverzeichnis lässt sich aus dem Schema ablesen statt erfragen.

@@ -13,13 +13,13 @@ Was zwischen „die Anwendung läuft" und „ich schicke einem Menschen die Adre
 | | Punkt | Ohne das passiert |
 |---|---|---|
 | 🔴 | [Site URL und Redirect URLs](#0-site-url-und-redirect-urls) | Jeder Einladungs- und Anmeldelink landet auf `localhost:3000` und lädt endlos |
-| 🔴 | [SMTP auf Resend umstellen](#1-smtp-auf-resend-umstellen) | Nach 2–4 Einladungen kommt keine mehr an |
+| 🔴 | [SMTP auf Brevo umstellen](#1-smtp-auf-brevo-umstellen) | Nach 2–4 Einladungen kommt keine mehr an |
 | 🔴 | [Vereinsdaten ausfüllen](#2-vereinsdaten) | „Mein Tischtennisverein" in jeder E-Mail; Heimspiele auf auswärts |
 | 🔴 | [Betriebseinstellungen](#3-betriebseinstellungen) | Links in Benachrichtigungen führen ins Leere |
 | 🔴 | [Datenschutzhinweis](#4-datenschutzhinweis-und-impressum) | Die Registrierung verschweigt, was mit den Daten passiert |
 | 🟠 | [Probelauf](#5-der-probelauf) | Fehler fallen erst bei den Mitgliedern auf |
 | 🟡 | [Orte, Mannschaften, Trainings](#6-inhalte-anlegen) | Der Eingeladene sieht eine leere Anwendung |
-| 🟡 | [Resend-Schlüssel verengen](#7-kleinigkeiten) | Ein verlorener Schlüssel kann mehr, als er müsste |
+| 🟡 | [Brevo-Konto absichern](#7-kleinigkeiten) | Wer das Konto übernimmt, verschickt in eurem Namen |
 
 🔴 = vor der ersten Einladung · 🟠 = vor der zweiten · 🟡 = vor der dritten
 
@@ -69,7 +69,7 @@ verschickten Links**, die damit wertlos sind. Nach dem Umstellen neu einladen.
 
 ---
 
-## 1. SMTP auf Resend umstellen
+## 1. SMTP auf Brevo umstellen
 
 **Das ist der Punkt, der in keiner bisherigen Anleitung stand.**
 
@@ -77,12 +77,12 @@ In dieser Anwendung gehen E-Mails über **zwei getrennte Wege**:
 
 | Was | Weg | Steht schon |
 |---|---|---|
-| Erinnerungen, Aufstellungen, Ersatzanfragen | `process-notifications` → **Resend** | ✅ |
+| Erinnerungen, Aufstellungen, Ersatzanfragen | `process-notifications` → **Brevo** | ✅ |
 | **Einladung, Anmeldelink, Passwort zurücksetzen** | **Supabase Auth** | ❌ |
 
 Nachzusehen im Code: `invite-member/index.ts` ruft `admin.auth.admin.inviteUserByEmail()`,
 `auth/api.ts` ruft `signInWithOtp()` und `resetPasswordForEmail()`. Keiner dieser drei
-Aufrufe berührt Resend.
+Aufrufe berührt Brevo.
 
 Supabase Auth verschickt ab Werk über einen **eingebauten Dienst, der ausdrücklich nur zum
 Testen gedacht ist**. Er ist auf wenige E-Mails pro Stunde begrenzt und verschickt von
@@ -100,16 +100,16 @@ Supabase → *Project Settings* → *Authentication* → **SMTP Settings** → *
 
 | Feld | Wert |
 |---|---|
-| Host | `smtp.resend.com` |
-| Port | `465` |
-| Username | `resend` |
-| Password | dein Resend-API-Schlüssel (`re_…`) |
-| Sender email | `planer@tt-tsvfeldkirchen.de` |
+| Host | `smtp-relay.brevo.com` |
+| Port | `587` |
+| Username | dein **SMTP-Login** aus Brevo (*SMTP & API → SMTP*, Form `…@smtp-brevo.com`) — nicht deine Anmelde-Adresse |
+| Password | ein **SMTP-Schlüssel**, erzeugt auf derselben Seite (*Generate a new SMTP key*) — **nicht** der API-Schlüssel (`xkeysib-…`) |
+| Sender email | `planer@mail.tt-tsvfeldkirchen.de` — eine Adresse auf der bei Brevo authentifizierten Domain, dort als Absender angelegt |
 | Sender name | `TSV Feldkirchen` |
 
-Danach laufen **alle** E-Mails über Resend: dieselbe verifizierte Domain, dieselben
-SPF/DKIM/DMARC-Einträge, dieselbe Zustellbarkeit — und alles ist im Resend-Protokoll
-nachvollziehbar.
+Danach laufen **alle** E-Mails über Brevo: dieselbe authentifizierte Domain, dieselben
+DKIM/DMARC-Einträge, dieselbe Zustellbarkeit — und alles ist im Brevo-Protokoll
+nachvollziehbar. Die SMTP-Mails zählen zum selben Tageskontingent (300 im Free-Plan).
 
 Anschließend unter *Authentication → Rate Limits* nachsehen, ob die Grenze für
 E-Mails hochgesetzt werden kann. Mit eigenem SMTP ist sie nicht mehr an den Testdienst
@@ -117,11 +117,11 @@ gebunden.
 
 ### Prüfen
 
-Schick dir selbst eine Einladung an eine **zweite** Adresse und sieh im
-Resend-Dashboard unter *Emails* nach. Taucht sie dort auf, läuft der Weg richtig.
+Schick dir selbst eine Einladung an eine **zweite** Adresse und sieh in Brevo unter
+*Transactional → Logs* nach. Taucht sie dort auf, läuft der Weg richtig.
 Taucht sie nicht auf, geht sie weiterhin über Supabase.
 
-☐ Umgestellt am: ________  ☐ Testmail im Resend-Protokoll gesehen: ________
+☐ Umgestellt am: ________  ☐ Testmail im Brevo-Protokoll gesehen: ________
 
 ---
 
@@ -189,7 +189,7 @@ darunter gelten, sobald der Verein übernimmt.
 **Parallel, weil es Laufzeit hat:**
 
 - AV-Vertrag mit **Supabase** abschließen
-- AV-Vertrag mit **Resend** abschließen, vorher den Data-Privacy-Framework-Status prüfen
+- AV-Vertrag mit **Brevo** herunterladen und ablegen (Bestandteil der Nutzungsbedingungen, siehe `docs/datenschutz/av-brevo.md`)
 - `docs/datenschutz/verarbeitungsverzeichnis.md` zu den Vereinsunterlagen
 
 > Die Entwürfe in `docs/datenschutz/` sind sorgfältig und decken die tatsächliche
@@ -197,7 +197,7 @@ darunter gelten, sobald der Verein übernimmt.
 
 ☐ Hinweis veröffentlicht unter: ____________________
 ☐ URL eingetragen am: ________
-☐ AV Supabase: ________  ☐ AV Resend: ________
+☐ AV Supabase: ________  ☐ AV Brevo: ________
 
 ---
 
@@ -208,7 +208,7 @@ Punkte 1 und 2; der Rest darf danach kommen, aber vor der zweiten Welle.
 
 | # | Test | Erwartung | Muss vor Einladung 1 |
 |---|---|---|---|
-| 1 | Zweites Mitglied anlegen und einladen | Mail kommt an, im **Resend-Protokoll** sichtbar | ✅ |
+| 1 | Zweites Mitglied anlegen und einladen | Mail kommt an, im **Brevo-Protokoll** sichtbar | ✅ |
 | 2 | Antwortlink in der Mail anklicken | Speichert die Antwort ohne Anmeldung | ✅ |
 | 3 | Mannschaft + Webcal-URL, dann *Spiele importieren* | Lauf mit „n neu", **Heim/Auswärts stimmt** | — |
 | 4 | Training anlegen | Termine erscheinen, Feiertage fehlen | — |
@@ -248,7 +248,7 @@ und überspringt stillschweigend, was er nicht findet. Vollständig in
 
 | | Was | Warum |
 |---|---|---|
-| ☐ | **Resend-Schlüssel verengen** | Deiner hat *Full access*. *Sending access* genügt — dann kann ein verlorener Schlüssel keine Domains ändern und keine Protokolle lesen |
+| ☐ | **Brevo-Konto absichern** | API-Schlüssel lassen sich bei Brevo nicht auf „nur senden" beschränken. Umso wichtiger: Zwei-Faktor-Anmeldung einschalten (Zahnrad → *Security*) und alte Schlüssel löschen |
 | ☐ | `BACKUP_ENABLED` = `true` | GitHub → *Settings → Variables*. Ohne die Variable läuft die wöchentliche Sicherung ins Leere |
 | ☐ | `push`-Auslöser in `deploy.yml` und `deploy-supabase.yml` aktivieren | Sonst musst du jedes Mal von Hand deployen |
 | ☐ | `www`-CNAME bei IONOS | Kosmetik — aber Leute tippen `www.` |

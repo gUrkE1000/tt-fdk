@@ -176,7 +176,7 @@ die gesamte Datenbank an jeder Policy vorbei.
 |---|---|---|
 | `invite-member` | `auth.admin.inviteUserByEmail` für ein angelegtes Profil | JWT des Aufrufers muss zu einem aktiven Admin gehören |
 | `sync-calendars` | Spielplan aus myTischtennis abgleichen | Cron-Secret **oder** JWT eines Admins bzw. Mannschaftsführers |
-| `process-notifications` | Fällige Nachrichten verschicken — E-Mail über Resend, Push über VAPID | Cron-Secret **oder** JWT eines Admins |
+| `process-notifications` | Fällige Nachrichten verschicken — E-Mail über Brevo, Push über VAPID | Cron-Secret **oder** JWT eines Admins |
 | `enqueue-reminders` | Erinnerungen an Spiele und offene Rückmeldungen einreihen | Cron-Secret **oder** JWT eines Admins |
 | `substitute-engine` | Ersatzkette weiterrücken, Fristen auswerten | Cron-Secret **oder** JWT eines Admins bzw. Mannschaftsführers |
 | `generate-training-sessions` | Trainingstermine ein Jahr im Voraus anlegen und pflegen | Cron-Secret **oder** JWT eines Admins bzw. Trainers |
@@ -191,7 +191,7 @@ Setzen der Secrets nach dem Anlegen des Supabase-Projekts:
 
 ```bash
 supabase secrets set APP_URL="https://verein.example.org"
-supabase secrets set RESEND_API_KEY="re_..."
+supabase secrets set BREVO_API_KEY="xkeysib-..."
 supabase secrets set VAPID_PUBLIC_KEY="B..."     # npx web-push generate-vapid-keys
 supabase secrets set VAPID_PRIVATE_KEY="..."
 ```

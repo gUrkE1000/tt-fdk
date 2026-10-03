@@ -507,7 +507,7 @@ drei Buttons dabei/später/nicht · Gäste-Feld · Hinweis „Schlüssel: <Name>
 | UI-Primitives | Radix UI, `lucide-react`, `@dnd-kit`, `@fullcalendar/react`, `date-fns` + `date-fns-tz` | |
 | PWA | `vite-plugin-pwa` (injectManifest), Web Push (VAPID) | |
 | Backend | Supabase: Postgres + RLS, Auth (Magic Link, Passwort), Storage (Dateien [B]), Edge Functions (Deno), pg_cron + pg_net | EU-Region |
-| E-Mail | Resend (API + als SMTP für Auth-Mails) | Free-Tier reicht für einen Verein |
+| E-Mail | Brevo (API + als SMTP für Auth-Mails) | Free-Tier reicht für einen Verein |
 | Tests | Vitest + Testing Library (Frontend), pgTAP (`supabase test db`) für RLS und Trigger | |
 | CI/CD | GitHub Actions: Typecheck+Tests bei PR, Deploy Pages + Edge Functions bei `main` | |
 
@@ -586,7 +586,7 @@ nicht weitergeführt. Der HTML-Kader-Import entfällt, weil der TT-Planer ihn au
   Feiertage) sind `date`.
 - **Performance**: Listen paginiert (50), Dashboard-Queries über Views; erste Anzeige < 2 s auf 4G.
 - **Barrierefreiheit**: Radix-Primitives, Fokus-Reihenfolge, Kontrast ≥ 4.5:1, Statusfarben immer mit Text/Icon.
-- **Datenschutz**: Verarbeitungsverzeichnis und AV-Vertrag (Supabase, Resend) als Dokumente in `docs/datenschutz/`
+- **Datenschutz**: Verarbeitungsverzeichnis und AV-Vertrag (Supabase, Brevo) als Dokumente in `docs/datenschutz/`
   vor Go-live; Löschkonzept (Soft-Delete 30 Tage); Kontaktdaten-Sichtbarkeit opt-in; Geburtstag ausblendbar.
 - **Betrieb**: Admin-Seite zeigt letzte Sync-Läufe, Benachrichtigungsfehler, Cron-Zustand; Fehler in
   Edge Functions landen in `sync_runs`/`notifications.error`, nie stumm.

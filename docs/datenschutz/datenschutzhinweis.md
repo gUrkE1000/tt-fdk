@@ -60,11 +60,13 @@ Den Grund, den du bei einer Abwesenheit einträgst, sieht **niemand außer dir**
 Administrator. Mannschaftsführer und Trainer sehen nur, dass du in diesem Zeitraum nicht
 kannst.
 
-**Zwei Dienstleister** sind beteiligt, beide mit Auftragsverarbeitungsvertrag:
+**Drei Dienstleister** sind beteiligt, alle mit Auftragsverarbeitungsvertrag:
 
 - **Supabase** betreibt Datenbank und Anmeldung. Die Daten liegen in Frankfurt.
-- **Resend** verschickt die E-Mails. Dorthin geht nur, was in der jeweiligen E-Mail steht;
-  die Verarbeitung findet in den USA statt.
+- **Brevo** (Frankreich) verschickt die E-Mails. Dorthin geht nur, was in der jeweiligen
+  E-Mail steht; die Verarbeitung findet in der EU statt.
+- **Cloudflare** liefert die Anwendung aus und verarbeitet dabei deine IP-Adresse; das
+  Unternehmen sitzt in den USA (EU-US Data Privacy Framework).
 
 Wenn du Mitteilungen aufs Handy erlaubst, geht ein verschlüsselter Datenblock über den
 Push-Dienst deines Browserherstellers (Google, Apple oder Mozilla). Den Inhalt kann dieser

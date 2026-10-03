@@ -1,14 +1,14 @@
 # Domain einrichten
 
 Zwei Subdomains, eine Handvoll DNS-Einträge, zweimal warten. Danach ist die Anwendung unter
-einer eigenen Adresse erreichbar und Resend darf in ihrem Namen E-Mails verschicken.
+einer eigenen Adresse erreichbar und Brevo darf in ihrem Namen E-Mails verschicken.
 
 Ausgeliefert wird über **Cloudflare Pages**, das DNS liegt am einfachsten ebenfalls bei
 Cloudflare. GitHub Pages scheidet aus, weil das Repository privat ist (die Sicherung legt
 dort Mitgliederdaten ab) und Pages für private Repositories einen bezahlten Plan verlangt.
 
 > **Das lässt sich jetzt erledigen, unabhängig von Supabase.** DNS und die
-> Domain-Prüfung bei Resend brauchen Minuten bis Stunden — nutz die Wartezeit für
+> Domain-Prüfung bei Brevo brauchen Minuten bis Stunden — nutz die Wartezeit für
 > [Teil 2 von `go-live.md`](go-live.md#teil-2--technische-einrichtung).
 
 > ⚠️ **Wenn das eine Übergangsdomain ist**, lies vorher
@@ -25,9 +25,9 @@ Am Beispiel von `beispiel.de`:
 | Subdomain | Wofür | Warum getrennt |
 |---|---|---|
 | `tt.beispiel.de` | die Anwendung | — |
-| `mail.beispiel.de` | Absenderdomain für Resend | Hält SPF/DKIM/DMARC von der Hauptdomain fern |
+| `mail.beispiel.de` | Absenderdomain für Brevo | Hält DKIM/DMARC von der Hauptdomain fern |
 
-**Warum die Mail-Subdomain wichtig ist:** Resend verlangt Einträge, die festlegen, wer in
+**Warum die Mail-Subdomain wichtig ist:** Brevo verlangt Einträge, die festlegen, wer in
 deinem Namen E-Mails verschicken darf. Setzt du die auf die Hauptdomain und hast dort ein
 privates Postfach, kann eine zu strenge DMARC-Regel deine eigene Post ins Nichts schicken.
 Eine Sende-Subdomain isoliert das vollständig — und lässt sich später ersatzlos wegwerfen.
@@ -65,7 +65,7 @@ nebeneinander offen. Der Scan rät die Namen nur; typischerweise fehlen:
   `selector1._domainkey` …) — der Teil vor `._domainkey` ist frei gewählt und nicht zu
   erraten.
 - `_dmarc` der Hauptdomain, `SRV`-Einträge (`_autodiscover._tcp` u. ä.).
-- Selbst angelegte Subdomains, etwa schon eingetragene Resend-Einträge aus Abschnitt 5.
+- Selbst angelegte Subdomains, etwa schon eingetragene Brevo-Einträge aus Abschnitt 5.
 
 Was fehlt, von Hand ergänzen. Die **`MX`-Einträge** besonders genau: Fehlen die, kommt
 keine E-Mail mehr an.
@@ -100,25 +100,24 @@ gleich eine separate Domain für den Verein, statt an einer funktionierenden her
 
 **Das kostet fast jeden eine Stunde**, deshalb steht es vor den eigentlichen Schritten.
 
-Resend nennt dir **vollständige** Namen:
+Brevo nennt dir **vollständige** Namen:
 
 ```
-resend._domainkey.mail.beispiel.de
+brevo1._domainkey.mail.beispiel.de
 ```
 
 Die meisten DNS-Oberflächen — WordPress.com eingeschlossen — wollen im Feld *Name* oder
 *Host* aber nur den Teil **vor** deiner Domain:
 
 ```
-resend._domainkey.mail
+brevo1._domainkey.mail
 ```
 
 | Der Anbieter sagt | Du trägst ein | (die Domain hängt die Oberfläche selbst an) |
 |---|---|---|
 | `tt.beispiel.de` | `tt` | |
 | `mail.beispiel.de` | `mail` | |
-| `send.mail.beispiel.de` | `send.mail` | |
-| `resend._domainkey.mail.beispiel.de` | `resend._domainkey.mail` | |
+| `brevo1._domainkey.mail.beispiel.de` | `brevo1._domainkey.mail` | |
 | `_dmarc.mail.beispiel.de` | `_dmarc.mail` | |
 
 **Woran du merkst, dass du es falsch gemacht hast:** Der Eintrag heißt hinterher
@@ -212,56 +211,81 @@ gehören immer auf die eigene Domain.
 
 ---
 
-## 5. Der Versand: Resend
+## 5. Der Versand: Brevo
 
-### 5.1 Domain hinzufügen
+Brevo (Brevo SAS, Paris) verschickt die Benachrichtigungen. Verarbeitet wird in der EU, und
+der Free-Plan erlaubt **300 E-Mails pro Tag**, ohne Monatsgrenze.
 
-[resend.com](https://resend.com) → *Domains* → *Add Domain*.
+### 5.1 Konto und Domain hinzufügen
 
-- **Domain**: `mail.beispiel.de` — die Subdomain, nicht die Hauptdomain.
-- **Region**: **Europa (Ireland)**, wenn die Auswahl angeboten wird. Der Datenschutzhinweis
-  und `datenschutz/av-resend.md` behandeln den Versand als US-Verarbeitung; eine
-  EU-Region macht die Aussage nur besser, nie schlechter.
+1. [brevo.com](https://www.brevo.com) → Konto anlegen, Plan **Free**. Das Profil
+   (Organisation, Adresse) vollständig ausfüllen: Brevo prüft neue Konten und schaltet den
+   Versand manchmal erst nach einer Rückfrage frei. Das kann einen Tag dauern, also früh
+   anfangen.
+2. Zahnrad oben rechts → *Senders, Domains & Dedicated IPs* → **Domains** →
+   *Add a domain* → `mail.beispiel.de` — die Subdomain, nicht die Hauptdomain.
+
+Bietet Brevo an, die Einträge **automatisch bei Cloudflare** anzulegen, nimm das. Prüf
+danach trotzdem den Proxy-Status (Falle 1 unten).
 
 ### 5.2 Die Einträge übernehmen
 
-Resend zeigt dir danach drei bis vier Einträge. **Die genauen Werte sind für deine Domain
-erzeugt — kopier sie von dort, tipp sie nicht ab.** Die Form sieht so aus:
+Sonst zeigt Brevo die Einträge zum Abschreiben. **Die genauen Werte sind für deine Domain
+erzeugt — kopier sie von dort, tipp sie nicht ab.** Die Form sieht etwa so aus:
 
 | Typ | Name (vollständig) | Was drinsteht |
 |---|---|---|
-| `MX` | `send.mail.beispiel.de` | ein Amazon-SES-Host, Priorität `10` |
-| `TXT` | `send.mail.beispiel.de` | `v=spf1 include:amazonses.com ~all` |
-| `TXT` | `resend._domainkey.mail.beispiel.de` | ein sehr langer Schlüssel (`p=MIGf…`) |
-| `TXT` | `_dmarc.mail.beispiel.de` | `v=DMARC1; p=none;` — oft optional |
+| `TXT` | `mail.beispiel.de` | `brevo-code:…` — beweist, dass dir die Domain gehört |
+| `CNAME` | `brevo1._domainkey.mail.beispiel.de` | `b1.mail-beispiel-de.dkim.brevo.com` |
+| `CNAME` | `brevo2._domainkey.mail.beispiel.de` | `b2.mail-beispiel-de.dkim.brevo.com` |
+| `TXT` | `_dmarc.mail.beispiel.de` | `v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com` |
+
+Zeigt Brevo stattdessen einen langen `TXT`-Schlüssel (`mail._domainkey`, `p=MIGf…`), ist
+das die ältere Form — genauso übernehmen. Ein `MX` ist für Brevo nicht nötig.
 
 Beim Eintragen: **Abschnitt 3 beachten**, die Namen sind relativ.
 
-Drei Fallen beim DKIM-Eintrag (dem langen):
+**Alte Resend-Einträge** (`send.mail` als `MX` und `TXT`, `resend._domainkey.mail`) stören
+Brevo nicht. Lösch sie, sobald die erste Mail über Brevo angekommen ist — vorher nicht, dann
+bleibt der Rückweg offen.
 
-1. **Vollständig kopieren.** Der Schlüssel ist ~200 Zeichen lang und wird in der Anzeige
-   oft umgebrochen. Nimm den Kopieren-Knopf, nicht die Maus.
-2. **Keine Anführungszeichen hinzufügen.** Manche Oberflächen setzen sie selbst. Wenn
-   hinterher `"v=spf1…"` mit Anführungszeichen dasteht, ist das in Ordnung — doppelte
-   (`""v=spf1…""`) sind es nicht.
-3. **Keine Leerzeichen oder Zeilenumbrüche** im Wert.
+Drei Fallen:
 
-### 5.3 Verifizieren
+1. **CNAMEs bei Cloudflare auf „DNS only" (graue Wolke).** Cloudflare schlägt für neue
+   `CNAME`-Einträge *proxied* vor. Dann findet niemand den DKIM-Schlüssel, und Brevo
+   meldet die Domain nie als authentifiziert.
+2. **Werte vollständig kopieren**, mit dem Kopieren-Knopf, ohne Leerzeichen oder
+   Zeilenumbrüche.
+3. **Keine Anführungszeichen hinzufügen.** Setzt die Oberfläche sie selbst, ist das in
+   Ordnung — doppelte (`""v=DMARC1…""`) sind es nicht.
 
-Zurück bei Resend: *Verify DNS Records*. Läuft meist in Minuten durch, kann aber Stunden
-dauern.
+### 5.3 Authentifizieren und Absender anlegen
 
-> Solange die Domain nicht auf **verified** steht, lehnt Resend **jeden** Versand ab. In
-> der Anwendung äußert sich das später als Benachrichtigungen, die auf `failed` stehen
-> bleiben — unter *Verein → Betrieb → Benachrichtigungen*.
+Zurück bei Brevo: *Authenticate this email domain*. Läuft meist in Minuten durch, kann aber
+Stunden dauern.
 
-### 5.4 API-Schlüssel
+Dann unter *Senders* → *Add a sender* die Absenderadresse anlegen, etwa
+`planer@mail.beispiel.de`. Auf einer authentifizierten Domain ist dafür keine
+Bestätigungsmail nötig — gut so, denn hinter der Adresse steht kein Postfach (5.5).
 
-*API Keys* → *Create API Key* → Rechte **Sending access** genügen.
+> Solange die Domain nicht **authentifiziert** und der Absender nicht angelegt ist, lehnt
+> Brevo den Versand ab. In der Anwendung äußert sich das als Benachrichtigungen, die auf
+> `failed` stehen bleiben — unter *Verein → Betrieb → Benachrichtigungen*.
 
-Sofort ins Passwortdepot. Resend zeigt ihn genau einmal.
+### 5.4 API-Schlüssel und IP-Sperre
 
-☐ Domain verified am: ________ ☐ API-Schlüssel abgelegt am: ________
+*SMTP & API* → **API Keys** → *Generate a new API key*. Sofort ins Passwortdepot; Brevo
+zeigt ihn genau einmal. (Für die Anmelde-Mails von Supabase braucht es später zusätzlich
+einen **SMTP-Schlüssel** — das ist ein anderer, siehe
+[`vor-der-ersten-einladung.md` §1](vor-der-ersten-einladung.md#1-smtp-auf-brevo-umstellen).)
+
+⚠️ **IP-Sperre abschalten.** Brevo blockiert API-Aufrufe von unbekannten IP-Adressen und
+will jede neue erst per Mail bestätigt haben. Die Edge Functions von Supabase haben keine
+feste IP — jeder Versand scheitert dann mit `HTTP 401 … unrecognised IP address`.
+Zahnrad → *Security* → **Authorised IPs** → Sperre deaktivieren.
+
+☐ Domain authentifiziert am: ________ ☐ Absender angelegt: ________
+☐ API-Schlüssel abgelegt am: ________ ☐ IP-Sperre aus: ________
 
 ### Was du beim Domainkauf **nicht** brauchst
 
@@ -270,21 +294,21 @@ Registrare bieten im Bestellvorgang gern Pakete an. Für diese Anwendung gilt:
 | Angebot | Brauchst du? | Warum |
 |---|---|---|
 | **Domain allein** | ✅ **ja** | Mehr ist es nicht |
-| E-Mail-Paket / Postfächer | ❌ nein | Der Versand läuft über Resend. Ein Postfach macht die Zustellung **nicht** zuverlässiger — siehe unten. Für Antworten reicht die Antwortadresse (5.5) |
+| E-Mail-Paket / Postfächer | ❌ nein | Der Versand läuft über Brevo. Ein Postfach macht die Zustellung **nicht** zuverlässiger — siehe unten. Für Antworten reicht die Antwortadresse (5.5) |
 | Webhosting | ❌ nein | Die Anwendung liegt auf Cloudflare Pages, kostenlos |
 | Website-Baukasten | ❌ nein | — |
 | SSL-Zertifikat | ❌ nein | Cloudflare stellt es selbst aus, kostenlos |
 
 **Der verbreitete Irrtum:** *„Mit einem richtigen Postfach wird die E-Mail zuverlässiger
 zugestellt."* Das stimmt nicht. Ob eine Nachricht im Posteingang oder im Spam landet,
-entscheiden **SPF, DKIM und DMARC** — also genau die DNS-Einträge aus Abschnitt 5.2 — plus
+entscheiden **DKIM und DMARC** — also genau die DNS-Einträge aus Abschnitt 5.2 — plus
 der Ruf des versendenden Systems. Ein Postfach beim Registrar ändert an beidem nichts,
 weil die Anwendung gar nicht darüber versendet.
 
 Umgekehrt wäre der Versand über ein normales Registrar-Postfach **schlechter**: Solche
 Postfächer haben enge Sendelimits, Massenversand verstößt oft gegen deren Bedingungen, und
 es gibt keine Protokolle. Die Frage „ich habe nie eine Mail bekommen" wäre dann nicht mehr
-zu beantworten — mit Resend steht sie unter *Verein → Betrieb → Benachrichtigungen*.
+zu beantworten — mit Brevo steht sie unter *Verein → Betrieb → Benachrichtigungen*.
 
 ⚠️ **Auf den Verlängerungspreis achten.** Einstiegspreise gelten meist 12 Monate. Was
 danach fällig wird, steht klein daneben — bei Domains oft das Zehnfache, bei
@@ -300,7 +324,7 @@ nicht braucht.
 | Beispiel | `planer@mail.beispiel.de` | `vorstand@verein.de` |
 | Muss auf der verifizierten Domain liegen | **ja** | nein |
 | Braucht ein echtes Postfach | **nein** | **ja** |
-| Wofür | Zustellbarkeit (SPF, DKIM, DMARC) | damit Antworten ankommen |
+| Wofür | Zustellbarkeit (DKIM, DMARC) | damit Antworten ankommen |
 | In der Anwendung | *Verein → Betrieb → Einstellungen → Absenderadresse* | *… → Antwortadresse* |
 
 Die Absenderadresse ist eine technische Kennung. Hinter ihr muss nichts stehen.
@@ -327,24 +351,25 @@ curl -sI https://tt.beispiel.de/trainings | grep -iE '^HTTP|x-frame-options'
 # erwartet: HTTP/2 200 und x-frame-options: SAMEORIGIN (kommt aus public/_headers —
 # steht es da, antwortet wirklich dieses Pages-Projekt)
 
-# Findet man den SPF-Eintrag?
-dig +short send.mail.beispiel.de TXT
-# erwartet: "v=spf1 include:amazonses.com ~all"
+# Findet man den Besitznachweis?
+dig +short mail.beispiel.de TXT
+# erwartet: "brevo-code:..."
 
-# Und den DKIM-Schlüssel?
-dig +short resend._domainkey.mail.beispiel.de TXT
-# erwartet: ein langer Wert mit p=MIGf...
+# Und den DKIM-Schlüssel? (beide, brevo1 und brevo2)
+dig +short brevo1._domainkey.mail.beispiel.de CNAME
+# erwartet: b1.mail-beispiel-de.dkim.brevo.com.
+# Kommen stattdessen IP-Adressen: Wolke bei Cloudflare ist orange → auf grau
 
-# Nimmt der Bounce-Weg Post an?
-dig +short send.mail.beispiel.de MX
-# erwartet: 10 feedback-smtp.<region>.amazonses.com.
+# Und DMARC?
+dig +short _dmarc.mail.beispiel.de TXT
+# erwartet: "v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com"
 ```
 
 **Kommt nichts zurück**, sind es fast immer diese drei Ursachen, in dieser Reihenfolge:
 
 1. **Noch nicht propagiert.** Warte. Bis zu einer Stunde ist normal, bei ungünstiger TTL
    auch länger. Gegenprobe mit einem fremden Resolver:
-   `dig +short @1.1.1.1 send.mail.beispiel.de TXT`
+   `dig +short @1.1.1.1 mail.beispiel.de TXT`
 2. **Name doppelt.** Sieh nach, ob der Eintrag `tt.beispiel.de.beispiel.de` heißt →
    [Abschnitt 3](#3-der-häufigste-stolperstein-relative-namen).
 3. **Falscher Typ.** `CNAME` statt `TXT` oder umgekehrt.
@@ -372,7 +397,7 @@ Und später, bei Supabase ([`go-live.md` Teil 2.5](go-live.md#25-secrets-setzen-
 
 ```bash
 npx supabase secrets set APP_URL="https://tt.beispiel.de"
-npx supabase secrets set RESEND_API_KEY="re_..."
+npx supabase secrets set BREVO_API_KEY="xkeysib-..."
 ```
 
 > **`APP_URL` ist die Basis jedes Links in jeder Benachrichtigung.** Ist sie falsch oder
@@ -397,7 +422,7 @@ Diese Liste ist der Grund, warum dieses Dokument existiert. Zu ändern sind:
 | GitHub → Secrets | `VITE_APP_URL` |
 | Supabase → Secrets | `APP_URL` |
 | Supabase → Auth → URL Configuration | Site URL **und** Redirect URLs |
-| Resend | neue Domain hinzufügen und verifizieren |
+| Brevo | neue Domain hinzufügen, authentifizieren, Absender neu anlegen |
 | Anwendung → *Verein → Betrieb* | Adresse der Anwendung, Absenderadresse |
 | Danach | Deploy-Workflow einmal laufen lassen |
 

@@ -72,13 +72,13 @@ Nicht formal — praktisch. Drei Rollen, die dieselbe Person sein dürfen:
 
 | Rolle | Tut |
 |---|---|
-| **Betreiber** | Supabase, Resend, Domain, Deployments. Braucht ein Terminal |
+| **Betreiber** | Supabase, Brevo, Domain, Deployments. Braucht ein Terminal |
 | **Administrator** | Mitglieder, Mannschaften, Trainings in der Anwendung. Braucht keine Technik |
 | **Vorstand** | Verträge, Datenschutzhinweis, Kündigung |
 
 Wichtig ist nur eines: **Der Betreiber darf nicht der einzige sein, der an die Zugänge
 kommt.** Leg ein gemeinsames Passwortdepot an (Bitwarden, KeePass in der Vereinscloud) und
-trag Supabase, Resend, Domain und GitHub dort ein. Vereins-IT stirbt fast immer daran, dass
+trag Supabase, Brevo, Cloudflare, Domain und GitHub dort ein. Vereins-IT stirbt fast immer daran, dass
 einer wegzieht.
 
 ☐ Erledigt am: ________
@@ -136,8 +136,8 @@ wenigsten gebrauchen kannst.
 
 - **Subdomain nehmen**, nicht die Hauptdomain: `tt.beispiel.de` als *Custom domain* des
   Cloudflare-Pages-Projekts.
-- ⚠️ **Für Resend eine eigene Sende-Subdomain** (`mail.beispiel.de`), nicht die Hauptdomain.
-  Resend verlangt SPF-, DKIM- und DMARC-Einträge; liegt auf der Hauptdomain privates
+- ⚠️ **Für Brevo eine eigene Sende-Subdomain** (`mail.beispiel.de`), nicht die Hauptdomain.
+  Brevo verlangt DKIM- und DMARC-Einträge; liegt auf der Hauptdomain privates
   E-Mail-Konto, kann eine zu strenge DMARC-Regel die eigene Post ins Nichts schicken. Eine
   Sende-Subdomain isoliert das und lässt sich später wegwerfen.
 - Prüf vorher, ob der Anbieter **beliebige DNS-Einträge** erlaubt. Manche Baukasten-Hoster
@@ -175,23 +175,29 @@ Prüfbefehle und die Liste dessen, was beim späteren Wechsel nachzuziehen ist.
 
 ☐ Projekt-ID: ____________________
 
-## 1.3 Resend-Konto
+## 1.3 Brevo-Konto
 
-1. [resend.com](https://resend.com) → Konto anlegen.
-2. Domain hinzufügen, die genannten **DNS-Einträge setzen** (SPF, DKIM, DMARC).
-3. **Warten**, bis Resend die Domain als *verified* führt. Minuten bis Stunden, je nach
-   Anbieter. Vorher wird jeder Versand abgelehnt.
-4. API-Schlüssel erzeugen → Passwortdepot.
+1. [brevo.com](https://www.brevo.com) → Konto anlegen, Profil vollständig ausfüllen. Brevo
+   prüft neue Konten und schaltet den Versand manchmal erst nach einer Rückfrage frei.
+2. Domain `mail.<deine Domain>` hinzufügen, die genannten **DNS-Einträge setzen** (DKIM,
+   DMARC, Besitznachweis).
+3. **Warten**, bis Brevo die Domain als *authentifiziert* führt. Dann die Absenderadresse
+   unter *Senders* anlegen. Vorher wird jeder Versand abgelehnt.
+4. API-Schlüssel erzeugen → Passwortdepot. **IP-Sperre abschalten** (*Security →
+   Authorised IPs*), sonst scheitert jeder Versand aus den Edge Functions.
+
+Die Schritte im Einzelnen: [`domain-einrichten.md` §5](domain-einrichten.md#5-der-versand-brevo).
 
 Eine Absenderadresse wie `planer@verein.de` genügt. Ein Postfach dahinter braucht es nicht,
 solange niemand auf Benachrichtigungen antwortet — aber **richte trotzdem eine
 Weiterleitung ein**. Es antwortet immer jemand.
 
-**Kostenlos bis 3.000 E-Mails/Monat und 100/Tag.** Bei 80 Mitgliedern kommt ihr dem
-Tageslimit an einem Spieltag mit Sammelhinweis nahe. Behalte es im Blick; Push entlastet
-es, weil Push-Nachrichten nicht über Resend laufen.
+**Kostenlos bis 300 E-Mails pro Tag**, ohne Monatsgrenze. Bei 80 Mitgliedern reicht das
+auch an einem Spieltag mit Sammelhinweis. Wird es doch knapp, bleiben die übrigen
+Nachrichten nicht verloren, sondern gehen beim nächsten Versuch raus. Push entlastet
+zusätzlich, weil Push-Nachrichten nicht über Brevo laufen.
 
-☐ Domain verifiziert am: ________
+☐ Domain authentifiziert am: ________
 
 ## 1.4 GitHub
 
@@ -398,7 +404,7 @@ nachsehen.
 
 ```bash
 npx supabase secrets set APP_URL="https://planer.verein.de"
-npx supabase secrets set RESEND_API_KEY="re_..."
+npx supabase secrets set BREVO_API_KEY="xkeysib-..."
 npx supabase secrets set VAPID_PUBLIC_KEY="B..."
 npx supabase secrets set VAPID_PRIVATE_KEY="..."
 
@@ -558,7 +564,7 @@ Angemeldet als Administrator, unter **Verein → Daten**:
 
 Unter **Verein → Betrieb → Einstellungen**:
 
-- Absendername und -adresse (muss zur Resend-Domain passen, braucht kein Postfach)
+- Absendername und -adresse (muss zur Brevo-Domain passen und dort als Absender angelegt sein, braucht kein Postfach)
 - **Antwortadresse** — ein Postfach, das der Verein ohnehin hat. Bleibt sie leer, fällt
   jede Antwort auf eine Benachrichtigung lautlos aus der Welt
 - **Adresse der Anwendung** — ohne sie führt kein Link aus einer Benachrichtigung irgendwohin
@@ -637,7 +643,7 @@ verlinkt und ohne ihn verschweigt, was mit den Daten passiert.
 | # | Was | Wer | Dauer |
 |---|---|---|---|
 | 5.1 | **AV-Vertrag mit Supabase** abschließen (Rechtsdokumente im Konto) | Vorstand | 1 Tag |
-| 5.2 | **AV-Vertrag mit Resend** abschließen; vorher Data-Privacy-Framework-Status prüfen | Vorstand | 1 Tag |
+| 5.2 | **AV-Vertrag mit Brevo** herunterladen und ablegen (Bestandteil der Nutzungsbedingungen, siehe `docs/datenschutz/av-brevo.md`) | Vorstand | 10 min |
 | 5.3 | **Datenschutzhinweis** fertigstellen: Platzhalter in `docs/datenschutz/datenschutzhinweis.md` füllen, veröffentlichen | Vorstand | 1 Woche |
 | 5.4 | Die **URL** unter *Verein → Betrieb → Einstellungen* eintragen | Administrator | 2 min |
 | 5.5 | **Impressum** verlinken (in der Erprobung: `<App-Adresse>/impressum.html`, danach das der Vereinswebsite) | Vorstand | 5 min |
@@ -658,7 +664,7 @@ verlinkt und ohne ihn verschweigt, was mit den Daten passiert.
 > ⚠️ **Vorher: [`vor-der-ersten-einladung.md`](vor-der-ersten-einladung.md).** Dort steht
 > der vollständige Check, was zwischen „die Anwendung läuft" und „ich schicke jemandem die
 > Adresse" noch liegt — inklusive des Punktes, der hier lange fehlte: **Einladungen und
-> Anmeldelinks laufen über Supabase Auth, nicht über Resend.** Ohne eigenes SMTP kommt nach
+> Anmeldelinks laufen über Supabase Auth, nicht über Brevo.** Ohne eigenes SMTP kommt nach
 > wenigen Einladungen keine mehr an, und der Fehler taucht unter *Verein → Betrieb* nicht auf.
 
 ## 6.1 Einladen — in dieser Reihenfolge
@@ -744,7 +750,7 @@ Stack:
     generate-training-sessions, calendar-feed
   - pg_cron + pg_net für 6 zeitgesteuerte Jobs
   - KEIN Realtime, KEIN Storage
-- E-Mail: Resend (eigene verifizierte Domain)
+- E-Mail: Brevo (eigene authentifizierte Domain, API + SMTP für Supabase Auth)
 - Push: Web Push mit VAPID, eigene Implementierung (npm:web-push in Deno)
 - Datenzugriff im Frontend ausschließlich über supabase-js (PostgREST),
   TanStack Query v5
@@ -913,14 +919,15 @@ Was die Anwendung sagt (Verein → Betrieb → Benachrichtigungen, Filter
 „Nur Probleme"):
 [ZEILE(N) MIT status, attempts UND last_error]
 
-Was Resend sagt (Dashboard → Logs):
+Was Brevo sagt (Transactional → Logs):
 [EINTRAG ODER "kein Eintrag vorhanden"]
 
 Geprüft:
-- Resend-Domain steht auf verified: [ja/nein]
+- Brevo-Domain ist authentifiziert, Absender angelegt: [ja/nein]
 - Absenderadresse unter Verein → Betrieb → Einstellungen: [ADRESSE]
-- Diese Adresse liegt auf der verifizierten Domain: [ja/nein]
-- RESEND_API_KEY ist als Supabase-Secret gesetzt: [ja/nein]
+- Diese Adresse liegt auf der authentifizierten Domain: [ja/nein]
+- BREVO_API_KEY ist als Supabase-Secret gesetzt: [ja/nein]
+- IP-Sperre in Brevo (Security → Authorised IPs) ist aus: [ja/nein]
 - Es geht um: [eine Anmelde-Mail von Supabase Auth] / [eine Benachrichtigung
   aus process-notifications]
 
@@ -932,7 +939,7 @@ Vermutung.
 HINWEIS
 Anmelde-Mails und Benachrichtigungen nehmen VERSCHIEDENE Wege:
 Anmelde-Mails verschickt Supabase Auth selbst, Benachrichtigungen die Edge
-Function process-notifications über Resend. Wenn nur eines von beidem
+Function process-notifications über Brevo. Wenn nur eines von beidem
 betroffen ist, ist das die wichtigste Information.
 ```
 
@@ -1141,7 +1148,7 @@ Anzahl supabase/functions     → [ZAHL]      (Soll: 8)
 
 FRAGE
 Habe ich den richtigen Stand des Repositories? Falls nein: wie komme ich darauf,
-ohne die Arbeit zu verlieren, die ich schon in Supabase, Resend und DNS gesteckt habe?
+ohne die Arbeit zu verlieren, die ich schon in Supabase, Brevo und DNS gesteckt habe?
 
 Falls ja: woran liegt es dann wirklich?
 
@@ -1243,7 +1250,7 @@ möglicherweise ausgewertet. Behandle ihn wie eine öffentliche Postkarte.
 |---|---|
 | **`service_role`-Schlüssel** | Vollzugriff auf alle Mitgliederdaten unter Umgehung jeder Regel |
 | **Datenbank-Passwort** | dito, plus Schreibrechte auf das Schema |
-| **`RESEND_API_KEY`** | Fremde können in eurem Namen E-Mails an eure Mitglieder schicken |
+| **`BREVO_API_KEY`** | Fremde können in eurem Namen E-Mails an eure Mitglieder schicken |
 | **`VAPID_PRIVATE_KEY`** | Fremde können Push-Nachrichten an eure Mitglieder schicken |
 | **`SUPABASE_ACCESS_TOKEN`** | Vollzugriff auf das Supabase-Konto |
 | **Der Vereinscode** | Damit registriert sich jeder selbst |
@@ -1281,7 +1288,7 @@ Nicht hoffen, sondern drehen. Sofort:
 |---|---|
 | `service_role` / `anon` | Supabase → *Project Settings → API → Rotate* |
 | DB-Passwort | Supabase → *Project Settings → Database → Reset password* |
-| Resend-Key | Resend → *API Keys* → alten löschen, neuen erzeugen |
+| Brevo-Key | Brevo → *SMTP & API → API Keys* → alten löschen, neuen erzeugen; ebenso den SMTP-Schlüssel |
 | Access Token | Supabase → *Account → Access Tokens* → widerrufen |
 | Vereinscode | in der Anwendung unter *Verein → Daten* neu setzen |
 | **VAPID** | ⚠️ Rotation macht alle Push-Anmeldungen unbrauchbar. Abwägen — und wenn doch, den Mitgliedern **vorher sagen**, dass sie die Glocke neu drücken müssen |
@@ -1317,8 +1324,9 @@ nur, *wo* sie liegen.
 | Supabase anon key | | |
 | Supabase service_role | *(geheim)* | |
 | DB-Passwort | *(geheim)* | |
-| Resend-Absenderadresse | | |
-| Resend API Key | *(geheim)* | |
+| Brevo-Absenderadresse | | |
+| Brevo API Key | *(geheim)* | |
+| Brevo SMTP-Login und SMTP-Schlüssel | *(geheim)* | |
 | VAPID public | | |
 | VAPID private | *(geheim)* | |
 | Adresse der Anwendung | | |

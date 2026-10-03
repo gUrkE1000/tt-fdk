@@ -69,7 +69,7 @@ und wird niemandem sonst angezeigt — auch nicht dem Administrator.
 |---|---|---|
 | Andere Vereinsmitglieder | Name, Mannschafts- und Trainingszuordnung, Rückmeldungen zu gemeinsamen Terminen; Kontaktdaten und Geburtstag **nur mit Einwilligung** | Vereinszweck, Art. 6 Abs. 1 lit. b |
 | Supabase (Auftragsverarbeiter) | alle gespeicherten Daten — Datenbank, Anmeldung, Serverfunktionen | AV-Vertrag, siehe [`av-supabase.md`](av-supabase.md) |
-| Resend (Auftragsverarbeiter) | Empfängeradresse, Betreff und Text jeder verschickten E-Mail | AV-Vertrag, siehe [`av-resend.md`](av-resend.md) |
+| Brevo (Auftragsverarbeiter) | Empfängeradresse, Betreff und Text jeder verschickten E-Mail — Benachrichtigungen und Anmelde-Mails | AV-Vertrag, siehe [`av-brevo.md`](av-brevo.md) |
 | Push-Dienste der Browserhersteller (Google, Apple, Mozilla) | verschlüsselte Nachricht an den Endpunkt des Geräts | technisch unvermeidbar bei Web Push; Inhalt ist Ende-zu-Ende verschlüsselt (VAPID/`aes128gcm`) |
 | Cloudflare (Cloudflare Pages, Auftragsverarbeiter) | liefert die Programmdateien aus und verarbeitet dabei die **IP-Adressen** der Besucher, auch vor der Anmeldung; verwaltet außerdem das DNS der Domain | Cloudflares Data Processing Addendum, Bestandteil der Nutzungsbedingungen (*Self-Serve Subscription Agreement*); für die Besucher Art. 6 Abs. 1 lit. f (Auslieferung und Sicherheit) |
 | Google Drive (Sicherungen) | wöchentliche Sicherung der Datenbank, **verschlüsselt** mit age — Google kann den Inhalt nicht lesen | Art. 6 Abs. 1 lit. f (Schutz vor Datenverlust); Schlüssel nur beim Verantwortlichen |
@@ -84,7 +84,7 @@ der zuletzt geladene Stand (§ 25 Abs. 2 Nr. 2 TDDDG).**
 | Dienst | Ort der Verarbeitung | Grundlage |
 |---|---|---|
 | Supabase | Projektregion **Frankfurt (eu-central-1)** — bei der Einrichtung so zu wählen (`docs/einrichtung.md`, Schritt 1). Muttergesellschaft in den USA; Zugriff für Support theoretisch möglich | AV-Vertrag mit Standardvertragsklauseln |
-| Resend | Verarbeitung in den USA | AV-Vertrag mit Standardvertragsklauseln; Resend ist unter dem EU-US Data Privacy Framework zertifiziert — **vor Abschluss prüfen, ob die Zertifizierung noch gültig ist** |
+| Brevo | Verarbeitung in der EU (Brevo SAS, Paris) | keine Drittlandübermittlung; Unterauftragsverarbeiter laut [`av-brevo.md`](av-brevo.md) prüfen |
 | Push-Dienste | je nach Browserhersteller, überwiegend USA | keine Vertragsbeziehung möglich; übermittelt wird nur ein verschlüsselter Datenblock |
 | Cloudflare | weltweites Netz, Unternehmenssitz USA; ausgeliefert wird vom nächstgelegenen Rechenzentrum | EU-US Data Privacy Framework (Cloudflare ist zertifiziert) und Standardvertragsklauseln im DPA — **vor Go-live prüfen, ob die Zertifizierung noch gültig ist** |
 

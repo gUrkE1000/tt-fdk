@@ -27,7 +27,7 @@ mehr läuft — oder dass etwas genauer gebraucht wird, als die Oberfläche zeig
 
 ```bash
 supabase secrets set APP_URL="https://verein.example.org"
-supabase secrets set RESEND_API_KEY="re_..."
+supabase secrets set BREVO_API_KEY="xkeysib-..."
 supabase secrets set VAPID_PUBLIC_KEY="B..."
 supabase secrets set VAPID_PRIVATE_KEY="..."
 ```
@@ -52,7 +52,7 @@ im Bundle stehen. Der **private** Schlüssel gehört ausschließlich in die Secr
 hat, kann im Namen des Vereins Meldungen auf jedes angemeldete Gerät schicken.
 
 Die Absenderadresse steht **nicht** in den Secrets, sondern in den Vereinsdaten
-(`notification_sender_email`). Sie muss eine bei Resend verifizierte Domain sein, sonst
+(`notification_sender_email`). Sie muss auf der bei Brevo authentifizierten Domain liegen und dort als Absender angelegt sein, sonst
 lehnt der Dienst ab und die Nachricht landet dauerhaft auf `failed`.
 
 ## 2. Nächtlicher Kalenderabgleich
@@ -128,12 +128,15 @@ SELECT created_at, type, channel, attempts, error
 | Was in `notifications` steht | Bedeutung | Was zu tun ist |
 |---|---|---|
 | `failed`, „Keine Absenderadresse" | `notification_sender_email` ist leer | In den Vereinsdaten eintragen |
-| `failed`, `HTTP 403` von Resend | Die Absenderdomain ist nicht verifiziert | Domain bei Resend verifizieren |
+| `failed`, `HTTP 400` von Brevo, „sender … not valid" | Absenderdomain nicht authentifiziert oder Absender nicht angelegt | In Brevo Domain authentifizieren, Absender unter *Senders* anlegen |
+| `failed`, `HTTP 401` von Brevo, „unrecognised IP address" | Die IP-Sperre für API-Schlüssel ist an | Brevo → *Security → Authorised IPs* → Sperre deaktivieren |
+| `failed`, `HTTP 401` von Brevo, sonst | `BREVO_API_KEY` falsch oder gelöscht | Neuen Schlüssel erzeugen, Secret setzen |
 | `skipped`, „keine E-Mail-Adresse" | Das Mitglied hat keine hinterlegt | Kein Fehler: Kinder haben oft keine |
 | `skipped`, „Kein Gerät für Push angemeldet" | Das Mitglied hat die Glocke nie gedrückt | Kein Fehler; die E-Mail geht trotzdem raus |
 | `failed`, „Alle Geräte abgemeldet" | Die Endpunkte waren tot und wurden gelöscht | Kein Fehler; das Mitglied meldet sich neu an |
 | Push kommt nirgends an | `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` fehlen oder passen nicht zu `VITE_VAPID_PUBLIC_KEY` | Secrets prüfen, Frontend neu bauen |
-| Viele `pending` mit steigendem `attempts` | Resend antwortet nicht | Status von Resend prüfen; nach drei Versuchen steht `failed` |
+| Viele `pending` mit steigendem `attempts`, `HTTP 402` | Tageskontingent von Brevo aufgebraucht (Free: 300) | Abwarten; reicht es öfter nicht, Push bewerben oder Brevo-Tarif erhöhen |
+| Viele `pending` mit steigendem `attempts` | Brevo antwortet nicht | Status von Brevo prüfen; nach drei Versuchen steht `failed` |
 
 Eine Zeile wird höchstens dreimal versucht, mit fünfzehn Minuten Abstand. Danach bleibt
 sie als `failed` stehen — sichtbar, statt still verloren.

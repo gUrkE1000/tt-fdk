@@ -102,7 +102,7 @@ export default function SettingsPanel() {
 
             <FormField
               label="Absenderadresse"
-              hint="Muss zu einer bei Resend verifizierten Domain gehören. Braucht kein Postfach."
+              hint="Muss zu einer bei Brevo authentifizierten Domain gehören. Braucht kein Postfach."
               error={form.formState.errors.notification_sender_email?.message}
             >
               {(p) => (

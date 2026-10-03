@@ -23,7 +23,7 @@ import webpush from 'npm:web-push@3.6.7';
 
 const BATCH_SIZE = 50;
 
-/** Länger wartet ein Versand nicht auf Resend — sonst überholt der nächste Lauf diesen. */
+/** Länger wartet ein Versand nicht auf Brevo — sonst überholt der nächste Lauf diesen. */
 const SEND_TIMEOUT_MS = 15_000;
 
 interface QueueRow {
@@ -45,7 +45,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
   if (!env) return json({ error: 'not_configured' }, 500);
   const { admin } = env;
 
-  const resendKey = Deno.env.get('RESEND_API_KEY');
+  const brevoKey = Deno.env.get('BREVO_API_KEY');
   const vapidPublic = Deno.env.get('VAPID_PUBLIC_KEY');
   const vapidPrivate = Deno.env.get('VAPID_PRIVATE_KEY');
 
@@ -109,9 +109,9 @@ Deno.serve(async (request: Request): Promise<Response> => {
     const outcome =
       row.channel === 'push'
         ? await sendPush(admin, row, subscriptions.get(row.profile_id) ?? [], settings)
-        : resendKey
-          ? await sendEmail(resendKey, row, state.recipient!, settings)
-          : ({ kind: 'error', message: 'RESEND_API_KEY ist nicht gesetzt.' } as SendOutcome);
+        : brevoKey
+          ? await sendEmail(brevoKey, row, state.recipient!, settings)
+          : ({ kind: 'error', message: 'BREVO_API_KEY ist nicht gesetzt.' } as SendOutcome);
 
     const change = applyOutcome(state, outcome);
     // Scheitert das Zurückschreiben, bleibt die Zeile in `sending` und kommt nach 30
@@ -193,23 +193,24 @@ async function sendEmail(
   const cc = sanitizeCc(row.payload.cc, to);
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
+    // Brevo, transaktionale E-Mail: https://developers.brevo.com/reference/sendtransacemail
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        'api-key': apiKey,
+        accept: 'application/json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: `${settings.senderName} <${settings.senderEmail}>`,
-        to: [to],
-        cc,
-        // Weggelassen, wenn nichts hinterlegt ist: Ein leeres Feld lehnt Resend ab, und
-        // ohne das Feld antwortet der Mailer an den Absender — dasselbe Verhalten wie
-        // bisher, nur ohne Fehlschlag.
-        reply_to: settings.replyTo || undefined,
+        sender: { name: settings.senderName, email: settings.senderEmail },
+        to: [{ email: to }],
+        cc: cc?.map((email) => ({ email })),
+        // Weggelassen, wenn nichts hinterlegt ist: Ohne das Feld antwortet der Mailer an
+        // den Absender — und ein leeres Objekt lehnt Brevo ab.
+        replyTo: settings.replyTo ? { email: settings.replyTo } : undefined,
         subject: row.subject,
-        text: row.body_text,
-        html: buildEmailHtml({
+        textContent: row.body_text,
+        htmlContent: buildEmailHtml({
           subject: row.subject,
           bodyText: row.body_text,
           clubName: settings.clubName,
@@ -222,13 +223,18 @@ async function sendEmail(
     if (response.ok) return { kind: 'ok' };
 
     const detail = await response.text();
+    const message = `HTTP ${response.status}: ${detail.slice(0, 200)}`;
 
-    // 4xx außer 429 heißt: so wird es auch beim nächsten Mal nichts.
-    if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-      return { kind: 'permanent', message: `HTTP ${response.status}: ${detail.slice(0, 200)}` };
-    }
+    // 429: zu schnell. 402: Tageskontingent aufgebraucht (Free-Plan) — beides geht
+    // später wieder, also kein endgültiger Fehlschlag.
+    if (response.status === 429 || response.status === 402) return { kind: 'error', message };
 
-    return { kind: 'error', message: `HTTP ${response.status}: ${detail.slice(0, 200)}` };
+    // Jeder andere 4xx heißt: so wird es auch beim nächsten Mal nichts. Typisch ist 401
+    // mit „unrecognised IP address" — dann ist in Brevo die IP-Sperre für API-Schlüssel
+    // noch an (docs/betrieb.md).
+    if (response.status >= 400 && response.status < 500) return { kind: 'permanent', message };
+
+    return { kind: 'error', message };
   } catch (error) {
     return {
       kind: 'error',
