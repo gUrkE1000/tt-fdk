@@ -225,8 +225,10 @@ describe('isMySession', () => {
     expect(isMySession(session, system, 'p-t', new Set())).toBe(true);
   });
 
-  it('ein offenes Training gehört allen', () => {
-    expect(isMySession({ id: 's-2', training_id: 'tr-1' }, open, 'p-x', new Set())).toBe(true);
+  it('ein offenes Training gehört erst nach „Teilnehmen" zu meinen', () => {
+    const session = { id: 's-2', training_id: 'tr-1' };
+    expect(isMySession(session, open, 'p-x', new Set())).toBe(false);
+    expect(isMySession(session, { ...open, memberIds: ['p-x'] }, 'p-x', new Set())).toBe(true);
   });
 });
 
