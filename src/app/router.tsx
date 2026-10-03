@@ -110,10 +110,11 @@ export const router = createBrowserRouter([
           // einer freigegebenen Gruppe darf hierher — wer nichts sehen darf, bekommt
           // eine leere Seite, und zwar von der Datenbank.
           { path: 'statistics', element: <StatisticsPage /> },
+          // Für alle; die Planung darin sehen nur Trainer und Administrator.
+          { path: 'trainings', element: <TrainingsPage /> },
           {
             element: <RequireRole roles={['admin', 'trainer']} />,
             children: [
-              { path: 'trainings', element: <TrainingsPage /> },
               // Frühere Adressen der Ausfälle, etwa aus Lesezeichen.
               { path: 'trainings/cancellations/*', element: <Navigate to="/hall-closures" replace /> },
             ],

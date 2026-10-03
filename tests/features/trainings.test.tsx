@@ -379,6 +379,25 @@ describe('resolveAssignment', () => {
   });
 });
 
+// ------------------------------------------------------------------ Für alle
+
+describe('TrainingsPage für Mitglieder', () => {
+  it('zeigt Termine und offene Trainings, aber keine Planung', async () => {
+    me.role = 'member';
+    me.profile = { id: 'p-max', full_name: 'Max Mitglied', role: 'member', status: 'active' };
+    renderPage(<TrainingsPage />);
+    expect(screen.getByRole('tab', { name: 'Termine' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Offene Trainings' })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Planung' })).toBeNull();
+  });
+
+  it('öffnet über ?tab= direkt einen Reiter', () => {
+    me.role = 'member';
+    renderPage(<TrainingsPage />, '/trainings?tab=open');
+    expect(screen.getByRole('tab', { name: 'Offene Trainings', selected: true })).toBeInTheDocument();
+  });
+});
+
 // ------------------------------------------------------------------ Planungstabelle
 
 describe('TrainingsPage, Tab „Planung“', () => {

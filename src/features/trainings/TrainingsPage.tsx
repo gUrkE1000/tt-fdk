@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Pencil, Plus, Trash2, UserPlus } from 'lucide-react';
 import TableTennis from '../../components/icons/TableTennis';
 import {
@@ -16,6 +17,7 @@ import {
   Tabs,
   useToast,
 } from '../../components/ui';
+import { useSession } from '../auth/session';
 import { useGroups, useMembers } from '../members/api';
 import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
@@ -35,18 +37,33 @@ import OpenTrainingsList from './OpenTrainingsList';
 import SessionsTab from './SessionsTab';
 import TrainingDialog from './TrainingDialog';
 
+/**
+ * Trainings — für alle. Die Termine zeigen die eigenen oder alle Trainings, an jedem
+ * Termin steht, wer Schlüsseldienst hat. Die Planung sehen nur Trainer und Administrator.
+ */
 export default function TrainingsPage() {
+  const { role } = useSession();
+  const plans = role === 'admin' || role === 'trainer';
+
+  const tabs = [
+    { value: 'sessions', label: 'Termine', content: <SessionsTab switchable /> },
+    { value: 'open', label: 'Offene Trainings', content: <OpenTrainingsList /> },
+    ...(plans ? [{ value: 'planning', label: 'Planung', content: <PlanningTab /> }] : []),
+  ];
+
+  // Links öffnen einen Reiter direkt, etwa `/trainings?tab=open`.
+  const [params] = useSearchParams();
+  const requested = params.get('tab');
+  const initialTab = tabs.some((tab) => tab.value === requested) ? requested! : undefined;
+
   return (
     <div>
-      <PageHeader title="Trainings" description="Termine, Teilnahme und Planung." />
-
-      <Tabs
-        tabs={[
-          { value: 'sessions', label: 'Termine', content: <SessionsTab switchable /> },
-          { value: 'open', label: 'Offene Trainings', content: <OpenTrainingsList /> },
-          { value: 'planning', label: 'Planung', content: <PlanningTab /> },
-        ]}
+      <PageHeader
+        title="Trainings"
+        description={plans ? 'Termine, Teilnahme und Planung.' : 'Deine Termine und die offenen Trainings.'}
       />
+
+      <Tabs defaultValue={initialTab} tabs={tabs} />
     </div>
   );
 }

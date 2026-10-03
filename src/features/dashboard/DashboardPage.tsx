@@ -1,48 +1,35 @@
-import { lazy, Suspense, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useMemo } from 'react';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { Inbox, MessageSquareWarning } from 'lucide-react';
 import TableTennis from '../../components/icons/TableTennis';
-import { LoadingState, PageHeader, StatTile, Tabs } from '../../components/ui';
+import { PageHeader, StatTile } from '../../components/ui';
 import { useSession } from '../auth/session';
 import { useClubSettings } from '../club/api';
 import { useAllParticipations, useMatches } from '../matches/api';
 import { useTeams } from '../teams/api';
 import { useVenues } from '../venues/api';
-import {
-  SESSION_WINDOW_DAYS,
-  sessionWindowEnd,
-  useSessionAssignees,
-  useTrainings,
-  useTrainingSessions,
-} from '../trainings/api';
-import { isMySession, openTrainings } from '../trainings/schemas';
-import SessionsTab from '../trainings/SessionsTab';
-import OpenTrainingsList from '../trainings/OpenTrainingsList';
-import KeyDutyPanel from '../keys/KeyDutyPanel';
+import { useSessionAssignees, useTrainings, useTrainingSessions } from '../trainings/api';
+import { isMySession } from '../trainings/schemas';
 import SubstituteBanner from '../substitutes/SubstituteBanner';
 import CountdownTile, { countdownLabel } from './CountdownTile';
-import OpenItemsList from './OpenItemsList';
 import { useMyOpenItems } from './openItems';
 import QuickLinks from './QuickLinks';
 import {
   calendarDaysUntil,
   countOpenResponses,
   matchCountdown,
+  movedDashboardTab,
   parseQuicklinks,
 } from './summary';
 import { formatDateTime } from '../../lib/dates';
-
-// Der Kalender bringt FullCalendar mit, das größte Paket der Übersicht. Er lädt erst,
-// wenn jemand den Reiter öffnet.
-const PlanningTab = lazy(() => import('../calendar/PlanningTab'));
+import { trainingPath } from '../../lib/paths';
 
 /**
  * Die Übersicht (Aufgabe 8.1).
  *
- * Sie erfindet nichts Eigenes, sondern stellt zusammen, was anderswo schon steht: die
- * Spielkarten von „Meine Spiele", die Trainingstermine, den Kalender. Dieselben
- * Komponenten, damit eine Änderung an der Spielkarte nicht an zwei Stellen nachgezogen
- * werden muss — und damit die Karte hier wie dort dieselbe Antwort erlaubt.
+ * Nur Kacheln, die zu den Seiten führen, auf denen man etwas tut — keine Funktion steht
+ * allein hier. Trainings, offene Trainings und Schlüsseldienst haben eigene Seiten,
+ * offene Antworten stehen unter „Meine Termine", der Kalender unter „Kalender".
  */
 export default function DashboardPage() {
   const { profile, role } = useSession();
@@ -103,15 +90,6 @@ export default function DashboardPage() {
       isMySession(session, byId.get(session.training_id), profileId, assigned);
   }, [assignees.data, trainingList, profileId]);
 
-  // Wie die Liste darunter: die nächsten zwei Wochen.
-  const mySessionCount = useMemo(() => {
-    const until = sessionWindowEnd();
-    return (sessions.data ?? []).filter((entry) => entry.session_date <= until && isMine(entry))
-      .length;
-  }, [sessions.data, isMine]);
-
-  const openTrainingCount = openTrainings(trainingList).length;
-
   // Das nächste eigene Training, das nicht ausfällt — die zweite Frage nach „wann
   // spiele ich": wann bin ich das nächste Mal in der Halle?
   const nextTraining = useMemo(() => {
@@ -132,13 +110,13 @@ export default function DashboardPage() {
 
   const quicklinks = parseQuicklinks(settings.data?.quicklinks_json);
 
-  // Links aus Benachrichtigungen öffnen einen Reiter direkt, etwa `/?tab=keys`.
   const [params] = useSearchParams();
-  const requestedTab = params.get('tab');
-  const initialTab =
-    requestedTab && ['open', 'trainings', 'calendar', 'keys', 'open-trainings'].includes(requestedTab)
-      ? requestedTab
-      : undefined;
+  const moved = movedDashboardTab(
+    params.get('tab'),
+    params,
+    role === 'admin' || profile?.key_service === true,
+  );
+  if (moved) return <Navigate to={moved} replace />;
 
   return (
     <div>
@@ -184,6 +162,7 @@ export default function DashboardPage() {
             value={countdownLabel(calendarDaysUntil(nextTraining.session.starts_at, new Date()))}
             hint={`${nextTraining.name} · ${formatDateTime(nextTraining.session.starts_at)}`}
             icon={TableTennis}
+            to={trainingPath(nextTraining.session.id)}
           />
         )}
 
@@ -208,39 +187,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <Tabs
-        defaultValue={initialTab}
-        tabs={[
-          {
-            value: 'open',
-            label: `Offen (${openCount})`,
-            content: <OpenItemsList limit={10} />,
-          },
-          {
-            value: 'trainings',
-            label: `Trainings (${mySessionCount})`,
-            content: <SessionsTab onlyMine days={SESSION_WINDOW_DAYS} />,
-          },
-          {
-            value: 'calendar',
-            label: 'Kalender',
-            content: (
-              <Suspense fallback={<LoadingState rows={1} />}>
-                <PlanningTab />
-              </Suspense>
-            ),
-          },
-          // Wer wann aufschließt, soll jeder sehen; eintragen dürfen die Beteiligten.
-          { value: 'keys', label: 'Schlüsseldienst', content: <KeyDutyPanel /> },
-          {
-            value: 'open-trainings',
-            label: `Offene Trainings (${openTrainingCount})`,
-            content: <OpenTrainingsList />,
-          },
-        ]}
-      />
-
-      <div className="mt-4">
+      <div>
         <QuickLinks links={quicklinks} canEdit={role === 'admin'} />
       </div>
     </div>

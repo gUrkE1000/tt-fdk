@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { KeyRound } from 'lucide-react';
 import { buttonClasses } from '../../components/ui';
+import { useSession } from '../auth/session';
 import type { SessionKeys } from '../keys/api';
 import type { TrainingSession } from './api';
 
@@ -10,18 +11,22 @@ export interface KeyBearerRowProps {
   profileId: string | null;
 }
 
-/** Der Schlüsseldienst-Reiter, aufgeklappt beim Tag des Termins. */
+/** Der Schlüsseldienst unter „Orte & Schlüsseldienst", aufgeklappt beim Tag des Termins. */
 export function keyDutyLink(date: string): string {
-  return `/?tab=keys&date=${date}`;
+  return `/venues?date=${date}`;
 }
 
 /**
  * Die Schlüsselzeile eines Trainingstermins: wer an dem Tag Schlüsseldienst hat.
  *
- * Nur zur Anzeige — geändert wird der Schlüsseldienst an einer Stelle, im Reiter
- * „Schlüsseldienst". Der Knopf führt direkt zu diesem Tag.
+ * Nur zur Anzeige — geändert wird der Schlüsseldienst an einer Stelle, unter „Orte &
+ * Schlüsseldienst". Wer dort planen darf (Administrator, Kennzeichen), bekommt einen
+ * Knopf direkt zu diesem Tag; alle anderen sehen nur den Namen.
  */
 export default function KeyBearerRow({ session, keys, profileId }: KeyBearerRowProps) {
+  const { profile, role } = useSession();
+  const canPlan = role === 'admin' || profile?.key_service === true;
+
   if (session.cancelled || !keys) return null;
 
   const ended = new Date(session.ends_at ?? session.starts_at) <= new Date();
@@ -49,7 +54,7 @@ export default function KeyBearerRow({ session, keys, profileId }: KeyBearerRowP
               : `Schlüsseldienst: ${personName ?? 'ist eingeteilt'}`}
         </span>
       </p>
-      {!ended && (
+      {!ended && canPlan && (
         <Link to={keyDutyLink(session.session_date)} className={buttonClasses({ size: 'sm' })}>
           Zum Schlüsseldienst
         </Link>

@@ -166,3 +166,31 @@ export const SUGGESTED_QUICKLINKS: readonly string[] = [
 export function serializeQuicklinks(links: Quicklink[]): string {
   return JSON.stringify(links, null, 2);
 }
+
+/**
+ * Wohin die früheren Reiter der Übersicht heute führen. Links mit `/?tab=…` stehen
+ * noch in verschickten Benachrichtigungen und in Lesezeichen.
+ */
+export function movedDashboardTab(
+  tab: string | null,
+  search: URLSearchParams,
+  canPlanKeys: boolean,
+): string | null {
+  switch (tab) {
+    case 'open':
+      return '/my-dates?tab=open';
+    case 'trainings':
+      return '/trainings';
+    case 'open-trainings':
+      return '/trainings?tab=open';
+    case 'calendar':
+      return '/calendar';
+    case 'keys': {
+      if (!canPlanKeys) return '/trainings';
+      const date = search.get('date');
+      return date ? `/venues?date=${encodeURIComponent(date)}` : '/venues';
+    }
+    default:
+      return null;
+  }
+}

@@ -76,10 +76,12 @@ export const NAV: NavSection[] = [
     section: 'Planen',
     items: [
       {
+        // Für alle: Mitglieder sehen hier ihre und die offenen Trainings, Trainer und
+        // Administrator zusätzlich die Planung.
         to: '/trainings',
         label: 'Trainings',
         icon: TableTennis,
-        roles: ['admin', 'trainer'],
+        roles: [],
         primary: true,
       },
       { to: '/teams', label: 'Mannschaften', icon: Users, roles: ['admin', 'team_leader'] },

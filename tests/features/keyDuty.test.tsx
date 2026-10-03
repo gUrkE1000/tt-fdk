@@ -262,18 +262,16 @@ describe('KeyDutyPanel', () => {
     expect(screen.queryByText('Anderer Tag')).toBeNull();
   });
 
-  it('lässt wer einen festen Wochentag hat Vertretungen eintragen', async () => {
+  it('lässt den festen Inhaber ohne Kennzeichen nichts eintragen', async () => {
     state.role = 'member';
     state.tables.key_duty_weekdays = [{ weekday: 1, profile_id: 'p-me' }];
     renderPanel();
 
-    expect(
-      await screen.findByRole('button', { name: 'Schlüsseldienst am 05.10.2026' }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Schlüsseldienst Montag' })).toBeNull();
+    expect(await screen.findByText(/05\.10\.2026/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Schlüsseldienst am 05.10.2026' })).toBeNull();
   });
 
-  it('lässt die eingeteilte Vertretung ihren Tag weitergeben', async () => {
+  it('lässt die eingeteilte Vertretung ohne Kennzeichen ihren Tag nicht selbst weitergeben', async () => {
     state.role = 'member';
     state.tables.key_duty_weekdays = [];
     state.tables.v_key_duty_days[1] = {
@@ -283,9 +281,7 @@ describe('KeyDutyPanel', () => {
     };
     renderPanel();
 
-    expect(
-      await screen.findByRole('button', { name: 'Schlüsseldienst am 12.10.2026' }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Schlüsseldienst am 05.10.2026' })).toBeNull();
+    expect(await screen.findByText('Ich Selbst')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Schlüsseldienst am 12.10.2026' })).toBeNull();
   });
 });

@@ -35,10 +35,9 @@ const NOBODY = { value: '', label: 'niemand' };
  * nächsten Hallentage mit der Möglichkeit, für genau einen Tag jemanden einzutragen.
  * Die Folgetermine bleiben beim festen Inhaber.
  *
- * Schlüsseldienst übernehmen kann jedes aktive Mitglied — ausgewählt per Suche. Für
- * einen Tag eintragen dürfen der Administrator, wer das Kennzeichen „Schlüsseldienst“
- * oder einen festen Wochentag hat, und wer an dem Tag eingeteilt ist. Die Regeln
- * prüft die Datenbank.
+ * Schlüsseldienst übernehmen kann jedes aktive Mitglied — ausgewählt per Suche.
+ * Eintragen dürfen nur der Administrator und wer das Kennzeichen „Schlüsseldienst“ hat.
+ * Die Regeln prüft die Datenbank.
  */
 export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps) {
   const { profile, role } = useSession();
@@ -56,8 +55,7 @@ export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps
   const focusDate = params.get('date');
   const focusRef = useRef<HTMLLIElement>(null);
 
-  const hasWeekday = (weekdays.data ?? []).some((entry) => entry.profile_id === profile?.id);
-  const canPlan = role === 'admin' || profile?.key_service === true || hasWeekday;
+  const canPlan = role === 'admin' || profile?.key_service === true;
 
   // Die Termine reichen ein Jahr voraus; gezeigt werden sie seitenweise.
   const { shown: upcoming, rest, more } = usePaged(
@@ -165,7 +163,7 @@ export default function KeyDutyPanel({ editWeekdays = false }: KeyDutyPanelProps
                       </Badge>
                     )}
                   </div>
-                  {canPlan || entry.profile_id === profile?.id ? (
+                  {canPlan ? (
                     <SearchSelect
                       aria-label={`Schlüsseldienst am ${formatDate(entry.duty_date)}`}
                       className="sm:w-64"
