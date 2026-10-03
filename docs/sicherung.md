@@ -237,4 +237,7 @@ pg_restore --no-owner --no-privileges --dbname "<SUPABASE_DB_URL des neuen Proje
 | Privater Schlüssel | dauerhaft | Nur du (Passwortmanager + Ausdruck) |
 
 Hinweis: Ein Supabase-Projekt im Free-Tarif pausiert nach einer Woche ohne Nutzung. Solange
-es pausiert, scheitert auch die Sicherung. Im laufenden Vereinsbetrieb kommt das nicht vor.
+es pausiert, scheitert auch die Sicherung. Dagegen fragt `.github/workflows/keepalive.yml`
+alle drei Tage die Datenbank ab — mit denselben Secrets wie der Deploy
+(`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`), ohne weitere Einrichtung. Pausiert das
+Projekt trotzdem, lässt es sich 90 Tage lang im Supabase-Dashboard wiederherstellen.

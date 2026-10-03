@@ -347,6 +347,11 @@ Einstellungen in GitHub (*Settings → Secrets and variables → Actions*):
 
 Der private Schlüssel liegt nur beim Vorstand, nie in GitHub oder Google Drive.
 
+Ein pausiertes Projekt lässt sich nicht sichern — und Supabase pausiert im Free-Tarif nach
+sieben Tagen ohne Aktivität. `.github/workflows/keepalive.yml` fragt deshalb alle drei Tage
+die öffentlichen Vereinsdaten ab. Es nutzt die Secrets des Deploys (`VITE_SUPABASE_URL`,
+`VITE_SUPABASE_ANON_KEY`); schlägt die Abfrage fehl, meldet GitHub den Fehlschlag per Mail.
+
 ### Wiederherstellen
 
 ```bash
