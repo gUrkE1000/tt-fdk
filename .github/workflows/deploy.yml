@@ -42,6 +42,21 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      # VITE_APP_URL ist die Basis jedes Links, den die Anwendung verschickt (Anmeldung,
+      # Passwort, Einladung). Ein Tippfehler hier faellt erst auf, wenn ein Mitglied auf
+      # einen toten Link klickt — deshalb lieber jetzt abbrechen.
+      - name: Build-Variablen pruefen
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_APP_URL: ${{ secrets.VITE_APP_URL }}
+        run: |
+          [ -n "$VITE_SUPABASE_URL" ] || { echo "Secret VITE_SUPABASE_URL fehlt."; exit 1; }
+          case "$VITE_APP_URL" in
+            https://*/) echo "VITE_APP_URL ohne Schraegstrich am Ende eintragen: $VITE_APP_URL"; exit 1 ;;
+            https://*) echo "VITE_APP_URL: $VITE_APP_URL" ;;
+            *) echo "VITE_APP_URL fehlt oder beginnt nicht mit https:// — '$VITE_APP_URL'"; exit 1 ;;
+          esac
+
       - name: Build Application
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}

@@ -471,7 +471,8 @@ Anweisung steht in [`einrichtung.md` §2](einrichtung.md#2-erweiterungen-einscha
 Dashboard → *Authentication → URL Configuration*:
 
 - **Site URL**: `https://planer.verein.de`
-- **Redirect URLs**: dieselbe Adresse, zusätzlich `http://localhost:5173`
+- **Redirect URLs**: `https://planer.verein.de/**`, zusätzlich `http://localhost:5173/**` — mit `/**`,
+  sonst landet der Link zum Passwort-Zurücksetzen (Ziel `/profile`) auf der Startseite
 
 Dashboard → *Authentication → Providers*: **Email** genügt. Alles andere aus.
 

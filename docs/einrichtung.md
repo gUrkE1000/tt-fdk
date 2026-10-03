@@ -265,7 +265,9 @@ falschen Stelle.
 In Supabase unter *Authentication → URL Configuration*:
 
 - **Site URL**: `https://verein.example.org`
-- **Redirect URLs**: dieselbe Adresse, zusätzlich `http://localhost:5173` für die Entwicklung
+- **Redirect URLs**: `https://verein.example.org/**`, zusätzlich `http://localhost:5173/**` für die
+  Entwicklung — mit `/**`, sonst landet der Link zum Passwort-Zurücksetzen (Ziel `/profile`)
+  auf der Startseite
 
 Unter *Authentication → Providers* genügt **Email**. Die Anwendung meldet mit Magic Link an
 und setzt dabei `shouldCreateUser: false`: Wer kein Profil hat, bekommt keinen Link. Neue

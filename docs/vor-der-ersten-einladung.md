@@ -104,7 +104,7 @@ Supabase → *Project Settings* → *Authentication* → **SMTP Settings** → *
 | Port | `587` |
 | Username | dein **SMTP-Login** aus Brevo (*SMTP & API → SMTP*, Form `…@smtp-brevo.com`) — nicht deine Anmelde-Adresse |
 | Password | ein **SMTP-Schlüssel**, erzeugt auf derselben Seite (*Generate a new SMTP key*) — **nicht** der API-Schlüssel (`xkeysib-…`) |
-| Sender email | `planer@mail.tt-tsvfeldkirchen.de` — eine Adresse auf der bei Brevo authentifizierten Domain, dort als Absender angelegt |
+| Sender email | `planer@tt-tsvfeldkirchen.de` — eine Adresse auf der bei Brevo authentifizierten Domain, dort unter *Senders* angelegt. **Nicht** die private Gmail-Adresse |
 | Sender name | `TSV Feldkirchen` |
 
 Danach laufen **alle** E-Mails über Brevo: dieselbe authentifizierte Domain, dieselben

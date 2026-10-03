@@ -179,9 +179,18 @@ eintragen, mit relativem Namen (Abschnitt 3):
 | `CNAME` | `tt` | `vereinsplaner.pages.dev` |
 
 **Hauptdomain statt Subdomain** (`beispiel.de`): geht nur mit DNS bei Cloudflare, dann
-genauso wie oben — Cloudflare löst den `CNAME` auf der Wurzel selbst auf. Alte `A`-Einträge
-auf `@` vorher löschen. Für `www` zusätzlich `www.beispiel.de` als zweite Custom domain
-eintragen.
+genauso wie oben — Cloudflare legt auf der Wurzel einen `CNAME` an und löst ihn selbst
+auf; `MX` und `TXT` daneben (Postfach, SPF, DMARC) bleiben unberührt. Stehen dort noch
+die vier `A`-Einträge von GitHub Pages (`185.199.108–111.153`) und meldet Cloudflare einen
+Konflikt: die vier löschen und die Custom domain sofort erneut eintragen. Die Seite ist
+dann wenige Minuten nicht erreichbar.
+
+Für `www` eine Weiterleitung auf die Hauptdomain statt einer zweiten Adresse — sonst gibt
+es zwei Origins mit getrennten Anmeldungen:
+
+1. DNS: `www` als `CNAME` auf `beispiel.de`, **proxied** (orange). Einen alten `CNAME`
+   auf `<konto>.github.io` ersetzen.
+2. *Rules → Redirect Rules → Create from template* → **Redirect from WWW to root**.
 
 ### 4.4 Warten, bis die Domain aktiv ist
 
@@ -227,6 +236,14 @@ der Free-Plan erlaubt **300 E-Mails pro Tag**, ohne Monatsgrenze.
 
 Bietet Brevo an, die Einträge **automatisch bei Cloudflare** anzulegen, nimm das. Prüf
 danach trotzdem den Proxy-Status (Falle 1 unten).
+
+> **Die Automatik authentifiziert die Hauptdomain**, nicht `mail.`: Die Einträge heißen
+> dann `brevo1._domainkey`, `brevo-code` und `_dmarc` ohne `.mail`, dazu CNAMEs `mail`,
+> `r.mail` und `img.mail` für Brevos Link- und Bildadressen. Das ist in Ordnung — die
+> Absenderadresse liegt dann auf der Hauptdomain (`planer@beispiel.de`). Weil dort auch
+> ein Postfach (etwa bei IONOS) hängen kann: DMARC auf `p=none` lassen, bis die Berichte
+> zeigen, dass Postfach **und** Brevo bestehen. Brevo ersetzt dabei einen vorhandenen
+> `_dmarc`-Eintrag.
 
 ### 5.2 Die Einträge übernehmen
 
