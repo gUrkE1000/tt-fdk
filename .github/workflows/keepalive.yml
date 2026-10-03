@@ -1,0 +1,49 @@
+name: Supabase wach halten
+
+# Supabase pausiert ein Projekt im Free-Tarif, wenn es sieben Tage lang keine
+# Datenbankaktivität sieht. Im Vereinsbetrieb passiert das nicht — wohl aber in der
+# Sommerpause oder vor dem Start, wenn noch niemand die App benutzt. Pausiert sind App,
+# Benachrichtigungen und die wöchentliche Sicherung gleichermaßen tot.
+#
+# Dieser Job fragt alle drei Tage die öffentlichen Vereinsdaten ab, genau wie die
+# Anmeldeseite. Das ist eine echte Datenbankabfrage über die REST-API, ändert nichts und
+# braucht nur den öffentlichen anon-Key, der ohnehin im Browser-Bundle steht.
+#
+# Auf die Cron-Jobs in der Datenbank (pg_cron) ist dafür kein Verlass: Ob Supabase sie
+# als Aktivität zählt, ist nicht dokumentiert. Eine Anfrage von außen zählt sicher.
+
+on:
+  schedule:
+    # Alle drei Tage um 05:17 UTC. Zum Monatswechsel wird der Abstand kürzer, nie länger.
+    - cron: '17 5 */3 * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Datenbank abfragen
+        env:
+          # Dieselben Secrets wie beim Deploy der App (deploy.yml).
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$ANON_KEY" ]; then
+            echo "::warning::VITE_SUPABASE_URL oder VITE_SUPABASE_ANON_KEY fehlt — das Projekt wird nicht wach gehalten."
+            exit 0
+          fi
+          # Schlägt die Abfrage fehl, schlägt der Job fehl: Dann schickt GitHub eine Mail,
+          # und es bleibt Zeit, das Projekt im Supabase-Dashboard wiederherzustellen.
+          curl --fail-with-body --silent --show-error \
+               --retry 3 --retry-delay 10 --max-time 30 \
+               --request POST \
+               --header "apikey: $ANON_KEY" \
+               --header "Authorization: Bearer $ANON_KEY" \
+               --header "Content-Type: application/json" \
+               --data '{}' \
+               "${SUPABASE_URL%/}/rest/v1/rpc/get_public_club_info" > /dev/null
+          echo "Supabase hat geantwortet."
