@@ -28,18 +28,24 @@ describe('visibleNav', () => {
   it('gibt dem Mitglied nur die allgemeinen Ziele', () => {
     const paths = visibleNav('member').flatMap((s) => s.items.map((i) => i.to));
     expect(paths).toEqual(
-      expect.arrayContaining(['/', '/my-games', '/my-dates', '/my-club', '/calendar', '/votes']),
+      expect.arrayContaining([
+        '/',
+        '/my-games',
+        '/my-dates',
+        '/my-club',
+        '/trainings',
+        '/calendar',
+        '/votes',
+      ]),
     );
     expect(paths).not.toContain('/teams');
     expect(paths).not.toContain('/players');
-    expect(paths).not.toContain('/trainings');
   });
 
   it('gibt dem Mannschaftsführer Mannschaften und Spieltermine', () => {
     const paths = visibleNav('team_leader').flatMap((s) => s.items.map((i) => i.to));
     expect(paths).toContain('/teams');
     expect(paths).toContain('/games');
-    expect(paths).not.toContain('/trainings');
   });
 
   it('gibt dem Trainer die Trainings', () => {

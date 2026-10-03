@@ -41,7 +41,7 @@ export function detailPath(kind: CalendarKind, id?: string): string | null {
     case 'match':
       return id ? matchPath(id) : '/my-games';
     case 'training':
-      return id ? trainingPath(id) : '/?tab=trainings';
+      return id ? trainingPath(id) : '/trainings';
     case 'event':
       return id ? eventPath(id) : '/my-dates';
     default:

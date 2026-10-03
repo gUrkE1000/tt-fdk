@@ -118,7 +118,7 @@ describe('detailPath', () => {
 
   it('fällt ohne ID auf die Liste zurück', () => {
     expect(detailPath('match')).toBe('/my-games');
-    expect(detailPath('training')).toBe('/?tab=trainings');
+    expect(detailPath('training')).toBe('/trainings');
     expect(detailPath('event')).toBe('/my-dates');
   });
 

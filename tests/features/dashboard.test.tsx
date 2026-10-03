@@ -1,13 +1,14 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import {
   calendarDaysUntil,
   countOpenResponses,
   matchCountdown,
+  movedDashboardTab,
   parseQuicklinks,
 } from '../../src/features/dashboard/summary';
 import { countdownLabel } from '../../src/features/dashboard/CountdownTile';
@@ -196,6 +197,29 @@ describe('countOpenResponses', () => {
       players: 0,
       matches: 0,
     });
+  });
+});
+
+describe('movedDashboardTab', () => {
+  const none = new URLSearchParams();
+
+  it('schickt die früheren Reiter auf ihre eigenen Seiten', () => {
+    expect(movedDashboardTab('open', none, false)).toBe('/my-dates?tab=open');
+    expect(movedDashboardTab('trainings', none, false)).toBe('/trainings');
+    expect(movedDashboardTab('open-trainings', none, false)).toBe('/trainings?tab=open');
+    expect(movedDashboardTab('calendar', none, false)).toBe('/calendar');
+  });
+
+  it('führt zum Tag im Schlüsseldienst nur, wer dort planen darf', () => {
+    const day = new URLSearchParams('tab=keys&date=2026-10-07');
+    expect(movedDashboardTab('keys', day, true)).toBe('/venues?date=2026-10-07');
+    expect(movedDashboardTab('keys', none, true)).toBe('/venues');
+    expect(movedDashboardTab('keys', day, false)).toBe('/trainings');
+  });
+
+  it('lässt die Übersicht ohne bekannten Reiter stehen', () => {
+    expect(movedDashboardTab(null, none, false)).toBeNull();
+    expect(movedDashboardTab('news', none, false)).toBeNull();
   });
 });
 
@@ -406,16 +430,11 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('1 Spiel in den nächsten 30 Tagen')).toBeInTheDocument();
   });
 
-  it('zeigt die Reiter mit ihren Zahlen', async () => {
+  it('hat keine Reiter mehr, nur Kacheln, die weiterführen', async () => {
     renderPage();
-    // Ein eigenes Training plus das offene, zu dem jeder eingeladen ist.
-    expect(await screen.findByRole('tab', { name: 'Trainings (2)' })).toBeInTheDocument();
-    // „Spiele" gibt es auf der Übersicht nicht mehr — dafür ist „Meine Spiele" da.
-    expect(screen.queryByRole('tab', { name: /^Spiele/ })).toBeNull();
-    expect(screen.getByRole('tab', { name: 'Offene Trainings (1)' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Kalender' })).toBeInTheDocument();
-    // Wer wann aufschließt, sieht jedes Mitglied.
-    expect(screen.getByRole('tab', { name: 'Schlüsseldienst' })).toBeInTheDocument();
+    const next = await screen.findByRole('link', { name: /Nächstes Training/ });
+    expect(next.getAttribute('href')).toMatch(/^\/training\//);
+    expect(screen.queryAllByRole('tab')).toHaveLength(0);
   });
 
   it('verlinkt die Quicklinks nach außen', async () => {
@@ -478,11 +497,26 @@ describe('DashboardPage', () => {
     expect(screen.getByRole('link', { name: /Spieler ohne Antwort/ })).toHaveAttribute('href', '/games');
   });
 
-  it('öffnet über ?tab= direkt einen Reiter', async () => {
-    state.role = 'admin';
-    renderPage('/?tab=keys');
-    expect(
-      await screen.findByRole('tab', { name: 'Schlüsseldienst', selected: true }),
-    ).toBeInTheDocument();
+  it('leitet frühere Reiter-Links weiter, etwa aus Benachrichtigungen', async () => {
+    function Where() {
+      const location = useLocation();
+      return <p>{`Ziel: ${location.pathname}${location.search}`}</p>;
+    }
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ToastProvider>
+          <MemoryRouter initialEntries={['/?tab=keys&date=2026-10-07']}>
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="*" element={<Where />} />
+            </Routes>
+          </MemoryRouter>
+        </ToastProvider>
+      </QueryClientProvider>,
+    );
+    // Ein Mitglied ohne Kennzeichen plant den Schlüsseldienst nicht — es sieht ihn an
+    // den Trainingsterminen.
+    expect(await screen.findByText('Ziel: /trainings')).toBeInTheDocument();
   });
 });

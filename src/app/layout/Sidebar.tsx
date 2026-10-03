@@ -39,9 +39,12 @@ export default function Sidebar({
 
       <div className="flex-1 overflow-y-auto px-3 py-4">
         {sections.map((section) => (
-          <div key={section.section ?? 'start'} className="mb-5 last:mb-0">
+          <div
+            key={section.section ?? 'start'}
+            className="mt-4 border-t border-gray-100 pt-4 first:mt-0 first:border-t-0 first:pt-0"
+          >
             {section.section && (
-              <p className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              <p className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
                 {section.section}
               </p>
             )}

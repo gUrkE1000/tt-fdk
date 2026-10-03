@@ -215,6 +215,10 @@ SELECT throws_ok(
     'Ohne Schlüsseldienst trägt man keine Vertretung ein'
 );
 
+-- Planen dürfen nur Administrator und Kennzeichen (Migration key_duty_planners_only).
+DO $$ BEGIN PERFORM tests.as_service_role(); END $$;
+UPDATE public.profiles SET key_service = true WHERE id = '22222222-1111-0000-0000-000000000001';
+
 DO $$ BEGIN PERFORM tests.login_as('22222222-1111-0000-0000-000000000001'); END $$;
 
 SELECT throws_ok(
@@ -269,6 +273,8 @@ SELECT is(
     true,
     'Im Kalender steht der Schlüsseldienst — für die Vertretung „für mich relevant"'
 );
+
+DO $$ BEGIN PERFORM tests.login_as('22222222-1111-0000-0000-000000000001'); END $$;
 
 SELECT lives_ok(
     $$ SELECT public.rpc_set_key_duty_override(

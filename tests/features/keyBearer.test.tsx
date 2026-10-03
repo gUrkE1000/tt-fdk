@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { SessionKeys } from '../../src/features/keys/api';
@@ -7,8 +7,17 @@ import KeyBearerRow from '../../src/features/trainings/KeyBearerRow';
 
 /*
   Die Schlüsselzeile am Trainingstermin zeigt den Schlüsseldienst nur an. Geändert wird
-  er im Reiter „Schlüsseldienst" — der Knopf führt direkt zum Tag des Termins.
+  er unter „Orte & Schlüsseldienst" — wer dort planen darf, bekommt einen Knopf direkt
+  zum Tag des Termins.
 */
+
+const who = vi.hoisted(() => ({ role: 'member', keyService: false }));
+vi.mock('../../src/features/auth/session', () => ({
+  useSession: () => ({
+    profile: { id: 'p-me', key_service: who.keyService },
+    role: who.role,
+  }),
+}));
 
 const inTwoDays = new Date(Date.now() + 2 * 86_400_000);
 const session = {
@@ -61,14 +70,30 @@ describe('KeyBearerRow', () => {
     expect(screen.getByText('Schlüsseldienst: Berta')).toBeInTheDocument();
   });
 
-  it('ändert nichts selbst, sondern führt zum Tag im Schlüsseldienst', () => {
-    renderRow(sessionKeys({ duty_id: 'p-k', duty_name: 'Karl Klein' }));
-    expect(screen.getByRole('link', { name: 'Zum Schlüsseldienst' })).toHaveAttribute(
-      'href',
-      '/?tab=keys&date=2026-10-07',
-    );
+  it('zeigt dem Mitglied ohne Kennzeichen nur den Namen', () => {
+    renderRow(sessionKeys({ duty_id: 'p-me', duty_name: 'Ich' }));
+    expect(screen.queryByRole('link')).toBeNull();
     expect(screen.queryByRole('button')).toBeNull();
     expect(screen.queryByRole('combobox')).toBeNull();
+  });
+
+  it.each([
+    ['dem Schlüsseldienst', 'member', true],
+    ['dem Administrator', 'admin', false],
+  ])('führt %s zum Tag im Schlüsseldienst', (_, role, keyService) => {
+    who.role = role;
+    who.keyService = keyService;
+    try {
+      renderRow(sessionKeys({ duty_id: 'p-k', duty_name: 'Karl Klein' }));
+      expect(screen.getByRole('link', { name: 'Zum Schlüsseldienst' })).toHaveAttribute(
+        'href',
+        '/venues?date=2026-10-07',
+      );
+      expect(screen.queryByRole('combobox')).toBeNull();
+    } finally {
+      who.role = 'member';
+      who.keyService = false;
+    }
   });
 
   it('bleibt bei einem ausgefallenen Termin weg', () => {
@@ -77,8 +102,13 @@ describe('KeyBearerRow', () => {
   });
 
   it('verlinkt bei einem vergangenen Termin nicht mehr', () => {
-    const past = new Date(Date.now() - 2 * 86_400_000);
-    renderRow(sessionKeys(), { starts_at: past.toISOString(), ends_at: past.toISOString() });
-    expect(screen.queryByRole('link')).toBeNull();
+    who.role = 'admin';
+    try {
+      const past = new Date(Date.now() - 2 * 86_400_000);
+      renderRow(sessionKeys(), { starts_at: past.toISOString(), ends_at: past.toISOString() });
+      expect(screen.queryByRole('link')).toBeNull();
+    } finally {
+      who.role = 'member';
+    }
   });
 });

@@ -193,8 +193,8 @@ SELECT matches(
     (SELECT payload ->> 'link' FROM public.notifications
       WHERE type = 'training_key_missing' AND channel = 'email'
         AND profile_id = '22222222-0000-0000-0000-000000000003'),
-    '/\?tab=keys&date=\d{4}-\d{2}-\d{2}$',
-    'Der Link führt zum Tag im Schlüsseldienst'
+    '/training/77777777-0000-0000-0000-0000000000aa$',
+    'Der Link führt die Trainerin ohne Planungsrecht zum Termin'
 );
 
 SELECT is(

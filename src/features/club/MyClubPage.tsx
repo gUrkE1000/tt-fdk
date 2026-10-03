@@ -22,12 +22,12 @@ import NewsTab from './NewsTab';
 import { searchDirectory, useDirectory, type DirectoryEntry } from './directory';
 
 /**
- * Reiter, die es nicht mehr gibt: Trainings stehen in der Übersicht, Termine unter
+ * Reiter, die es nicht mehr gibt: Trainings stehen unter „Trainings", Termine unter
  * „Meine Termine", Spiele unter „Meine Spiele". Mannschaften, Ämter und die
  * Zuordnungs-Übersicht sind auf Wunsch weggefallen.
  */
 const MOVED_TABS: Record<string, string> = {
-  trainings: '/?tab=trainings',
+  trainings: '/trainings',
   events: '/my-dates',
   games: '/my-games',
   files: '/my-club',
